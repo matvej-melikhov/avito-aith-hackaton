@@ -137,7 +137,7 @@
   <header class="masthead">
     <div class="kicker">Avito AI Reviewer — сущности и экраны, страница 2</div>
     <h1>Аккаунты, курсы и статистика</h1>
-    <p class="lede">Семь экранов, которых не было в прежних макетах: аккаунт ревьюера, курсы и потоки координатора, развёрнутая рубрика с эталонным решением, статистика по обеим ролям.</p>
+    <p class="lede">Десять экранов, которых не было в прежних макетах: аккаунт ревьюера с двумя путями входа, курсы и потоки координатора, развёрнутая рубрика с эталонным решением, статистика по обеим ролям, управление составом ревьюеров, полный реестр домашек и просмотр завершённых ревью.</p>
     <nav class="nav">
       <a href="#r1">Регистрация</a>
       <a href="#r2">Доступность</a>
@@ -146,6 +146,9 @@
       <a href="#k2">Поток</a>
       <a href="#k3">Рубрика</a>
       <a href="#k4">Статистика по ревьюерам</a>
+      <a href="#k5">Управление ревьюерами</a>
+      <a href="#k6">Реестр домашек</a>
+      <a href="#k7">Просмотр ревью</a>
     </nav>
   </header>
 
@@ -155,21 +158,36 @@
   </div>
 
   <section class="screen" id="r1">
-    <div class="shead"><span class="snum">Р1</span><h3>Регистрация ревьюера</h3></div>
-    <p class="purpose">Первый экран для нового человека — внутреннего сотрудника Авито или внешнего эксперта. Заполняется один раз, дальше правится в настройках.</p>
-    <div class="frame">
-      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">signup / стать ревьюером</span></div>
+    <div class="shead"><span class="snum">Р1</span><h3>Регистрация ревьюера — два пути</h3></div>
+    <p class="purpose">Тот же приём, что и у студента через Stepik ID, но для сотрудников Авито своя точка входа. Для внешних экспертов такой точки нет, поэтому для них — обычная форма с одобрением координатора.</p>
+
+    <div class="frame" style="margin-bottom:14px">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">signup / внутренний сотрудник</span></div>
       <div class="canvas">
-        <div class="field"><span class="flabel">ID (без ФИО)</span><div class="inp">rev-2214</div></div>
-        <div class="field"><span class="flabel">Статус</span>
-          <div class="tagset"><span class="tag on">внутренний, Авито</span><span class="tag">внешний эксперт</span></div>
+        <div class="row" style="align-items:center; gap:12px">
+          <span class="chip acc">вход через Avito ID</span>
+          <span class="hint">аккаунт создаётся автоматически при первом входе, доступ сразу</span>
         </div>
-        <div class="field"><span class="flabel">Темы, по которым готов проверять</span>
+        <div class="field" style="margin-top:10px"><span class="flabel">Темы, по которым готов проверять</span>
           <div class="tagset"><span class="tag on">системный дизайн</span><span class="tag on">Go</span><span class="tag">Tech QA</span><span class="tag">Data Science</span></div>
         </div>
-        <div class="field"><span class="flabel">Контакт для уведомлений</span><div class="inp">через Telegram-бота курса</div></div>
       </div>
-      <div class="cta"><button class="btn primary">Создать аккаунт</button></div>
+      <div class="cta"><button class="btn primary">Войти через Avito ID</button></div>
+    </div>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">signup / внешний эксперт</span></div>
+      <div class="canvas">
+        <div class="field"><span class="flabel">ID (без ФИО)</span><div class="inp">rev-ext-4102</div></div>
+        <div class="field"><span class="flabel">Контакт для уведомлений</span><div class="inp">через Telegram-бота курса</div></div>
+        <div class="field"><span class="flabel">Темы, по которым готов проверять</span>
+          <div class="tagset"><span class="tag on">Tech QA</span></div>
+        </div>
+      </div>
+      <div class="cta">
+        <span class="chip warn" style="align-self:center">ждёт одобрения координатора</span>
+        <button class="btn primary">Отправить заявку</button>
+      </div>
     </div>
   </section>
 
@@ -330,5 +348,66 @@
     </div>
   </section>
 
-  <footer>Avito AI Reviewer, хакатон AI Talent Hub, 3 сентября 2026. Данные на макетах вымышленные. Источник: docs/17-entities-and-screens.md</footer>
+  <section class="screen" id="k5">
+    <div class="shead"><span class="snum">К5</span><h3>Управление ревьюерами</h3></div>
+    <p class="purpose">Отдельно от собственной регистрации ревьюера (экран Р1) — координатор видит весь состав и одобряет внешних экспертов, которые сами подали заявку.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / ревьюеры</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Ревьюер</th><th>Статус</th><th>Темы</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">rev-2214</td><td><span class="chip ok">активен, внутренний</span></td><td>системный дизайн, Go</td><td><span class="chip">—</span></td></tr>
+              <tr><td class="mono">rev-3390</td><td><span class="chip ok">активен, внутренний</span></td><td>системный дизайн</td><td><span class="chip">—</span></td></tr>
+              <tr><td class="mono">rev-ext-4102</td><td><span class="chip warn">ждёт одобрения</span></td><td>Tech QA</td><td><button class="btn primary">Одобрить</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="k6">
+    <div class="shead"><span class="snum">К6</span><h3>Реестр домашек</h3></div>
+    <p class="purpose">Шире, чем состояние пула из <a href="pull-flow.html">pull-flow.html</a>: там только сданное и не взятое, здесь — все статусы, включая уже зафиксированные.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / все домашки · Системный дизайн, лаба 1</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th class="mono">Студент</th><th>Статус</th><th>Ревьюер</th><th class="mono">Балл</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">4821</td><td><span class="chip warn">на эскалации</span></td><td class="mono">rev-2214</td><td class="mono">4.5 / 6</td></tr>
+              <tr><td class="mono">4790</td><td><span class="chip ok">зафиксирована</span></td><td class="mono">rev-3390</td><td class="mono">5.0 / 6</td></tr>
+              <tr><td class="mono">4805</td><td><span class="chip acc">на проверке</span></td><td class="mono">rev-2214</td><td class="mono">—</td></tr>
+              <tr><td class="mono">4776</td><td><span class="chip">на доработке</span></td><td class="mono">rev-4102</td><td class="mono">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="k7">
+    <div class="shead"><span class="snum">К7</span><h3>Просмотр завершённых ревью</h3></div>
+    <p class="purpose">Не путать с эскалациями — там работы в процессе, здесь уже подтверждённые. Нужен для разбора жалоб студента и для выборочного контроля качества самих ревьюеров.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / ревью · студент 4790</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Требование</th><th class="mono">Балл</th><th>Обоснование ревьюера</th></tr></thead>
+            <tbody>
+              <tr><td>Диаграмма C4</td><td class="mono">1 / 1</td><td>согласился с моделью</td></tr>
+              <tr><td>Анализ связности</td><td class="mono">0 / 0.5</td><td>«раздел есть, но не разбирает конкретные зависимости, только общие слова»</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">По интервью ревьюер обязан письменно обосновать каждое снижение балла — колонка «обоснование» не декоративная, а то самое требование прозрачности.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Avito AI Reviewer, хакатон AI Talent Hub, 3 сентября 2026. Данные на макетах вымышленные. Источник: docs/platform-screens/entities-and-screens.md</footer>
 </div>
