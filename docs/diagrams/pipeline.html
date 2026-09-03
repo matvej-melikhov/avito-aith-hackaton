@@ -1,0 +1,114 @@
+<!doctype html><meta charset="utf-8">
+<title>Пайплайн проверки работы</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F6F7F4; --paper:#FFFFFF; --ink:#1B2028; --muted:#5B6470; --line:#CBD1D8;
+  --accent:#1D6FD1; --accent-soft:#E3EEFB; --warn:#B9770E; --warn-soft:#FBF1DE; --ok:#2E7D4F; --ok-soft:#E4F3EA;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171C; --paper:#1C2129; --ink:#E6E9EE; --muted:#A3ABB6; --line:#3A424D;
+    --accent:#6FA8F5; --accent-soft:#1E2E45; --warn:#E0A63A; --warn-soft:#3A2F16; --ok:#6CC28F; --ok-soft:#173224;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171C; --paper:#1C2129; --ink:#E6E9EE; --muted:#A3ABB6; --line:#3A424D;
+  --accent:#6FA8F5; --accent-soft:#1E2E45; --warn:#E0A63A; --warn-soft:#3A2F16; --ok:#6CC28F; --ok-soft:#173224;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.45;margin:0}
+main{max-width:600px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:26px;line-height:1.2;font-weight:600;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 24px}
+.phase{font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin:22px 0 8px}
+.step{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:var(--paper)}
+.step b{display:block;font-weight:600}
+.step span{display:block;color:var(--muted);font-size:15px;margin-top:2px}
+.step.human{border-color:var(--accent);background:var(--accent-soft);border-width:2px}
+.step.flag{border-color:var(--warn);background:var(--warn-soft);border-style:dashed}
+.step.ok{border-color:var(--ok);background:var(--ok-soft)}
+.step.ghost{border-style:dashed;border-color:var(--muted)}
+.arrow{text-align:center;color:var(--muted);font-size:22px;line-height:1;padding:4px 0}
+.arrow small{display:block;font-size:14px;line-height:1.3;color:var(--muted);padding:2px 0 0}
+.par{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.par .step{padding:10px 12px}
+.par .step b{font-size:16px}
+.par .step span{font-size:14px}
+.par .wide{grid-column:1/-1}
+.mini{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.mini div{font-size:14px;color:var(--muted);padding-left:10px;border-left:2px solid var(--line)}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;border:1px solid var(--line);color:var(--muted);margin-top:6px}
+.tag.ok{border-color:var(--ok);color:var(--ok)}
+.tag.acc{border-color:var(--accent);color:var(--accent)}
+.tag.warn{border-color:var(--warn);color:var(--warn)}
+.loop{border-left:2px dashed var(--accent);margin:0 0 0 14px;padding:8px 0 8px 14px;color:var(--muted);font-size:15px}
+.fails{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
+.fails div{border:1px dashed var(--warn);background:var(--warn-soft);border-radius:8px;padding:10px 12px;font-size:15px}
+.fails b{font-weight:600}
+.say{margin:22px 0 0;padding:12px 14px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:16px}
+</style>
+
+<main>
+<h1>Как проверяется одна работа</h1>
+<p class="sub">Вход: работа студента и замороженная рубрика. Выход: заполненная таблица критериев, где у каждой оценки есть «почему». Ревьюер не ждёт: таблица заполняется по мере готовности.</p>
+
+<p class="phase">Подготовка · без модели · секунды</p>
+<div class="step"><b>Вход</b><span>ссылка на PR или файл, номер итерации, версия рубрики. Одинаковый вход считается один раз</span></div>
+<div class="arrow">↓</div>
+<div class="step"><b>1. Снимок работы</b><span>клон на нужный коммит с историей или скачанный файл. Дальше работаем только со снимком</span></div>
+<div class="arrow">↓</div>
+<div class="step"><b>2. Метаданные</b><span>коммиты, время, авторы, размеры; для docx автор и история правок; опоздание к дедлайну → штраф</span></div>
+<div class="arrow">↓</div>
+<div class="step"><b>3. Карта работы</b><span>файлы с номерами строк; для Go разбор кода: пакеты, функции, интерфейсы, теги, импорты, кто кого вызывает. Чтобы любая цитата имела адрес</span></div>
+<div class="arrow">↓</div>
+<div class="step flag"><b>4. Анонимизация и защита</b><span>ФИО, почты, ключи → плейсхолдеры. Инструкции для модели внутри комментариев вырезаются из срезов и ставят флаг. Только после этого что-то уходит в модель</span></div>
+
+<div class="arrow">↓<small>дальше четыре класса строк рубрики идут параллельно</small></div>
+
+<p class="phase">Проверки · параллельно</p>
+<div class="par">
+  <div class="step"><b>A. Тесты</b><span>песочница без сети, тесты курса снаружи кода студента: сборка, миграции на чистую базу, /ping, флаг --port, SIGTERM</span><span class="tag ok">факт · принять кликом</span></div>
+  <div class="step"><b>B. Статика</b><span>дюжина примитивов: файл есть, grep, импорт, AST-запрос, счётчик. «есть go.mod», «нет fmt.Print», «интерфейсы приватные»</span><span class="tag ok">факт · принять кликом</span></div>
+  <div class="step wide"><b>C. Модель с цитатой</b>
+    <div class="mini">
+      <div>выбор файлов по карте: «нет логики в handlers» → только internal/handler, до 6 файлов</div>
+      <div>один вызов на строку: рубрика строки + заметки + ТЗ + факты из A и B + срезы кода</div>
+      <div>ответ по схеме: вердикт, балл или диапазон, уверенность, цитаты файл:строки, «чего нет и где искали»</div>
+      <div>программа ищет каждую цитату в коде. Не нашла → цитата снимается, уверенность падает, флаг</div>
+      <div>второй прогон. Разошлись → берём осторожный, уверенность низкая, показываем оба</div>
+    </div>
+    <span class="tag acc">предложение · ревьюер подтверждает</span></div>
+  <div class="step"><b>D. Наблюдения</b><span>для оценочных строк: 2–3 факта с цитатами, без балла. «функция handleAssign 140 строк»</span><span class="tag acc">решает человек</span></div>
+  <div class="step"><b>ИИ-сигнал</b><span>git-процесс, стиль против прошлых заданий студента, промахи по ТЗ, артефакты, декларация → уровень, основания, вопросы для Q&A</span><span class="tag warn">вне баллов</span></div>
+</div>
+
+<div class="arrow">↓</div>
+
+<p class="phase">Сборка · без модели</p>
+<div class="step"><b>5. Таблица и итог</b><span>значение «Авто» на строку → веса → суммы групп → флаг на критичное → штраф отдельной строкой → итог как в шаблоне, максимум по итерациям. Две цифры: предложено и подтверждено</span></div>
+<div class="arrow">↓</div>
+<div class="step"><b>6. Очередь</b><span>первыми к ревьюеру: критичное провалено, ИИ-сигнал, неподтверждённые цитаты, разброс повторов, балл у порога, вторая итерация</span></div>
+<div class="arrow">↓</div>
+<div class="step"><b>7. Черновики</b><span>один вызов без кода: комментарий студенту на каждую группу, 2–4 пункта, и три пункта ревьюеру «на что смотреть первым»</span></div>
+<div class="arrow">↓</div>
+<div class="step"><b>8. Запись</b><span>неизменяемая: версии рубрики, пайплайна, промптов, модель, токены, все логи. По любой ячейке можно открыть «как это получилось»</span></div>
+<div class="arrow">↓</div>
+<div class="step human"><b>9. Ревьюер</b><span>видит таблицу с «Авто» и «Почему», принимает всё с высокой уверенностью одним кликом, ставит оценочные сам, правит черновик, утверждает</span></div>
+<div class="arrow">↓</div>
+<div class="step ok"><b>Решения ревьюера</b><span>каждая строка хранится парой «предложено → решено»</span></div>
+<div class="loop">↺ Из пар по всему пулу выводятся интерпретации критериев. Непроверенные работы пересчитываются, подтверждённые не трогаются. Строки, где модель нестабильна на многих работах, уходят методисту как «нечёткая формулировка». Это возвращается в шаг C на следующем прогоне.</div>
+
+<p class="phase">Вторая итерация</p>
+<div class="step ghost"><b>Досдача</b><span>дифф между коммитами → перепроверяются только строки не на максимуме и строки, чьи файлы изменились. Остальное «без изменений». Ревьюер видит, какие замечания закрыты. Вопросы ИИ-сигнала подставляются в колонку «после Q&A»</span></div>
+
+<p class="phase">Если что-то упало</p>
+<div class="fails">
+  <div><b>Сборка не прошла.</b> Строки A «не проверено, сборка не прошла». B и C работают дальше: архитектуру видно и по несобирающемуся коду.</div>
+  <div><b>Модель недоступна.</b> A, B и сигнал по метаданным отдаются сразу, C «не проверено», повтор по расписанию.</div>
+  <div><b>Файл недоступен.</b> Единственная полная остановка: работа поднимается ревьюеру и методисту.</div>
+  <div><b>Правило.</b> Никакая ошибка не превращается в провал строки. Провал только по факту.</div>
+</div>
+
+<div class="say"><b>Одной фразой.</b> Половина таблицы заполняется программой без модели. Модель отвечает на маленькие вопросы по одной строке и только цитатами, которые программа проверяет. Всё, что не подтвердилось, не прячется, а показывается ревьюеру флагом. Порядок величины: единицы рублей и до пяти минут на работу.</div>
+</main>
