@@ -284,15 +284,15 @@ footer_brand(s); page_number(s, 3, TOTAL)
 s = add_slide()
 kicker(s, "Наш подход")
 textbox(s, Inches(0.7), Inches(0.95), Inches(11.9), Inches(0.9),
-        "Три класса требований — три способа проверки", size=30, color=NAVY, bold=True, font=FONT_HEAD)
+        "Один движок — LLM с тулами, три уровня строгости сигнала", size=28, color=NAVY, bold=True, font=FONT_HEAD)
 textbox(s, Inches(0.7), Inches(1.72), Inches(11.3), Inches(0.5),
-        "Требования рубрики делятся не по теме, а по тому, кто может их проверить",
+        "Любое требование детектит LLM, с тулом или без. Любой вердикт — сигнал, аппрувит ревьюер",
         size=13.5, color=MUTED, font=FONT_BODY)
 
 classes = [
-    ("Формальные", "Считается кодом", "«Построена диаграмма C4» — код ищет блок в тексте. Без модели, без ошибок, бесплатно.", TEAL),
-    ("Содержательные", "Модель + цитата", "«Есть ли декомпозиция по двум признакам» — модель находит и цитирует, код проверяет, что цитата реальна.", NAVY),
-    ("Оценочные", "Только человек", "«Обосновано ли соблюдение SRP» — модель предлагает интервал, решение остаётся за ревьюером.", WARN),
+    ("Формальные", "LLM + тул", "«Построена диаграмма C4» — LLM вызывает тул поиска блока. Детерминированный факт, но тоже сигнал.", TEAL),
+    ("Содержательные", "LLM + цитата", "«Есть ли декомпозиция по двум признакам» — LLM находит и цитирует, код валидирует цитату.", NAVY),
+    ("Оценочные", "LLM советует", "«Обосновано ли SRP» — LLM предлагает интервал и аргументы, решает человек.", WARN),
 ]
 cx = Inches(0.7); cw = Inches(3.83); gap = Inches(0.2); cy = Inches(2.45); ch = Inches(3.05)
 for i, (title, tag, body, accent) in enumerate(classes):
@@ -308,8 +308,8 @@ for i, (title, tag, body, accent) in enumerate(classes):
 
 rect(s, Inches(0.7), Inches(5.75), Inches(11.9), Inches(0.95), fill=TEAL_SOFT, radius=0.1)
 textbox(s, Inches(1.05), Inches(5.95), Inches(11.2), Inches(0.6),
-        "На реальной рубрике системного дизайна формальные и содержательные требования уже дают "
-        "4.5 из 6 баллов надёжно — до всякого суждения модели.",
+        "На реальной рубрике формальные и содержательные сигналы уже дают 4.5 из 6 баллов "
+        "высокой уверенности — все сигналы аппрувит ревьюер.",
         size=13.5, color=NAVY, bold=True, font=FONT_BODY, line_spacing=1.15)
 
 footer_brand(s); page_number(s, 4, TOTAL)
@@ -336,14 +336,14 @@ cx2, cy2, cw2, ch2 = Inches(3.85), Inches(2.35), Inches(4.55), Inches(3.5)
 rect(s, cx2, cy2, cw2, ch2, fill=NAVY, radius=0.08, shadow=True)
 textbox(s, cx2 + Inches(0.3), cy2 + Inches(0.22), cw2 - Inches(0.6), Inches(0.3),
         "ЯДРО", size=10.5, color=TEAL, bold=True, font=FONT_BODY)
-steps = ["Проверки кодом", "Проверка моделью по требованию", "Валидация цитаты", "Сборка результата"]
+steps = ["Разбор артефакта", "LLM по требованию (тул — опционально)", "Валидация цитат / тулов", "Сборка сигналов"]
 for i, t in enumerate(steps):
     yy = cy2 + Inches(0.68) + i * Inches(0.68)
     circle(s, cx2 + Inches(0.3), yy, Inches(0.36), fill=TEAL, text=str(i+1), size=12)
     textbox(s, cx2 + Inches(0.8), yy - Inches(0.04), cw2 - Inches(1.1), Inches(0.45),
             t, size=13, color=WHITE, font=FONT_BODY, anchor=MSO_ANCHOR.MIDDLE)
 textbox(s, cx2 + Inches(0.3), cy2 + Inches(3.02), cw2 - Inches(0.6), Inches(0.35),
-        "не зависит от того, домашка это или пул-реквест", size=10.5,
+        "все вердикты — сигналы, тул — опция LLM", size=10.5,
         color=RGBColor(0xB9,0xC3,0xD6), italic=True, font=FONT_BODY)
 
 # --- человек (справа) ---
