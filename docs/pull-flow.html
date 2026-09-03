@@ -1,0 +1,297 @@
+<title>Создание и пул</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+    --ink:#141920; --ink-2:#4E5765; --ink-3:#7A8494;
+    --line:#DEE2E8; --line-2:#C8CED8;
+    --accent:#2F5D8C; --accent-soft:#E5EDF6;
+    --ok:#2C7355; --ok-soft:#E2F0EA;
+    --warn:#8E6511; --warn-soft:#F7EEDA;
+    --bad:#A5453A; --bad-soft:#F8E6E3;
+    --shadow:0 1px 2px rgba(20,25,32,.05), 0 8px 24px rgba(20,25,32,.06);
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#161A20; --surface-2:#1D222A;
+      --ink:#E7EAEF; --ink-2:#A7B0BD; --ink-3:#79828F;
+      --line:#262C35; --line-2:#333B46;
+      --accent:#82A9D4; --accent-soft:#1B2733;
+      --ok:#67B492; --ok-soft:#16261F;
+      --warn:#CFA75A; --warn-soft:#2A2416;
+      --bad:#D5877C; --bad-soft:#2C1D1B;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#161A20; --surface-2:#1D222A;
+    --ink:#E7EAEF; --ink-2:#A7B0BD; --ink-3:#79828F;
+    --line:#262C35; --line-2:#333B46;
+    --accent:#82A9D4; --accent-soft:#1B2733;
+    --ok:#67B492; --ok-soft:#16261F;
+    --warn:#CFA75A; --warn-soft:#2A2416;
+    --bad:#D5877C; --bad-soft:#2C1D1B;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px; margin:0 auto; padding:56px 24px 96px}
+
+  .masthead{display:flex; flex-direction:column; gap:16px; padding-bottom:26px; border-bottom:2px solid var(--ink)}
+  .kicker{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+  h1{margin:0; font-size:clamp(28px,4.6vw,42px); line-height:1.08; letter-spacing:-.025em; font-weight:700; text-wrap:balance}
+  .lede{margin:0; max-width:64ch; color:var(--ink-2); font-size:16.5px}
+
+  section{margin-top:52px}
+  .snum{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--accent); border:1px solid var(--accent);
+    border-radius:4px; padding:1px 6px; letter-spacing:.04em}
+  h2{margin:10px 0 8px; font-size:24px; letter-spacing:-.015em; font-weight:600; text-wrap:balance}
+  h3{margin:22px 0 8px; font-size:15.5px; font-weight:600; letter-spacing:-.005em}
+  p{margin:0 0 12px; max-width:70ch}
+  .muted{color:var(--ink-2)}
+
+  .frame{background:var(--surface); border:1px solid var(--line-2); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; margin:16px 0}
+  .titlebar{display:flex; align-items:center; gap:10px; padding:9px 14px; background:var(--surface-2); border-bottom:1px solid var(--line)}
+  .dots{display:flex; gap:5px}
+  .dots i{width:9px; height:9px; border-radius:50%; background:var(--line-2); display:block}
+  .tb-title{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+  .canvas{padding:18px}
+
+  .split2{display:grid; grid-template-columns:1fr 1.05fr; gap:0}
+  .pane{padding:16px}
+  .pane + .pane{border-left:1px solid var(--line)}
+  .pane h4{margin:0 0 3px; font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .pane .hint{font-size:12px; color:var(--ink-3); margin-bottom:11px}
+  .field{display:flex; flex-direction:column; gap:5px; padding:10px 0; border-top:1px solid var(--line)}
+  .field:first-of-type{border-top:0; padding-top:0}
+  .flabel{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3)}
+  .inp{border:1px solid var(--line-2); border-radius:6px; padding:7px 10px; font-size:13.5px; background:var(--surface); color:var(--ink)}
+  .inp.area{min-height:64px; line-height:1.5; font-family:inherit}
+  .row{display:flex; gap:10px; align-items:center}
+  .row .inp{flex:1}
+  .crit-row{border:1px solid var(--line); border-radius:8px; padding:11px 12px; margin-bottom:9px; background:var(--surface-2)}
+  .crit-row .top{display:flex; gap:8px; align-items:center; margin-bottom:7px}
+  .crit-row .top .inp{flex:1; font-size:13px}
+  .pill-select{font-family:"IBM Plex Mono",monospace; font-size:11px; padding:4px 9px; border-radius:20px; border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2); white-space:nowrap}
+  .pill-select.formal{background:var(--ok-soft); border-color:transparent; color:var(--ok)}
+  .pill-select.content{background:var(--accent-soft); border-color:transparent; color:var(--accent)}
+  .pill-select.eval{background:var(--warn-soft); border-color:transparent; color:var(--warn)}
+  .ptbadge{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); white-space:nowrap; padding:0 4px}
+  .addcrit{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); border:1px dashed var(--line-2); border-radius:8px; padding:8px 12px; text-align:center}
+
+  .cta{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 18px; border-top:1px solid var(--line); background:var(--surface-2)}
+  .cta .muted{font-size:12px; margin:0}
+  .btn{font-size:12.5px; padding:7px 16px; border-radius:6px; border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2); cursor:default; white-space:nowrap}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500}
+
+  .chip{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:11px; padding:2px 8px; border-radius:20px; border:1px solid var(--line-2); color:var(--ink-2); white-space:nowrap}
+  .chip.ok{background:var(--ok-soft); border-color:transparent; color:var(--ok)}
+  .chip.warn{background:var(--warn-soft); border-color:transparent; color:var(--warn)}
+  .chip.acc{background:var(--accent-soft); border-color:transparent; color:var(--accent)}
+
+  .cap-box{display:flex; align-items:center; gap:14px; padding:14px 16px; background:var(--accent-soft); border-radius:8px; margin-bottom:16px; flex-wrap:wrap}
+  .cap-box .lbl{font-size:13px; color:var(--ink-2)}
+  .cap-box .stepper{display:flex; align-items:center; gap:8px; font-family:"IBM Plex Mono",monospace}
+  .cap-box .stepper button{width:26px; height:26px; border-radius:6px; border:1px solid var(--line-2); background:var(--surface); color:var(--ink); font-size:14px; cursor:default}
+  .cap-box .stepper b{font-size:18px; font-variant-numeric:tabular-nums; min-width:20px; text-align:center}
+  .cap-box .sub{font-size:11.5px; color:var(--ink-3)}
+
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th{text-align:left; font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3); font-weight:500; padding:0 10px 8px 0; border-bottom:1px solid var(--line-2)}
+  td{padding:10px 10px 10px 0; border-bottom:1px solid var(--line); vertical-align:middle}
+  .mono{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+  .scroll{overflow-x:auto}
+
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:16px 0}
+  .compare > div{padding:16px 18px}
+  .compare > div:first-child{background:var(--surface-2); border-right:1px solid var(--line)}
+  .compare h4{margin:0 0 10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .compare ol{margin:0; padding-left:18px; font-size:13.5px; color:var(--ink-2)}
+  .compare li{margin:6px 0}
+
+  .callout{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 18px; margin:18px 0}
+  .callout.warn{border-left-color:var(--warn)}
+  .callout b{display:block; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); margin-bottom:6px; font-weight:500}
+  .callout p:last-child{margin-bottom:0}
+
+  footer{margin-top:64px; padding-top:20px; border-top:2px solid var(--ink); font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+
+  @media (max-width:720px){
+    .wrap{padding:36px 16px 64px}
+    .split2{grid-template-columns:1fr}
+    .pane + .pane{border-left:0; border-top:1px solid var(--line)}
+    .compare{grid-template-columns:1fr}
+    .compare > div:first-child{border-right:0; border-bottom:1px solid var(--line)}
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">Avito AI Reviewer — новая идея, 3 сентября</div>
+    <h1>Координатор создаёт один раз, ревьюер тянет сам</h1>
+    <p class="lede">Два экрана, которые меняют флоу: форма создания задания вместо разбора существующего условия, и кабинет ревьюера с пулом вместо раскладки координатором.</p>
+  </header>
+
+  <section>
+    <span class="snum">01</span>
+    <h2>Что меняется</h2>
+    <p>Раньше координатор публиковал условие где-то ещё, а система пыталась распознать критерии из него. Каждую работу раскладывал по ревьюерам, узнавая заранее, кто сколько готов взять.</p>
+    <div class="compare">
+      <div>
+        <h4>Было</h4>
+        <ol>
+          <li>Условие пишется в GitHub, Stepik или PDF</li>
+          <li>Система пытается распознать критерии оттуда</li>
+          <li>Координатор вычитывает и правит распознанное</li>
+          <li>Координатор узнаёт у каждого ревьюера ёмкость</li>
+          <li>Координатор раскладывает работы по ревьюерам</li>
+        </ol>
+      </div>
+      <div>
+        <h4>Стало</h4>
+        <ol>
+          <li>Координатор один раз описывает задание в форме на платформе</li>
+          <li>Сохранил — задание сразу видно ревьюерам</li>
+          <li>Ревьюер сам указывает, сколько готов взять</li>
+          <li>Система отдаёт ему работы из пула под эту ёмкость</li>
+          <li>Координатор возвращается, только если что-то застряло</li>
+        </ol>
+      </div>
+    </div>
+    <p class="muted">Пять шагов вместо пяти — но три из них теперь делает не координатор.</p>
+  </section>
+
+  <section>
+    <span class="snum">02</span>
+    <h2>Экран 1. Создание задания</h2>
+    <p>Координатор садится один раз. Слева — то, что увидит студент. Справа — критерии, по которым будет оценивать ревьюер. Никакого импорта из внешнего условия: оба поля координатор пишет сам.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / новое задание</span></div>
+      <div class="split2">
+        <div class="pane">
+          <h4>Для студента</h4>
+          <div class="hint">Свободный текст — условие, цель, что нужно сдать</div>
+          <div class="field">
+            <span class="flabel">Название</span>
+            <div class="inp">Системный дизайн, лабораторная 1</div>
+          </div>
+          <div class="field">
+            <span class="flabel">Описание</span>
+            <div class="inp area">Выберите проект и проработайте его на предстоящих лабораторных. Выполните декомпозицию системы, определите интерфейсы, нарисуйте архитектурные схемы и проанализируйте связность компонентов…</div>
+          </div>
+          <div class="field">
+            <span class="flabel">Срок сдачи</span>
+            <div class="inp">19 февраля, 23:59</div>
+          </div>
+        </div>
+        <div class="pane">
+          <h4>Для ревьюера — критерии</h4>
+          <div class="hint">Балл и способ проверки указываются сразу, по каждому пункту</div>
+
+          <div class="crit-row">
+            <div class="top">
+              <div class="inp">Построена диаграмма C4, контекстная и компонентная</div>
+              <span class="ptbadge">1 балл</span>
+            </div>
+            <span class="pill-select formal">формальное · ищем блок C4</span>
+          </div>
+
+          <div class="crit-row">
+            <div class="top">
+              <div class="inp">Выполнена декомпозиция по двум и более признакам</div>
+              <span class="ptbadge">1 балл</span>
+            </div>
+            <span class="pill-select content">содержательное · нужна цитата</span>
+          </div>
+
+          <div class="crit-row">
+            <div class="top">
+              <div class="inp">Структура, оформление и полнота документации</div>
+              <span class="ptbadge">0.5 балла</span>
+            </div>
+            <span class="pill-select eval">оценочное · решает ревьюер</span>
+          </div>
+
+          <div class="addcrit">+ добавить критерий</div>
+        </div>
+      </div>
+      <div class="cta">
+        <p class="muted">Зачёт от 4 баллов из 6 · штраф −1 балл за день просрочки</p>
+        <button class="btn primary">Сохранить и опубликовать</button>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>Почему без автоматического разбора</b>
+      <p>Мы рассматривали вариант «система сама вытаскивает критерии из готового условия» — на системном дизайне это было бы почти бесплатно, рубрика там уже лежит таблицей. Отказались: ошибка распознавания тихо портит оценку всем студентам потока, а вычитывать чужой черновик выходит не быстрее, чем сразу написать свой. Форма — тот единственный раз, когда координатор садится за задание.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="snum">03</span>
+    <h2>Экран 2. Кабинет ревьюера</h2>
+    <p>Ревьюер не ждёт назначения. Указывает, сколько готов взять, и получает ровно столько из общего пула — часть критериев уже проверена системой.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">reviewer / мой кабинет</span></div>
+      <div class="canvas">
+
+        <div class="cap-box">
+          <span class="lbl">Сколько работ готов взять сейчас</span>
+          <span class="stepper"><button>−</button><b>6</b><button>+</button></span>
+          <span class="sub">взято 4 из 6 · 2 места свободно, заполнятся сами</span>
+        </div>
+
+        <div class="scroll">
+          <table>
+            <thead><tr><th class="mono">Студент</th><th>Задание</th><th>Статус</th><th class="mono">Проверить до</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">4821</td><td>Системный дизайн, лаба 1</td><td><span class="chip acc">черновик готов</span></td><td class="mono">19 фев</td><td><button class="btn primary">Открыть</button></td></tr>
+              <tr><td class="mono">4790</td><td>Системный дизайн, лаба 1</td><td><span class="chip warn">просрочена на 2 дня</span></td><td class="mono">15 фев</td><td><button class="btn primary">Открыть</button></td></tr>
+              <tr><td class="mono">4833</td><td>Системный дизайн, лаба 1</td><td><span class="chip">повторная проверка</span></td><td class="mono">18 фев</td><td><button class="btn primary">Открыть</button></td></tr>
+              <tr><td class="mono">4805</td><td>Системный дизайн, лаба 2</td><td><span class="chip">черновик готовится</span></td><td class="mono">21 фев</td><td><button class="btn">Ждём</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="cta">
+        <p class="muted">Работы подбираются по теме, которую ревьюер указал основной, и по ближайшему сроку</p>
+        <button class="btn">Вернуть работу в пул</button>
+      </div>
+    </div>
+
+    <p class="muted">Никого не назначали. Координатор в этот момент ничего не делает — работы разошлись сами по заявленной ёмкости всех ревьюеров потока.</p>
+  </section>
+
+  <section>
+    <span class="snum">04</span>
+    <h2>Что теперь видит координатор</h2>
+    <p>Раскладывать не нужно. Экран отвечает на один вопрос: что застряло и почему.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / состояние пула</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Ревьюер</th><th class="mono">Заявлено</th><th class="mono">Взято</th><th>Тема</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Ревьюер A</td><td class="mono">10</td><td class="mono">7</td><td>системный дизайн</td><td><span class="chip ok">разбирает</span></td></tr>
+              <tr><td>Ревьюер B</td><td class="mono">6</td><td class="mono">6</td><td>системный дизайн</td><td><span class="chip">полностью взято</span></td></tr>
+              <tr><td>Ревьюер C</td><td class="mono">8</td><td class="mono">2</td><td>Tech QA</td><td><span class="chip warn">пул по теме пуст</span></td></tr>
+              <tr><td>—</td><td class="mono">—</td><td class="mono">3</td><td>Tech QA</td><td><span class="chip warn">горит, 4 дня без ревьюера</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="callout warn">
+      <b>Кнопки «назначить принудительно» нет намеренно</b>
+      <p>Если пул голодает — координатор видит риск и может отправить целевое напоминание конкретному ревьюеру, но не может решить за него. Это осознанный выбор: как только появляется кнопка «назначить», мы тихо возвращаемся к push и теряем главный эффект — координатору больше не нужно постоянно возвращаться в систему.</p>
+    </div>
+  </section>
+
+  <footer>Avito AI Reviewer, хакатон AI Talent Hub, 3 сентября 2026. Источники: docs/design-doc.md, docs/08-review-core.md, docs/09-assignment.md</footer>
+</div>
