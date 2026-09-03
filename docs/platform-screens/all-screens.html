@@ -1,0 +1,1128 @@
+<title>Все экраны платформы</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+
+  :root{
+    --bg:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+    --ink:#141920; --ink-2:#4E5765; --ink-3:#7A8494;
+    --line:#DEE2E8; --line-2:#C8CED8;
+    --accent:#2F5D8C; --accent-soft:#E5EDF6;
+    --ok:#2C7355; --ok-soft:#E2F0EA;
+    --warn:#8E6511; --warn-soft:#F7EEDA;
+    --bad:#A5453A; --bad-soft:#F8E6E3;
+    --shadow:0 1px 2px rgba(20,25,32,.05), 0 8px 24px rgba(20,25,32,.06);
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1116; --surface:#161A20; --surface-2:#1D222A;
+      --ink:#E7EAEF; --ink-2:#A7B0BD; --ink-3:#79828F;
+      --line:#262C35; --line-2:#333B46;
+      --accent:#82A9D4; --accent-soft:#1B2733;
+      --ok:#67B492; --ok-soft:#16261F;
+      --warn:#CFA75A; --warn-soft:#2A2416;
+      --bad:#D5877C; --bad-soft:#2C1D1B;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1116; --surface:#161A20; --surface-2:#1D222A;
+    --ink:#E7EAEF; --ink-2:#A7B0BD; --ink-3:#79828F;
+    --line:#262C35; --line-2:#333B46;
+    --accent:#82A9D4; --accent-soft:#1B2733;
+    --ok:#67B492; --ok-soft:#16261F;
+    --warn:#CFA75A; --warn-soft:#2A2416;
+    --bad:#D5877C; --bad-soft:#2C1D1B;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:56px 24px 96px}
+
+  /* ── шапка ── */
+  .masthead{display:flex; flex-direction:column; gap:18px; padding-bottom:28px; border-bottom:2px solid var(--ink)}
+  .kicker{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+  h1{margin:0; font-size:clamp(30px,5vw,46px); line-height:1.05; letter-spacing:-.025em; font-weight:700; text-wrap:balance}
+  .lede{margin:0; max-width:60ch; color:var(--ink-2); font-size:17px}
+  .meta{display:flex; flex-wrap:wrap; gap:8px 20px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3)}
+
+  /* ── легенда ── */
+  .legend{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:28px 0 0}
+  .legend div{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px}
+  .legend b{display:block; font-size:13px; margin-bottom:2px}
+  .legend span{font-size:12.5px; color:var(--ink-2)}
+
+  /* ── секции экранов ── */
+  section{margin-top:64px; scroll-margin-top:24px}
+  .shead{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:6px}
+  .snum{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--accent); border:1px solid var(--accent); border-radius:4px; padding:1px 6px; letter-spacing:.04em}
+  h2{margin:0; font-size:24px; letter-spacing:-.015em; font-weight:600}
+  .role{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+  .purpose{margin:0 0 20px; color:var(--ink-2); max-width:66ch}
+
+  /* ── рамка макета ── */
+  .frame{background:var(--surface); border:1px solid var(--line-2); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+  .titlebar{display:flex; align-items:center; gap:10px; padding:9px 14px; background:var(--surface-2); border-bottom:1px solid var(--line)}
+  .dots{display:flex; gap:5px}
+  .dots i{width:9px; height:9px; border-radius:50%; background:var(--line-2); display:block}
+  .tb-title{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+  .canvas{padding:18px}
+
+  /* ── элементы интерфейса ── */
+  .row{display:flex; gap:12px; align-items:flex-start}
+  .between{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap}
+  .wtitle{font-size:17px; font-weight:600; letter-spacing:-.01em}
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{font-family:"IBM Plex Mono",monospace; font-size:11px; padding:2px 8px; border-radius:20px; border:1px solid var(--line-2); color:var(--ink-2); white-space:nowrap}
+  .chip.ok{background:var(--ok-soft); border-color:transparent; color:var(--ok)}
+  .chip.warn{background:var(--warn-soft); border-color:transparent; color:var(--warn)}
+  .chip.bad{background:var(--bad-soft); border-color:transparent; color:var(--bad)}
+  .chip.acc{background:var(--accent-soft); border-color:transparent; color:var(--accent)}
+
+  .score{display:flex; align-items:baseline; gap:8px; font-family:"IBM Plex Mono",monospace}
+  .score b{font-size:26px; font-weight:500; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+  .score span{font-size:12px; color:var(--ink-3)}
+
+  .band{margin-top:14px; border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  .band h4{margin:0; padding:9px 12px; background:var(--surface-2); border-bottom:1px solid var(--line);
+           font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .band .body{padding:12px}
+
+  .checks{display:flex; flex-direction:column; gap:7px; font-size:13.5px}
+  .checks div{display:flex; gap:9px; align-items:baseline}
+  .mark{font-family:"IBM Plex Mono",monospace; font-size:11px; min-width:52px; text-align:center; padding:1px 0; border-radius:4px}
+  .mark.ok{background:var(--ok-soft); color:var(--ok)}
+  .mark.bad{background:var(--bad-soft); color:var(--bad)}
+
+  .crit{border-top:1px solid var(--line); padding:13px 0}
+  .crit:first-child{border-top:0; padding-top:2px}
+  .crit .line1{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap}
+  .crit .name{font-weight:500; font-size:14px; flex:1; min-width:180px}
+  .pts{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+  .quote{margin:8px 0 0; padding:8px 11px; background:var(--surface-2); border-left:2px solid var(--accent);
+         border-radius:0 6px 6px 0; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-2); line-height:1.5}
+  .acts{display:flex; gap:6px; margin-top:9px}
+  .btn{font-size:12px; padding:4px 11px; border-radius:6px; border:1px solid var(--line-2); background:transparent; color:var(--ink-2); cursor:default}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:500}
+  .cta{display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line)}
+  .cta .btn{font-size:13px; padding:8px 18px}
+
+  .draft{font-size:13.5px; color:var(--ink-2)}
+  .draft ul{margin:6px 0 0; padding-left:18px}
+  .draft li{margin:3px 0}
+
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th{text-align:left; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:500; padding:0 10px 8px 0; border-bottom:1px solid var(--line)}
+  td{padding:10px 10px 10px 0; border-bottom:1px solid var(--line); vertical-align:middle}
+  td.mono, th.mono{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+  .scroll{overflow-x:auto}
+
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px}
+  .tile{background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:11px 12px}
+  .tile b{display:block; font-family:"IBM Plex Mono",monospace; font-size:22px; font-weight:500; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+  .tile span{font-size:11.5px; color:var(--ink-3)}
+  .tile.alert b{color:var(--bad)}
+
+  .load{display:flex; flex-direction:column; gap:9px}
+  .load .l{display:grid; grid-template-columns:130px 1fr 58px; gap:10px; align-items:center; font-size:13px}
+  .bar{height:7px; background:var(--surface-2); border-radius:4px; overflow:hidden}
+  .bar i{display:block; height:100%; background:var(--accent); border-radius:4px}
+  .bar i.over{background:var(--bad)}
+  .load .n{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); text-align:right; font-variant-numeric:tabular-nums}
+
+  .split{display:grid; grid-template-columns:1fr 1.15fr; gap:14px}
+  .pane{border:1px solid var(--line); border-radius:8px; overflow:hidden}
+  .pane h5{margin:0; padding:8px 11px; background:var(--surface-2); border-bottom:1px solid var(--line); font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .pane .p{padding:11px; font-size:13px; color:var(--ink-2)}
+  .src{font-family:"IBM Plex Mono",monospace; font-size:11.5px; line-height:1.7; white-space:pre-wrap}
+  .field{display:flex; flex-direction:column; gap:5px; padding:10px 0; border-top:1px solid var(--line)}
+  .field:first-child{border-top:0; padding-top:0}
+  .inp{border:1px solid var(--line-2); border-radius:6px; padding:6px 9px; font-size:13px; background:var(--surface)}
+  .inp.small{font-family:"IBM Plex Mono",monospace; font-size:12px}
+  .fl{font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3)}
+
+  /* ── заметки под макетом ── */
+  .notes{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+  .note{border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; background:var(--surface); padding:12px 14px}
+  .note.neg{border-left-color:var(--bad)}
+  .note b{display:block; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); margin-bottom:5px; font-weight:500}
+  .note p{margin:0; font-size:13.5px; color:var(--ink-2)}
+  .note ul{margin:0; padding-left:17px; font-size:13.5px; color:var(--ink-2)}
+  .note li{margin:2px 0}
+
+  footer{margin-top:72px; padding-top:22px; border-top:2px solid var(--ink)}
+  footer h3{margin:0 0 10px; font-size:15px; font-weight:600}
+  footer ul{margin:0; padding-left:18px; color:var(--ink-2); font-size:14px}
+  footer li{margin:4px 0}
+  .foot-meta{margin-top:18px; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3)}
+
+  @media (max-width:760px){
+    .wrap{padding:36px 16px 64px}
+    .notes{grid-template-columns:1fr}
+    .split{grid-template-columns:1fr}
+    .load .l{grid-template-columns:96px 1fr 50px}
+  }
+
+  /* --- добавлено из pull-flow / accounts-and-stats / submission --- */
+  .masthead{display:flex; flex-direction:column; gap:16px; padding-bottom:26px; border-bottom:2px solid var(--ink)}
+  section{margin-top:52px}
+  h3{margin:22px 0 8px; font-size:15.5px; font-weight:600; letter-spacing:-.005em}
+  p{margin:0 0 12px; max-width:70ch}
+  .muted{color:var(--ink-2)}
+  .frame{background:var(--surface); border:1px solid var(--line-2); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; margin:16px 0}
+  .split2{display:grid; grid-template-columns:1fr 1.05fr; gap:0}
+  .pane + .pane{border-left:1px solid var(--line)}
+  .pane h4{margin:0 0 3px; font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .pane .hint{font-size:12px; color:var(--ink-3); margin-bottom:11px}
+  .hint{font-size:12px; color:var(--ink-3)}
+  .field:first-of-type{border-top:0; padding-top:0}
+  .flabel{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3)}
+  .inp.area{min-height:64px; line-height:1.5; font-family:inherit}
+  .row{display:flex; gap:10px; align-items:center}
+  .row .inp{flex:1}
+  .crit-row{border:1px solid var(--line); border-radius:8px; padding:11px 12px; margin-bottom:9px; background:var(--surface-2)}
+  .crit-row .top{display:flex; gap:8px; align-items:center; margin-bottom:7px}
+  .crit-row .top .inp{flex:1; font-size:13px}
+  .pill-select{font-family:"IBM Plex Mono",monospace; font-size:11px; padding:4px 9px; border-radius:20px; border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2); white-space:nowrap}
+  .pill-select.formal{background:var(--ok-soft); border-color:transparent; color:var(--ok)}
+  .pill-select.content{background:var(--accent-soft); border-color:transparent; color:var(--accent)}
+  .pill-select.eval{background:var(--warn-soft); border-color:transparent; color:var(--warn)}
+  .ptbadge{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); white-space:nowrap; padding:0 4px}
+  .addcrit{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-3); border:1px dashed var(--line-2); border-radius:8px; padding:8px 12px; text-align:center}
+  .cta .muted{font-size:12px; margin:0}
+  .cap-box{display:flex; align-items:center; gap:14px; padding:14px 16px; background:var(--accent-soft); border-radius:8px; margin-bottom:16px; flex-wrap:wrap}
+  .cap-box .lbl{font-size:13px; color:var(--ink-2)}
+  .cap-box .stepper{display:flex; align-items:center; gap:8px; font-family:"IBM Plex Mono",monospace}
+  .cap-box .stepper button{width:26px; height:26px; border-radius:6px; border:1px solid var(--line-2); background:var(--surface); color:var(--ink); font-size:14px; cursor:default}
+  .cap-box .stepper b{font-size:18px; font-variant-numeric:tabular-nums; min-width:20px; text-align:center}
+  .cap-box .sub{font-size:11.5px; color:var(--ink-3)}
+  .mono{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:16px 0}
+  .compare > div{padding:16px 18px}
+  .compare > div:first-child{background:var(--surface-2); border-right:1px solid var(--line)}
+  .compare h4{margin:0 0 10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .compare ol{margin:0; padding-left:18px; font-size:13.5px; color:var(--ink-2)}
+  .compare li{margin:6px 0}
+  .callout{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:14px 18px; margin:18px 0}
+  .callout.warn{border-left-color:var(--warn)}
+  .callout > b{display:block; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); margin-bottom:6px; font-weight:500}
+  .callout p:last-child{margin-bottom:0}
+  @media (max-width:720px){
+    .wrap{padding:36px 16px 64px}
+    .split2{grid-template-columns:1fr}
+    .pane + .pane{border-left:0; border-top:1px solid var(--line)}
+    .compare{grid-template-columns:1fr}
+    .compare > div:first-child{border-right:0; border-bottom:1px solid var(--line)}
+  }
+  .nav{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+  .nav a{font-family:"IBM Plex Mono",monospace; font-size:11px; text-decoration:none; color:var(--ink-2);
+    border:1px solid var(--line-2); border-radius:20px; padding:3px 10px}
+  .nav a:hover{border-color:var(--accent); color:var(--accent)}
+  .role-head{display:flex; align-items:baseline; gap:12px; margin:56px 0 6px; padding-top:28px; border-top:2px solid var(--ink)}
+  .role-head:first-of-type{border-top:0; margin-top:44px}
+  .role-tag{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--surface); background:var(--ink); padding:3px 10px; border-radius:20px}
+  .role-head h2{margin:0; font-size:22px; letter-spacing:-.01em; font-weight:600}
+  section.screen{margin-top:38px}
+  .tagset{display:flex; flex-wrap:wrap; gap:6px}
+  .tag{font-family:"IBM Plex Mono",monospace; font-size:11.5px; padding:4px 10px; border-radius:20px; border:1px solid var(--line-2); color:var(--ink-2)}
+  .tag.on{background:var(--accent-soft); border-color:transparent; color:var(--accent); font-weight:500}
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line)}
+  .toggle-row:first-of-type{border-top:0; padding-top:0}
+  .toggle-row .label{font-size:13.5px}
+  .toggle-row .sub{font-size:11.5px; color:var(--ink-3); margin-top:2px}
+  .switch{width:34px; height:19px; border-radius:20px; background:var(--line-2); position:relative; flex-shrink:0}
+  .switch.on{background:var(--accent)}
+  .switch::after{content:""; position:absolute; top:2px; left:2px; width:15px; height:15px; border-radius:50%; background:var(--surface)}
+  .switch.on::after{left:17px}
+  .stat-tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:14px}
+  .bar i.warn{background:var(--warn)}
+  .filepick{border:1px dashed var(--line-2); border-radius:8px; padding:12px; text-align:center; font-size:12.5px; color:var(--ink-3); font-family:"IBM Plex Mono",monospace}
+  .identity{display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--ok-soft); border-radius:8px; margin-bottom:16px; font-size:13px; color:var(--ok)}
+  .identity b{color:inherit}
+  .identity .via{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); margin-left:auto}
+  .task-brief{padding:12px 14px; background:var(--surface-2); border-radius:8px; margin-bottom:18px}
+  .task-brief .wtitle{font-weight:600; font-size:15px; margin-bottom:4px}
+  .task-brief p{margin:0; font-size:13px; color:var(--ink-2)}
+  .task-meta{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+  .dropzone{border:2px dashed var(--line-2); border-radius:10px; padding:28px 16px; text-align:center; margin-bottom:14px}
+  .dropzone .icon{font-family:"IBM Plex Mono",monospace; font-size:22px; color:var(--ink-3); margin-bottom:6px}
+  .dropzone .main{font-size:13.5px; color:var(--ink-2)}
+  .dropzone .sub{font-size:12px; color:var(--ink-3); margin-top:4px}
+  .filelist{display:flex; flex-direction:column; gap:6px; margin-bottom:14px}
+  .filerow{display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--surface-2); border-radius:6px; font-size:13px}
+  .filerow .name{font-family:"IBM Plex Mono",monospace; flex:1}
+  .filerow .rm{color:var(--ink-3); font-size:12px}
+  .prev-feedback{border:1px solid var(--line); border-radius:8px; margin-bottom:16px; overflow:hidden}
+  .prev-feedback h4{margin:0; padding:9px 12px; background:var(--surface-2); border-bottom:1px solid var(--line); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .prev-feedback .body{padding:12px}
+  @media (max-width:600px){ .wrap{padding:36px 16px 64px} }
+
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="kicker">Avito AI Reviewer — все экраны в одном месте</div>
+    <h1>Полная платформа: 23 экрана по трём ролям</h1>
+    <p class="lede">Раньше это было в четырёх отдельных файлах, собрано в один, чтобы не прыгать по ссылкам. Заодно два старых экрана из первой версии, которые тихо спорили с более поздними решениями — раскладка координатором и автоизвлечение критериев — здесь исправлены, а не скопированы как есть.</p>
+    <nav class="nav">
+      <a href="#С1">С1. Прикрепление артефакта</a>
+      <a href="#С2">С2. Повторная сдача</a>
+      <a href="#С3">С3. Саморевью</a>
+      <a href="#С4">С4. Статус домашки</a>
+      <a href="#С5">С5. Обратная связь</a>
+      <a href="#Р1">Р1. Регистрация</a>
+      <a href="#Р2">Р2. Доступность</a>
+      <a href="#Р3">Р3. Кабинет и пул</a>
+      <a href="#Р4">Р4. Карточка работы</a>
+      <a href="#Р5">Р5. Статистика</a>
+      <a href="#К1">К1. Обзор курсов</a>
+      <a href="#К2">К2. Курс</a>
+      <a href="#К3">К3. Поток</a>
+      <a href="#К4">К4. Задание</a>
+      <a href="#К5">К5. Рубрика</a>
+      <a href="#К6">К6. Состояние пула</a>
+      <a href="#К7">К7. Ревьюеры</a>
+      <a href="#К8">К8. Реестр домашек</a>
+      <a href="#К9">К9. Просмотр ревью</a>
+      <a href="#К10">К10. Статистика по ревьюерам</a>
+      <a href="#К11">К11. Эскалации</a>
+      <a href="#К12">К12. Журнал решений</a>
+      <a href="#К13">К13. Выгрузка</a>
+    </nav>
+  </header>
+
+  
+
+  <div class="legend">
+    <div><b>Проверено кодом</b><span>Считаемые требования: объём, наличие диаграмм, число тест-кейсов.</span></div>
+    <div><b>Проверено моделью</b><span>Есть или нет требуемый элемент. Обязательна цитата из работы.</span></div>
+    <div><b>Требует суждения</b><span>Насколько хорошо сделано. Модель только советует, решает человек.</span></div>
+  </div>
+
+  
+
+  <section>
+    <span class="snum">—</span>
+    <h2>Что меняется</h2>
+    <p>Раньше координатор публиковал условие где-то ещё, а система пыталась распознать критерии из него. Каждую работу раскладывал по ревьюерам, узнавая заранее, кто сколько готов взять.</p>
+    <div class="compare">
+      <div>
+        <h4>Было</h4>
+        <ol>
+          <li>Условие пишется в GitHub, Stepik или PDF</li>
+          <li>Система пытается распознать критерии оттуда</li>
+          <li>Координатор вычитывает и правит распознанное</li>
+          <li>Координатор узнаёт у каждого ревьюера ёмкость</li>
+          <li>Координатор раскладывает работы по ревьюерам</li>
+        </ol>
+      </div>
+      <div>
+        <h4>Стало</h4>
+        <ol>
+          <li>Координатор один раз описывает задание в форме на платформе</li>
+          <li>Сохранил — задание сразу видно ревьюерам</li>
+          <li>Ревьюер сам указывает, сколько готов взять</li>
+          <li>Система отдаёт ему работы из пула под эту ёмкость</li>
+          <li>Координатор возвращается, только если что-то застряло</li>
+        </ol>
+      </div>
+    </div>
+    <p class="muted">Пять шагов вместо пяти — но три из них теперь делает не координатор.</p>
+  </section>
+
+  <div class="role-head">
+    <span class="role-tag">Студент</span>
+    <h2>Сдача, самопроверка, статус</h2>
+  </div>
+<section class="screen" id="С1">
+    <div class="shead"><span class="snum">С1</span><h2>Первая сдача</h2></div>
+    <p class="purpose">Студент кликнул ссылку в задании на Stepik. Платформа уже знает, кто он и по какому заданию — экран сразу открывается на нужном контексте.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">platform.avito.edu/s/9f2ac1</span></div>
+      <div class="canvas">
+        <div class="identity">Узнали вас по Stepik ID, привязали к потоку «Системный дизайн, февраль» <span class="via">stepik_id: 88214</span></div>
+
+        <div class="task-brief">
+          <div class="wtitle">Лабораторная работа 1</div>
+          <p>Выберите проект и проработайте его на предстоящих лабораторных. Выполните декомпозицию системы, определите интерфейсы, нарисуйте архитектурные схемы…</p>
+          <div class="task-meta">
+            <span class="chip acc">срок: 19 февраля, 23:59</span>
+            <span class="chip">9 требований к работе</span>
+          </div>
+        </div>
+
+        <div class="dropzone">
+          <div class="icon">⇧</div>
+          <div class="main">Перетащите файлы или вставьте ссылку на репозиторий</div>
+          <div class="sub">Markdown, PDF, ссылка на GitHub — формат зависит от задания</div>
+        </div>
+
+        <div class="filelist">
+          <div class="filerow"><span class="name">wardrobe-service-lab1.md</span><span class="chip ok">загружено</span><span class="rm">убрать</span></div>
+        </div>
+
+        <div class="field">
+          <span class="flabel">Комментарий к сдаче (необязательно)</span>
+          <div class="inp">Использовал ИИ для черновика диаграмм C4, дальше дорабатывал сам</div>
+        </div>
+      </div>
+      <div class="cta">
+        <p class="muted">Можно проверить работу перед сдачей — саморевью</p>
+        <button class="btn primary">Отправить на проверку</button>
+      </div>
+    </div>
+  </section>
+<section class="screen" id="С2">
+    <div class="shead"><span class="snum">С2</span><h2>Повторная сдача после доработки</h2></div>
+    <p class="purpose">Та же ссылка, тот же экран — но система знает, что это не первая попытка, и показывает, что просил поправить ревьюер.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">platform.avito.edu/s/9f2ac1, попытка 2</span></div>
+      <div class="canvas">
+        <div class="identity">Узнали вас по Stepik ID, привязали к потоку «Системный дизайн, февраль» <span class="via">stepik_id: 88214</span></div>
+
+        <div class="prev-feedback">
+          <h4>Что просил поправить ревьюер</h4>
+          <div class="body checks">
+            <div><span class="mark bad">не закрыто</span><span>Опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe</span></div>
+            <div><span class="mark bad">не закрыто</span><span>Добавь обоснование SRP: почему именно такие границы компонентов</span></div>
+            <div><span class="mark bad">не закрыто</span><span>Укажи в работе, использовал ли ты ИИ и как именно</span></div>
+          </div>
+        </div>
+
+        <div class="dropzone">
+          <div class="icon">⇧</div>
+          <div class="main">Прикрепите новую версию</div>
+          <div class="sub">Старая версия останется в истории домашки</div>
+        </div>
+
+        <div class="filelist">
+          <div class="filerow"><span class="name">wardrobe-service-lab1-v1.md</span><span class="chip">версия 1, архив</span></div>
+        </div>
+      </div>
+      <div class="cta">
+        <p class="muted">Дедлайн повторной сдачи: 21 февраля</p>
+        <button class="btn primary">Отправить исправленную версию</button>
+      </div>
+    </div>
+  </section>
+<section id="С3">
+    <div class="shead">
+      <span class="snum">С3</span>
+      <h2>Самопроверка до сдачи</h2>
+    </div>
+    <p class="purpose">Тот же движок, урезанный интерфейс. Меньше слабых работ на входе означает меньше итераций доработки и меньше нагрузки на ревьюеров.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">student / самопроверка / попытка 2 из 3</span></div>
+      <div class="canvas">
+        <div class="between" style="margin-bottom:6px">
+          <div class="wtitle">Пока закрыто 6 требований из 9</div>
+          <span class="chip">осталась 1 попытка</span>
+        </div>
+
+        <div class="band">
+          <h4>Ещё не закрыто</h4>
+          <div class="body">
+            <div class="crit">
+              <div class="line1"><span class="name">Указаны типы взаимодействий и контракты</span><span class="chip warn">частично</span></div>
+              <p class="quote">Формат и ошибки описаны, а входы и выходы для внутренних вызовов между Outfits и Wardrobe не заданы. Добавь их в раздел с контрактами.</p>
+            </div>
+            <div class="crit">
+              <div class="line1"><span class="name">Проведён анализ связности компонентов</span><span class="chip bad">не нашли</span></div>
+              <p class="quote">В работе нет раздела, где разбираются зависимости между компонентами. Требование есть в условии, пункт «Анализ связности».</p>
+            </div>
+            <div class="crit">
+              <div class="line1"><span class="name">Предложены способы снижения связности</span><span class="chip bad">не нашли</span></div>
+              <p class="quote">Следует за анализом связности. Опиши, что и как можно развязать, и почему это поможет.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="band">
+          <h4>Уже закрыто</h4>
+          <div class="body checks">
+            <div><span class="mark ok">да</span><span>Декомпозиция по двум и более признакам</span></div>
+            <div><span class="mark ok">да</span><span>Диаграмма C4, контекстная и компонентная</span></div>
+            <div><span class="mark ok">да</span><span>Диаграмма последовательностей</span></div>
+            <div><span class="mark ok">да</span><span>Определены интерфейсы между компонентами</span></div>
+          </div>
+        </div>
+
+        <div class="cta"><button class="btn primary">Понятно, иду дорабатывать</button></div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="note"><b>Главное действие</b><p>Понять, чего не хватает, и вернуться к работе. Проверка идёт против требований из условия, а не против наших формулировок.</p></div>
+      <div class="note neg">
+        <b>Чего на экране нет, и это принципиально</b>
+        <ul>
+          <li>баллов и предварительной оценки, иначе экран превращается в торг,</li>
+          <li>блока с признаками использования ИИ: увидев его, студент просто уберёт признаки, а решение об этом принимает ревьюер,</li>
+          <li>безлимитных попыток, иначе это перебор вариантов, а не самопроверка.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="С4">
+    <div class="shead"><span class="snum">С4</span><h2>Статус домашки</h2></div>
+    <p class="purpose">Единственное, что студент видит между сдачей и результатом. Обновляется само, никаких действий студента не требует.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">platform.avito.edu/s/9f2ac1, статус</span></div>
+      <div class="canvas">
+        <div class="checks">
+          <div><span class="chip ok">сдана</span><span>19 февраля, 22:40</span></div>
+          <div><span class="chip ok">взята ревьюером</span><span>20 февраля</span></div>
+          <div><span class="chip acc">на проверке</span><span>сейчас</span></div>
+          <div><span style="color:var(--ink-3)">зафиксирована</span><span style="color:var(--ink-3)">ожидается до 21 февраля</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="С5">
+    <div class="shead"><span class="snum">С5</span><h2>Финальная обратная связь</h2></div>
+    <p class="purpose">Открывается, когда ревьюер подтвердил работу. Тот же текст, что ушёл в комментарий на GitHub или в отчёт — здесь не дублируется формат, только читается.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">platform.avito.edu/s/9f2ac1, результат</span></div>
+      <div class="canvas">
+        <div class="row" style="margin-bottom:12px"><span class="chip ok">проверено</span><span class="mono" style="font-size:20px; font-weight:500">4.5 / 6</span></div>
+        <div class="draft">
+          Привет! Хорошая структура и подробные контракты. Что поправить:
+          <ul>
+            <li>Опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe.</li>
+            <li>Добавь обоснование SRP: почему именно такие границы компонентов.</li>
+            <li>Укажи в работе, использовал ли ты ИИ и как именно, этого требует условие.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <div class="role-head">
+    <span class="role-tag">Ревьюер</span>
+    <h2>Аккаунт, пул, проверка</h2>
+  </div>
+<section class="screen" id="Р1">
+    <div class="shead"><span class="snum">Р1</span><h3>Регистрация ревьюера — два пути</h3></div>
+    <p class="purpose">Тот же приём, что и у студента через Stepik ID, но для сотрудников Авито своя точка входа. Для внешних экспертов такой точки нет, поэтому для них — обычная форма с одобрением координатора.</p>
+
+    <div class="frame" style="margin-bottom:14px">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">signup / внутренний сотрудник</span></div>
+      <div class="canvas">
+        <div class="row" style="align-items:center; gap:12px">
+          <span class="chip acc">вход через Avito ID</span>
+          <span class="hint">аккаунт создаётся автоматически при первом входе, доступ сразу</span>
+        </div>
+        <div class="field" style="margin-top:10px"><span class="flabel">Темы, по которым готов проверять</span>
+          <div class="tagset"><span class="tag on">системный дизайн</span><span class="tag on">Go</span><span class="tag">Tech QA</span><span class="tag">Data Science</span></div>
+        </div>
+      </div>
+      <div class="cta"><button class="btn primary">Войти через Avito ID</button></div>
+    </div>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">signup / внешний эксперт</span></div>
+      <div class="canvas">
+        <div class="field"><span class="flabel">ID (без ФИО)</span><div class="inp">rev-ext-4102</div></div>
+        <div class="field"><span class="flabel">Контакт для уведомлений</span><div class="inp">через Telegram-бота курса</div></div>
+        <div class="field"><span class="flabel">Темы, по которым готов проверять</span>
+          <div class="tagset"><span class="tag on">Tech QA</span></div>
+        </div>
+      </div>
+      <div class="cta">
+        <span class="chip warn" style="align-self:center">ждёт одобрения координатора</span>
+        <button class="btn primary">Отправить заявку</button>
+      </div>
+    </div>
+  </section>
+<section class="screen" id="Р2">
+    <div class="shead"><span class="snum">Р2</span><h3>Настройки: доступность и темы</h3></div>
+    <p class="purpose">Сюда ревьюер возвращается, когда что-то меняется: уходит в отпуск, берёт новую тему. Не путать с кабинетом (там — заявленная ёмкость и сам пул, см. <a href="pull-flow.html">pull-flow.html</a>).</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">reviewer / настройки</span></div>
+      <div class="canvas">
+        <div class="toggle-row">
+          <div><div class="label">Сейчас доступен для пула</div><div class="sub">выключить — работы этому ревьюеру не показываются, даже если ёмкость заявлена</div></div>
+          <span class="switch on"></span>
+        </div>
+        <div class="toggle-row">
+          <div><div class="label">Уведомления о «горящих» работах по моей теме</div></div>
+          <span class="switch on"></span>
+        </div>
+        <div class="field"><span class="flabel">Недоступен с — по</span>
+          <div class="row"><div class="inp">не задано</div><span class="chip">добавить период</span></div>
+        </div>
+        <div class="field"><span class="flabel">Темы</span>
+          <div class="tagset"><span class="tag on">системный дизайн</span><span class="tag on">Go</span><span class="tag">+ добавить</span></div>
+        </div>
+      </div>
+      <div class="cta"><button class="btn primary">Сохранить</button></div>
+    </div>
+  </section>
+<section id="Р3">
+    <span class="snum">Р3</span>
+    <h2>Кабинет: заявленная ёмкость и пул</h2>
+    <p>Ревьюер не ждёт назначения. Указывает, сколько готов взять, и получает ровно столько из общего пула — часть критериев уже проверена системой.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">reviewer / мой кабинет</span></div>
+      <div class="canvas">
+
+        <div class="cap-box">
+          <span class="lbl">Сколько работ готов взять сейчас</span>
+          <span class="stepper"><button>−</button><b>6</b><button>+</button></span>
+          <span class="sub">взято 4 из 6, 2 места свободно, заполнятся сами</span>
+        </div>
+
+        <div class="scroll">
+          <table>
+            <thead><tr><th class="mono">Студент</th><th>Задание</th><th>Статус</th><th class="mono">Проверить до</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">4821</td><td>Системный дизайн, лаба 1</td><td><span class="chip acc">черновик готов</span></td><td class="mono">19 фев</td><td><button class="btn primary">Открыть</button></td></tr>
+              <tr><td class="mono">4790</td><td>Системный дизайн, лаба 1</td><td><span class="chip warn">просрочена на 2 дня</span></td><td class="mono">15 фев</td><td><button class="btn primary">Открыть</button></td></tr>
+              <tr><td class="mono">4833</td><td>Системный дизайн, лаба 1</td><td><span class="chip">повторная проверка</span></td><td class="mono">18 фев</td><td><button class="btn primary">Открыть</button></td></tr>
+              <tr><td class="mono">4805</td><td>Системный дизайн, лаба 2</td><td><span class="chip">черновик готовится</span></td><td class="mono">21 фев</td><td><button class="btn">Ждём</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="cta">
+        <p class="muted">Работы подбираются по теме, которую ревьюер указал основной, и по ближайшему сроку</p>
+        <button class="btn">Вернуть работу в пул</button>
+      </div>
+    </div>
+
+    <p class="muted">Никого не назначали. Координатор в этот момент ничего не делает — работы разошлись сами по заявленной ёмкости всех ревьюеров потока.</p>
+  </section>
+<section id="Р4">
+    <div class="shead">
+      <span class="snum">Р4</span>
+      <h2>Карточка работы</h2>
+    </div>
+    <p class="purpose">Главный экран продукта и единственный, который показываем на демо крупно. Ревьюер не ищет подтверждения в работе, он соглашается с готовыми вердиктами или возражает.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">reviewer / работа 4821 / системный дизайн, лабораторная 1</span></div>
+      <div class="canvas">
+
+        <div class="between">
+          <div>
+            <div class="wtitle">Студент 4821 — Wardrobe Service</div>
+            <div class="chips" style="margin-top:7px">
+              <span class="chip">сдано 12 фев, 21:40</span>
+              <span class="chip warn">просрочка 1 день, штраф −1</span>
+              <span class="chip acc">проверить до 19 фев</span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="score"><b>4.5</b><span>из 6</span></div>
+            <span class="chip warn" style="margin-top:4px; display:inline-block">граница зачёта, нужен второй взгляд</span>
+          </div>
+        </div>
+
+        <div class="band">
+          <h4>Проверено кодом</h4>
+          <div class="body checks">
+            <div><span class="mark ok">есть</span><span>Диаграмма C4: найдены блоки <code>C4Context</code> и <code>C4Component</code></span></div>
+            <div><span class="mark ok">есть</span><span>Диаграмма последовательностей: найден блок <code>sequenceDiagram</code></span></div>
+            <div><span class="mark bad">нет</span><span>Декларация об использовании ИИ в работе не найдена</span></div>
+            <div><span class="mark ok">есть</span><span>Единый документ, формат Markdown, требование выполнено</span></div>
+          </div>
+        </div>
+
+        <div class="band">
+          <h4>Требования задания — 9 пунктов</h4>
+          <div class="body">
+
+            <div class="crit">
+              <div class="line1">
+                <span class="name">Выполнена декомпозиция по двум и более признакам</span>
+                <span class="chip ok">выполнено</span>
+                <span class="pts">1 / 1</span>
+                <span class="chip">модель</span>
+              </div>
+              <p class="quote">«2.1 По доменам и данным… 2.2 По ролям» — декомпозиция проведена по доменам и по ролям, оба разреза описаны.</p>
+              <div class="acts"><button class="btn primary">Принять</button><button class="btn">Изменить</button><button class="btn">Отклонить</button></div>
+            </div>
+
+            <div class="crit">
+              <div class="line1">
+                <span class="name">Указаны типы взаимодействий и контракты: формат, входы, выходы, ошибки</span>
+                <span class="chip warn">частично</span>
+                <span class="pts">0.5 / 1</span>
+                <span class="chip">модель</span>
+              </div>
+              <p class="quote">«5.1 Единый формат ошибок для I1» — формат и ошибки описаны, входы и выходы для внутренних вызовов I2 и I3 не заданы.</p>
+              <div class="acts"><button class="btn primary">Принять</button><button class="btn">Изменить</button><button class="btn">Отклонить</button></div>
+            </div>
+
+            <div class="crit">
+              <div class="line1">
+                <span class="name">Обосновано соблюдение SRP при декомпозиции</span>
+                <span class="chip">нужно решение</span>
+                <span class="pts">0 – 0.5</span>
+                <span class="chip">суждение, уверенность низкая</span>
+              </div>
+              <p class="quote">«3. SRP и архитектурные компоненты» — раздел есть, обоснование сводится к перечислению зон ответственности без разбора альтернатив. Оценка на усмотрение ревьюера.</p>
+              <div class="acts"><button class="btn primary">Принять</button><button class="btn">Изменить</button><button class="btn">Отклонить</button></div>
+            </div>
+
+            <div class="crit" style="border-top:1px dashed var(--line-2)">
+              <div class="line1">
+                <span class="name" style="color:var(--ink-3)">+ добавить своё замечание</span>
+              </div>
+              <p style="margin:6px 0 0; font-size:12.5px; color:var(--ink-3)">Для того, что не сводится ни к одному требованию — например, насколько код читаем без комментариев. Модель этого не формализует, по интервью такое всегда остаётся за человеком.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="band">
+          <h4>Признаки использования ИИ — уверенность средняя</h4>
+          <div class="body checks">
+            <div><span class="mark bad">1</span><span>Однородная длина абзацев и предложений по всему документу</span></div>
+            <div><span class="mark bad">2</span><span>Есть разделы, которых нет в требованиях: «Trade-offs», «Что измеряется»</span></div>
+            <div><span class="mark bad">3</span><span>Декларация об использовании ИИ отсутствует, хотя условие задания её требует</span></div>
+            <p style="margin:11px 0 0; font-size:12.5px; color:var(--ink-3)">Это не доказательство. Сигнал не влияет на баллы и ни к чему не приводит автоматически. Решение принимает ревьюер.</p>
+            <div class="acts"><button class="btn">Подтвердить сигнал</button><button class="btn">Отклонить сигнал</button></div>
+          </div>
+        </div>
+
+        <div class="band">
+          <h4>Черновик обратной связи — редактируется здесь</h4>
+          <div class="body draft">
+            Привет! Хорошая структура и подробные контракты. Что поправить:
+            <ul>
+              <li>Опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe.</li>
+              <li>Добавь обоснование SRP: почему именно такие границы компонентов.</li>
+              <li>Укажи в работе, использовал ли ты ИИ и как именно, этого требует условие.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cta">
+          <button class="btn">Отправить координатору</button>
+          <button class="btn primary">Подтвердить и отправить студенту</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="notes">
+      <div class="note">
+        <b>Главное действие</b>
+        <p>Подтвердить. Всё остальное на экране существует ради того, чтобы ревьюер за несколько секунд решил, согласен он или нет.</p>
+      </div>
+      <div class="note neg">
+        <b>Чего на экране нет</b>
+        <ul>
+          <li>пересказа работы и рассуждений модели,</li>
+          <li>вкладок и настроек,</li>
+          <li>кнопки, которая ставит оценку без человека.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+<section class="screen" id="Р5">
+    <div class="shead"><span class="snum">Р5</span><h3>Личная статистика</h3></div>
+    <p class="purpose">Ревьюер видит свою работу в цифрах. Это же данные, которые в закрытом виде видит координатор на экране К4.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">reviewer / моя статистика, системный дизайн, лаба 1</span></div>
+      <div class="canvas">
+        <div class="stat-tiles">
+          <div class="tile"><b>34</b><span>работ проверено</span></div>
+          <div class="tile"><b>12</b><span>минут в среднем</span></div>
+          <div class="tile"><b>81%</b><span>вердиктов модели принято без правок</span></div>
+          <div class="tile"><b>6%</b><span>расхождение с другими ревьюерами</span></div>
+        </div>
+        <div class="callout"><p>Чаще всего вы правите вердикт по требованию <b>«Обосновано соблюдение SRP»</b> — оценочный критерий, расхождение с моделью на нём выше среднего. Это нормально, такие критерии и остаются за человеком.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="role-head">
+    <span class="role-tag">Координатор</span>
+    <h2>Курсы, задания, контроль</h2>
+  </div>
+
+  <section id="К1">
+    <div class="shead"><span class="snum">К1</span><h2>Обзор курсов и дедлайнов</h2></div>
+    <p class="purpose">Точка входа координатора. Видит все направления и ближайшие сроки сразу, не открывая каждый курс по отдельности.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / курсы</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Курс</th><th>Активный поток</th><th class="mono">Ближайший срок</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Системный дизайн</td><td>февраль</td><td class="mono">19 фев, лаба 1</td><td><span class="chip acc">открыть</span></td></tr>
+              <tr><td>Tech QA</td><td>февраль</td><td class="mono">21 фев, ДЗ 1</td><td><span class="chip">открыть</span></td></tr>
+              <tr><td>Go</td><td>—</td><td class="mono">не запущен</td><td><span class="chip">создать поток</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="screen" id="К2">
+    <div class="shead"><span class="snum">К2</span><h3>Создание курса</h3></div>
+    <p class="purpose">Верхний уровень: направление, внутри которого будут задания и потоки. Заполняется редко — один раз на направление, не на каждый поток.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / новый курс</span></div>
+      <div class="canvas">
+        <div class="field"><span class="flabel">Название</span><div class="inp">Системный дизайн</div></div>
+        <div class="field"><span class="flabel">Канал сдачи по умолчанию</span>
+          <div class="tagset"><span class="tag on">GitHub</span><span class="tag">Stepik</span><span class="tag">Google Docs</span></div>
+        </div>
+      </div>
+      <div class="cta"><button class="btn primary">Создать курс</button></div>
+    </div>
+  </section>
+<section class="screen" id="К3">
+    <div class="shead"><span class="snum">К3</span><h3>Создание потока</h3></div>
+    <p class="purpose">Конкретный запуск курса: даты, список студентов, кто из ревьюеров закреплён и по какой теме. Задания в поток подключаются отдельно, после создания.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / новый поток, Системный дизайн</span></div>
+      <div class="canvas">
+        <div class="row">
+          <div class="field" style="flex:1"><span class="flabel">Дата начала</span><div class="inp">2 февраля</div></div>
+          <div class="field" style="flex:1"><span class="flabel">Дата окончания</span><div class="inp">30 марта</div></div>
+        </div>
+        <div class="field"><span class="flabel">Студенты</span>
+          <div class="filepick">загрузить список — 96 студентов, .csv или вставить ID построчно</div>
+        </div>
+        <div class="field"><span class="flabel">Закрепить ревьюеров по темам</span>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Ревьюер</th><th>Тема</th><th></th></tr></thead>
+              <tbody>
+                <tr><td class="mono">rev-2214</td><td>системный дизайн</td><td><span class="chip ok">добавлен</span></td></tr>
+                <tr><td class="mono">rev-3390</td><td>системный дизайн</td><td><span class="chip ok">добавлен</span></td></tr>
+                <tr><td class="mono">—</td><td>—</td><td><span class="chip">+ добавить ревьюера</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="cta"><button class="btn primary">Создать поток</button></div>
+    </div>
+  </section>
+<section id="К4">
+    <span class="snum">К4</span>
+    <h2>Создание задания и ссылка для Stepik</h2>
+    <p>Координатор садится один раз. Слева — то, что увидит студент. Справа — критерии, по которым будет оценивать ревьюер. Никакого импорта из внешнего условия: оба поля координатор пишет сам.</p>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / новое задание</span></div>
+      <div class="split2">
+        <div class="pane">
+          <h4>Для студента</h4>
+          <div class="hint">Свободный текст — условие, цель, что нужно сдать</div>
+          <div class="field">
+            <span class="flabel">Название</span>
+            <div class="inp">Системный дизайн, лабораторная 1</div>
+          </div>
+          <div class="field">
+            <span class="flabel">Описание</span>
+            <div class="inp area">Выберите проект и проработайте его на предстоящих лабораторных. Выполните декомпозицию системы, определите интерфейсы, нарисуйте архитектурные схемы и проанализируйте связность компонентов…</div>
+          </div>
+          <div class="field">
+            <span class="flabel">Срок сдачи</span>
+            <div class="inp">19 февраля, 23:59</div>
+          </div>
+        </div>
+        <div class="pane">
+          <h4>Для ревьюера — критерии</h4>
+          <div class="hint">Балл и способ проверки указываются сразу, по каждому пункту</div>
+
+          <div class="crit-row">
+            <div class="top">
+              <div class="inp">Построена диаграмма C4, контекстная и компонентная</div>
+              <span class="ptbadge">1 балл</span>
+            </div>
+            <span class="pill-select formal">формальное, ищем блок C4</span>
+          </div>
+
+          <div class="crit-row">
+            <div class="top">
+              <div class="inp">Выполнена декомпозиция по двум и более признакам</div>
+              <span class="ptbadge">1 балл</span>
+            </div>
+            <span class="pill-select content">содержательное, нужна цитата</span>
+          </div>
+
+          <div class="crit-row">
+            <div class="top">
+              <div class="inp">Структура, оформление и полнота документации</div>
+              <span class="ptbadge">0.5 балла</span>
+            </div>
+            <span class="pill-select eval">оценочное, решает ревьюер</span>
+          </div>
+
+          <div class="addcrit">+ добавить критерий</div>
+        </div>
+      </div>
+
+      <div class="field" style="padding:0 18px 14px">
+        <span class="flabel">Ссылка для сдачи в потоке «Системный дизайн, февраль»</span>
+        <div class="row">
+          <div class="inp mono" style="flex:1">platform.avito.edu/s/9f2ac1</div>
+          <button class="btn">Скопировать</button>
+        </div>
+        <div class="hint">Вставьте эту ссылку в шаг задания на Stepik. Студент перейдёт по ней и попадёт сразу на экран сдачи, платформа сама узнает его и привяжет к этому потоку</div>
+      </div>
+
+      <div class="cta">
+        <p class="muted">Зачёт от 4 баллов из 6, штраф −1 балл за день просрочки</p>
+        <button class="btn primary">Сохранить и опубликовать</button>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>Почему без автоматического разбора</b>
+      <p>Мы рассматривали вариант «система сама вытаскивает критерии из готового условия» — на системном дизайне это было бы почти бесплатно, рубрика там уже лежит таблицей. Отказались: ошибка распознавания тихо портит оценку всем студентам потока, а вычитывать чужой черновик выходит не быстрее, чем сразу написать свой. Форма — тот единственный раз, когда координатор садится за задание.</p>
+    </div>
+  </section>
+<section class="screen" id="К5">
+    <div class="shead"><span class="snum">К5</span><h3>Рубрика: требования и эталонное решение</h3></div>
+    <p class="purpose">Развёрнутая версия правой панели с экрана создания задания (<a href="pull-flow.html">pull-flow.html</a>) — здесь координатор ещё и прикладывает эталонное решение, по интервью это отдельный значимый артефакт, не просто список критериев.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / рубрика, Системный дизайн, лаба 1</span></div>
+      <div class="canvas">
+
+        <div class="crit-row">
+          <div class="top"><div class="inp">Построена диаграмма C4, контекстная и компонентная</div><span class="ptbadge">1 балл</span></div>
+          <span class="pill-select formal">формальное, ищем блок C4</span>
+        </div>
+        <div class="crit-row">
+          <div class="top"><div class="inp">Выполнена декомпозиция по двум и более признакам</div><span class="ptbadge">1 балл</span></div>
+          <span class="pill-select content">содержательное, нужна цитата</span>
+        </div>
+        <div class="crit-row">
+          <div class="top"><div class="inp">Обосновано соблюдение SRP при декомпозиции</div><span class="ptbadge">0.5 балла</span></div>
+          <span class="pill-select eval">оценочное, решает ревьюер</span>
+        </div>
+        <div class="crit-row">
+          <div class="top"><div class="inp">Структура, оформление и полнота документации</div><span class="ptbadge">0.5 балла</span></div>
+          <span class="pill-select eval">оценочное, решает ревьюер</span>
+        </div>
+
+        <div class="field"><span class="flabel">Эталонное решение</span>
+          <div class="filepick">прикрепить референсное решение задания — используется моделью как пример и ревьюерами для калибровки</div>
+        </div>
+        <div class="field"><span class="flabel">Порог зачёта</span>
+          <div class="row"><div class="inp" style="max-width:90px">4</div><span class="hint" style="margin:0">из 6 баллов</span></div>
+        </div>
+      </div>
+      <div class="cta">
+        <span class="chip warn" style="align-self:center">версия 2 — правки после первого потока</span>
+        <button class="btn primary">Сохранить версию</button>
+      </div>
+    </div>
+    <div class="callout">По интервью критерии иногда правят прямо в середине потока, если ошибку заметили рано. Поэтому рубрика версионируется, а не переписывается поверх — старые проверки остаются воспроизводимыми на своей версии.</div>
+  </section>
+<section id="К6">
+    <span class="snum">К6</span>
+    <h2>Состояние пула</h2>
+    <p>Раскладывать не нужно. Экран отвечает на один вопрос: что застряло и почему.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / состояние пула</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Ревьюер</th><th class="mono">Заявлено</th><th class="mono">Взято</th><th>Тема</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Ревьюер A</td><td class="mono">10</td><td class="mono">7</td><td>системный дизайн</td><td><span class="chip ok">разбирает</span></td></tr>
+              <tr><td>Ревьюер B</td><td class="mono">6</td><td class="mono">6</td><td>системный дизайн</td><td><span class="chip">полностью взято</span></td></tr>
+              <tr><td>Ревьюер C</td><td class="mono">8</td><td class="mono">2</td><td>Tech QA</td><td><span class="chip warn">пул по теме пуст</span></td></tr>
+              <tr><td>—</td><td class="mono">—</td><td class="mono">3</td><td>Tech QA</td><td><span class="chip warn">горит, 4 дня без ревьюера</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="callout warn">
+      <b>Кнопки «назначить принудительно» нет намеренно, кроме одного случая</b>
+      <p>Пока есть время до срока, координатор только шлёт напоминания — принудительного назначения нет, чтобы не тихо вернуться к push. Но по интервью на реальном курсе за день до отчёта студентам методист сам разбирает хвосты, если никто из ревьюеров не подхватил. Это не общий выход из pull, а разовый рычаг с жёсткой границей по времени — открывается только после срока сдачи, до этого момента его не видно вообще.</p>
+    </div>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / после срока сдачи, 3 работы без ревьюера</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th class="mono">Студент</th><th>В пуле с</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">4901</td><td>3 дня</td><td><button class="btn primary">Назначить rev-2214, у него меньше всех нагрузки</button></td></tr>
+              <tr><td class="mono">4933</td><td>4 дня</td><td><button class="btn primary">Назначить rev-4102</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / типичные ошибки потока</span></div>
+      <div class="canvas">
+        <div class="checks">
+          <div><span class="mark bad">71%</span><span>не описали контракты полностью: нет входов, выходов или ошибок</span></div>
+          <div><span class="mark bad">54%</span><span>не проводили анализ связности компонентов</span></div>
+          <div><span class="mark bad">29%</span><span>не построили диаграмму последовательностей</span></div>
+        </div>
+        <p style="margin:11px 0 0; font-size:12.5px; color:var(--ink-3)">Первые две строки — кандидаты на доработку материалов занятия или формулировки требования. Считается по всем зафиксированным домашкам потока, отдельно от состояния пула выше.</p>
+      </div>
+    </div>
+  </section>
+<section class="screen" id="К7">
+    <div class="shead"><span class="snum">К7</span><h3>Управление ревьюерами</h3></div>
+    <p class="purpose">Отдельно от собственной регистрации ревьюера (экран Р1) — координатор видит весь состав и одобряет внешних экспертов, которые сами подали заявку.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / ревьюеры</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Ревьюер</th><th>Статус</th><th>Темы</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="mono">rev-2214</td><td><span class="chip ok">активен, внутренний</span></td><td>системный дизайн, Go</td><td><span class="chip">—</span></td></tr>
+              <tr><td class="mono">rev-3390</td><td><span class="chip ok">активен, внутренний</span></td><td>системный дизайн</td><td><span class="chip">—</span></td></tr>
+              <tr><td class="mono">rev-ext-4102</td><td><span class="chip warn">ждёт одобрения</span></td><td>Tech QA</td><td><button class="btn primary">Одобрить</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+<section class="screen" id="К8">
+    <div class="shead"><span class="snum">К8</span><h3>Реестр домашек</h3></div>
+    <p class="purpose">Шире, чем состояние пула из <a href="pull-flow.html">pull-flow.html</a>: там только сданное и не взятое, здесь — все статусы, включая уже зафиксированные.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / все домашки, Системный дизайн, лаба 1</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th class="mono">Студент</th><th>Статус</th><th>Ревьюер</th><th class="mono">Балл</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">4821</td><td><span class="chip warn">на эскалации</span></td><td class="mono">rev-2214</td><td class="mono">4.5 / 6</td></tr>
+              <tr><td class="mono">4790</td><td><span class="chip ok">зафиксирована</span></td><td class="mono">rev-3390</td><td class="mono">5.0 / 6</td></tr>
+              <tr><td class="mono">4805</td><td><span class="chip acc">на проверке</span></td><td class="mono">rev-2214</td><td class="mono">—</td></tr>
+              <tr><td class="mono">4776</td><td><span class="chip">на доработке</span></td><td class="mono">rev-4102</td><td class="mono">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+<section class="screen" id="К9">
+    <div class="shead"><span class="snum">К9</span><h3>Просмотр завершённых ревью</h3></div>
+    <p class="purpose">Не путать с эскалациями — там работы в процессе, здесь уже подтверждённые. Нужен для разбора жалоб студента и для выборочного контроля качества самих ревьюеров.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / ревью, студент 4790</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Требование</th><th class="mono">Балл</th><th>Обоснование ревьюера</th></tr></thead>
+            <tbody>
+              <tr><td>Диаграмма C4</td><td class="mono">1 / 1</td><td>согласился с моделью</td></tr>
+              <tr><td>Анализ связности</td><td class="mono">0 / 0.5</td><td>«раздел есть, но не разбирает конкретные зависимости, только общие слова»</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout">По интервью ревьюер обязан письменно обосновать каждое снижение балла — колонка «обоснование» не декоративная, а то самое требование прозрачности.</div>
+      </div>
+    </div>
+  </section>
+<section class="screen" id="К10">
+    <div class="shead"><span class="snum">К10</span><h3>Дашборд ревьюеров</h3></div>
+    <p class="purpose">Расширение дашборда пула из <a href="pull-flow.html">pull-flow.html</a>: там — состояние заданий, здесь — качество и скорость самих ревьюеров.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / статистика, Системный дизайн, лаба 1</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Ревьюер</th><th class="mono">Проверено</th><th class="mono">Мин / работу</th><th>Принятие модели</th><th>Расхождение</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">rev-2214</td><td class="mono">34</td><td class="mono">12</td><td><div class="row"><span class="bar"><i style="width:81%"></i></span><span class="mono">81%</span></div></td><td><span class="chip ok">6%</span></td></tr>
+              <tr><td class="mono">rev-3390</td><td class="mono">29</td><td class="mono">19</td><td><div class="row"><span class="bar"><i style="width:54%" class="warn"></i></span><span class="mono">54%</span></div></td><td><span class="chip warn">18%</span></td></tr>
+              <tr><td class="mono">rev-4102</td><td class="mono">31</td><td class="mono">11</td><td><div class="row"><span class="bar"><i style="width:88%"></i></span><span class="mono">88%</span></div></td><td><span class="chip ok">4%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout"><p>У <b>rev-3390</b> низкое принятие вердиктов модели и повышенное расхождение с другими ревьюерами — кандидат на разговор: либо ревьюер видит то, чего не видит модель, и это ценная обратная связь для правки критериев, либо ему нужна дополнительная калибровка.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="К11">
+    <div class="shead"><span class="snum">К11</span><h2>Эскалации и спорные случаи</h2></div>
+    <p class="purpose">Работы, которые сами попросились ко второму взгляду: граница зачёта, высокий сигнал об ИИ, низкая уверенность модели на весомом требовании. Координатор либо решает сам, либо назначает второго ревьюера.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / эскалации, 2 работы</span></div>
+      <div class="canvas">
+        <div class="checks">
+          <div><span class="mark bad">граница</span><span>Студент 4821: сумма 4.5 из 6, порог зачёта — 4. Ждёт решения.</span></div>
+          <div><span class="mark bad">сигнал ИИ</span><span>Студент 4776: уверенность высокая, ревьюер ещё не принял решение по сигналу.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="К12">
+    <div class="shead"><span class="snum">К12</span><h2>Журнал решений по домашке</h2></div>
+    <p class="purpose">Контракт «предложение системы → правка человека → финал» в виде экрана. Открывается по одной работе — для апелляции студента или разбора, почему балл именно такой.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / журнал, студент 4821, требование «SRP»</span></div>
+      <div class="canvas">
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Кто</th><th>Что</th><th class="mono">Когда</th></tr></thead>
+            <tbody>
+              <tr><td><span class="chip acc">модель</span></td><td>предложила 0.5 из 0.5, уверенность низкая</td><td class="mono">20 фев, 09:14</td></tr>
+              <tr><td><span class="chip">ревьюер</span></td><td>изменил на 0 из 0.5: «обоснование сводится к перечислению, альтернативы не разобраны»</td><td class="mono">20 фев, 14:02</td></tr>
+              <tr><td><span class="chip ok">финал</span></td><td>0 из 0.5, подтверждено</td><td class="mono">20 фев, 14:03</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="К13">
+    <div class="shead"><span class="snum">К13</span><h2>Настройка выгрузки</h2></div>
+    <p class="purpose">Какие поля и куда уходят в Google Sheets. Настраивается один раз на курс. Выгрузка одностороняя — правка в таблице на платформу не влияет, см. контракт И7.</p>
+    <div class="frame">
+      <div class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="tb-title">coordinator / выгрузка, Системный дизайн</span></div>
+      <div class="canvas">
+        <div class="field"><span class="flabel">Таблица</span><div class="inp">docs.google.com/spreadsheets/.../системный-дизайн-февраль</div></div>
+        <div class="field"><span class="flabel">Поля</span>
+          <div class="tagset"><span class="tag on">ID студента</span><span class="tag on">итоговый балл</span><span class="tag on">статус</span><span class="tag on">ссылка на работу</span><span class="tag">комментарий ревьюера</span></div>
+        </div>
+        <div class="field"><span class="flabel">Когда обновлять</span>
+          <div class="tagset"><span class="tag on">сразу после подтверждения ревью</span><span class="tag">раз в день, сводкой</span></div>
+        </div>
+      </div>
+      <div class="cta"><button class="btn primary">Сохранить</button></div>
+    </div>
+  </section>
+
+
+  <div class="callout">
+    <b>Что не рисуем и почему</b>
+    <p>Три экрана оставлены только текстом в <a href="entities-and-screens.md">реестре</a>: вход для ревьюера и координатора, общий профиль пользователя, архив прошлых потоков. Это стандартные паттерны — форма логина и общие настройки выглядят одинаково в любом продукте, макет здесь не добавляет информации, только объём.</p>
+  </div>
+
+  <footer>Avito AI Reviewer, хакатон AI Talent Hub, 3 сентября 2026. Данные на макетах вымышленные. Источник: docs/platform-screens/entities-and-screens.md</footer>
+</div>
