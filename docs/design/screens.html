@@ -122,6 +122,9 @@
   --ctl-l: 48px; --ctl-m: 40px; --ctl-s: 32px;
   --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px;
 
+  /* --- Замечание ---------------------------------------------------------- */
+  --callout-mark: 20px;   /* диаметр залитого кружка со знаком                */
+
   /* --- Тень. Только у слоёв поверх страницы. У карточек тени нет ---------- */
   --shadow-overlay: 0 24px 60px rgba(0,0,0,.18);
 
@@ -495,13 +498,39 @@ a:hover { border-bottom-color: var(--ink); }
 .kv > span:first-child { color: var(--ink-3); }
 .kv .neg { color: var(--bad); font-weight: var(--w-semi); }
 
-/* --- Примечание, предупреждение, пустое состояние ------------------------- */
+/* --- Замечание -------------------------------------------------------------
+   Единый вид для замечаний и пояснений. Левой полосы нет: цвет несёт бледная
+   подложка, внимание держит залитый кружок. Текст всегда --ink, потому что
+   замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на
+   всех пяти брендовых заливках он проходит по контрасту, белый не проходит.  */
 
+.callout { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-4);
+           background: var(--surface-2); color: var(--ink);
+           font-size: var(--small-size); line-height: var(--small-lh); }
+.callout__mark { flex: none; width: var(--callout-mark); height: var(--callout-mark); margin-top: 1px;
+                 border-radius: var(--r-circle); background: var(--ink-4); color: var(--brand-ink);
+                 display: grid; place-items: center;
+                 font-size: 13px; font-weight: var(--w-semi); line-height: 1; }
+.callout p { margin: 0; }
+.callout p + p { margin-top: var(--s-2); }
+.callout--warn  { background: var(--late-bg); }
+.callout--warn  .callout__mark { background: var(--late-fill); }
+.callout--bad   { background: var(--bad-bg); }
+.callout--bad   .callout__mark { background: var(--bad-fill); }
+.callout--human { background: var(--human-bg); }
+.callout--human .callout__mark { background: var(--human-fill); }
+.callout--info  { background: var(--info-bg); }
+.callout--info  .callout__mark { background: var(--info-fill); }
+
+/* Прежний вид замечания с левой полосой. Заменяется на .callout экран за
+   экраном, новую разметку на нём не пишем.                                  */
 .note { padding: var(--s-4); background: var(--surface-2); border-left: var(--bw-focus) solid var(--line-2);
         font-size: var(--small-size); color: var(--ink-2); }
 .note--warn  { background: var(--late-bg);  border-left-color: var(--brand-orange); color: var(--late); }
 .note--bad   { background: var(--bad-bg);   border-left-color: var(--brand-red);    color: var(--bad); }
 .note--human { background: var(--human-bg); border-left-color: var(--brand-violet); color: var(--human); }
+
+/* --- Пустое состояние ------------------------------------------------------ */
 
 .empty { padding: var(--s-14) var(--s-6); text-align: center; }
 .empty__art { width: 96px; height: 96px; margin: 0 auto var(--s-5); position: relative; }
@@ -636,7 +665,7 @@ a:hover { border-bottom-color: var(--ink); }
     <div class="toc">
       <span class="toc__g">Студент</span>
       <a class="pill" href="#С1">С1 Страница домашки по ссылке, до сдачи</a>
-      <a class="pill" href="#С2">С2 Та же страница после саморевью</a>
+      <a class="pill" href="#С2">С2 Та же страница после ИИ-ревью</a>
       <a class="pill" href="#С3">С3 Та же страница в статусе «Нужны правки»</a>
       <a class="pill" href="#С4">С4 Мои домашки</a>
       <a class="pill" href="#С5">С5 Домашка в кабинете, результат ревью</a>
@@ -663,14 +692,14 @@ a:hover { border-bottom-color: var(--ink); }
 
 <div class="group">
   <span class="group__tag">Студент</span>
-  <h2>Сдача, саморевью, результат</h2>
+  <h2>Сдача, ИИ-ревью, результат</h2>
 </div>
 
 <section class="screen" id="С1">
   <div class="screen__head"><span class="screen__id">С1</span><h2>Страница домашки по ссылке, до сдачи</h2></div>
-  <p class="screen__note">Студент приходит по ссылке из Stepik, платформа узнаёт его по Stepik ID. Работа прикладывается ссылкой на репозиторий или файлами. Отсюда доступны оба действия — прогнать саморевью и отправить на ревью.</p>
+  <p class="screen__note">Студент приходит по ссылке из Stepik, платформа узнаёт его по Stepik ID. Работа прикладывается ссылкой на репозиторий или файлами. Отсюда доступны оба действия — прогнать ИИ-ревью и отправить на ревью.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
-  <div class="shot" style="height:788px"><div class="vp">
+  <div class="shot" style="height:774px"><div class="vp">
     <div style="background:var(--surface);min-height:1030px">
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
@@ -691,12 +720,16 @@ a:hover { border-bottom-color: var(--ink); }
         <div class="circ circ--r" style="width:56px;height:56px;right:150px;top:30px;opacity:.7"></div>
         <div class="band__in">
           <span class="label">Лабораторная 1</span>
-          <h1 class="d2" style="margin-top:var(--s-2);max-width:16ch">Декомпозиция <span class="hl hl-ink">сервиса</span></h1>
-          <div class="btn-row" style="margin-top:var(--s-5)">
-            <span class="st st--draft">Черновик</span>
-            <span class="pill">Сдать до 19 февраля, 23:59</span>
-            <span class="pill">Порог зачёта 4 из 6</span>
-            <span class="pill">Вы вошли по Stepik ID 88214</span>
+          <h1 class="d2" style="margin-top:var(--s-2);max-width:16ch">Декомпозиция сервиса</h1>
+          <div style="display:flex;gap:var(--s-10);margin-top:var(--s-6)">
+            <div>
+              <span class="label" style="display:block;color:var(--ink-2)">сдать до</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">19 февраля, 23:59</div>
+            </div>
+            <div>
+              <span class="label" style="display:block;color:var(--ink-2)">порог зачёта</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
+            </div>
           </div>
         </div>
       </div>
@@ -735,32 +768,33 @@ a:hover { border-bottom-color: var(--ink); }
                 </label>
               </div>
               <div class="card__foot">
-                <span>Результат саморевью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
                 <span class="btn-row">
-                  <span class="btn">Проверить перед сдачей</span>
+                  <span class="btn">Проверить ИИ-ревью</span>
                   <span class="btn btn--pri">Отправить на ревью</span>
                 </span>
+                <span class="caption" style="text-align:right">Результат ИИ-ревью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
               </div>
             </div>
           </div>
 
           <div class="stack">
             <div class="card">
-              <div class="card__head"><h4>Что будут проверять</h4><span class="pill pill--mono">9</span></div>
+              <div class="card__head"><h4>Что будут проверять</h4></div>
               <div class="card__body card__body--tight">
-                <div class="kv"><span style="color:var(--ink)">Декомпозиция по двум признакам</span><span class="pill pill--mono">1</span></div>
-                <div class="kv"><span style="color:var(--ink)">Диаграмма C4</span><span class="pill pill--mono">1</span></div>
-                <div class="kv"><span style="color:var(--ink)">Диаграмма последовательностей</span><span class="pill pill--mono">0.5</span></div>
-                <div class="kv"><span style="color:var(--ink)">Интерфейсы между компонентами</span><span class="pill pill--mono">0.5</span></div>
-                <div class="kv"><span style="color:var(--ink)">Контракты: входы, выходы, ошибки</span><span class="pill pill--mono">1</span></div>
-                <div class="kv"><span style="color:var(--ink)">Анализ связности</span><span class="pill pill--mono">0.5</span></div>
-                <div class="kv"><span style="color:var(--ink)">Снижение связности</span><span class="pill pill--mono">0.5</span></div>
-                <div class="kv"><span style="color:var(--ink)">Обоснование SRP</span><span class="pill pill--mono">0.5</span></div>
-                <div class="kv"><span style="color:var(--ink)">Структура и оформление</span><span class="pill pill--mono">0.5</span></div>
-              </div>
-              <div class="card__foot"><span>Всего</span><b style="font-family:var(--font-display);font-size:20px;letter-spacing:-.04em;color:var(--ink)">6 баллов</b></div>
+                <div class="kv"><span style="color:var(--ink)">Декомпозиция по двум признакам</span><span class="pill pill--mono">1 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Диаграмма C4</span><span class="pill pill--mono">1 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Диаграмма последовательностей</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Интерфейсы между компонентами</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Контракты: входы, выходы, ошибки</span><span class="pill pill--mono">1 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Анализ связности</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Снижение связности</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Обоснование SRP</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Структура и оформление</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:-1px">
+                  <span style="color:var(--ink)">Всего — <b>6 баллов</b></span>
+                </div>
             </div>
-            <div class="note note--warn">За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</div>
+            <div class="callout callout--warn"><span class="callout__mark">!</span><p>За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</p></div>
           </div>
         </div>
       </div>
@@ -768,7 +802,7 @@ a:hover { border-bottom-color: var(--ink); }
   </div></div>
 </section>
 <section class="screen" id="С2">
-  <div class="screen__head"><span class="screen__id">С2</span><h2>Та же страница после саморевью</h2></div>
+  <div class="screen__head"><span class="screen__id">С2</span><h2>Та же страница после ИИ-ревью</h2></div>
   <p class="screen__note">Результат самопроверки появляется на той же странице над формой. Отметки только двух видов, без «частично». Вид блока совпадает с предварительным ревью, которое видит ревьюер на Р5, чтобы студент и ревьюер смотрели на одно и то же. Баллов здесь нет намеренно.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Счёт «7 из 9 требований закрыто» набран дисплейным шрифтом, но словом «требований», а не «баллов»: это не оценка, и типографика не должна выдавать её за оценку. Невыполненные требования подняты наверх списка, поэтому красный маркер встречается первым.</p>
   <div class="shot" style="height:894px"><div class="vp">
@@ -788,7 +822,7 @@ a:hover { border-bottom-color: var(--ink); }
               <div class="btn-row" style="margin-top:var(--s-3)">
                 <span class="st st--draft">Черновик</span>
                 <span class="pill">Сдать до 19 февраля, 23:59</span>
-                <span class="pill">Саморевью от 17 февраля, 14:20</span>
+                <span class="pill">ИИ-ревью от 17 февраля, 14:20</span>
               </div>
             </div>
             <div style="text-align:right">
@@ -800,7 +834,7 @@ a:hover { border-bottom-color: var(--ink); }
           <div class="row-side">
             <div class="card">
               <div class="card__head">
-                <div><h4>Предварительная проверка</h4><div class="card__sub">Проверила модель. Ревьюер будет смотреть работу сам и может решить иначе.</div></div>
+                <div><h4>ИИ-ревью</h4><div class="card__sub">Проверила модель. Ревьюер будет смотреть работу сам и может решить иначе.</div></div>
                 <span class="btn btn--s">Проверить повторно, осталось 2</span>
               </div>
               <div class="card__body">
@@ -852,7 +886,7 @@ a:hover { border-bottom-color: var(--ink); }
                   <div class="caption" style="margin-top:var(--s-3)">Последнее обновление репозитория 17 февраля, 13:58</div>
                 </div>
               </div>
-              <div class="note">Результат саморевью видит ревьюер. Он учитывает, что вы проверяли и что правили, при оценке. Итоговый балл ставит ревьюер по отправленной версии.</div>
+              <div class="note">Результат ИИ-ревью видит ревьюер. Он учитывает, что вы проверяли и что правили, при оценке. Итоговый балл ставит ревьюер по отправленной версии.</div>
             </div>
           </div>
         </div>
@@ -937,8 +971,8 @@ a:hover { border-bottom-color: var(--ink); }
                   </label>
                 </div>
                 <div class="card__foot">
-                  <span>Саморевью по новой версии ещё не запускали</span>
-                  <span class="btn-row"><span class="btn">Проверить перед сдачей</span><span class="btn btn--pri">Отправить исправленную версию</span></span>
+                  <span>ИИ-ревью по новой версии ещё не запускали</span>
+                  <span class="btn-row"><span class="btn">Проверить ИИ-ревью</span><span class="btn btn--pri">Отправить исправленную версию</span></span>
                 </div>
               </div>
             </div>
@@ -1127,7 +1161,7 @@ a:hover { border-bottom-color: var(--ink); }
                   <div class="kv"><span style="color:var(--ink)">Зачтена</span><span>12 фев, 16:30</span></div>
                   <div class="kv"><span style="color:var(--ink)">На ревью, взял rev-2214</span><span>11 фев, 09:15</span></div>
                   <div class="kv"><span style="color:var(--ink)">Сдана</span><span>10 фев, 21:40</span></div>
-                  <div class="kv"><span style="color:var(--ink)">Саморевью, 2 запуска</span><span>10 фев</span></div>
+                  <div class="kv"><span style="color:var(--ink)">ИИ-ревью, 2 запуска</span><span>10 фев</span></div>
                 </div>
               </div>
             </div>

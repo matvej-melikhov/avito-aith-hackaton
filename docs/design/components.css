@@ -346,13 +346,39 @@ a:hover { border-bottom-color: var(--ink); }
 .kv > span:first-child { color: var(--ink-3); }
 .kv .neg { color: var(--bad); font-weight: var(--w-semi); }
 
-/* --- Примечание, предупреждение, пустое состояние ------------------------- */
+/* --- Замечание -------------------------------------------------------------
+   Единый вид для замечаний и пояснений. Левой полосы нет: цвет несёт бледная
+   подложка, внимание держит залитый кружок. Текст всегда --ink, потому что
+   замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на
+   всех пяти брендовых заливках он проходит по контрасту, белый не проходит.  */
 
+.callout { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-4);
+           background: var(--surface-2); color: var(--ink);
+           font-size: var(--small-size); line-height: var(--small-lh); }
+.callout__mark { flex: none; width: var(--callout-mark); height: var(--callout-mark); margin-top: 1px;
+                 border-radius: var(--r-circle); background: var(--ink-4); color: var(--brand-ink);
+                 display: grid; place-items: center;
+                 font-size: 13px; font-weight: var(--w-semi); line-height: 1; }
+.callout p { margin: 0; }
+.callout p + p { margin-top: var(--s-2); }
+.callout--warn  { background: var(--late-bg); }
+.callout--warn  .callout__mark { background: var(--late-fill); }
+.callout--bad   { background: var(--bad-bg); }
+.callout--bad   .callout__mark { background: var(--bad-fill); }
+.callout--human { background: var(--human-bg); }
+.callout--human .callout__mark { background: var(--human-fill); }
+.callout--info  { background: var(--info-bg); }
+.callout--info  .callout__mark { background: var(--info-fill); }
+
+/* Прежний вид замечания с левой полосой. Заменяется на .callout экран за
+   экраном, новую разметку на нём не пишем.                                  */
 .note { padding: var(--s-4); background: var(--surface-2); border-left: var(--bw-focus) solid var(--line-2);
         font-size: var(--small-size); color: var(--ink-2); }
 .note--warn  { background: var(--late-bg);  border-left-color: var(--brand-orange); color: var(--late); }
 .note--bad   { background: var(--bad-bg);   border-left-color: var(--brand-red);    color: var(--bad); }
 .note--human { background: var(--human-bg); border-left-color: var(--brand-violet); color: var(--human); }
+
+/* --- Пустое состояние ------------------------------------------------------ */
 
 .empty { padding: var(--s-14) var(--s-6); text-align: center; }
 .empty__art { width: 96px; height: 96px; margin: 0 auto var(--s-5); position: relative; }

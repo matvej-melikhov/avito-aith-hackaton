@@ -122,6 +122,9 @@
   --ctl-l: 48px; --ctl-m: 40px; --ctl-s: 32px;
   --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px;
 
+  /* --- Замечание ---------------------------------------------------------- */
+  --callout-mark: 20px;   /* диаметр залитого кружка со знаком                */
+
   /* --- Тень. Только у слоёв поверх страницы. У карточек тени нет ---------- */
   --shadow-overlay: 0 24px 60px rgba(0,0,0,.18);
 
@@ -495,13 +498,39 @@ a:hover { border-bottom-color: var(--ink); }
 .kv > span:first-child { color: var(--ink-3); }
 .kv .neg { color: var(--bad); font-weight: var(--w-semi); }
 
-/* --- Примечание, предупреждение, пустое состояние ------------------------- */
+/* --- Замечание -------------------------------------------------------------
+   Единый вид для замечаний и пояснений. Левой полосы нет: цвет несёт бледная
+   подложка, внимание держит залитый кружок. Текст всегда --ink, потому что
+   замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на
+   всех пяти брендовых заливках он проходит по контрасту, белый не проходит.  */
 
+.callout { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-4);
+           background: var(--surface-2); color: var(--ink);
+           font-size: var(--small-size); line-height: var(--small-lh); }
+.callout__mark { flex: none; width: var(--callout-mark); height: var(--callout-mark); margin-top: 1px;
+                 border-radius: var(--r-circle); background: var(--ink-4); color: var(--brand-ink);
+                 display: grid; place-items: center;
+                 font-size: 13px; font-weight: var(--w-semi); line-height: 1; }
+.callout p { margin: 0; }
+.callout p + p { margin-top: var(--s-2); }
+.callout--warn  { background: var(--late-bg); }
+.callout--warn  .callout__mark { background: var(--late-fill); }
+.callout--bad   { background: var(--bad-bg); }
+.callout--bad   .callout__mark { background: var(--bad-fill); }
+.callout--human { background: var(--human-bg); }
+.callout--human .callout__mark { background: var(--human-fill); }
+.callout--info  { background: var(--info-bg); }
+.callout--info  .callout__mark { background: var(--info-fill); }
+
+/* Прежний вид замечания с левой полосой. Заменяется на .callout экран за
+   экраном, новую разметку на нём не пишем.                                  */
 .note { padding: var(--s-4); background: var(--surface-2); border-left: var(--bw-focus) solid var(--line-2);
         font-size: var(--small-size); color: var(--ink-2); }
 .note--warn  { background: var(--late-bg);  border-left-color: var(--brand-orange); color: var(--late); }
 .note--bad   { background: var(--bad-bg);   border-left-color: var(--brand-red);    color: var(--bad); }
 .note--human { background: var(--human-bg); border-left-color: var(--brand-violet); color: var(--human); }
+
+/* --- Пустое состояние ------------------------------------------------------ */
 
 .empty { padding: var(--s-14) var(--s-6); text-align: center; }
 .empty__art { width: 96px; height: 96px; margin: 0 auto var(--s-5); position: relative; }
@@ -1126,13 +1155,21 @@ a:hover { border-bottom-color: var(--ink); }
   <h2>Состояния</h2>
 
   <div class="sub">
-    <h3>Примечания</h3>
+    <h3>Замечание</h3>
+    <p>Левой полосы нет: цвет несёт бледная подложка, внимание держит залитый кружок. Текст всегда чёрный, а не в цвет смысла — замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на всех пяти брендовых заливках он проходит по контрасту, белый не проходит.</p>
     <div class="demo stack">
-      <div class="note">За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера.</div>
-      <div class="note note--warn">Работа сдана на день позже срока. Штраф посчитан автоматически и показан отдельной строкой в итоге.</div>
-      <div class="note note--bad">Итог ниже порога зачёта. Выберите, вернуть на доработку или закрыть как не зачтено.</div>
-      <div class="note note--human">Сигнал об использовании ИИ на балл не влияет. Решение о последствиях принимает координатор.</div>
+      <div class="callout"><span class="callout__mark">i</span><p>Работа сдаётся одним документом в Markdown или ссылкой на репозиторий с таким документом.</p></div>
+      <div class="callout callout--warn"><span class="callout__mark">!</span><p>За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</p></div>
+      <div class="callout callout--bad"><span class="callout__mark">!</span><p>Итог ниже порога зачёта. Выберите, вернуть на доработку или закрыть как не зачтено.</p></div>
+      <div class="callout callout--human"><span class="callout__mark">?</span><p>Сигнал об использовании ИИ на балл не влияет. Решение о последствиях принимает координатор.</p></div>
+      <div class="callout callout--info"><span class="callout__mark">i</span><p>Выгрузка односторонняя. Обратной синхронизации с Google Sheets нет, источник истины — платформа.</p></div>
     </div>
+    <ul class="rules">
+      <li>Знак в кружке зависит от смысла: <b>!</b> у оранжевого и красного, <b>i</b> у нейтрального и синего, <b>?</b> у фиолетового.</li>
+      <li>Замечание объясняет правило или последствие. Если нужно действие, это не замечание, а карточка с кнопкой.</li>
+      <li class="no">Не ставим больше одного замечания подряд и не кладём их внутрь таблицы.</li>
+      <li class="no">Не пишем текст замечания цветом подложки: цветной остаётся только заливка кружка.</li>
+    </ul>
   </div>
 
   <div class="sub">
