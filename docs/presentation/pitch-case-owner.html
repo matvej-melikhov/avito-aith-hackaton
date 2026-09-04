@@ -1,0 +1,244 @@
+<!doctype html><meta charset="utf-8">
+<title>Avito AI Reviewer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F4F5F2; --paper:#FFFFFF; --ink:#141A22; --muted:#5A6572; --line:#D3D8DE;
+  --accent:#0B5FCC; --accent-soft:#E2ECFA; --warm:#C8501E; --warm-soft:#FBE9E1; --ok:#1F7A4D; --ok-soft:#E3F2E9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1318; --paper:#171C23; --ink:#EDF0F3; --muted:#A5AEB8; --line:#333B45;
+    --accent:#6AA5F7; --accent-soft:#1B2A42; --warm:#F08A5E; --warm-soft:#3A241A; --ok:#6FCB94; --ok-soft:#173224;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1318; --paper:#171C23; --ink:#EDF0F3; --muted:#A5AEB8; --line:#333B45;
+  --accent:#6AA5F7; --accent-soft:#1B2A42; --warm:#F08A5E; --warm-soft:#3A241A; --ok:#6FCB94; --ok-soft:#173224;
+}
+*{box-sizing:border-box}
+html{scroll-snap-type:y proximity}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:clamp(16px,1.4vw,21px);line-height:1.45}
+.deck{display:flex;flex-direction:column}
+section.slide{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,5vw,72px);position:relative;border-bottom:1px solid var(--line)}
+.num{position:absolute;top:clamp(16px,3vw,32px);right:clamp(20px,4vw,48px);font-family:Manrope,sans-serif;font-weight:700;color:var(--muted);font-size:14px;letter-spacing:.08em}
+.kicker{font-family:Manrope,sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--accent);margin:0 0 10px}
+h1{font-family:Manrope,sans-serif;font-weight:800;font-size:clamp(34px,5.2vw,72px);line-height:1.05;letter-spacing:-.02em;margin:0 0 18px;text-wrap:balance;max-width:20ch}
+h2{font-family:Manrope,sans-serif;font-weight:800;font-size:clamp(26px,3.6vw,48px);line-height:1.1;letter-spacing:-.015em;margin:0 0 22px;text-wrap:balance;max-width:24ch}
+p.lead{font-size:clamp(17px,1.7vw,24px);color:var(--muted);max-width:60ch;margin:0 0 22px}
+.grid{display:grid;gap:clamp(12px,1.6vw,22px)}
+.g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:clamp(14px,1.6vw,22px)}
+.card h3{font-family:Manrope,sans-serif;font-weight:700;font-size:clamp(17px,1.5vw,22px);margin:0 0 8px}
+.card p{margin:0;color:var(--muted);font-size:.95em}
+.card ul{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:.95em}
+.card li{margin:4px 0}
+.card.acc{border-color:var(--accent);background:var(--accent-soft)}
+.card.warm{border-color:var(--warm);background:var(--warm-soft)}
+.card.ok{border-color:var(--ok);background:var(--ok-soft)}
+.stat{font-family:Manrope,sans-serif;font-weight:800;font-size:clamp(30px,3.6vw,50px);line-height:1;letter-spacing:-.02em;margin:0 0 6px}
+.stat small{display:block;font-family:"IBM Plex Sans",sans-serif;font-weight:500;font-size:.34em;color:var(--muted);letter-spacing:0;margin-top:6px;line-height:1.3}
+.src{font-size:12px;color:var(--muted);margin-top:14px}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.flow .box{flex:1 1 140px;background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;padding:12px 14px;min-width:140px}
+.flow .box b{display:block;font-family:Manrope,sans-serif;font-weight:700}
+.flow .box span{display:block;color:var(--muted);font-size:.9em;margin-top:2px}
+.flow .box.acc{border-color:var(--accent);background:var(--accent-soft);border-width:2px}
+.flow .arr{align-self:center;color:var(--muted);font-size:22px}
+.crit{background:var(--paper);border:1.5px solid var(--ink);border-radius:12px;overflow:hidden;max-width:820px}
+.crit .row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:center}
+.crit .row:last-child{border-bottom:0}
+.crit .row.open{background:var(--accent-soft);display:block}
+.crit .t{font-weight:600}
+.crit .pts{font-family:Manrope,sans-serif;font-weight:800;color:var(--accent)}
+.crit .why{margin-top:8px;font-size:.92em;color:var(--muted)}
+.crit .q{margin:8px 0 0;padding:8px 12px;border-left:3px solid var(--accent);background:var(--paper);font-style:italic;font-size:.9em}
+.crit .q small{display:block;font-style:normal;color:var(--muted);margin-top:2px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);color:var(--muted);margin-left:6px}
+.pill.acc{border-color:var(--accent);color:var(--accent)}
+.was{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:960px}
+@media (max-width:760px){.was{grid-template-columns:1fr}}
+.was .card h3{color:var(--muted)} .was .card.ok h3{color:var(--ok)}
+.notes{margin-top:22px;padding:12px 16px;border-left:3px solid var(--warm);background:var(--warm-soft);border-radius:0 10px 10px 0;font-size:.9em;max-width:70ch}
+.notes b{font-family:Manrope,sans-serif}
+body.hide-notes .notes{display:none}
+.hint{position:fixed;bottom:12px;right:14px;font-size:12px;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px 10px;opacity:.85}
+.team{display:flex;gap:18px;flex-wrap:wrap;margin-top:24px;color:var(--muted)}
+.team b{color:var(--ink);font-weight:600}
+.ph{color:var(--warm);font-weight:600}
+</style>
+
+<div class="deck">
+
+<!-- 1 -->
+<section class="slide" id="s1">
+  <span class="num">01 / 10</span>
+  <p class="kicker">AI Product Hack 2026 · кейс Авито Образования</p>
+  <h1>Проверка домашних работ в одном месте</h1>
+  <p class="lead">Платформа, где координатор один раз заводит задание, работы сами собираются в пул, ИИ готовит разбор по привычным критериям, а ревьюер принимает решение быстрее.</p>
+  <div class="team"><span><b>Мелихов Матвей</b> · продукт</span><span><b>Губин Владимир</b> · бэкенд и интеграции</span><span><b>Поддуба Илья</b> · ИИ-проверка</span></div>
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <span class="num">02 / 10</span>
+  <p class="kicker">Проблема</p>
+  <h2>Время теряют все участники: данные распределены по сервисам</h2>
+  <div class="grid g4">
+    <div class="card"><div class="stat">GitHub<small>работы технических курсов</small></div></div>
+    <div class="card"><div class="stat">Stepik<small>работы и оценки нетехнических</small></div></div>
+    <div class="card"><div class="stat">Sheets<small>статусы и баллы вручную</small></div></div>
+    <div class="card"><div class="stat">Чаты<small>напоминания и вопросы</small></div></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card warm"><h3>Ревьюер</h3><p>Около часа на одну работу вручную. Собирает работы с разных площадок, критерии берёт из условия. Каждый подключает ИИ по-своему: у одних свой навык для Claude, у других ничего. В результате похожие работы получают разные оценки.</p></div>
+    <div class="card warm"><h3>Координатор</h3><p>До 10 часов в неделю не на одну задачу, а на возвращение к одним и тем же: напомнить студентам, спросить ревьюера, успевает ли, перекинуть работы, свести баллы. Работа сильно распределена во времени.</p></div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s3">
+  <span class="num">03 / 10</span>
+  <p class="kicker">Решение</p>
+  <h2>Универсальная платформа: ядро одно, источники и приёмники подключаются</h2>
+  <div class="flow">
+    <div class="box"><b>Источники работ</b><span>GitHub, Stepik, Google Docs, файлы. Адаптеры</span></div>
+    <div class="arr">→</div>
+    <div class="box acc"><b>Ядро</b><span>задания и критерии, пул работ, ИИ-разбор по критериям, решение ревьюера, журнал</span></div>
+    <div class="arr">→</div>
+    <div class="box"><b>Приёмники результата</b><span>Stepik, комментарий в PR, выгрузка в таблицу, письмо студенту</span></div>
+  </div>
+  <div class="grid g3" style="margin-top:18px">
+    <div class="card"><h3>Для студентов ничего не меняется</h3><p>Сдают там же, где сдавали. Платформа работает поверх существующих сервисов.</p></div>
+    <div class="card"><h3>Новый курс это настройка</h3><p>Новое задание это новые критерии в конструкторе, а не новый код. Новый формат сдачи это один адаптер.</p></div>
+    <div class="card"><h3>Совместимо с будущей платформой</h3><p>Если Авито перейдёт на свою платформу обучения, она подключится адаптером.</p></div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s4">
+  <span class="num">04 / 10</span>
+  <p class="kicker">Ревьюер · макет карточки</p>
+  <h2>Разбор по привычным критериям, решение за ревьюером</h2>
+  <div class="grid g2">
+    <div>
+      <div class="crit">
+        <div class="row"><span class="t">Построена диаграмма C4 <span class="pill">формальный</span></span><span class="pts">1 / 1</span></div>
+        <div class="row"><span class="t">Декомпозиция по двум признакам <span class="pill">содержательный</span></span><span class="pts">1 / 1</span></div>
+        <div class="row open"><div style="display:flex;justify-content:space-between;gap:12px"><span class="t">Контракты: входы, выходы, ошибки <span class="pill acc">содержательный</span></span><span class="pts">0.5 / 1</span></div>
+          <div class="why">Контракты REST полные, для события ошибки не описаны. Уверенность средняя.</div>
+          <div class="q">«POST /bookings … ответы 201, 400, 409»<small>раздел 5.2 · цитата найдена в работе</small></div>
+          <div class="why">Чего нет: ошибки для события booking.created. Искали в разделах 5 и 6.</div></div>
+        <div class="row"><span class="t">Обосновано соблюдение SRP <span class="pill">оценочный</span></span><span class="pts">0.5 / 0.5 <span class="pill">низкая уверенность</span></span></div>
+      </div>
+    </div>
+    <div class="grid" style="align-content:start">
+      <div class="card acc"><h3>Каждый балл объяснён</h3><p>Клик по критерию: почему такая оценка и фрагмент кода или документа, на который опиралась модель. Программа проверяет, что цитата в работе есть.</p></div>
+      <div class="card"><h3>Ревьюер меняет любой балл</h3><p>Соглашается одним кликом или ставит своё. Всё, что он изменил, попадает в журнал.</p></div>
+      <div class="card"><h3>Признаки ИИ отдельно</h3><p>Уровень, основания, ограничения и вопросы для разговора со студентом. В балл не входят, решает ревьюер.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s5">
+  <span class="num">05 / 10</span>
+  <p class="kicker">Координатор</p>
+  <h2>Общий пул вместо ручного распределения</h2>
+  <div class="was">
+    <div class="card"><h3>Было</h3><ul><li>спросить каждого ревьюера, сколько возьмёт</li><li>разложить студентов по таблице</li><li>следить, кто отстаёт, перераспределять</li><li>напоминать, сводить баллы</li><li>возвращаться к этому всю неделю</li></ul></div>
+    <div class="card ok"><h3>Стало</h3><ul><li>работы автоматически попадают в общий пул</li><li>ревьюер берёт следующую сам</li><li>зависшие работы подсвечиваются, один клик «Напомнить»</li><li>баллы и статусы считает платформа</li><li>координатор заходит по необходимости, а не постоянно</li></ul></div>
+  </div>
+  <p class="lead" style="margin-top:18px">Ревьюеры проверяют быстрее и меньше устают, работы уходят из пула быстрее, следить за готовностью ревьюеров и остатком пула почти не нужно. Так разгружаются обе управляющие роли курса.</p>
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s6">
+  <span class="num">06 / 10</span>
+  <p class="kicker">Студент · в плане</p>
+  <h2>Саморевью до сдачи: ревьюеру достаётся финальная версия</h2>
+  <div class="flow">
+    <div class="box"><b>Студент проверяет себя</b><span>ограниченное число попыток, тот же ИИ-разбор по критериям</span></div>
+    <div class="arr">→</div>
+    <div class="box"><b>Видит, что не пройдёт</b><span>по конкретным критериям, до сдачи</span></div>
+    <div class="arr">→</div>
+    <div class="box acc"><b>Сдаёт доработанное</b><span>ревьюер получает почти всегда финальную работу</span></div>
+  </div>
+  <div class="grid g2" style="margin-top:18px">
+    <div class="card"><h3>Короче цикл до итоговой оценки</h3><p>Меньше пар «ревью, доработка, повторное ревью». Одна домашка для ревьюера это одна проверка, а не две.</p></div>
+    <div class="card warm"><h3>Без гарантий зачёта</h3><p>Прошло саморевью, значит ревьюер всё ещё может вернуть на доработку. Признаки ИИ студенту не показываются.</p></div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s7">
+  <span class="num">07 / 10</span>
+  <p class="kicker">Критерии</p>
+  <h2>Критерии живут в одном месте и всегда актуальны</h2>
+  <div class="grid g3">
+    <div class="card"><h3>Конструктор задания</h3><p>Координатор заводит текст для студента и таблицу критериев: формулировка, балл, что считается выполненным, рекомендации ревьюерам, эталонное решение.</p></div>
+    <div class="card"><h3>Версии</h3><p>Поменял критерии, ревьюеры сразу видят актуальную версию. Что проверялось по старой, остаётся воспроизводимым.</p></div>
+    <div class="card"><h3>Один раз</h3><p>Не нужно копировать шаблон каждому ревьюеру на каждого студента. Координатор заполняет один раз, дальше работает система.</p></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s8">
+  <span class="num">08 / 10</span>
+  <p class="kicker">Как это устроено · проект архитектуры</p>
+  <h2>Три компонента, решение всегда за человеком</h2>
+  <div class="flow">
+    <div class="box"><b>Бэкенд платформы</b><span>задания, сдачи, пул, ревью, доставки, журнал</span></div>
+    <div class="arr">→</div>
+    <div class="box acc"><b>Сервис ИИ-проверки</b><span>по замороженному контракту: работа и критерии на вход, предложения по критериям и сигнал на выход</span></div>
+    <div class="arr">→</div>
+    <div class="box"><b>Ревьюер</b><span>подтверждает, меняет, публикует</span></div>
+  </div>
+  <div class="grid g4" style="margin-top:18px">
+    <div class="card"><h3>Нет балла без основания</h3><p>Цитату проверяет программа, а не модель.</p></div>
+    <div class="card"><h3>Ошибка не становится оценкой</h3><p>Если модель недоступна, критерий получает статус «не проверено», ревьюер работает дальше.</p></div>
+    <div class="card"><h3>Данные в контуре</h3><p>В модель уходят идентификаторы, не ФИО. Модель за интерфейсом: внешняя на демо, локальная или модель Авито при внедрении.</p></div>
+    <div class="card"><h3>Стоимость считается</h3><p>Цена каждой проверки в журнале. Порядок: единицы рублей на работу.</p></div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s9">
+  <span class="num">09 / 10</span>
+  <p class="kicker">Где мы сейчас · 4 сентября</p>
+  <h2>Исследование и проект закончены, начинаем сборку</h2>
+  <div class="grid g3">
+    <div class="card ok"><h3>Сделано</h3><ul><li>разбор кейса и всех восьми направлений домашних работ, включая шаблон критериев</li><li>Q&A с кейсодателем и интервью с действующим ревьюером курса Tech QA</li><li>продуктовая постановка, границы MVP, контракты и допущения</li><li>модель данных и 19 экранов трёх ролей в кликабельном макете</li><li>спецификация бэкенда с замороженным контрактом для ИИ-проверки</li><li>проект пайплайна проверки: критерии, цитаты, сигнал об ИИ</li></ul></div>
+    <div class="card acc"><h3>В работе</h3><ul><li>бэкенд: окружение, контракты, сдачи и итерации ревью</li><li>сервис ИИ-проверки: разбор по критериям с цитатами на реальных работах</li><li>синтетические работы с заданными дефектами для проверки качества</li><li>экраны ревьюера и координатора против заглушек</li></ul></div>
+    <div class="card"><h3>Дальше</h3><ul><li>5 сентября: сквозной сценарий на одном задании</li><li>6 сентября: замер времени и качества, второй формат сдачи</li><li>7 сентября: заморозка, отчёт, защита</li></ul></div>
+  </div>
+  <div class="card" style="margin-top:18px;max-width:960px"><h3>Как будем измерять</h3><p>Одну и ту же работу проверяем без системы и с системой, с секундомером. Считаем время и долю критериев, принятых без правок. Качество проверки: реальные работы с известным уровнем и синтетические с заданными дефектами, контрольный вариант «один общий промпт». Замер на себе, разницу между режимами, не абсолютные минуты.</p></div>
+</section>
+
+<!-- 10 -->
+<section class="slide" id="s10">
+  <span class="num">10 / 10</span>
+  <p class="kicker">Дальше</p>
+  <h2>Что покажем на финале, ограничения и что хотим уточнить</h2>
+  <div class="grid g3">
+    <div class="card ok"><h3>К защите 7 сентября</h3><ul><li>сквозной сценарий: задание, сдача, пул, ИИ-разбор, решение ревьюера, результат студенту</li><li>лаба по системному дизайну как основной профиль, второй формат как проверка переносимости</li><li>отчёт по качеству проверки и замер времени</li><li>стоимость проверки на работу и на поток</li></ul></div>
+    <div class="card warm"><h3>Ограничения</h3><ul><li>оценочные критерии модель предлагает с низкой уверенностью, решает человек</li><li>признаки ИИ это повод для вопроса, не доказательство</li><li>покрытие пула держится на людях, автораспределения нет</li><li>выгрузка оценок в Stepik требует платного курса, показываем контракт</li></ul></div>
+    <div class="card acc"><h3>Хотим уточнить</h3><ul><li>какое задание и поток взять первыми для пилота</li><li>что означает «критикал» в шаблоне критериев при подсчёте балла</li><li>есть ли тестовые файлы из колонки «как проверяем» и можно ли их получить</li><li>нормально ли, что ревьюер сам берёт работы из пула, без назначения</li></ul></div>
+  </div>
+  <p class="lead" style="margin-top:18px">Пилот: один поток, одно задание, реальные ревьюеры. Метрики: время на работу, срок до обратной связи, доля принятых без правок, ошибки переноса.</p>
+</section>
+
+</div>
+<div class="hint">← → листать</div>
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('section.slide'));
+  function idx(){var y=window.scrollY+window.innerHeight/2;for(var i=slides.length-1;i>=0;i--){if(slides[i].offsetTop<=y)return i;}return 0;}
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();var i=Math.min(idx()+1,slides.length-1);slides[i].scrollIntoView({behavior:'smooth'});}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();var j=Math.max(idx()-1,0);slides[j].scrollIntoView({behavior:'smooth'});}
+    
+  });
+})();
+</script>
