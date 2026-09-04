@@ -67,6 +67,9 @@ class OperationView:
     state: str
     attempts: tuple[Mapping[str, Any], ...]
     error: Mapping[str, Any] | None
+    created_at: datetime | str
+    updated_at: datetime | str
+    finished_at: datetime | str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -568,6 +571,9 @@ def _operation_view(operation: Operation) -> OperationView:
         state=operation.state,
         attempts=attempts,
         error=operation.sanitized_error,
+        created_at=operation.created_at,
+        updated_at=operation.updated_at,
+        finished_at=operation.finished_at,
     )
 
 

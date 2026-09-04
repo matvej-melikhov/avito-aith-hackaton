@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
@@ -33,7 +33,17 @@ async def get_operation(
                 "action": None,
             },
         )
-    return asdict(operation)
+    return {
+        "id": operation.operation_id,
+        "kind": operation.kind,
+        "input_version": operation.input_version,
+        "state": operation.state,
+        "attempts": [_json_mapping(attempt) for attempt in operation.attempts],
+        "created_at": _json_datetime(operation.created_at),
+        "updated_at": _json_datetime(operation.updated_at),
+        "finished_at": _json_datetime(operation.finished_at),
+        "error": operation.error,
+    }
 
 
 def _runtime(request: Request) -> FoundationRuntime:
@@ -55,6 +65,19 @@ def _request_actor(request: Request) -> RequestActor:
             },
         )
     return actor
+
+
+def _json_datetime(value: datetime | str | None) -> str | None:
+    if isinstance(value, datetime):
+        return value.isoformat().replace("+00:00", "Z")
+    return value
+
+
+def _json_mapping(value: Any) -> dict[str, Any]:
+    return {
+        key: _json_datetime(item) if isinstance(item, datetime) else item
+        for key, item in dict(value).items()
+    }
 
 
 __all__ = ["router"]

@@ -69,6 +69,9 @@ class CourseContractProbeRuntime(FoundationRuntime):
                 },
             ),
             error=None,
+            created_at="2026-09-04T11:58:00Z",
+            updated_at="2026-09-04T11:59:04Z",
+            finished_at="2026-09-04T11:59:04Z",
         )
 
     async def close(self) -> None:
