@@ -86,6 +86,7 @@ REGISTRY = HandlerRegistry()
 HANDLER_MODULES: tuple[str, ...] = (
     "review_platform.infrastructure.tasks.course_import",
     "review_platform.infrastructure.tasks.email",
+    "review_platform.infrastructure.tasks.artifacts",
 )
 
 

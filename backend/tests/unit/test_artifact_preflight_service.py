@@ -46,6 +46,7 @@ HOMEWORK_VERSION = UUID("00000000-0000-7000-8000-000000000107")
 PUBLICATION_A = UUID("00000000-0000-7000-8000-000000000108")
 PUBLICATION_B = UUID("00000000-0000-7000-8000-000000000109")
 CREDENTIAL = UUID("00000000-0000-7000-8000-000000000021")
+SECOND_CREDENTIAL = UUID("00000000-0000-7000-8000-000000000022")
 NOW = datetime(2026, 9, 5, 12, 0, tzinfo=UTC)
 URL = "https://github.com/example/repository"
 
@@ -88,7 +89,9 @@ class Repository:
             for context in contexts
         }
         self.submissions: dict[tuple[UUID, UUID, UUID, UUID], SubmissionRecord] = {}
-        self.references: dict[tuple[UUID, str, str], ArtifactReferenceRecord] = {}
+        self.references: dict[
+            tuple[UUID, str, str, UUID, int], ArtifactReferenceRecord
+        ] = {}
 
     async def lock_context(
         self,
@@ -142,7 +145,13 @@ class Repository:
         transaction: object,
     ) -> ArtifactReferenceRecord:
         assert transaction is TRANSACTION
-        key = (candidate.organization_id, candidate.provider, candidate.original_url)
+        key = (
+            candidate.organization_id,
+            candidate.provider,
+            candidate.original_url,
+            candidate.credential_binding_id,
+            candidate.credential_binding_version,
+        )
         existing = self.references.get(key)
         if existing is not None:
             updated = replace(
@@ -156,8 +165,29 @@ class Repository:
         return candidate
 
 
+class CollapsingRepository(Repository):
+    async def upsert_available_reference(
+        self,
+        candidate: ArtifactReferenceRecord,
+        *,
+        transaction: object,
+    ) -> ArtifactReferenceRecord:
+        for record in self.references.values():
+            if (
+                record.organization_id == candidate.organization_id
+                and record.provider == candidate.provider
+                and record.original_url == candidate.original_url
+            ):
+                return record
+        return await super().upsert_available_reference(
+            candidate,
+            transaction=transaction,
+        )
+
+
 class Credentials:
-    def __init__(self) -> None:
+    def __init__(self, allowed: frozenset[UUID] = frozenset({CREDENTIAL})) -> None:
+        self.allowed = allowed
         self.calls = 0
 
     async def require_exact_active(
@@ -171,7 +201,7 @@ class Credentials:
         self.calls += 1
         if (
             organization_id != ORG
-            or binding.credential_binding_id != CREDENTIAL
+            or binding.credential_binding_id not in self.allowed
             or binding.credential_binding_version != 1
             or binding.provider != "github"
         ):
@@ -245,6 +275,27 @@ class UnavailableProvider:
 
     async def capture(self, request: ProviderPayload) -> ProviderPayload:
         raise AssertionError("preflight must not capture")
+
+
+class FlexibleAvailableProvider(UnavailableProvider):
+    async def preflight(self, request: ProviderPayload) -> ProviderPayload:
+        ContractRegistry().validate(
+            request,
+            self.schema_name,
+            definition="preflight_request",
+        )
+        return {
+            "contract_version": "1.1.0",
+            "organization_id": request["organization_id"],
+            "provider": request["provider"],
+            "read_capability": "available",
+            "feedback_capability": "available",
+            "locator": {
+                "canonical_url": URL,
+                "external_id": "example/repository",
+            },
+            "error": None,
+        }
 
 
 class WrongTenantProvider(UnavailableProvider):
@@ -330,10 +381,14 @@ def _service(
     )
 
 
-def _binding(*, credential_id: UUID = CREDENTIAL) -> ArtifactCredentialBinding:
+def _binding(
+    *,
+    credential_id: UUID = CREDENTIAL,
+    version: int = 1,
+) -> ArtifactCredentialBinding:
     return ArtifactCredentialBinding(
         credential_binding_id=credential_id,
-        credential_binding_version=1,
+        credential_binding_version=version,
         provider="github",
     )
 
@@ -390,6 +445,81 @@ async def test_available_fixture_replays_submission_and_reference_but_isolates_r
     assert first.read_capability == "available" and first.error is None
     assert provider.calls == credentials.calls == guard.revalidated == 3
     assert archive.calls == [RUN_A, RUN_A, RUN_B]
+
+
+@pytest.mark.anyio
+async def test_same_locator_with_two_active_bindings_never_collapses_provenance() -> None:
+    repository = Repository((_context(RELATION_A, RUN_A, PUBLICATION_A),))
+    actor = _actor()
+    credentials = Credentials(frozenset({CREDENTIAL, SECOND_CREDENTIAL}))
+    service, _, _, _ = _service(
+        repository,
+        actor=actor,
+        provider=FlexibleAvailableProvider(),
+        credentials=credentials,
+    )
+
+    first = await service.preflight(
+        transaction=TRANSACTION,
+        organization_id=ORG,
+        course_run_homework_id=RELATION_A,
+        expected_revision=1,
+        artifact_url=URL,
+        credential_binding=_binding(credential_id=CREDENTIAL),
+        actor=actor,
+    )
+    second = await service.preflight(
+        transaction=TRANSACTION,
+        organization_id=ORG,
+        course_run_homework_id=RELATION_A,
+        expected_revision=1,
+        artifact_url=URL,
+        credential_binding=_binding(credential_id=SECOND_CREDENTIAL),
+        actor=actor,
+    )
+
+    assert first.submission_id == second.submission_id
+    assert first.artifact_reference_id != second.artifact_reference_id
+    assert len(repository.references) == 2
+    provenances = {
+        (record.credential_binding_id, record.credential_binding_version)
+        for record in repository.references.values()
+    }
+    assert provenances == {(CREDENTIAL, 1), (SECOND_CREDENTIAL, 1)}
+
+
+@pytest.mark.anyio
+async def test_repository_cannot_silently_reuse_reference_from_another_binding() -> None:
+    repository = CollapsingRepository(
+        (_context(RELATION_A, RUN_A, PUBLICATION_A),)
+    )
+    actor = _actor()
+    service, _, _, _ = _service(
+        repository,
+        actor=actor,
+        provider=FlexibleAvailableProvider(),
+        credentials=Credentials(frozenset({CREDENTIAL, SECOND_CREDENTIAL})),
+    )
+    await service.preflight(
+        transaction=TRANSACTION,
+        organization_id=ORG,
+        course_run_homework_id=RELATION_A,
+        expected_revision=1,
+        artifact_url=URL,
+        credential_binding=_binding(credential_id=CREDENTIAL),
+        actor=actor,
+    )
+
+    with pytest.raises(ArtifactProviderContractViolation, match="provenance"):
+        await service.preflight(
+            transaction=TRANSACTION,
+            organization_id=ORG,
+            course_run_homework_id=RELATION_A,
+            expected_revision=1,
+            artifact_url=URL,
+            credential_binding=_binding(credential_id=SECOND_CREDENTIAL),
+            actor=actor,
+        )
 
 
 @pytest.mark.anyio

@@ -54,6 +54,8 @@ def upgrade() -> None:
         sa.Column("revision", sa.Integer(), server_default=sa.text("0"), nullable=False),
         *_timestamps(),
         sa.Column("provider", sa.String(32), nullable=False),
+        sa.Column("credential_binding_id", UUID, nullable=False),
+        sa.Column("credential_binding_version", sa.Integer(), nullable=False),
         sa.Column("original_url", sa.String(2048), nullable=False),
         sa.Column("locator", sa.JSON(), nullable=True),
         sa.Column("read_capability", sa.String(32), nullable=False),
@@ -71,7 +73,21 @@ def upgrade() -> None:
             name="ck_artifact_reference_feedback_capability",
         ),
         sa.CheckConstraint("revision >= 0", name="ck_artifact_reference_revision_nonnegative"),
+        sa.CheckConstraint(
+            "credential_binding_version >= 1",
+            name="ck_artifact_reference_credential_binding_version_positive",
+        ),
         _org_fk("artifact_reference"),
+        sa.ForeignKeyConstraint(
+            ["organization_id", "credential_binding_id", "credential_binding_version"],
+            [
+                "external_credential.organization_id",
+                "external_credential.id",
+                "external_credential.binding_version",
+            ],
+            name="fk_artifact_reference_org_credential_version",
+            ondelete="RESTRICT",
+        ),
         sa.PrimaryKeyConstraint("id", name="pk_artifact_reference"),
         _tenant_uq("artifact_reference"),
     )

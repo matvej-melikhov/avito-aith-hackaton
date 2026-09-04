@@ -9,7 +9,7 @@ from uuid import UUID
 import pytest
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-from sqlalchemy import ForeignKeyConstraint, UniqueConstraint, update
+from sqlalchemy import ForeignKeyConstraint, UniqueConstraint, select, update
 from sqlalchemy.exc import IntegrityError
 from testcontainers.mysql import MySqlContainer
 
@@ -22,6 +22,7 @@ from review_platform.infrastructure.db.models import (
     CourseRun,
     CourseRunHomework,
     CriterionSet,
+    ExternalCredential,
     Homework,
     HomeworkVersion,
     Operation,
@@ -87,9 +88,15 @@ def test_submission_review_identity_and_initial_iteration_uniqueness() -> None:
 
 
 def test_artifact_and_promotion_shapes_are_durable_and_tenant_scoped() -> None:
-    assert {"provider", "original_url", "locator", "read_capability", "feedback_capability"} <= set(
-        ArtifactReference.__table__.columns.keys()
-    )
+    assert {
+        "provider",
+        "credential_binding_id",
+        "credential_binding_version",
+        "original_url",
+        "locator",
+        "read_capability",
+        "feedback_capability",
+    } <= set(ArtifactReference.__table__.columns.keys())
     assert {
         "provider_version",
         "content_digest",
@@ -158,6 +165,9 @@ async def test_mysql_rejects_cross_aggregate_pointers_and_duplicate_initials(
         *_,
     ) = ids
     org_other, op_other, cross_promotion = ids[22:25]
+    credential, credential_two, credential_other, reference_two = [
+        UUID(f"00000000-0000-7000-8000-{n:012d}") for n in range(880, 884)
+    ]
     try:
         async with foundation_test_transaction(engine) as session:
             session.add_all(
@@ -184,6 +194,35 @@ async def test_mysql_rejects_cross_aggregate_pointers_and_duplicate_initials(
             await session.flush()
             session.add_all(
                 [
+                    ExternalCredential(
+                        id=credential,
+                        organization_id=org,
+                        provider="github",
+                        binding_version=1,
+                        ciphertext="cipher-one",
+                        key_id="key",
+                    ),
+                    ExternalCredential(
+                        id=credential_two,
+                        organization_id=org,
+                        provider="github",
+                        binding_version=1,
+                        ciphertext="cipher-two",
+                        key_id="key",
+                    ),
+                    ExternalCredential(
+                        id=credential_other,
+                        organization_id=org_other,
+                        provider="github",
+                        binding_version=1,
+                        ciphertext="cipher-other",
+                        key_id="key",
+                    ),
+                ]
+            )
+            await session.flush()
+            session.add_all(
+                [
                     CourseRun(
                         id=run1,
                         organization_id=org,
@@ -205,8 +244,22 @@ async def test_mysql_rejects_cross_aggregate_pointers_and_duplicate_initials(
                         id=reference,
                         organization_id=org,
                         provider="github",
+                        credential_binding_id=credential,
+                        credential_binding_version=1,
                         original_url="https://github.com/example/repo",
                         locator={"external_id": "example/repo"},
+                        read_capability="available",
+                        feedback_capability="available",
+                        last_checked_at=now,
+                    ),
+                    ArtifactReference(
+                        id=reference_two,
+                        organization_id=org,
+                        provider="github",
+                        credential_binding_id=credential_two,
+                        credential_binding_version=1,
+                        original_url="https://github.com/example/two",
+                        locator={"external_id": "example/two"},
                         read_capability="available",
                         feedback_capability="available",
                         last_checked_at=now,
@@ -232,6 +285,47 @@ async def test_mysql_rejects_cross_aggregate_pointers_and_duplicate_initials(
                 ]
             )
             await session.flush()
+            stored_references = (
+                await session.execute(
+                    select(ArtifactReference).where(
+                        ArtifactReference.organization_id == org
+                    )
+                )
+            ).scalars().all()
+            assert {
+                (row.credential_binding_id, row.credential_binding_version)
+                for row in stored_references
+            } == {(credential, 1), (credential_two, 1)}
+            for invalid_reference in (
+                ArtifactReference(
+                    id=UUID("00000000-0000-7000-8000-000000000884"),
+                    organization_id=org,
+                    provider="github",
+                    credential_binding_id=credential,
+                    credential_binding_version=2,
+                    original_url="https://github.com/example/wrong-version",
+                    locator=None,
+                    read_capability="unavailable",
+                    feedback_capability="requires_action",
+                    last_checked_at=now,
+                ),
+                ArtifactReference(
+                    id=UUID("00000000-0000-7000-8000-000000000885"),
+                    organization_id=org,
+                    provider="github",
+                    credential_binding_id=credential_other,
+                    credential_binding_version=1,
+                    original_url="https://github.com/example/cross-tenant",
+                    locator=None,
+                    read_capability="unavailable",
+                    feedback_capability="requires_action",
+                    last_checked_at=now,
+                ),
+            ):
+                with pytest.raises(IntegrityError):
+                    async with session.begin_nested():
+                        session.add(invalid_reference)
+                        await session.flush([invalid_reference])
             session.add(
                 HomeworkVersion(
                     id=hv,

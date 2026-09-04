@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import fields
+from dataclasses import fields, replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import UUID
@@ -64,6 +64,7 @@ from review_platform.infrastructure.db.repositories.submissions import (
     SqlCaptureScheduler,
     SqlReviewIterationRepository,
     SqlSubmissionRepository,
+    SubmissionPersistenceConflict,
 )
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 
@@ -84,6 +85,7 @@ RELATION_B = UUID("00000000-0000-7000-8000-000000004042")
 PUBLICATION_A = UUID("00000000-0000-7000-8000-000000004051")
 PUBLICATION_B = UUID("00000000-0000-7000-8000-000000004052")
 CREDENTIAL = UUID("00000000-0000-7000-8000-000000004061")
+CREDENTIAL_SECOND = UUID("00000000-0000-7000-8000-000000004062")
 REFERENCE = UUID("00000000-0000-7000-8000-000000004071")
 SUBMISSION_A = UUID("00000000-0000-7000-8000-000000004081")
 SUBMISSION_B = UUID("00000000-0000-7000-8000-000000004082")
@@ -169,6 +171,15 @@ async def _seed(factory: AsyncSessionFactory) -> None:
                     provider="github",
                     binding_version=1,
                     ciphertext="encrypted",
+                    key_id="test-key",
+                    status="active",
+                ),
+                ExternalCredential(
+                    id=CREDENTIAL_SECOND,
+                    organization_id=ORG,
+                    provider="github",
+                    binding_version=1,
+                    ciphertext="encrypted-second",
                     key_id="test-key",
                     status="active",
                 ),
@@ -272,6 +283,8 @@ def _candidate_reference(identity: UUID) -> ArtifactReferenceRecord:
         organization_id=ORG,
         artifact_reference_id=identity,
         provider="github",
+        credential_binding_id=CREDENTIAL,
+        credential_binding_version=1,
         original_url="https://github.com/example/repository",
         locator={
             "canonical_url": "https://github.com/example/repository",
@@ -332,13 +345,10 @@ async def test_preflight_reference_and_submission_unique_races_are_tenant_scoped
         assert first.submission_id == replay.submission_id == SUBMISSION_A
         assert second_run.submission_id == SUBMISSION_B
         assert first.course_run_id != second_run.course_run_id
-        assert (
-            await SqlArtifactCredentialBindings().require_exact_active(
-                ORG,
-                ArtifactCredentialBinding(CREDENTIAL, 1, "github"),
-                transaction=session,
-            )
-            is None
+        await SqlArtifactCredentialBindings().require_exact_active(
+            ORG,
+            ArtifactCredentialBinding(CREDENTIAL, 1, "github"),
+            transaction=session,
         )
         await session.commit()
 
@@ -357,6 +367,8 @@ async def test_capture_bundle_outbox_failure_and_replay_are_atomic(
                 id=REFERENCE,
                 organization_id=ORG,
                 provider="github",
+                credential_binding_id=CREDENTIAL,
+                credential_binding_version=1,
                 original_url="https://github.com/example/repository",
                 locator={
                     "canonical_url": "https://github.com/example/repository",
@@ -481,6 +493,85 @@ async def test_capture_bundle_outbox_failure_and_replay_are_atomic(
         assert await session.scalar(select(func.count()).select_from(ArtifactPromotion)) == 1
 
 
+async def test_reference_identity_and_capture_outbox_preserve_exact_binding_pair(
+    foundation_session_factory: AsyncSessionFactory,
+) -> None:
+    await _seed(foundation_session_factory)
+    first = _candidate_reference(REFERENCE)
+    second = replace(
+        first,
+        artifact_reference_id=UUID("00000000-0000-7000-8000-000000004073"),
+        credential_binding_id=CREDENTIAL_SECOND,
+    )
+    operation_id = UUID("00000000-0000-7000-8000-000000004074")
+    async with session_scope(foundation_session_factory) as session:
+        preflight = SqlArtifactPreflightRepository()
+        stored_first = await preflight.upsert_available_reference(first, transaction=session)
+        stored_second = await preflight.upsert_available_reference(second, transaction=session)
+        assert stored_first.artifact_reference_id != stored_second.artifact_reference_id
+        assert stored_first.credential_binding_id == CREDENTIAL
+        assert stored_second.credential_binding_id == CREDENTIAL_SECOND
+
+        submission_reference = await SqlSubmissionRepository().get_artifact_reference(
+            ORG,
+            stored_second.artifact_reference_id,
+            transaction=session,
+        )
+        assert submission_reference is not None
+        assert submission_reference.credential_binding_id == CREDENTIAL_SECOND
+        assert submission_reference.credential_binding_version == 1
+        await SqlCaptureScheduler(id_factory=IDs(7000), clock=lambda: NOW).schedule(
+            ArtifactCaptureRequest(
+                organization_id=ORG,
+                operation_id=operation_id,
+                submission_id=SUBMISSION_A,
+                submission_version_id=SUBMISSION_VERSION_ID,
+                artifact_reference_id=stored_second.artifact_reference_id,
+                provider="github",
+                credential_binding_id=CREDENTIAL_SECOND,
+                credential_binding_version=1,
+                course_run_id=RUN_A,
+                homework_id=HOMEWORK_ID,
+                homework_version_id=HOMEWORK_VERSION_ID,
+                course_run_homework_id=RELATION_A,
+                homework_publication_id=PUBLICATION_A,
+                actor_user_id=STUDENT,
+                actor_membership_revision=0,
+                actor_auth_epoch=0,
+            ),
+            transaction=session,
+        )
+        with pytest.raises(SubmissionPersistenceConflict, match="provenance mismatched"):
+            await SqlCaptureScheduler(id_factory=IDs(7100), clock=lambda: NOW).schedule(
+                ArtifactCaptureRequest(
+                    organization_id=ORG,
+                    operation_id=UUID("00000000-0000-7000-8000-000000004075"),
+                    submission_id=SUBMISSION_A,
+                    submission_version_id=SUBMISSION_VERSION_ID,
+                    artifact_reference_id=stored_second.artifact_reference_id,
+                    provider="github",
+                    credential_binding_id=CREDENTIAL,
+                    credential_binding_version=1,
+                    course_run_id=RUN_A,
+                    homework_id=HOMEWORK_ID,
+                    homework_version_id=HOMEWORK_VERSION_ID,
+                    course_run_homework_id=RELATION_A,
+                    homework_publication_id=PUBLICATION_A,
+                    actor_user_id=STUDENT,
+                    actor_membership_revision=0,
+                    actor_auth_epoch=0,
+                ),
+                transaction=session,
+            )
+    async with foundation_session_factory() as session:
+        message = await session.scalar(
+            select(OutboxMessage).where(OutboxMessage.aggregate_id == operation_id)
+        )
+        assert message is not None
+        assert message.payload["credential_binding_id"] == str(CREDENTIAL_SECOND)
+        assert message.payload["credential_binding_version"] == 1
+
+
 async def test_submission_cas_scheduler_and_history_keep_only_us3_fields(
     foundation_session_factory: AsyncSessionFactory,
 ) -> None:
@@ -535,6 +626,8 @@ async def test_submission_cas_scheduler_and_history_keep_only_us3_fields(
                 SUBMISSION_VERSION_ID,
                 REFERENCE,
                 "github",
+                CREDENTIAL,
+                1,
                 RUN_A,
                 HOMEWORK_ID,
                 HOMEWORK_VERSION_ID,
@@ -607,6 +700,8 @@ async def test_duplicate_open_review_race_has_one_case_and_iteration_winner(
                 id=REFERENCE,
                 organization_id=ORG,
                 provider="github",
+                credential_binding_id=CREDENTIAL,
+                credential_binding_version=1,
                 original_url="https://github.com/example/repository",
                 locator={
                     "canonical_url": "https://github.com/example/repository",

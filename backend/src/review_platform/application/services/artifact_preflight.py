@@ -99,12 +99,20 @@ class ArtifactReferenceRecord:
     organization_id: UUID
     artifact_reference_id: UUID
     provider: ArtifactProviderName
+    credential_binding_id: UUID
+    credential_binding_version: int
     original_url: str
     locator: Mapping[str, str]
     read_capability: ReadCapability
     feedback_capability: FeedbackCapability
     last_checked_at: datetime
     revision: int
+
+    def __post_init__(self) -> None:
+        if self.credential_binding_version < 1:
+            raise InvalidArtifactCredentialBinding(
+                "artifact reference credential binding version must be positive"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -273,6 +281,10 @@ class ArtifactPreflightService:
                     organization_id=organization_id,
                     artifact_reference_id=self._id_factory(),
                     provider=provider_name,
+                    credential_binding_id=credential_binding.credential_binding_id,
+                    credential_binding_version=(
+                        credential_binding.credential_binding_version
+                    ),
                     original_url=artifact_url,
                     locator=_string_mapping(locator),
                     read_capability=read_capability,
@@ -287,6 +299,7 @@ class ArtifactPreflightService:
                 organization_id=organization_id,
                 provider=provider_name,
                 artifact_url=artifact_url,
+                binding=credential_binding,
             )
             error: Mapping[str, object] | None = None
             reference_id: UUID | None = reference.artifact_reference_id
@@ -412,10 +425,14 @@ class ArtifactPreflightService:
         organization_id: UUID,
         provider: ArtifactProviderName,
         artifact_url: str,
+        binding: ArtifactCredentialBinding,
     ) -> None:
         if (
             reference.organization_id != organization_id
             or reference.provider != provider
+            or reference.credential_binding_id != binding.credential_binding_id
+            or reference.credential_binding_version
+            != binding.credential_binding_version
             or reference.original_url != artifact_url
             or reference.read_capability != "available"
         ):

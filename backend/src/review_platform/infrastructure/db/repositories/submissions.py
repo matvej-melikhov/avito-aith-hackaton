@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Literal, cast
 from uuid import UUID
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -89,6 +89,12 @@ from review_platform.infrastructure.db.models.submission import (
 )
 from review_platform.infrastructure.db.outbox import OutboxDraft, OutboxService
 from review_platform.infrastructure.db.repositories.operations import OutboxMessageRepository
+from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
+from review_platform.infrastructure.object_storage.promotions import (
+    ArtifactPromotionRepository,
+    PromotionFailure,
+    PromotionLease,
+)
 
 
 class SubmissionRepositoryError(RuntimeError):
@@ -101,6 +107,20 @@ class InvalidSubmissionTransaction(SubmissionRepositoryError):
 
 class SubmissionPersistenceConflict(SubmissionRepositoryError):
     pass
+
+
+@dataclass(frozen=True, slots=True)
+class ArtifactPromotionStatus:
+    organization_id: UUID
+    promotion_id: UUID
+    artifact_version_id: UUID
+    operation_id: UUID
+    state: str
+    attempts: int
+    max_attempts: int
+    staged_key: str
+    final_key: str
+    error: Mapping[str, object] | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -300,11 +320,31 @@ class SqlArtifactPreflightRepository:
         )
         if organization is None:
             raise ArtifactProviderContractViolation("artifact reference tenant was not found")
+        credential = await session.scalar(
+            select(ExternalCredential)
+            .where(
+                ExternalCredential.organization_id == candidate.organization_id,
+                ExternalCredential.id == candidate.credential_binding_id,
+                ExternalCredential.binding_version
+                == candidate.credential_binding_version,
+                ExternalCredential.provider == candidate.provider,
+                ExternalCredential.status == "active",
+            )
+            .with_for_update()
+        )
+        if credential is None:
+            raise InvalidArtifactCredentialBinding(
+                "artifact reference exact active credential binding was not found"
+            )
         existing = await session.scalar(
             select(ArtifactReference)
             .where(
                 ArtifactReference.organization_id == candidate.organization_id,
                 ArtifactReference.provider == candidate.provider,
+                ArtifactReference.credential_binding_id
+                == candidate.credential_binding_id,
+                ArtifactReference.credential_binding_version
+                == candidate.credential_binding_version,
                 ArtifactReference.original_url == candidate.original_url,
             )
             .with_for_update()
@@ -314,6 +354,8 @@ class SqlArtifactPreflightRepository:
                 id=candidate.artifact_reference_id,
                 organization_id=candidate.organization_id,
                 provider=candidate.provider,
+                credential_binding_id=candidate.credential_binding_id,
+                credential_binding_version=candidate.credential_binding_version,
                 original_url=candidate.original_url,
                 locator=dict(candidate.locator),
                 read_capability=candidate.read_capability,
@@ -689,6 +731,382 @@ class SqlArtifactPromotionOutbox:
         )
 
 
+class SqlArtifactPromotionRepository:
+    """Short-transaction durable leases and terminal Operation updates."""
+
+    def __init__(
+        self,
+        session_factory: AsyncSessionFactory,
+        *,
+        id_factory: Callable[[], UUID] = uuid7,
+        clock: Callable[[], datetime] = utc_now,
+    ) -> None:
+        self._session_factory = session_factory
+        self._id_factory = id_factory
+        self._clock = clock
+
+    async def claim(
+        self,
+        organization_id: UUID,
+        promotion_id: UUID,
+        *,
+        owner: str,
+        token: UUID,
+        now: datetime,
+        lease_seconds: int,
+    ) -> PromotionLease | None:
+        if not owner or len(owner) > 255 or not 1 <= lease_seconds <= 3600:
+            raise SubmissionPersistenceConflict("promotion lease configuration is invalid")
+        async with session_scope(self._session_factory) as session:
+            promotion = await session.scalar(
+                select(ArtifactPromotion)
+                .where(
+                    ArtifactPromotion.organization_id == organization_id,
+                    ArtifactPromotion.id == promotion_id,
+                )
+                .with_for_update()
+            )
+            if promotion is None or not _promotion_claimable(promotion, now=now):
+                return None
+            if promotion.attempts >= promotion.max_attempts:
+                await self._force_exhausted(session, promotion, now=now)
+                return None
+            recovering_expired_lease = promotion.state == "promoting"
+            expired_owner = promotion.lease_owner
+            version = await session.scalar(
+                select(ArtifactVersion).where(
+                    ArtifactVersion.organization_id == organization_id,
+                    ArtifactVersion.id == promotion.artifact_version_id,
+                )
+            )
+            operation = await session.scalar(
+                select(Operation)
+                .where(
+                    Operation.organization_id == organization_id,
+                    Operation.id == promotion.operation_id,
+                    Operation.kind == "artifact_capture",
+                )
+                .with_for_update()
+            )
+            if version is None or operation is None:
+                raise SubmissionPersistenceConflict(
+                    "promotion ArtifactVersion or Operation provenance is missing"
+                )
+            if recovering_expired_lease:
+                attempt_number = await _next_attempt_number(
+                    session,
+                    organization_id,
+                    promotion.operation_id,
+                )
+                expired_error = {
+                    "code": "artifact_promotion_lease_expired",
+                    "message": "Previous artifact promotion worker lease expired",
+                }
+                session.add(
+                    OperationAttempt(
+                        id=self._id_factory(),
+                        organization_id=organization_id,
+                        operation_id=promotion.operation_id,
+                        attempt_number=attempt_number,
+                        worker_identity=_expired_promotion_worker_identity(
+                            expired_owner,
+                            promotion.id,
+                        ),
+                        started_at=promotion.lease_expires_at or now,
+                        finished_at=now,
+                        outcome="retryable_failed",
+                        error_code="artifact_promotion_lease_expired",
+                        sanitized_error=expired_error,
+                    )
+                )
+            expires_at = now + timedelta(seconds=lease_seconds)
+            promotion.state = "promoting"
+            promotion.lease_owner = owner
+            promotion.lease_token = token
+            promotion.lease_expires_at = expires_at
+            promotion.attempts += 1
+            promotion.error_code = None
+            promotion.sanitized_error = None
+            promotion.revision += 1
+            operation.state = "processing"
+            operation.updated_at = now
+            operation.finished_at = None
+            operation.error_code = None
+            operation.sanitized_error = None
+            operation.revision += 1
+            await session.flush()
+            return PromotionLease(
+                organization_id=promotion.organization_id,
+                promotion_id=promotion.id,
+                artifact_version_id=promotion.artifact_version_id,
+                operation_id=promotion.operation_id,
+                staged_key=promotion.staged_key,
+                final_key=promotion.final_key,
+                content_digest=version.content_digest,
+                byte_size=version.byte_size,
+                media_type=version.media_type,
+                owner=owner,
+                token=token,
+                expires_at=expires_at,
+                attempts=promotion.attempts,
+                max_attempts=promotion.max_attempts,
+            )
+
+    async def complete(self, lease: PromotionLease, *, now: datetime) -> bool:
+        async with session_scope(self._session_factory) as session:
+            promotion = await _locked_promotion(session, lease)
+            if not _active_promotion_lease(promotion, lease, now=now):
+                return False
+            assert promotion is not None
+            operation = await _locked_promotion_operation(session, lease)
+            if operation is None:
+                raise SubmissionPersistenceConflict("promotion Operation provenance changed")
+            attempt_number = await _next_attempt_number(
+                session,
+                lease.organization_id,
+                lease.operation_id,
+            )
+            session.add(
+                OperationAttempt(
+                    id=self._id_factory(),
+                    organization_id=lease.organization_id,
+                    operation_id=lease.operation_id,
+                    attempt_number=attempt_number,
+                    worker_identity=_promotion_worker_identity(lease),
+                    started_at=now,
+                    finished_at=now,
+                    outcome="succeeded",
+                    error_code=None,
+                    sanitized_error=None,
+                )
+            )
+            promotion.state = "promoted"
+            promotion.lease_owner = None
+            promotion.lease_token = None
+            promotion.lease_expires_at = None
+            promotion.error_code = None
+            promotion.sanitized_error = None
+            promotion.revision += 1
+            operation.state = "succeeded"
+            operation.finished_at = now
+            operation.updated_at = now
+            operation.error_code = None
+            operation.sanitized_error = None
+            operation.revision += 1
+            await session.flush()
+            return True
+
+    async def fail(
+        self,
+        lease: PromotionLease,
+        *,
+        error: Mapping[str, object],
+        available_at: datetime,
+        exhausted: bool,
+    ) -> PromotionFailure | None:
+        now = self._clock()
+        async with session_scope(self._session_factory) as session:
+            promotion = await _locked_promotion(session, lease)
+            if not _active_promotion_lease(promotion, lease, now=now):
+                return None
+            assert promotion is not None
+            operation = await _locked_promotion_operation(session, lease)
+            if operation is None:
+                raise SubmissionPersistenceConflict("promotion Operation provenance changed")
+            bounded = sanitize_error(cast(Mapping[str, Any], error))
+            state = "action_required" if exhausted else "db_committed"
+            attempt_state = "action_required" if exhausted else "retryable_failed"
+            attempt_number = await _next_attempt_number(
+                session,
+                lease.organization_id,
+                lease.operation_id,
+            )
+            session.add(
+                OperationAttempt(
+                    id=self._id_factory(),
+                    organization_id=lease.organization_id,
+                    operation_id=lease.operation_id,
+                    attempt_number=attempt_number,
+                    worker_identity=_promotion_worker_identity(lease),
+                    started_at=now,
+                    finished_at=now,
+                    outcome=attempt_state,
+                    error_code=str(bounded.get("code") or "artifact_promotion_failed"),
+                    sanitized_error=bounded,
+                )
+            )
+            promotion.state = state
+            promotion.lease_owner = None
+            promotion.lease_token = None
+            # There is no dedicated retry-at column in the frozen model. For a
+            # retryable db_committed intent, the cleared lease expiry is the
+            # earliest next claim time.
+            promotion.lease_expires_at = None if exhausted else available_at
+            promotion.error_code = str(
+                bounded.get("code") or "artifact_promotion_failed"
+            )
+            promotion.sanitized_error = bounded
+            promotion.revision += 1
+            operation.state = attempt_state
+            operation.updated_at = now
+            operation.finished_at = now if exhausted else None
+            operation.error_code = promotion.error_code
+            operation.sanitized_error = bounded
+            operation.revision += 1
+            await session.flush()
+            return PromotionFailure(
+                state=state,
+                attempts=promotion.attempts,
+                max_attempts=promotion.max_attempts,
+                error=bounded,
+            )
+
+    async def has_live_staged_intent(
+        self,
+        organization_id: UUID,
+        staged_key: str,
+    ) -> bool:
+        async with self._session_factory() as session:
+            found = await session.scalar(
+                select(ArtifactPromotion.id)
+                .where(
+                    ArtifactPromotion.organization_id == organization_id,
+                    ArtifactPromotion.staged_key == staged_key,
+                    ArtifactPromotion.state.in_(("staged", "db_committed", "promoting")),
+                )
+                .limit(1)
+            )
+            return found is not None
+
+    async def list_recoverable(
+        self,
+        organization_id: UUID,
+        *,
+        now: datetime,
+        limit: int,
+    ) -> tuple[UUID, ...]:
+        if not 1 <= limit <= 1000:
+            raise ValueError("promotion recovery limit must be between 1 and 1000")
+        async with self._session_factory() as session:
+            rows = await session.scalars(
+                select(ArtifactPromotion.id)
+                .where(
+                    ArtifactPromotion.organization_id == organization_id,
+                    or_(
+                        (
+                            (ArtifactPromotion.state == "db_committed")
+                            & or_(
+                                ArtifactPromotion.lease_expires_at.is_(None),
+                                ArtifactPromotion.lease_expires_at <= now,
+                            )
+                        ),
+                        (
+                            (ArtifactPromotion.state == "promoting")
+                            & (ArtifactPromotion.lease_expires_at <= now)
+                        ),
+                    ),
+                )
+                .order_by(
+                    ArtifactPromotion.lease_expires_at,
+                    ArtifactPromotion.created_at,
+                    ArtifactPromotion.id,
+                )
+                .limit(limit)
+            )
+            return tuple(rows)
+
+    async def status(
+        self,
+        organization_id: UUID,
+        promotion_id: UUID,
+    ) -> ArtifactPromotionStatus | None:
+        async with self._session_factory() as session:
+            row = await session.scalar(
+                select(ArtifactPromotion).where(
+                    ArtifactPromotion.organization_id == organization_id,
+                    ArtifactPromotion.id == promotion_id,
+                )
+            )
+            if row is None:
+                return None
+            return ArtifactPromotionStatus(
+                organization_id=row.organization_id,
+                promotion_id=row.id,
+                artifact_version_id=row.artifact_version_id,
+                operation_id=row.operation_id,
+                state=row.state,
+                attempts=row.attempts,
+                max_attempts=row.max_attempts,
+                staged_key=row.staged_key,
+                final_key=row.final_key,
+                error=(
+                    cast(Mapping[str, object], dict(row.sanitized_error))
+                    if row.sanitized_error is not None
+                    else None
+                ),
+            )
+
+    async def _force_exhausted(
+        self,
+        session: AsyncSession,
+        promotion: ArtifactPromotion,
+        *,
+        now: datetime,
+    ) -> None:
+        was_promoting = promotion.state == "promoting"
+        expired_owner = promotion.lease_owner
+        expired_at = promotion.lease_expires_at
+        promotion.state = "action_required"
+        promotion.lease_owner = None
+        promotion.lease_token = None
+        promotion.lease_expires_at = None
+        promotion.error_code = "artifact_promotion_attempts_exhausted"
+        promotion.sanitized_error = {
+            "code": "artifact_promotion_attempts_exhausted",
+            "message": "Artifact promotion exhausted its retry budget",
+        }
+        promotion.revision += 1
+        operation = await session.scalar(
+            select(Operation)
+            .where(
+                Operation.organization_id == promotion.organization_id,
+                Operation.id == promotion.operation_id,
+            )
+            .with_for_update()
+        )
+        if operation is not None:
+            if was_promoting:
+                attempt_number = await _next_attempt_number(
+                    session,
+                    promotion.organization_id,
+                    promotion.operation_id,
+                )
+                session.add(
+                    OperationAttempt(
+                        id=self._id_factory(),
+                        organization_id=promotion.organization_id,
+                        operation_id=promotion.operation_id,
+                        attempt_number=attempt_number,
+                        worker_identity=_expired_promotion_worker_identity(
+                            expired_owner,
+                            promotion.id,
+                        ),
+                        started_at=expired_at or now,
+                        finished_at=now,
+                        outcome="action_required",
+                        error_code=promotion.error_code,
+                        sanitized_error=promotion.sanitized_error,
+                    )
+                )
+            operation.state = "action_required"
+            operation.updated_at = now
+            operation.finished_at = now
+            operation.error_code = promotion.error_code
+            operation.sanitized_error = promotion.sanitized_error
+            operation.revision += 1
+        await session.flush()
+
+
 class SqlSubmissionRepository:
     async def lock_submission(
         self,
@@ -769,6 +1187,8 @@ class SqlSubmissionRepository:
             organization_id=row.organization_id,
             artifact_reference_id=row.id,
             provider=row.provider,
+            credential_binding_id=row.credential_binding_id,
+            credential_binding_version=row.credential_binding_version,
             usable=row.read_capability == "available" and row.locator is not None,
         )
 
@@ -1041,6 +1461,39 @@ class SqlCaptureScheduler:
         transaction: object,
     ) -> None:
         session = _session(transaction)
+        if request.credential_binding_version < 1:
+            raise SubmissionPersistenceConflict(
+                "capture scheduling credential binding version must be positive"
+            )
+        reference = await session.scalar(
+            select(ArtifactReference)
+            .where(
+                ArtifactReference.organization_id == request.organization_id,
+                ArtifactReference.id == request.artifact_reference_id,
+                ArtifactReference.provider == request.provider,
+                ArtifactReference.credential_binding_id
+                == request.credential_binding_id,
+                ArtifactReference.credential_binding_version
+                == request.credential_binding_version,
+            )
+            .with_for_update()
+        )
+        credential = await session.scalar(
+            select(ExternalCredential)
+            .where(
+                ExternalCredential.organization_id == request.organization_id,
+                ExternalCredential.id == request.credential_binding_id,
+                ExternalCredential.binding_version
+                == request.credential_binding_version,
+                ExternalCredential.provider == request.provider,
+                ExternalCredential.status == "active",
+            )
+            .with_for_update()
+        )
+        if reference is None or credential is None:
+            raise SubmissionPersistenceConflict(
+                "capture request reference or exact active credential provenance mismatched"
+            )
         payload = {
             "organization_id": str(request.organization_id),
             "operation_id": str(request.operation_id),
@@ -1048,6 +1501,8 @@ class SqlCaptureScheduler:
             "submission_version_id": str(request.submission_version_id),
             "artifact_reference_id": str(request.artifact_reference_id),
             "provider": request.provider,
+            "credential_binding_id": str(request.credential_binding_id),
+            "credential_binding_version": request.credential_binding_version,
             "course_run_id": str(request.course_run_id),
             "homework_id": str(request.homework_id),
             "homework_version_id": str(request.homework_version_id),
@@ -1502,6 +1957,84 @@ async def _capture_bundle_by_digest(
     )
 
 
+def _promotion_claimable(promotion: ArtifactPromotion, *, now: datetime) -> bool:
+    if promotion.state == "db_committed":
+        return promotion.lease_expires_at is None or promotion.lease_expires_at <= now
+    return (
+        promotion.state == "promoting"
+        and promotion.lease_expires_at is not None
+        and promotion.lease_expires_at <= now
+    )
+
+
+async def _locked_promotion(
+    session: AsyncSession,
+    lease: PromotionLease,
+) -> ArtifactPromotion | None:
+    return cast(
+        ArtifactPromotion | None,
+        await session.scalar(
+            select(ArtifactPromotion)
+            .where(
+                ArtifactPromotion.organization_id == lease.organization_id,
+                ArtifactPromotion.id == lease.promotion_id,
+                ArtifactPromotion.artifact_version_id == lease.artifact_version_id,
+                ArtifactPromotion.operation_id == lease.operation_id,
+            )
+            .with_for_update()
+        ),
+    )
+
+
+def _active_promotion_lease(
+    promotion: ArtifactPromotion | None,
+    lease: PromotionLease,
+    *,
+    now: datetime,
+) -> bool:
+    return (
+        promotion is not None
+        and promotion.state == "promoting"
+        and promotion.lease_owner == lease.owner
+        and promotion.lease_token == lease.token
+        and promotion.lease_expires_at == lease.expires_at
+        and promotion.lease_expires_at is not None
+        and promotion.lease_expires_at > now
+    )
+
+
+async def _locked_promotion_operation(
+    session: AsyncSession,
+    lease: PromotionLease,
+) -> Operation | None:
+    return cast(
+        Operation | None,
+        await session.scalar(
+            select(Operation)
+            .where(
+                Operation.organization_id == lease.organization_id,
+                Operation.id == lease.operation_id,
+                Operation.kind == "artifact_capture",
+            )
+            .with_for_update()
+        ),
+    )
+
+
+def _promotion_worker_identity(lease: PromotionLease) -> str:
+    value = f"{lease.owner}|artifact-promotion={lease.promotion_id}"
+    if len(value) > 255:
+        raise SubmissionPersistenceConflict("promotion worker provenance exceeds storage bound")
+    return value
+
+
+def _expired_promotion_worker_identity(owner: str | None, promotion_id: UUID) -> str:
+    value = f"{owner or 'unknown-worker'}|expired-artifact-promotion={promotion_id}"
+    if len(value) > 255:
+        raise SubmissionPersistenceConflict("expired promotion provenance exceeds storage bound")
+    return value
+
+
 def _replayed_bundle(bundle: ArtifactCaptureBundle) -> ArtifactCaptureBundle:
     return ArtifactCaptureBundle(
         artifact_version=bundle.artifact_version,
@@ -1562,6 +2095,8 @@ def _preflight_reference_record(row: ArtifactReference) -> PreflightArtifactRefe
         organization_id=row.organization_id,
         artifact_reference_id=row.id,
         provider=cast(ArtifactProviderName, row.provider),
+        credential_binding_id=row.credential_binding_id,
+        credential_binding_version=row.credential_binding_version,
         original_url=row.original_url,
         locator=cast(Mapping[str, str], dict(row.locator or {})),
         read_capability=cast(ReadCapability, row.read_capability),
@@ -1650,6 +2185,9 @@ _capture_authorization_protocol: Callable[[Authorizer], ArtifactCaptureAuthoriza
     SqlArtifactCaptureAuthorization
 )
 _promotion_outbox_protocol: ArtifactPromotionOutbox = SqlArtifactPromotionOutbox()
+_promotion_repository_protocol: Callable[
+    [AsyncSessionFactory], ArtifactPromotionRepository
+] = SqlArtifactPromotionRepository
 _submission_protocol: SubmissionRepository = SqlSubmissionRepository()
 _submission_scope_protocol: SubmissionScopeAuthorization = SqlSubmissionScopeAuthorization()
 _capture_scheduler_protocol: CaptureScheduler = SqlCaptureScheduler()
@@ -1660,6 +2198,7 @@ def _review_repository_protocol(session: AsyncSession) -> ReviewIterationReposit
 
 
 __all__ = [
+    "ArtifactPromotionStatus",
     "ArtifactVersionHistory",
     "InitialReviewIterationHistory",
     "InvalidSubmissionTransaction",
@@ -1669,6 +2208,7 @@ __all__ = [
     "SqlArtifactPreflightArchiveGuard",
     "SqlArtifactPreflightRepository",
     "SqlArtifactPromotionOutbox",
+    "SqlArtifactPromotionRepository",
     "SqlCaptureScheduler",
     "SqlReviewIterationRepository",
     "SqlSubmissionRepository",

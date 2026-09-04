@@ -474,15 +474,15 @@ async def test_invitation_email_handler_uses_exact_frozen_request_and_credential
     assert result == fixture["success_result"]
 
 
-def test_registry_contains_only_the_two_implemented_us1_handlers() -> None:
-    assert HANDLER_MODULES == (
+def test_registry_preserves_both_implemented_us1_handlers() -> None:
+    assert {
         "review_platform.infrastructure.tasks.course_import",
         "review_platform.infrastructure.tasks.email",
-    )
-    assert REGISTRY.names() == (
+    }.issubset(HANDLER_MODULES)
+    assert {
         "review_platform.course_import",
         "review_platform.invitation_email",
-    )
+    }.issubset(REGISTRY.names())
     course = REGISTRY.resolve_event("CourseImportRequested")
     email = REGISTRY.resolve_event("InvitationEmailRequested")
     assert (course.kind, course.requires_auth_revalidation) == ("course_import", False)

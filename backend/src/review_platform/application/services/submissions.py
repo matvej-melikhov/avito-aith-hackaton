@@ -61,6 +61,8 @@ class ArtifactReferenceRecord:
     organization_id: UUID
     artifact_reference_id: UUID
     provider: str
+    credential_binding_id: UUID
+    credential_binding_version: int
     usable: bool
 
 
@@ -99,6 +101,8 @@ class ArtifactCaptureRequest:
     submission_version_id: UUID
     artifact_reference_id: UUID
     provider: ArtifactProvider
+    credential_binding_id: UUID
+    credential_binding_version: int
     course_run_id: UUID
     homework_id: UUID
     homework_version_id: UUID
@@ -267,7 +271,14 @@ class SubmissionService:
         )
         if reference is None or not reference.usable:
             raise ArtifactReferenceUnavailable("usable tenant artifact reference was not found")
-        if reference.organization_id != organization_id or reference.provider not in _PROVIDERS:
+        if (
+            reference.organization_id != organization_id
+            or reference.artifact_reference_id != artifact_reference_id
+            or reference.provider not in _PROVIDERS
+            or not isinstance(reference.credential_binding_version, int)
+            or isinstance(reference.credential_binding_version, bool)
+            or reference.credential_binding_version < 1
+        ):
             raise ArtifactReferenceUnavailable("artifact provider or tenant is not allowed")
 
         submitted_at = require_utc(self._clock())
@@ -322,6 +333,8 @@ class SubmissionService:
                 submission_version_id=version_id,
                 artifact_reference_id=artifact_reference_id,
                 provider=provider,
+                credential_binding_id=reference.credential_binding_id,
+                credential_binding_version=reference.credential_binding_version,
                 course_run_id=submission.course_run_id,
                 homework_id=submission.homework_id,
                 homework_version_id=publication.homework_version_id,

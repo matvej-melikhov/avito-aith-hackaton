@@ -31,6 +31,9 @@ HOMEWORK_VERSION = UUID("00000000-0000-7000-8000-000000001005")
 PUBLICATION = UUID("00000000-0000-7000-8000-000000001006")
 CRH = UUID("00000000-0000-7000-8000-000000001007")
 REFERENCE = UUID("00000000-0000-7000-8000-000000001008")
+BINDING_A = UUID("00000000-0000-7000-8000-000000001009")
+BINDING_B = UUID("00000000-0000-7000-8000-000000001010")
+REFERENCE_B = UUID("00000000-0000-7000-8000-000000001011")
 NOW = datetime(2026, 9, 5, 12, 0, tzinfo=UTC)
 
 
@@ -99,7 +102,10 @@ class Repository:
             HOMEWORK_VERSION,
             NOW + timedelta(days=1),
         )
-        self.reference = ArtifactReferenceRecord(ORG, REFERENCE, "github", True)
+        self.references = {
+            REFERENCE: ArtifactReferenceRecord(ORG, REFERENCE, "github", BINDING_A, 3, True),
+            REFERENCE_B: ArtifactReferenceRecord(ORG, REFERENCE_B, "github", BINDING_B, 7, True),
+        }
         self.versions: list[SubmissionVersionRecord] = []
         self.pending: SubmissionVersionRecord | None = None
         self.fail_cas = False
@@ -135,11 +141,7 @@ class Repository:
     async def get_artifact_reference(
         self, organization_id: UUID, artifact_reference_id: UUID, *, transaction: object
     ) -> ArtifactReferenceRecord | None:
-        return (
-            self.reference
-            if self.reference.artifact_reference_id == artifact_reference_id
-            else None
-        )
+        return self.references.get(artifact_reference_id)
 
     async def next_version_sequence(
         self, organization_id: UUID, submission_id: UUID, *, transaction: object
@@ -292,7 +294,9 @@ async def test_stale_cas_and_wrong_tenant_reference_fail_before_capture() -> Non
     assert capture.requests == []
 
     repository.fail_cas = False
-    repository.reference = replace(repository.reference, organization_id=OTHER_ORG)
+    repository.references[REFERENCE] = replace(
+        repository.references[REFERENCE], organization_id=OTHER_ORG
+    )
     with pytest.raises(ArtifactReferenceUnavailable):
         await _service(repository, capture, NOW).submit_work(
             transaction=object(),
@@ -305,3 +309,35 @@ async def test_stale_cas_and_wrong_tenant_reference_fail_before_capture() -> Non
             trace_id=UUID(int=10),
         )
     assert capture.requests == []
+
+
+@pytest.mark.anyio
+async def test_selected_opaque_reference_preserves_exact_active_credential_binding() -> None:
+    repository, capture = Repository(), Capture()
+    await _service(repository, capture, NOW).submit_work(
+        transaction=object(),
+        organization_id=ORG,
+        submission_id=SUBMISSION,
+        expected_submission_revision=0,
+        artifact_reference_id=REFERENCE,
+        actor=_actor(),
+        request_id=UUID(int=11),
+        trace_id=UUID(int=12),
+    )
+    await _service(repository, capture, NOW, id_start=1200).submit_work(
+        transaction=object(),
+        organization_id=ORG,
+        submission_id=SUBMISSION,
+        expected_submission_revision=1,
+        artifact_reference_id=REFERENCE_B,
+        actor=_actor(),
+        request_id=UUID(int=13),
+        trace_id=UUID(int=14),
+    )
+
+    assert [request.provider for request in capture.requests] == ["github", "github"]
+    assert [request.credential_binding_id for request in capture.requests] == [
+        BINDING_A,
+        BINDING_B,
+    ]
+    assert [request.credential_binding_version for request in capture.requests] == [3, 7]

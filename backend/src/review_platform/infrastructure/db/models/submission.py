@@ -114,6 +114,16 @@ class ArtifactReference(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
     __tablename__ = "artifact_reference"
     __table_args__ = (
         tenant_candidate_key(),
+        ForeignKeyConstraint(
+            ["organization_id", "credential_binding_id", "credential_binding_version"],
+            [
+                "external_credential.organization_id",
+                "external_credential.id",
+                "external_credential.binding_version",
+            ],
+            name="fk_artifact_reference_org_credential_version",
+            ondelete="RESTRICT",
+        ),
         CheckConstraint(string_enum_check("provider", ARTIFACT_PROVIDERS), name="provider"),
         CheckConstraint(
             string_enum_check("read_capability", READ_CAPABILITIES),
@@ -124,10 +134,16 @@ class ArtifactReference(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
             name="feedback_capability",
         ),
         CheckConstraint("revision >= 0", name="revision_nonnegative"),
+        CheckConstraint(
+            "credential_binding_version >= 1",
+            name="credential_binding_version_positive",
+        ),
         Index("ix_artifact_reference_org_provider", "organization_id", "provider"),
     )
 
     provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    credential_binding_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    credential_binding_version: Mapped[int] = mapped_column(nullable=False)
     original_url: Mapped[str] = mapped_column(String(2048), nullable=False)
     locator: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     read_capability: Mapped[str] = mapped_column(String(32), nullable=False)
