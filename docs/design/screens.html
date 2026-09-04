@@ -803,38 +803,53 @@ a:hover { border-bottom-color: var(--ink); }
 </section>
 <section class="screen" id="С2">
   <div class="screen__head"><span class="screen__id">С2</span><h2>Та же страница после ИИ-ревью</h2></div>
-  <p class="screen__note">Результат самопроверки появляется на той же странице над формой. Отметки только двух видов, без «частично». Вид блока совпадает с предварительным ревью, которое видит ревьюер на Р5, чтобы студент и ревьюер смотрели на одно и то же. Баллов здесь нет намеренно.</p>
+  <p class="screen__note">Результат ИИ-ревью появляется на той же странице над формой. Отметки только двух видов, без «частично». Вид блока совпадает с предварительным ревью, которое видит ревьюер на Р5, чтобы студент и ревьюер смотрели на одно и то же. Баллов здесь нет намеренно.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Счёт «7 из 9 требований закрыто» набран дисплейным шрифтом, но словом «требований», а не «баллов»: это не оценка, и типографика не должна выдавать её за оценку. Невыполненные требования подняты наверх списка, поэтому красный маркер встречается первым.</p>
   <div class="shot" style="height:894px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
           <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Обучение</span>
-          <span class="pill">Системный дизайн, поток «Февраль 2026»</span>
         </div>
         <div class="btn-row"><span class="btn btn--s btn--quiet">Мои домашки</span><span class="ava">4821</span></div>
       </div>
+
+      <div class="band">
+        <div class="circ circ--g" style="width:300px;height:300px;right:-70px;top:-100px;opacity:.5"></div>
+        <div class="circ circ--b" style="width:120px;height:120px;right:250px;bottom:-50px;opacity:.55"></div>
+        <div class="circ circ--r" style="width:56px;height:56px;right:262px;top:24px;opacity:.7"></div>
+        <div class="band__in">
+          <span class="label">Системный дизайн, лабораторная 1</span>
+          <h1 class="d2" style="margin-top:var(--s-2);max-width:16ch">Декомпозиция сервиса</h1>
+          <div style="display:flex;gap:var(--s-10);margin-top:var(--s-6)">
+            <div>
+              <span class="caption" style="display:block">Сдать до</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">19 февраля, 23:59</div>
+            </div>
+            <div>
+              <span class="caption" style="display:block">Порог зачёта</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="main">
         <div style="max-width:var(--page-max);margin:0 auto">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-6);margin-bottom:var(--s-5)">
             <div>
-              <h1>Лабораторная 1. Декомпозиция сервиса</h1>
-              <div class="btn-row" style="margin-top:var(--s-3)">
-                <span class="st st--draft">Черновик</span>
-                <span class="pill">Сдать до 19 февраля, 23:59</span>
-                <span class="pill">ИИ-ревью от 17 февраля, 14:20</span>
-              </div>
+              <div class="h2">ИИ-ревью</div>
+              <div class="caption" style="margin-top:var(--s-1)">от 17 февраля, 14:20. Это не оценка, баллы поставит ревьюер.</div>
             </div>
-            <div style="text-align:right">
+            <div style="text-align:right;flex:none">
               <div class="d3">7 <span style="font-family:var(--font-text);font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink-3)">из 9 требований закрыто</span></div>
-              <div class="caption" style="margin-top:var(--s-1)">Это не оценка. Баллы поставит ревьюер.</div>
             </div>
           </div>
 
           <div class="row-side">
             <div class="card">
               <div class="card__head">
-                <div><h4>ИИ-ревью</h4><div class="card__sub">Проверила модель. Ревьюер будет смотреть работу сам и может решить иначе.</div></div>
+                <div><h4>Разбор по требованиям</h4><div class="card__sub">Проверила модель. Ревьюер будет смотреть работу сам и может решить иначе.</div></div>
                 <span class="btn btn--s">Проверить повторно, осталось 2</span>
               </div>
               <div class="card__body">
@@ -873,8 +888,11 @@ a:hover { border-bottom-color: var(--ink); }
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="acc__chev">▼</span></div></div>
               </div>
               <div class="card__foot">
-                <span>Можно доработать и проверить ещё раз или отправить как есть</span>
-                <span class="btn-row"><span class="btn">Обновить работу</span><span class="btn btn--pri">Отправить на ревью</span></span>
+                <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
+                  <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
+                  <span class="btn" style="flex:none">Обновить работу</span>
+                  <span class="caption">Можно доработать и проверить ещё раз или отправить как есть</span>
+                </span>
               </div>
             </div>
 
@@ -903,22 +921,38 @@ a:hover { border-bottom-color: var(--ink); }
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
           <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Обучение</span>
-          <span class="pill">Системный дизайн, поток «Февраль 2026»</span>
         </div>
         <div class="btn-row"><span class="btn btn--s btn--quiet">Мои домашки</span><span class="ava">4821</span></div>
       </div>
+
+      <div class="band">
+        <div class="circ circ--g" style="width:300px;height:300px;right:-70px;top:-100px;opacity:.5"></div>
+        <div class="circ circ--b" style="width:120px;height:120px;right:250px;bottom:-50px;opacity:.55"></div>
+        <div class="circ circ--r" style="width:56px;height:56px;right:262px;top:24px;opacity:.7"></div>
+        <div class="band__in">
+          <span class="label">Системный дизайн, лабораторная 1</span>
+          <h1 class="d2" style="margin-top:var(--s-2);max-width:16ch">Декомпозиция сервиса</h1>
+          <div style="display:flex;gap:var(--s-10);margin-top:var(--s-6)">
+            <div>
+              <span class="caption" style="display:block">Прислать до</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">23 февраля, 23:59</div>
+            </div>
+            <div>
+              <span class="caption" style="display:block">Порог зачёта</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="main">
         <div style="max-width:var(--page-max);margin:0 auto">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-6);margin-bottom:var(--s-4)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-6);margin-bottom:var(--s-5)">
             <div>
-              <h1>Лабораторная 1. Декомпозиция сервиса</h1>
-              <div class="btn-row" style="margin-top:var(--s-3)">
-                <span class="st st--fix">Нужны правки</span>
-                <span class="pill">Прислать до 23 февраля, 23:59</span>
-                <span class="pill">Ревьюер rev-2214</span>
-              </div>
+              <span class="st st--fix">Нужны правки</span>
+              <div class="caption" style="margin-top:var(--s-2)">Разбор и комментарий ревьюера ниже, правки отправляйте формой</div>
             </div>
-            <div style="text-align:right">
+            <div style="text-align:right;flex:none">
               <div class="d3">3.0 <span style="font-family:var(--font-text);font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink-3)">из 6 за попытку 1</span></div>
               <div class="caption" style="margin-top:var(--s-1)">Порог зачёта 4</div>
             </div>
@@ -971,15 +1005,18 @@ a:hover { border-bottom-color: var(--ink); }
                   </label>
                 </div>
                 <div class="card__foot">
-                  <span>ИИ-ревью по новой версии ещё не запускали</span>
-                  <span class="btn-row"><span class="btn">Проверить ИИ-ревью</span><span class="btn btn--pri">Отправить исправленную версию</span></span>
+                  <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
+                    <span class="btn btn--pri" style="flex:none">Отправить исправленную версию</span>
+                    <span class="btn" style="flex:none">ИИ-ревью</span>
+                    <span class="caption">ИИ-ревью по новой версии ещё не запускали</span>
+                  </span>
                 </div>
               </div>
             </div>
 
             <div class="stack">
               <div class="card">
-                <div class="card__head"><h4>Комментарий ревьюера</h4></div>
+                <div class="card__head"><div><h4>Комментарий ревьюера</h4><div class="card__sub">Ревьюер rev-2214</div></div></div>
                 <div class="card__body" style="color:var(--ink-2);line-height:1.65">
                   Привет! Структура хорошая, диаграммы читаются. Три вещи мешают зачёту:
                   <ul style="margin:var(--s-3) 0 0;padding-left:1.1em">
@@ -1516,7 +1553,7 @@ a:hover { border-bottom-color: var(--ink); }
                   <div class="kv"><span class="mono" style="color:var(--ink)">github.com/s4790/wardrobe</span><span class="btn btn--s btn--quiet">Открыть ↗</span></div>
                   <div class="kv"><span>Сдана</span><span>18 февраля, 21:40</span></div>
                   <div class="kv"><span>Срок сдачи был</span><span style="color:var(--late);font-weight:600">17 февраля, 23:59</span></div>
-                  <div class="kv"><span>Саморевью до сдачи</span><span>3 запуска</span></div>
+                  <div class="kv"><span>ИИ-ревью до сдачи</span><span>3 запуска</span></div>
                 </div>
               </div>
 
@@ -1938,7 +1975,7 @@ a:hover { border-bottom-color: var(--ink); }
                     </div>
                   </div>
                   <div class="field">
-                    <span class="field__lbl">Саморевью до сдачи</span>
+                    <span class="field__lbl">ИИ-ревью до сдачи</span>
                     <div style="display:flex;gap:var(--s-3);align-items:center">
                       <input class="inp" value="3" style="width:80px">
                       <span class="caption">попытки на студента</span>
