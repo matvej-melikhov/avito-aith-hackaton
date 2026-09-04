@@ -1045,7 +1045,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С4">
   <div class="screen__head"><span class="screen__id">С4</span><h2>Мои домашки</h2></div>
   <p class="screen__note">Список всех домашек студента. Открывается кнопкой «Мои домашки» в шапке страницы сдачи. Сдать что-то новое отсюда нельзя, сдача идёт только по ссылке из Stepik.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Единственный экран студента с полосой цифр: она отвечает на вопрос «что от меня сейчас требуется». Первая плитка про его действия, дальше про чужие. Закрытые домашки гаснут до серого и не спорят за внимание. Сайдбара у студента нет: курсы и профиль не показываем, это слой проверки, а не LMS.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Просто таблица без сводок: что от студента требуется, видно по статусам строк. Закрытые домашки гаснут до серого и не спорят за внимание. Сайдбара у студента нет: курсы и профиль не показываем, это слой проверки, а не LMS.</p>
   <div class="shot" style="height:562px"><div class="vp">
     <div style="background:var(--surface);min-height:670px">
       <div class="topbar" style="align-items:center">
@@ -1054,19 +1054,12 @@ a:hover { border-bottom-color: var(--ink); }
         </div>
         <div class="btn-row"><span class="ava">4821</span></div>
       </div>
-      <div class="stats">
-        <div class="stat"><b>2</b><span>ждут вашего действия</span></div>
-        <div class="stat"><b>2</b><span>у ревьюера</span></div>
-        <div class="stat"><b>2</b><span>завершены, обе зачтены</span></div>
-        <div class="stat"><b>9,5</b><span>баллов из 12 возможных</span></div>
-      </div>
       <div class="main">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);margin-bottom:var(--s-5)">
           <h1>Мои домашки</h1>
           <div class="seg"><span class="is-on">Все</span><span>В работе</span><span>Завершённые</span></div>
         </div>
         <div class="card">
-          <div class="card__head"><h4>Все домашки</h4><span class="caption">Обновлено только что</span></div>
           <div class="card__body card__body--flush">
             <table class="tbl">
               <thead><tr><th>Задание</th><th class="n">Срок</th><th>Статус</th><th class="n">Попытка</th><th class="n r">Балл</th></tr></thead>
