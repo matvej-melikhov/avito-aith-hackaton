@@ -698,7 +698,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С1">
   <div class="screen__head"><span class="screen__id">С1</span><h2>Страница домашки по ссылке, до сдачи</h2></div>
   <p class="screen__note">Студент приходит по ссылке из Stepik, платформа узнаёт его по Stepik ID. Работа прикладывается ссылкой на репозиторий или файлами. Отсюда доступны оба действия — прогнать ИИ-ревью и отправить на ревью.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Срок и порог в плашке даны полями «подпись — значение», капитель в плашке одна, над заголовком. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Контекст один, в плашке: курс и лаба строкой капители, топбар курсом не дублируется. Срок и порог в плашке даны полями «подпись — значение». Правило штрафа замечанием над рубрикой, а не под ней. В подвале формы главное действие первое слева, рядом вторичное с пояснением. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
   <div class="shot" style="height:774px"><div class="vp">
     <div style="background:var(--surface);min-height:1030px">
       <div class="topbar" style="align-items:center">
@@ -706,7 +706,6 @@ a:hover { border-bottom-color: var(--ink); }
           <span class="brand" style="padding:0">
             <span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Обучение
           </span>
-          <span class="pill">Системный дизайн, поток «Февраль 2026»</span>
         </div>
         <div class="btn-row">
           <span class="btn btn--s btn--quiet">Мои домашки</span>
@@ -719,7 +718,7 @@ a:hover { border-bottom-color: var(--ink); }
         <div class="circ circ--b" style="width:120px;height:120px;right:220px;bottom:-50px;opacity:.55"></div>
         <div class="circ circ--r" style="width:56px;height:56px;right:150px;top:30px;opacity:.7"></div>
         <div class="band__in">
-          <span class="label">Лабораторная 1</span>
+          <span class="label">Системный дизайн, лабораторная 1</span>
           <h1 class="d2" style="margin-top:var(--s-2);max-width:16ch">Декомпозиция сервиса</h1>
           <div style="display:flex;gap:var(--s-10);margin-top:var(--s-6)">
             <div>
@@ -768,16 +767,17 @@ a:hover { border-bottom-color: var(--ink); }
                 </label>
               </div>
               <div class="card__foot">
-                <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0">
-                  <span class="btn" style="flex:none">Проверить ИИ-ревью</span>
+                <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
+                  <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
+                  <span class="btn" style="flex:none">ИИ-ревью</span>
                   <span class="caption">Результат ИИ-ревью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
                 </span>
-                <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
               </div>
             </div>
           </div>
 
           <div class="stack">
+            <div class="callout callout--warn"><span class="callout__mark">!</span><p>За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</p></div>
             <div class="card">
               <div class="card__head"><h4>Что будут проверять</h4></div>
               <div class="card__body card__body--tight">
@@ -791,10 +791,9 @@ a:hover { border-bottom-color: var(--ink); }
                 <div class="kv"><span style="color:var(--ink)">Обоснование SRP</span><span class="pill pill--mono">0,5 б.</span></div>
                 <div class="kv"><span style="color:var(--ink)">Структура и оформление</span><span class="pill pill--mono">0,5 б.</span></div>
                 <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:-1px">
-                  <span style="color:var(--ink)">Всего — <b>6 баллов</b></span>
+                  <span style="color:var(--ink)">Всего</span><span style="color:var(--ink)">6 баллов</span>
                 </div>
             </div>
-            <div class="callout callout--warn"><span class="callout__mark">!</span><p>За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</p></div>
           </div>
         </div>
       </div>
