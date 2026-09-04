@@ -33,9 +33,20 @@ from review_platform.infrastructure.db.models.operations import (
     OutboxMessage,
 )
 from review_platform.infrastructure.db.models.organization import Organization
+from review_platform.infrastructure.db.models.review_case import ReviewCase, ReviewIteration
+from review_platform.infrastructure.db.models.submission import (
+    ArtifactPromotion,
+    ArtifactReference,
+    ArtifactVersion,
+    Submission,
+    SubmissionVersion,
+)
 
 __all__ = [
     "AgentAuthorization",
+    "ArtifactPromotion",
+    "ArtifactReference",
+    "ArtifactVersion",
     "AuditEvent",
     "CommandReceipt",
     "Course",
@@ -58,6 +69,10 @@ __all__ = [
     "Organization",
     "OrganizationMembership",
     "OutboxMessage",
+    "ReviewCase",
+    "ReviewIteration",
     "Session",
+    "Submission",
+    "SubmissionVersion",
     "User",
 ]

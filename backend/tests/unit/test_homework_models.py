@@ -106,7 +106,7 @@ def test_scores_use_exact_fixed_point_storage() -> None:
 
 def test_homework_migration_is_single_head_after_identity_courses() -> None:
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
-    assert scripts.get_heads() == ["0003_homework_versions"]
+    assert len(scripts.get_heads()) == 1
     revision = scripts.get_revision("0003_homework_versions")
     assert revision is not None
     assert revision.down_revision == "0002_identity_and_courses"

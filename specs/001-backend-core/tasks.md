@@ -142,9 +142,9 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T076 [P] [US3] Write failing SubmissionVersion and initial ReviewIteration transition tests in `backend/tests/state/test_submission_review_states.py`
 - [X] T077 [P] [US3] Write failing cross-tenant reference/version/S3/read and ReviewCase uniqueness tests in `backend/tests/isolation/test_artifact_submission_boundary.py`
 - [X] T078 [P] [US3] Write failing preflight, capture, DB-commit-before-promotion recovery, replacement, late revision, history, and intent-aware cleanup tests in `backend/tests/integration/test_submission_lifecycle.py`
-- [ ] T079 [US3] Implement Submission, SubmissionVersion, ArtifactReference, ArtifactVersion, and ArtifactPromotion tables in `backend/src/review_platform/infrastructure/db/models/submission.py`
-- [ ] T080 [US3] Implement ReviewCase and initial ReviewIteration tables with CourseRun-aware uniqueness in `backend/src/review_platform/infrastructure/db/models/review_case.py`
-- [ ] T081 [US3] Create the reversible submission/artifact/review-case migration with `down_revision=0003_homework_versions` in `backend/migrations/versions/0004_submissions_and_artifacts.py`
+- [X] T079 [US3] Implement Submission, SubmissionVersion, ArtifactReference, ArtifactVersion, and ArtifactPromotion tables in `backend/src/review_platform/infrastructure/db/models/submission.py`
+- [X] T080 [US3] Implement ReviewCase and initial ReviewIteration tables with CourseRun-aware uniqueness in `backend/src/review_platform/infrastructure/db/models/review_case.py`
+- [X] T081 [US3] Create the reversible submission/artifact/review-case migration with `down_revision=0003_homework_versions` in `backend/migrations/versions/0004_submissions_and_artifacts.py`
 - [ ] T082 [US3] Implement idempotent preflight addressed to CourseRunHomework that creates/finds Submission and conditionally returns a usable tenant-scoped ArtifactReference in `backend/src/review_platform/application/services/artifact_preflight.py`
 - [ ] T083 [US3] Implement bounded immutable capture with atomic ArtifactVersion/ArtifactPromotion/outbox creation, provider credential binding provenance, and Operation linkage in `backend/src/review_platform/application/services/artifact_capture.py`
 - [ ] T084 [US3] Implement Submission CAS, effective requirements/deadline snapshots, replacement, and late pending versions in `backend/src/review_platform/application/services/submissions.py`
