@@ -1,0 +1,5 @@
+{
+  "request": {"contract_version": "1.1.0", "organization_id": "00000000-0000-7000-8000-000000000001", "message_id": "00000000-0000-7000-8000-000000000040", "credential_binding_id": "00000000-0000-7000-8000-000000000042", "credential_binding_version": 1, "template": "reviewer_magic_link", "recipient": "reviewer@example.com", "template_data": {"invitation_id": "00000000-0000-7000-8000-000000000041", "magic_link_url": "https://review.example.test/invite/token", "expires_at": "2026-09-05T12:00:00Z"}},
+  "success_result": {"contract_version": "1.1.0", "organization_id": "00000000-0000-7000-8000-000000000001", "message_id": "00000000-0000-7000-8000-000000000040", "outcome": "accepted", "provider_message_id": "mail-1", "error": null},
+  "failure_result": {"contract_version": "1.1.0", "organization_id": "00000000-0000-7000-8000-000000000001", "message_id": "00000000-0000-7000-8000-000000000040", "outcome": "retryable_failed", "provider_message_id": null, "error": {"code": "smtp_unavailable", "message": "Mail transport unavailable", "retryable": true, "action": null}}
+}

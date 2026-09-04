@@ -15,7 +15,8 @@
     cp deploy/env.example deploy/.env
     docker compose --env-file deploy/.env -f deploy/compose.yaml up -d mysql redis minio mailpit
     uv sync --directory backend --locked
-    uv run --directory backend alembic upgrade head
+    docker compose --env-file deploy/.env -f deploy/compose.yaml build api worker outbox-relay email-worker mcp
+    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic upgrade head
     docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api python -m review_platform.bootstrap
     docker compose --env-file deploy/.env -f deploy/compose.yaml up -d api worker outbox-relay email-worker mcp
 
@@ -23,11 +24,11 @@
 
 ## Code specifications
 
-### Frozen contract schemas
+### Candidate contract schemas
 
     uv run --directory backend pytest tests/contract -q
 
-Проверяет manifest hashes, 27 mutation-команд, 43 OpenAPI paths/45 operations, 11 MCP tools, wire/internal actor boundary, provider schemas, artifact envelope, AI request/events, operation-specific payloads, CAS targets, examples, fingerprint vectors, criterion completeness, attempt sequence и отклонение лишних полей.
+Проверяет candidate manifest hashes, exact constitution snapshot, compatibility notes и shared fixtures, 28 mutation-команд (26 REST + local bootstrap + local recovery), 43 OpenAPI paths/46 operations, 12 MCP tools, exact route-command binding, path/target equality, actor/transport boundary, обязательный AI credential binding, artifact envelope, per-CourseRun homework history, complete provenance, fingerprint vectors, criterion completeness, score bounds, attempt sequence и отклонение лишних полей.
 
 ### Domain state machines
 
@@ -51,7 +52,7 @@
 
     uv run --directory backend pytest tests/contract/test_http_mcp_parity.py -q
 
-После реализации US7 одна матрица проверяет operation mapping, input/output schemas, closed scopes, роли, expected revision target, idempotency и audit для REST и MCP 2026-07-28. Она отдельно доказывает, что MCP может только запросить публикацию. Дополнительные fixtures проверяют обязательные headers, version metadata, stateless requests и отказ старого session handshake.
+После реализации US7 одна матрица проверяет operation mapping, input/output schemas, closed scopes, роли, expected revision target, idempotency и audit для REST и 12 MCP tools 2026-07-28. Она проверяет CourseRun discovery, recommend → open → get review и доказывает, что MCP может только запросить публикацию. Дополнительные fixtures проверяют обязательные headers, version metadata, stateless requests и отказ старого session handshake.
 
 ## Fixtures
 
@@ -83,8 +84,8 @@ Required gates:
 ## Full local gate
 
     uv run --directory backend pytest -m "not live" -q
-    uv run --directory backend alembic upgrade head
-    uv run --directory backend alembic downgrade -1
-    uv run --directory backend alembic upgrade head
+    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic upgrade head
+    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic downgrade -1
+    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic upgrade head
 
 Expected: all offline tests pass, migration round-trip succeeds, no unhandled delivery remains, and no secret appears in captured logs.

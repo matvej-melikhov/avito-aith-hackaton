@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:review-platform:artifact:1.0.0",
-  "x-contract-status": "frozen",
+  "$id": "urn:review-platform:artifact:1.1.0",
+  "x-contract-status": "candidate",
   "title": "ArtifactVersionEnvelope",
   "type": "object",
   "additionalProperties": false,
   "required": ["contract_version", "organization_id", "artifact_reference_id", "artifact_version_id", "provider", "provider_version", "content_digest", "captured_at", "object"],
   "properties": {
-    "contract_version": {"const": "1.0.0"},
+    "contract_version": {"const": "1.1.0"},
     "organization_id": {"type": "string", "format": "uuid"},
     "artifact_reference_id": {"type": "string", "format": "uuid"},
     "artifact_version_id": {"type": "string", "format": "uuid"},

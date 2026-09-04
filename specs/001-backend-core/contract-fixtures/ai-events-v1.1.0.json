@@ -1,0 +1,32 @@
+{
+  "succeeded": {
+    "contract_version": "1.1.0",
+    "run_id": "00000000-0000-7000-8000-000000000060",
+    "attempt_id": "00000000-0000-7000-8000-000000000061",
+    "attempt_number": 1,
+    "event_id": "00000000-0000-7000-8000-000000000062",
+    "sequence": 1,
+    "input_fingerprint": "sha256:8487b948022750a39653da4a76d721c9b16e0961903ad84ce80ca49be67fd14e",
+    "status": "succeeded",
+    "is_final": true,
+    "suggestions": [{"criterion_id": "00000000-0000-7000-8000-000000000063", "status": "suggested", "proposed_points": 5, "reason": "Fixture result", "evidence": [{"locator": "file:README.md#L1", "quote": "Fixture", "verified": true}], "confidence": "high", "reviewer_note": null, "student_feedback": "Fixture feedback", "flags": []}],
+    "criterion_coverage": {"expected_criterion_ids": ["00000000-0000-7000-8000-000000000063"], "reported_criterion_ids": ["00000000-0000-7000-8000-000000000063"], "complete": true},
+    "ai_signal": {"level": "none", "evidence": [], "limitations": [], "questions": []},
+    "error": null
+  },
+  "retryable_failed": {
+    "contract_version": "1.1.0",
+    "run_id": "00000000-0000-7000-8000-000000000060",
+    "attempt_id": "00000000-0000-7000-8000-000000000061",
+    "attempt_number": 1,
+    "event_id": "00000000-0000-7000-8000-000000000064",
+    "sequence": 2,
+    "input_fingerprint": "sha256:8487b948022750a39653da4a76d721c9b16e0961903ad84ce80ca49be67fd14e",
+    "status": "retryable_failed",
+    "is_final": true,
+    "suggestions": [],
+    "criterion_coverage": {"expected_criterion_ids": ["00000000-0000-7000-8000-000000000063"], "reported_criterion_ids": [], "complete": false},
+    "ai_signal": null,
+    "error": {"code": "model_unavailable", "message": "Model unavailable", "retryable": true}
+  }
+}

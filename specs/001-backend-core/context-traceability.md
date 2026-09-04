@@ -11,11 +11,11 @@
 | Пользователь | User, ExternalIdentity | Перенесено; студент/методист используют Stepik, ревьюер — подтверждённый email |
 | Роль пользователя | OrganizationMembership.roles | Перенесено; роли можно совмещать, отдельного admin нет |
 | Профиль ревьюера | ReviewerCourseSelection, AvailabilityPlan | Частично: курсы и план часов входят; темы, internal/external и отпуск отложены |
-| Курс | Course | Перенесено |
+| Курс | Course, ExternalCourseBinding | Перенесено; provider binding версионируется для повторной синхронизации |
 | Поток | CourseRun | Перенесено и стало обязательной частью ключей сдачи и ревью |
 | Задание | Homework, HomeworkVersion | Перенесено; условие создаётся в платформе и версионируется |
 | Требование | CriterionSet, Criterion | Перенесено |
-| Публикация задания | CourseRunHomework | Перенесено; связывает версию задания, поток и его дедлайны |
+| Публикация задания | CourseRunHomework, CourseRunHomeworkPublication | Перенесено; стабильная связь задания с потоком хранит отдельный current pointer, а append-only публикации связывают версии и дедлайны без глобальной current version |
 | Зачисление на поток | CourseMembership | Перенесено; основной источник — импорт roster Stepik |
 | Закрепление ревьюера | ReviewerCourseSelection, AvailabilityPlan | Изменено: ревьюер сам выбирает курсы, часы — мягкий сигнал |
 | Домашка | Submission, SubmissionVersion, ArtifactReference, ArtifactVersion | Разделено на логическую сдачу, её версии, ссылку и снимок |
@@ -27,8 +27,8 @@
 | Дополнительное замечание | ReviewNote | Перенесено; criterion_id может отсутствовать |
 | Правка/журнал | AuditEvent | Перенесено и расширено actor, agent, request и trace |
 | Организация | Organization | Добавлено для self-hosted tenant boundary и будущего SaaS |
-| Внешняя доставка | ExternalDelivery, OutboxMessage | Добавлено для Stepik/GitHub, retry и reconciliation |
-| Агентский доступ | AgentAuthorization | Добавлено для MCP |
+| Внешняя доставка | DestinationBinding, ExternalDelivery, OutboxMessage | Добавлено для точного набора обязательных получателей, provenance, retry и reconciliation |
+| Агентский доступ | AgentAuthorization | Добавлено для MCP; bearer secret возвращается один раз, хранится только digest |
 | Запрос публикации агентом | PublicationRequest | Добавлено как human-approval boundary; агент не создаёт ReviewPublication |
 
 ## Экраны и пользовательские возможности

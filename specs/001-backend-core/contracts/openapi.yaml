@@ -1,51 +1,31 @@
 openapi: 3.1.0
 info:
   title: Review Platform Backend Core
-  version: 1.0.0
-x-contract-status: frozen
+  version: 1.1.0
+x-contract-status: candidate
 servers:
   - url: /api
 security:
   - sessionCookie: []
 paths:
-  /v1/bootstrap/activate:
-    post:
-      operationId: activateBootstrapMethodologist
-      x-command-name: activate_bootstrap
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
-      responses:
-        "201": {description: Bootstrap consumed and first methodologist activated}
-        "409": {$ref: "#/components/responses/Conflict"}
-  /v1/operator/recover-methodologist:
-    post:
-      operationId: recoverMethodologist
-      x-command-name: recover_methodologist
-      security:
-        - operatorToken: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "command.schema.json#/$defs/recover_methodologist"
-      responses:
-        "204": {description: Methodologist access recovered and audited}
-        "409": {$ref: "#/components/responses/Conflict"}
   /v1/auth/stepik/callback:
     post:
       operationId: completeStepikAuthentication
+      x-mutation-kind: protocol
+      x-replay-protection: oauth-state
       security: []
       responses:
         "204": {description: Server session established}
-        "401": {description: Invalid OAuth response}
+        "401":
+          description: Invalid OAuth response
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorObject"}
   /v1/auth/stepik/start:
     get:
       operationId: startStepikAuthentication
+      x-mutation-kind: protocol
+      x-replay-protection: oauth-state-issuance
       security: []
       responses:
         "302": {description: Redirect to Stepik authorization}
@@ -60,11 +40,15 @@ paths:
               schema: {$ref: "#/components/schemas/Session"}
     delete:
       operationId: revokeCurrentSession
+      x-mutation-kind: protocol
+      x-replay-protection: current-session-identity
       responses:
         "204": {description: Session revoked}
   /v1/auth/reviewer/magic-link:
     post:
       operationId: consumeReviewerMagicLink
+      x-mutation-kind: protocol
+      x-replay-protection: invitation-token-and-state
       security: []
       requestBody:
         required: true
@@ -73,12 +57,17 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [token]
+              required: [token, state_id]
               properties:
-                token: {type: string, minLength: 32}
+                token: {type: string, minLength: 32, maxLength: 4096}
+                state_id: {type: string, format: uuid}
       responses:
         "204": {description: Invitation consumed and session established}
-        "401": {description: Invalid, expired, used, or mismatched invitation}
+        "401":
+          description: Invalid, expired, used, or mismatched invitation
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorObject"}
   /v1/organization:
     get:
       operationId: getOrganization
@@ -98,7 +87,40 @@ paths:
           content:
             application/json:
               schema: {$ref: "#/components/schemas/CourseList"}
+  /v1/course-runs:
+    get:
+      operationId: listCourseRuns
+      parameters:
+        - name: course_id
+          in: query
+          required: false
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Course runs visible to the current actor
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CourseRunList"}
+  /v1/organization/memberships:
+    get:
+      operationId: listOrganizationMemberships
+      x-required-role: methodologist
+      responses:
+        "200":
+          description: Organization memberships with identifiers required for role changes
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/OrganizationMembershipList"}
   /v1/invitations:
+    get:
+      operationId: listInvitations
+      x-required-role: methodologist
+      responses:
+        "200":
+          description: Invitations visible to the current methodologist
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/InvitationList"}
     post:
       operationId: createInvitation
       x-command-name: create_invitation
@@ -107,19 +129,13 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/WireCommand"
-                - type: object
-                  properties:
-                    payload:
-                      type: object
-                      required: [email, role]
-                      properties:
-                        email: {type: string, format: email}
-                        role: {enum: [methodologist, reviewer]}
+            schema: {$ref: "command.schema.json#/$defs/create_invitation"}
       responses:
-        "201": {description: Invitation created}
+        "201":
+          description: Invitation created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CreatedResource"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/invitations/{invitationId}/revoke:
     post:
@@ -135,7 +151,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/revoke_invitation"}
       responses:
         "204": {description: Invitation revoked}
         "409": {$ref: "#/components/responses/Conflict"}
@@ -148,23 +164,14 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              allOf:
-                - $ref: "#/components/schemas/WireCommand"
-                - type: object
-                  properties:
-                    payload:
-                      type: object
-                      required: [provider, external_url]
-                      properties:
-                        provider: {type: string}
-                        external_url: {type: string, format: uri}
+            schema: {$ref: "command.schema.json#/$defs/start_course_import"}
       responses:
         "202":
           description: Import accepted
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Operation"}
+        "409": {$ref: "#/components/responses/Conflict"}
   /v1/course-runs/{courseRunId}/homeworks:
     get:
       operationId: listPublishedHomeworks
@@ -187,9 +194,13 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/create_homework"}
       responses:
-        "201": {description: Homework created}
+        "201":
+          description: Homework created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CreatedResource"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/course-runs/{courseRunId}/memberships:
     get:
@@ -247,7 +258,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/archive_course"}
       responses:
         "204": {description: Course archived}
         "409": {$ref: "#/components/responses/Conflict"}
@@ -265,7 +276,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/restore_course"}
       responses:
         "204": {description: Course restored}
         "409": {$ref: "#/components/responses/Conflict"}
@@ -283,9 +294,13 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/change_membership_roles"}
       responses:
-        "200": {description: Roles changed and auth epoch advanced}
+        "200":
+          description: Roles changed and auth epoch advanced
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/UpdatedResource"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/homeworks/{homeworkId}/versions:
     post:
@@ -298,9 +313,13 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/create_homework_version"}
       responses:
-        "201": {description: Version created}
+        "201":
+          description: Version created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CreatedResource"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/homeworks/{homeworkId}:
     get:
@@ -328,9 +347,13 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/publish_homework_version"}
       responses:
-        "201": {description: Version published to Course Run}
+        "201":
+          description: Version published to Course Run
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CreatedResource"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/reviewer/course-selections:
     post:
@@ -341,7 +364,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/set_reviewer_course_selection"}
       responses:
         "204": {description: Selection updated}
         "409": {$ref: "#/components/responses/Conflict"}
@@ -354,47 +377,57 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/set_reviewer_availability"}
       responses:
-        "200": {description: Availability plan updated}
+        "200":
+          description: Availability plan updated
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/UpdatedResource"}
         "409": {$ref: "#/components/responses/Conflict"}
-  /v1/homeworks/{homeworkId}/submissions/preflight:
+  /v1/course-run-homeworks/{courseRunHomeworkId}/submissions/preflight:
     post:
       operationId: preflightSubmission
+      x-command-name: preflight_submission
       x-required-role: student
       parameters:
-        - $ref: "#/components/parameters/HomeworkId"
+        - $ref: "#/components/parameters/CourseRunHomeworkId"
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [artifact_url]
-              properties:
-                artifact_url: {type: string, format: uri}
+            schema: {$ref: "command.schema.json#/$defs/preflight_submission"}
       responses:
         "200":
           description: Artifact capability result
           content:
             application/json:
               schema: {$ref: "#/components/schemas/ArtifactCapability"}
-  /v1/homeworks/{homeworkId}/submissions:
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/submissions/{submissionId}/versions:
     post:
       operationId: submitWork
       x-command-name: submit_work
       x-required-role: student
       parameters:
-        - $ref: "#/components/parameters/HomeworkId"
+        - $ref: "#/components/parameters/SubmissionId"
       requestBody:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/submit_work"}
       responses:
-        "201": {description: Submission version created}
+        "201":
+          description: Submission version created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SubmissionVersionCreated"}
         "409": {$ref: "#/components/responses/Conflict"}
-        "422": {description: Artifact inaccessible or unsupported}
+        "422":
+          description: Artifact inaccessible or unsupported
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorObject"}
   /v1/submissions/{submissionId}:
     get:
       operationId: getSubmissionHistory
@@ -424,9 +457,13 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/open_review_iteration"}
       responses:
-        "201": {description: Review iteration opened}
+        "201":
+          description: Review iteration opened
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ReviewIterationCreated"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/review-queue/next:
     get:
@@ -457,9 +494,13 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/save_review_revision"}
       responses:
-        "201": {description: Revision saved}
+        "201":
+          description: Revision saved
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ReviewRevisionSaved"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/review-iterations/{reviewIterationId}/requirements-migrations:
     post:
@@ -474,7 +515,11 @@ paths:
           application/json:
             schema: {$ref: "command.schema.json#/$defs/migrate_review_requirements"}
       responses:
-        "201": {description: Successor review iteration created for new requirements}
+        "201":
+          description: Successor review iteration created for new requirements
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ReviewIterationCreated"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/review-iterations/{reviewIterationId}/corrections:
     post:
@@ -489,7 +534,11 @@ paths:
           application/json:
             schema: {$ref: "command.schema.json#/$defs/create_review_correction"}
       responses:
-        "201": {description: Correction review iteration created without mutating the publication}
+        "201":
+          description: Correction review iteration created without mutating the publication
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ReviewIterationCreated"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/review-iterations/{reviewIterationId}/responsibility-events:
     post:
@@ -504,7 +553,11 @@ paths:
           application/json:
             schema: {$ref: "command.schema.json#/$defs/record_review_responsibility"}
       responses:
-        "201": {description: Non-exclusive responsibility event recorded}
+        "201":
+          description: Non-exclusive responsibility event recorded
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CreatedResource"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/review-iterations/{reviewIterationId}:
     get:
@@ -530,7 +583,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/publish_review"}
       responses:
         "202":
           description: Local publication committed and deliveries queued
@@ -568,19 +621,25 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/start_ai_review"}
       responses:
         "202":
           description: Existing or new AI review run
           content:
             application/json:
               schema: {$ref: "#/components/schemas/Operation"}
-  /v1/agent-authorizations:
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/memberships/{membershipId}/agent-authorizations:
     post:
       operationId: grantAgentAuthorization
       x-command-name: grant_agent_authorization
       x-required-role: reviewer
       x-interactive-session-only: true
+      parameters:
+        - name: membershipId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
       requestBody:
         required: true
         content:
@@ -591,7 +650,7 @@ paths:
           description: Scoped expiring agent authorization granted
           content:
             application/json:
-              schema: {$ref: "#/components/schemas/AgentAuthorization"}
+              schema: {$ref: "#/components/schemas/AgentAuthorizationCreated"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/agent-authorizations/{agentAuthorizationId}/revoke:
     post:
@@ -615,6 +674,8 @@ paths:
   /v1/internal/ai-review/events:
     post:
       operationId: acceptAIReviewEvent
+      x-mutation-kind: protocol
+      x-replay-protection: event-attempt-sequence-fingerprint
       security:
         - componentToken: []
       requestBody:
@@ -654,9 +715,13 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: "#/components/schemas/WireCommand"}
+            schema: {$ref: "command.schema.json#/$defs/retry_delivery"}
       responses:
-        "202": {description: Retry or reconciliation accepted}
+        "202":
+          description: Retry or reconciliation accepted
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Operation"}
         "409": {$ref: "#/components/responses/Conflict"}
   /v1/deliveries:
     get:
@@ -688,7 +753,14 @@ paths:
           headers:
             Digest:
               schema: {type: string}
-        "403": {description: Component is not authorized for this organization or run}
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        "403":
+          description: Component is not authorized for this organization or run
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ErrorObject"}
 components:
   securitySchemes:
     sessionCookie:
@@ -717,15 +789,23 @@ components:
       in: path
       required: true
       schema: {type: string, format: uuid}
+    SubmissionId:
+      name: submissionId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    CourseRunHomeworkId:
+      name: courseRunHomeworkId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
   responses:
     Conflict:
       description: Expected revision or current-state conflict
       content:
         application/json:
-          schema: {$ref: "#/components/schemas/Error"}
+          schema: {$ref: "#/components/schemas/ErrorObject"}
   schemas:
-    WireCommand:
-      $ref: "command.schema.json#/$defs/wire"
     Organization:
       type: object
       required: [id, name, status, revision]
@@ -737,10 +817,11 @@ components:
     Session:
       type: object
       additionalProperties: false
-      required: [user_id, organization_id, roles, membership_revision, auth_epoch, actor_type]
+      required: [user_id, organization_id, membership_id, roles, membership_revision, auth_epoch, actor_type]
       properties:
         user_id: {type: string, format: uuid}
         organization_id: {type: string, format: uuid}
+        membership_id: {type: string, format: uuid}
         roles: {type: array, uniqueItems: true, items: {enum: [methodologist, reviewer, student]}}
         membership_revision: {type: integer, minimum: 0}
         auth_epoch: {type: integer, minimum: 0}
@@ -758,9 +839,77 @@ components:
     CourseList:
       type: object
       additionalProperties: false
-      required: [items]
+      required: [items, course_runs]
       properties:
         items: {type: array, items: {$ref: "#/components/schemas/Course"}}
+        course_runs: {type: array, items: {$ref: "#/components/schemas/CourseRun"}}
+    CourseRun:
+      type: object
+      additionalProperties: false
+      required: [id, course_id, title, timezone, status, revision]
+      properties:
+        id: {type: string, format: uuid}
+        course_id: {type: string, format: uuid}
+        title: {type: string}
+        timezone: {type: string}
+        status: {enum: [draft, active, archived]}
+        revision: {type: integer, minimum: 0}
+    CourseRunList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/CourseRun"}}
+    OrganizationMembershipList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, user_id, roles, status, revision, auth_epoch]
+            properties:
+              id: {type: string, format: uuid}
+              user_id: {type: string, format: uuid}
+              roles: {type: array, uniqueItems: true, items: {enum: [methodologist, reviewer, student]}}
+              status: {enum: [active, archived]}
+              revision: {type: integer, minimum: 0}
+              auth_epoch: {type: integer, minimum: 0}
+    InvitationList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, normalized_email, role, status, expires_at, revision]
+            properties:
+              id: {type: string, format: uuid}
+              normalized_email: {type: string, format: email}
+              role: {enum: [methodologist, reviewer]}
+              status: {enum: [active, consumed, revoked, expired]}
+              expires_at: {type: string, format: date-time}
+              revision: {type: integer, minimum: 0}
+    CreatedResource:
+      type: object
+      additionalProperties: false
+      required: [id, revision]
+      properties:
+        id: {type: string, format: uuid}
+        revision: {type: integer, minimum: 0}
+    UpdatedResource:
+      type: object
+      additionalProperties: false
+      required: [id, revision]
+      properties:
+        id: {type: string, format: uuid}
+        revision: {type: integer, minimum: 0}
     CourseMembershipList:
       type: object
       additionalProperties: false
@@ -780,8 +929,10 @@ components:
     HomeworkSummary:
       type: object
       additionalProperties: false
-      required: [homework_id, current_version_id, title, max_score, artifact_kinds, submission_deadline, review_deadline]
+      required: [course_run_homework_id, revision, homework_id, current_version_id, title, max_score, artifact_kinds, submission_deadline, review_deadline]
       properties:
+        course_run_homework_id: {type: string, format: uuid}
+        revision: {type: integer, minimum: 0}
         homework_id: {type: string, format: uuid}
         current_version_id: {type: string, format: uuid}
         title: {type: string}
@@ -798,44 +949,275 @@ components:
     HomeworkHistory:
       type: object
       additionalProperties: false
-      required: [homework_id, current_version_id, versions]
+      required: [homework_id, homework_revision, versions, course_run_publications]
       properties:
         homework_id: {type: string, format: uuid}
-        current_version_id: {type: string, format: uuid}
+        homework_revision: {type: integer, minimum: 0}
         versions:
           type: array
-          items:
-            type: object
-            required: [id, version_number, student_text, max_score, criteria, published_at]
-            properties:
-              id: {type: string, format: uuid}
-              version_number: {type: integer, minimum: 1}
-              student_text: {type: string}
-              max_score: {type: number, minimum: 0}
-              criteria: {type: array, items: {type: object}}
-              published_at: {type: [string, "null"], format: date-time}
+          items: {$ref: "#/components/schemas/HomeworkVersionSummary"}
+        course_run_publications:
+          type: array
+          description: Append-only publication history; is_current is evaluated independently inside each Course Run.
+          items: {$ref: "#/components/schemas/CourseRunHomeworkPublicationSummary"}
+    HomeworkVersionSummary:
+      type: object
+      additionalProperties: false
+      required: [id, revision, version_number, criterion_set_id, student_text, max_score, artifact_kinds, estimated_review_minutes, criteria]
+      properties:
+        id: {type: string, format: uuid}
+        revision: {type: integer, minimum: 0}
+        version_number: {type: integer, minimum: 1}
+        criterion_set_id: {type: string, format: uuid}
+        student_text: {type: string}
+        max_score: {type: number, minimum: 0}
+        artifact_kinds: {type: array, items: {enum: [github, google_docs]}}
+        estimated_review_minutes: {type: integer, minimum: 1, maximum: 10080}
+        criteria: {type: array, items: {$ref: "#/components/schemas/Criterion"}}
+    CourseRunHomeworkPublicationSummary:
+      type: object
+      additionalProperties: false
+      required: [id, course_run_homework_id, course_run_id, homework_version_id, publication_sequence, submission_deadline, review_deadline, published_at, is_current]
+      properties:
+        id: {type: string, format: uuid}
+        course_run_homework_id: {type: string, format: uuid}
+        course_run_id: {type: string, format: uuid}
+        homework_version_id: {type: string, format: uuid}
+        publication_sequence: {type: integer, minimum: 1}
+        submission_deadline: {type: string, format: date-time}
+        review_deadline: {type: string, format: date-time}
+        published_at: {type: string, format: date-time}
+        is_current: {type: boolean}
     SubmissionHistory:
       type: object
       additionalProperties: false
-      required: [submission_id, versions, review_iterations]
+      required: [submission_id, course_run_id, homework_id, current_submission_version_id, current_publication_id, versions, artifact_versions, review_iterations, review_revisions, publications]
       properties:
         submission_id: {type: string, format: uuid}
-        versions: {type: array, items: {type: object}}
-        review_iterations: {type: array, items: {type: object}}
+        course_run_id: {type: string, format: uuid}
+        homework_id: {type: string, format: uuid}
+        current_submission_version_id: {type: [string, "null"], format: uuid}
+        current_publication_id: {type: [string, "null"], format: uuid}
+        versions: {type: array, items: {$ref: "#/components/schemas/SubmissionVersionSummary"}}
+        artifact_versions: {type: array, items: {$ref: "#/components/schemas/ArtifactVersionSummary"}}
+        review_iterations: {type: array, items: {$ref: "#/components/schemas/ReviewIterationSummary"}}
+        review_revisions: {type: array, items: {$ref: "#/components/schemas/ReviewRevisionSummary"}}
+        publications: {type: array, items: {$ref: "#/components/schemas/ReviewPublicationSummary"}}
+    Criterion:
+      type: object
+      additionalProperties: false
+      required: [id, key, title, description, max_points, position]
+      properties:
+        id: {type: string, format: uuid}
+        key: {type: string}
+        title: {type: string}
+        description: {type: string}
+        max_points: {type: number, minimum: 0}
+        position: {type: integer, minimum: 0}
+    SubmissionVersionSummary:
+      type: object
+      additionalProperties: false
+      required: [id, sequence, homework_version_id, artifact_reference_id, artifact_version_id, capture_operation_id, submitted_at, effective_deadline, phase, status]
+      properties:
+        id: {type: string, format: uuid}
+        sequence: {type: integer, minimum: 1}
+        homework_version_id: {type: string, format: uuid}
+        artifact_reference_id: {type: string, format: uuid}
+        submitted_at: {type: string, format: date-time}
+        effective_deadline: {type: string, format: date-time}
+        phase: {enum: [before_deadline, revision]}
+        status: {enum: [validating, ready, access_error, pending_review, superseded]}
+        artifact_version_id: {type: [string, "null"], format: uuid}
+        capture_operation_id: {type: [string, "null"], format: uuid}
+    ArtifactVersionSummary:
+      type: object
+      additionalProperties: false
+      required: [id, artifact_reference_id, provider, provider_version, content_digest, media_type, byte_size, captured_at]
+      properties:
+        id: {type: string, format: uuid}
+        artifact_reference_id: {type: string, format: uuid}
+        provider: {enum: [github, google_docs]}
+        provider_version: {type: string}
+        content_digest: {type: string, pattern: "^sha256:[0-9a-f]{64}$"}
+        media_type: {type: string}
+        byte_size: {type: integer, minimum: 1}
+        captured_at: {type: string, format: date-time}
+    ReviewIterationSummary:
+      type: object
+      additionalProperties: false
+      required: [id, iteration_number, submission_version_id, homework_version_id, criterion_set_id, origin, status, revision]
+      properties:
+        id: {type: string, format: uuid}
+        iteration_number: {type: integer, minimum: 1}
+        submission_version_id: {type: string, format: uuid}
+        homework_version_id: {type: string, format: uuid}
+        criterion_set_id: {type: string, format: uuid}
+        origin: {enum: [initial, resubmission, correction, requirements_migration]}
+        status: {enum: [queued, in_review, ready_to_publish, published, canceled]}
+        revision: {type: integer, minimum: 0}
+    ReviewRevisionSummary:
+      type: object
+      additionalProperties: false
+      required: [id, review_iteration_id, revision_number, author_user_id, feedback, total_score, created_at]
+      properties:
+        id: {type: string, format: uuid}
+        review_iteration_id: {type: string, format: uuid}
+        revision_number: {type: integer, minimum: 1}
+        author_user_id: {type: string, format: uuid}
+        feedback: {type: string}
+        total_score: {type: number, minimum: 0}
+        created_at: {type: string, format: date-time}
+    ReviewPublicationSummary:
+      type: object
+      additionalProperties: false
+      required: [id, review_iteration_id, review_revision_id, published_by, published_at, total_score]
+      properties:
+        id: {type: string, format: uuid}
+        review_iteration_id: {type: string, format: uuid}
+        review_revision_id: {type: string, format: uuid}
+        published_by: {type: string, format: uuid}
+        published_at: {type: string, format: date-time}
+        total_score: {type: number, minimum: 0}
+    ReviewCriterionDecision:
+      type: object
+      additionalProperties: false
+      required: [criterion_id, points, decision, reason]
+      properties:
+        criterion_id: {type: string, format: uuid}
+        points:
+          type: number
+          minimum: 0
+          description: MUST NOT exceed max_points of the matching criterion in the ReviewIteration snapshot.
+        decision: {enum: [accepted, changed, manual]}
+        reason: {type: string}
+        evidence_ids: {type: array, uniqueItems: true, items: {type: string, format: uuid}}
+    ReviewNote:
+      type: object
+      additionalProperties: false
+      required: [id, text, author_user_id, position]
+      properties:
+        id: {type: string, format: uuid}
+        criterion_id: {type: [string, "null"], format: uuid}
+        text: {type: string}
+        author_user_id: {type: string, format: uuid}
+        position: {type: integer, minimum: 0}
+    AISuggestion:
+      type: object
+      additionalProperties: false
+      required: [id, criterion_id, status, proposed_points, reason, evidence, confidence, reviewer_note, student_feedback, flags]
+      properties:
+        id: {type: string, format: uuid}
+        criterion_id: {type: string, format: uuid}
+        status: {enum: [suggested, needs_human, not_checked]}
+        proposed_points:
+          type: [number, "null"]
+          minimum: 0
+          description: When numeric, MUST NOT exceed max_points of the matching criterion in the AI request.
+        reason: {type: string}
+        evidence: {type: array, items: {$ref: "#/components/schemas/AIEvidence"}}
+        confidence: {enum: [low, medium, high]}
+        reviewer_note: {type: [string, "null"]}
+        student_feedback: {type: [string, "null"]}
+        flags: {type: array, uniqueItems: true, items: {type: string}}
+    AIEvidence:
+      type: object
+      additionalProperties: false
+      required: [locator, quote, verified]
+      properties:
+        locator: {type: string}
+        quote: {type: string}
+        verified: {type: boolean}
+    AISignal:
+      type: object
+      additionalProperties: false
+      required: [level, evidence, limitations, questions]
+      properties:
+        level: {enum: [none, low, medium, high, insufficient_data]}
+        evidence: {type: array, items: {$ref: "#/components/schemas/AIEvidence"}}
+        limitations: {type: array, items: {type: string}}
+        questions: {type: array, items: {type: string}}
+    AIReviewSummary:
+      type: object
+      additionalProperties: false
+      required: [run_id, input_fingerprint, contract_version, state, attempts, suggestions, signal, error]
+      properties:
+        run_id: {type: string, format: uuid}
+        input_fingerprint: {type: string, pattern: "^sha256:[0-9a-f]{64}$"}
+        contract_version: {const: 1.1.0}
+        state: {enum: [pending, running, partial, succeeded, retryable_failed, action_required, stale]}
+        attempts: {type: array, items: {$ref: "#/components/schemas/OperationAttempt"}}
+        suggestions: {type: array, items: {$ref: "#/components/schemas/AISuggestion"}}
+        signal: {oneOf: [{$ref: "#/components/schemas/AISignal"}, {type: "null"}]}
+        error: {$ref: "#/components/schemas/Error"}
+    ResponsibilityEvent:
+      type: object
+      additionalProperties: false
+      required: [id, reviewer_id, actor_id, action, occurred_at]
+      properties:
+        id: {type: string, format: uuid}
+        reviewer_id: {type: string, format: uuid}
+        actor_id: {type: string, format: uuid}
+        action: {enum: [started, joined, released, completed]}
+        occurred_at: {type: string, format: date-time}
+    DeliverySummary:
+      type: object
+      additionalProperties: false
+      required: [id, operation_id, destination_binding_id, destination_kind, state, attempts, provenance, error]
+      properties:
+        id: {type: string, format: uuid}
+        operation_id: {type: string, format: uuid}
+        destination_binding_id: {type: string, format: uuid}
+        destination_kind: {enum: [stepik, github]}
+        state: {enum: [pending, processing, retryable_failed, unknown_outcome, reconciling, succeeded, action_required, superseded]}
+        attempts: {type: array, items: {$ref: "#/components/schemas/OperationAttempt"}}
+        provenance: {$ref: "#/components/schemas/DeliveryProvenance"}
+        error: {$ref: "#/components/schemas/Error"}
+    DeliveryProvenance:
+      type: object
+      additionalProperties: false
+      required: [course_run_id, homework_version_id, criterion_set_id, submission_version_id, artifact_version_id, artifact_content_digest, review_iteration_id, review_revision_id, contract_version]
+      properties:
+        course_run_id: {type: string, format: uuid}
+        homework_version_id: {type: string, format: uuid}
+        criterion_set_id: {type: string, format: uuid}
+        submission_version_id: {type: string, format: uuid}
+        artifact_version_id: {type: string, format: uuid}
+        artifact_content_digest: {type: string, pattern: "^sha256:[0-9a-f]{64}$"}
+        review_iteration_id: {type: string, format: uuid}
+        review_revision_id: {type: string, format: uuid}
+        contract_version: {type: string}
+    ReviewImmutableInputs:
+      type: object
+      additionalProperties: false
+      required: [course_run_id, submission_version_id, effective_deadline, artifact_version_id, artifact_content_digest, artifact_download_url, artifact_download_expires_at, homework_version_id, criterion_set_id, contract_version]
+      properties:
+        course_run_id: {type: string, format: uuid}
+        submission_version_id: {type: string, format: uuid}
+        effective_deadline: {type: string, format: date-time}
+        artifact_version_id: {type: string, format: uuid}
+        artifact_content_digest: {type: string, pattern: "^sha256:[0-9a-f]{64}$"}
+        artifact_download_url: {type: string, format: uri}
+        artifact_download_expires_at: {type: string, format: date-time}
+        homework_version_id: {type: string, format: uuid}
+        criterion_set_id: {type: string, format: uuid}
+        contract_version: {type: string}
     ReviewDetail:
       type: object
       additionalProperties: false
-      required: [review_iteration_id, revision, status, criterion_decisions, review_notes, ai_suggestions, responsibility_events, deliveries]
+      required: [review_iteration_id, immutable_inputs, current_review_revision_id, current_review_revision, revision, status, criterion_decisions, review_notes, ai_review, responsibility_events, publication_request, deliveries]
       properties:
         review_iteration_id: {type: string, format: uuid}
+        immutable_inputs: {$ref: "#/components/schemas/ReviewImmutableInputs"}
+        current_review_revision_id: {type: [string, "null"], format: uuid}
+        current_review_revision: {oneOf: [{$ref: "#/components/schemas/ReviewRevisionSummary"}, {type: "null"}]}
         revision: {type: integer, minimum: 0}
         status: {enum: [queued, in_review, ready_to_publish, published, canceled]}
-        criterion_decisions: {type: array, items: {type: object}}
-        review_notes: {type: array, items: {type: object}}
-        ai_suggestions: {type: array, items: {type: object}}
-        responsibility_events: {type: array, items: {type: object}}
+        criterion_decisions: {type: array, items: {$ref: "#/components/schemas/ReviewCriterionDecision"}}
+        review_notes: {type: array, items: {$ref: "#/components/schemas/ReviewNote"}}
+        ai_review: {oneOf: [{$ref: "#/components/schemas/AIReviewSummary"}, {type: "null"}]}
+        responsibility_events: {type: array, items: {$ref: "#/components/schemas/ResponsibilityEvent"}}
         publication_request: {oneOf: [{$ref: "#/components/schemas/PublicationRequest"}, {type: "null"}]}
-        deliveries: {type: array, items: {type: object}}
+        deliveries: {type: array, items: {$ref: "#/components/schemas/DeliverySummary"}}
     PublicationRequest:
       type: object
       additionalProperties: false
@@ -846,16 +1228,43 @@ components:
         status: {enum: [pending, confirmed, rejected, expired, superseded]}
         expires_at: {type: string, format: date-time}
         revision: {type: integer, minimum: 0}
-    AgentAuthorization:
+    AgentAuthorizationCreated:
       type: object
       additionalProperties: false
-      required: [id, agent_id, scopes, expires_at, revision]
+      required: [id, agent_id, scopes, expires_at, revision, access_token]
       properties:
         id: {type: string, format: uuid}
         agent_id: {type: string, format: uuid}
         scopes: {type: array, uniqueItems: true, items: {type: string}}
         expires_at: {type: string, format: date-time}
         revision: {type: integer, minimum: 0}
+        access_token: {type: string, minLength: 32, readOnly: true}
+    SubmissionVersionCreated:
+      type: object
+      additionalProperties: false
+      required: [submission_id, submission_revision, submission_version_id, submission_version_revision, capture_operation_id]
+      properties:
+        submission_id: {type: string, format: uuid}
+        submission_revision: {type: integer, minimum: 0}
+        submission_version_id: {type: string, format: uuid}
+        submission_version_revision: {type: integer, minimum: 0}
+        capture_operation_id: {type: string, format: uuid}
+    ReviewIterationCreated:
+      type: object
+      additionalProperties: false
+      required: [review_iteration_id, review_case_id, revision]
+      properties:
+        review_iteration_id: {type: string, format: uuid}
+        review_case_id: {type: string, format: uuid}
+        revision: {type: integer, minimum: 0}
+    ReviewRevisionSaved:
+      type: object
+      additionalProperties: false
+      required: [review_revision_id, review_iteration_id, review_iteration_revision]
+      properties:
+        review_revision_id: {type: string, format: uuid}
+        review_iteration_id: {type: string, format: uuid}
+        review_iteration_revision: {type: integer, minimum: 0}
     DeliveryList:
       type: object
       additionalProperties: false
@@ -863,40 +1272,65 @@ components:
       properties:
         items:
           type: array
-          items:
-            type: object
-            required: [id, destination, state, attempts, updated_at]
-            properties:
-              id: {type: string, format: uuid}
-              destination: {type: string}
-              state: {type: string}
-              attempts: {type: integer, minimum: 0}
-              updated_at: {type: string, format: date-time}
-              error: {$ref: "#/components/schemas/Error"}
+          items: {$ref: "#/components/schemas/DeliverySummary"}
     ArtifactCapability:
       type: object
-      required: [provider, read_capability, feedback_capability]
+      additionalProperties: false
+      required: [provider, read_capability, feedback_capability, submission_id, submission_revision, artifact_reference_id, error]
       properties:
         provider: {enum: [github, google_docs]}
         read_capability: {enum: [available, requires_action, unavailable]}
         feedback_capability: {enum: [available, not_supported, requires_action]}
         artifact_reference_id: {type: [string, "null"], format: uuid}
         error: {$ref: "#/components/schemas/Error"}
+        submission_id: {type: string, format: uuid}
+        submission_revision: {type: integer, minimum: 0}
+      allOf:
+        - if:
+            properties:
+              read_capability: {const: available}
+          then:
+            properties:
+              artifact_reference_id: {type: string, format: uuid}
+              error: {type: "null"}
+          else:
+            properties:
+              artifact_reference_id: {type: "null"}
+              error:
+                $ref: "#/components/schemas/ErrorObject"
     ReviewRecommendation:
       type: object
-      required: [review_case_id, submission_version_id, reason]
+      required: [review_case_id, review_case_revision, submission_version_id, reason]
       properties:
         review_case_id: {type: string, format: uuid}
+        review_case_revision: {type: integer, minimum: 0}
         submission_version_id: {type: string, format: uuid}
         reason: {type: array, items: {type: string}}
+    OperationAttempt:
+      type: object
+      additionalProperties: false
+      required: [attempt_number, state, started_at, finished_at, error]
+      properties:
+        attempt_number: {type: integer, minimum: 1}
+        state: {enum: [processing, succeeded, retryable_failed, unknown_outcome, action_required]}
+        started_at: {type: string, format: date-time}
+        finished_at: {type: [string, "null"], format: date-time}
+        error: {$ref: "#/components/schemas/Error"}
     Operation:
       type: object
-      required: [id, state, attempts, updated_at]
+      additionalProperties: false
+      required: [id, kind, input_version, state, attempts, created_at, updated_at, finished_at, error]
       properties:
         id: {type: string, format: uuid}
+        kind: {enum: [course_import, artifact_capture, ai_review, external_delivery, email_delivery]}
+        input_version: {type: string, minLength: 1}
         state: {enum: [pending, processing, partial, succeeded, retryable_failed, unknown_outcome, reconciling, action_required, stale]}
-        attempts: {type: integer, minimum: 0}
+        attempts:
+          type: array
+          items: {$ref: "#/components/schemas/OperationAttempt"}
+        created_at: {type: string, format: date-time}
         updated_at: {type: string, format: date-time}
+        finished_at: {type: [string, "null"], format: date-time}
         error: {$ref: "#/components/schemas/Error"}
     Publication:
       type: object
@@ -909,25 +1343,33 @@ components:
         status: {enum: [published]}
         deliveries:
           type: array
-          items:
-            type: object
-            required: [id, destination, state]
-            properties:
-              id: {type: string, format: uuid}
-              destination: {type: string}
-              state: {type: string}
+          items: {$ref: "#/components/schemas/DeliverySummary"}
     Error:
-      type: [object, "null"]
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [code, message, action]
+          properties:
+            code: {type: string, minLength: 1, maxLength: 128}
+            message: {type: string, maxLength: 2048}
+            action: {type: [string, "null"], maxLength: 512}
+        - type: "null"
+    ErrorObject:
+      type: object
+      additionalProperties: false
+      required: [code, message, action]
       properties:
-        code: {type: string}
-        message: {type: string}
-        action: {type: [string, "null"]}
+        code: {type: string, minLength: 1, maxLength: 128}
+        message: {type: string, maxLength: 2048}
+        action: {type: [string, "null"], maxLength: 512}
   examples:
     AvailableArtifact:
       value:
         provider: github
         read_capability: available
         feedback_capability: available
+        submission_id: 018f62b4-5a3e-7c91-a8bd-42c61733f219
+        submission_revision: 0
         artifact_reference_id: 018f62b4-5a3e-7c91-a8bd-42c61733f21a
         error: null
     PendingPublicationRequest:
@@ -940,9 +1382,21 @@ components:
     RecoverableOperation:
       value:
         id: 018f62b4-5a3e-7c91-a8bd-42c61733f21d
+        kind: course_import
+        input_version: stepik:course:1
         state: action_required
-        attempts: 3
+        attempts:
+          - attempt_number: 1
+            state: action_required
+            started_at: 2026-09-04T11:59:00Z
+            finished_at: 2026-09-04T12:00:00Z
+            error:
+              code: provider_auth_required
+              message: Provider access must be restored
+              action: reconnect_provider
+        created_at: 2026-09-04T11:59:00Z
         updated_at: 2026-09-04T12:00:00Z
+        finished_at: 2026-09-04T12:00:00Z
         error:
           code: provider_auth_required
           message: Provider access must be restored

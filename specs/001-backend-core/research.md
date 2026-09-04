@@ -4,7 +4,7 @@
 
 **Decision:** Python 3.13, FastAPI, Pydantic 2, Uvicorn.
 
-**Rationale:** Команда выбрала Python/FastAPI. Один async runtime подходит HTTP, provider adapters и Taskiq. Pydantic-модели служат источником OpenAPI и JSON Schema.
+**Rationale:** Команда выбрала Python/FastAPI. Один async runtime подходит HTTP, provider adapters и Taskiq. Canonical OpenAPI/JSON Schemas являются источником истины; Pydantic-модели реализуют их и проходят автоматическую conformance-проверку.
 
 **Alternatives:** Django добавляет ненужный встроенный UI; Go усложняет общий контракт с Python AI-компонентом.
 
@@ -26,13 +26,13 @@
 
 ## Object storage
 
-**Decision:** S3-compatible storage, MinIO в локальном окружении.
+**Decision:** S3-compatible storage, MinIO в локальном окружении. Promotion является durable operation: DB transaction создаёт ArtifactVersion, promotion intent и outbox; recovery идемпотентно завершает staged-to-final переход по digest.
 
 **Rationale:** GitHub archives, DOCX и снимки не должны раздувать MySQL. В БД остаются object key, размер, media type и SHA-256.
 
 ## Authentication
 
-**Decision:** Методист и студент входят через Stepik OAuth. Ревьюер входит по email magic link. Первый методист задаётся одноразовой bootstrap-конфигурацией.
+**Decision:** Методист и студент входят через Stepik OAuth. Ревьюер входит по email magic link. Первый методист задаётся только локальной одноразовой operator CLI-командой; публичного bootstrap endpoint нет.
 
 **Rationale:** У ревьюера может не быть Stepik. Magic link подтверждает email без постоянного пароля. Внешние refresh tokens хранятся шифрованными.
 
@@ -46,13 +46,13 @@
 
 ## Contract authority and freeze
 
-**Decision:** Файлы в `specs/001-backend-core/contracts/` являются design-time source of truth. Первая согласованная версия замораживается как 1.0.0 вместе с `manifest.json`; runtime copies создаются одной deterministic sync-командой и проверяются по SHA-256. Pydantic и FastAPI OpenAPI обязаны соответствовать замороженным артефактам, но не перезаписывают их автоматически.
+**Decision:** Файлы в `specs/001-backend-core/contracts/` являются design-time source of truth. Исправленная breaking pre-implementation версия 1.1.0 остаётся candidate до READY `$speckit-analyze` и замораживается одной механической операцией до runtime implementation. Runtime copies создаются deterministic sync-командой и проверяются по SHA-256. Pydantic и FastAPI OpenAPI обязаны соответствовать canonical artifacts, но не перезаписывают их автоматически.
 
 **Rationale:** Один канонический набор предотвращает расхождение checked-in JSON/YAML, package data и runtime-generated schemas. После freeze любое изменение требует новой версии, changelog и compatibility/migration rules. До первой реализации контракты исправляются один раз и только затем получают статус frozen.
 
 ## Provider contracts
 
-**Decision:** Course import, artifact access, outbound delivery/reconciliation and email use отдельные versioned JSON Schemas and shared fixtures. Python Protocols are adapters to these schemas, not a replacement for them.
+**Decision:** Identity assertion, course import, artifact access, outbound delivery/reconciliation and email use полностью типизированные versioned JSON Schemas, shared success/failure fixtures и bounded payloads. Каждый provider request содержит opaque credential_binding_id и точную binding_version; adapter не выбирает credentials по tenant/provider через скрытый side channel. Python Protocols are adapters to these schemas, not a replacement for them.
 
 **Rationale:** Backend, Stepik, GitHub, Google Docs and email providers can be implemented by different owners without guessing undocumented payloads or authentication behavior.
 
@@ -65,19 +65,27 @@
 | Command | Expected revision target |
 |---|---|
 | create invitation, start course import | Organization |
+| revoke invitation | Invitation |
 | change roles | OrganizationMembership; дополнительно блокируется Organization |
 | archive/restore course | Course |
+| create homework | CourseRun |
 | create homework version | Homework |
-| publish homework version | CourseRunHomework |
+| publish homework version | HomeworkVersion; transaction also locks CourseRunHomework key |
 | select reviewer courses, set availability | OrganizationMembership |
+| preflight submission | CourseRunHomework; returns Submission ID/revision |
 | submit work | Submission |
 | open review iteration | ReviewCase |
 | save/publish review, start AI | ReviewIteration |
 | retry delivery | ExternalDelivery |
+| grant/revoke agent authorization | OrganizationMembership / AgentAuthorization |
 
 Role mutations блокируют строку Organization через SELECT FOR UPDATE и повторно считают active methodologists в той же транзакции. Все tenant links используют composite organization foreign keys. Session и pending command содержат auth epoch, который повторно проверяется перед выполнением.
 
-Installation operator является отдельным actor variant и не подменяется product User. Operator commands содержат installation_operator_id and reason; user/agent commands contain membership revision and auth epoch.
+Installation operator является отдельным actor variant и не подменяется product User. Operator commands требуют transport=operator и содержат installation_operator_id and reason; human-only publish/grant/revoke требуют session-backed REST transport. Каждый REST route принимает exact command variant, а path ID совпадает с target ID.
+
+OAuth initiation/callback, magic-link consumption, current-session logout и AI event ingestion не маскируются под business commands. Это protocol mutations с равнозначной replay-защитой: OAuthState и invitation token/state потребляются атомарно один раз, logout идемпотентно адресован текущей Session, AI event дедуплицируется по event ID и сверяется с attempt, sequence и immutable input fingerprint. Другие mutation exceptions запрещены.
+
+Agent mutation несёт membership auth epoch и AgentAuthorization revision. Revoke и mutation перед commit берут одинаковые row locks и повторно проверяют обе версии; это устраняет validate/revoke/commit race.
 
 ## Review evolution and publication
 
@@ -91,9 +99,9 @@ Agent publication is two-step: an agent creates an idempotent PublicationRequest
 
 **Decision:** Backend создаёт AIReviewRun по полному input fingerprint; Taskiq worker вызывает внешний AI component через версируемый HTTP/JSON contract. Попытки и события отделены от логического запуска.
 
-**Rationale:** AI разрабатывается отдельно. Fingerprint связывает результат с artifact digest, homework version, criterion set и contract version. Suggestions не изменяют human revision.
+**Rationale:** AI разрабатывается отдельно. Fingerprint связывает результат с CourseRun, SubmissionVersion, artifact digest, homework version, criterion set, ReviewIteration и contract version. Suggestions не изменяют human revision.
 
-Fingerprint `jcs-sha256-v1` — SHA-256 от RFC 8785 JSON Canonicalization Scheme объекта с `contract_version`, `organization_id`, `review_iteration_id`, `artifact_version_id`, `artifact.content_digest`, `homework.version_id`, `homework.digest`, `criteria.set_id` и `criteria.digest`. Backend и AI component проверяют одинаковые contract vectors. Одинаковые байты в разных версиях или итерациях не переиспользуют run.
+Fingerprint `jcs-sha256-v1` — SHA-256 от RFC 8785 JSON Canonicalization Scheme объекта с `contract_version`, `organization_id`, `course_run_id`, `submission_version_id`, `review_iteration_id`, `artifact_version_id`, `artifact.content_digest`, `homework.version_id`, `homework.digest`, `criteria.set_id` и `criteria.digest`. Backend и AI component проверяют одинаковые frozen contract vectors. Одинаковые байты в разных версиях или итерациях не переиспользуют run.
 
 ## External delivery
 
@@ -113,6 +121,6 @@ Static schema/freeze tests become green in Foundation. Concrete HTTP/MCP parity 
 
 ## Process topology
 
-**Decision:** Модульный монолит, отдельные процессы API, worker, outbox relay и MCP, один общий domain/application package.
+**Decision:** Модульный монолит, отдельные процессы API, worker, outbox relay, email worker и MCP, один общий domain/application package.
 
 **Rationale:** Это минимальная топология надёжных фоновых задач без преждевременного деления на микросервисы.

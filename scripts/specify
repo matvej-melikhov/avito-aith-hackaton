@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+speckit_repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$speckit_repo_root"
+
+exec uvx --no-config --no-python-downloads \
+  --cache-dir "$speckit_repo_root/.cache/uv-speckit" \
+  --from 'git+https://github.com/github/spec-kit.git@v1.0.4' \
+  specify "$@"

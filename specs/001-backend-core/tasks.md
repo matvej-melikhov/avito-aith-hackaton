@@ -4,264 +4,333 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 # Tasks: Backend Core Review Platform
 
-**Input**: `spec.md`, `plan.md`, `research.md`, `data-model.md`, `context-traceability.md`, `requirements-traceability.md`, `contracts/`, `quickstart.md`, `.specify/memory/constitution.md`
+**Input**: `spec.md`, `plan.md`, `research.md`, `data-model.md`, `context-traceability.md`, `requirements-traceability.md`, `constitution-snapshot.md`, `contract-compatibility.md`, `contract-fixtures/`, `contracts/`, `quickstart.md`, `.specify/memory/constitution.md`
 
-**Contract freeze**: `contracts/manifest.json` freezes contract set 1.0.0 before application implementation. Story phases MUST NOT edit canonical contracts; a semantic change requires a separately approved contract version.
+**Contract state**: `contracts/manifest.json` describes candidate contract set 1.1.0: 28 commands, 43 OpenAPI paths / 46 operations, 12 MCP tools, and 19 hashed artifacts. T022 may freeze it only after `$speckit-analyze` returns READY and the mechanical hash/fixture checks pass without semantic edits. Story phases MUST NOT edit canonical contracts.
 
-**TDD rule**: Each RED task must fail for the named missing behavior, never for collection/import/infrastructure errors. Its paired implementation must make it green before the phase checkpoint.
+**Executable-specification rule**: static schema/manifest checks are expected to be GREEN before runtime implementation. Behavioral, state-machine, concurrency, and isolation tests are introduced RED, must fail for the named missing behavior rather than import or infrastructure errors, and become GREEN before their phase checkpoint.
 
 ## Phase 1: Setup — runnable isolated environment
 
-- [ ] T001 Create Python 3.13 project metadata, exact runtime/test dependencies, pytest markers, Ruff, and mypy configuration in `backend/pyproject.toml`
-- [ ] T002 Generate the reproducible dependency lock without committing or pushing in `backend/uv.lock`
-- [ ] T003 Create the importable package and application version in `backend/src/review_platform/__init__.py`
-- [ ] T004 [P] Implement environment-only typed settings with safe offline defaults in `backend/src/review_platform/settings.py`
-- [ ] T005 [P] Define non-secret local ports, limits, retention, encryption-key references, and live-sandbox variables in `deploy/env.example`
-- [ ] T006 Create the Python 3.13 image and console entrypoints for API, worker, relay, email worker, bootstrap, and MCP in `backend/Dockerfile`
-- [ ] T007 Define MySQL 8.4, Redis, MinIO, Mailpit, API, worker, outbox relay, email worker, and MCP health checks in `deploy/compose.yaml`
-- [ ] T008 Implement deterministic clock/UUID fixtures and opt-in live-test guards in `backend/tests/conftest.py`
-- [ ] T009 Implement isolated Testcontainers lifecycle, readiness, cleanup, and per-suite MySQL/Redis/MinIO fixtures in `backend/tests/fixtures/containers.py`
+**Purpose**: Establish a reproducible Python and container test harness without importing application entrypoints that are created in later phases.
 
-**Checkpoint**: locked uv sync and empty pytest collection succeed; no external URL is contacted.
+- [X] T001 Create Python 3.13 project metadata, exact runtime/test dependencies, pytest markers, Ruff, and mypy configuration in `backend/pyproject.toml`
+- [X] T002 Generate the reproducible dependency lock without committing or pushing in `backend/uv.lock`
+- [X] T003 Create the importable package and application version in `backend/src/review_platform/__init__.py`
+- [X] T004 [P] Implement environment-only typed settings with safe offline defaults in `backend/src/review_platform/settings.py`
+- [X] T005 [P] Define non-secret local ports, limits, retention, encryption-key references, and live-sandbox variables in `deploy/env.example`
+- [X] T006 Define Python 3.13 image stages and deferred API, worker, relay, email-worker, bootstrap, operator, and MCP commands in `backend/Dockerfile`
+- [X] T007 Define MySQL 8.4, Redis, MinIO, Mailpit, API, worker, outbox relay, email worker, and MCP services and health checks in `deploy/compose.yaml`
+- [X] T008 Implement deterministic clock/UUID fixtures, pytest plugin registration, and explicit live-test guards in `backend/tests/conftest.py`
+- [X] T009 Implement isolated Testcontainers lifecycle, readiness, cleanup, and per-suite MySQL/Redis/MinIO fixtures in `backend/tests/fixtures/containers.py`
+- [X] T010 Write a container smoke test that creates and reads tenant-tagged data from MySQL, Redis, and MinIO without application entrypoints in `backend/tests/integration/test_container_smoke.py`
+
+**Checkpoint**: `uv sync --locked`, pytest collection, T010, and `docker compose config --quiet` succeed without external-provider access; application image build and process imports are deliberately deferred to the release gate.
 
 ---
 
-## Phase 2: Frozen contracts and foundational persistence
+## Phase 2: Candidate contracts and shared foundation
 
-**Purpose**: Make only shared contract, operation, idempotency, audit, outbox, storage, and request-boundary tests green. Concrete MCP invocation and story behavior are deliberately excluded.
+**Purpose**: Validate immutable design inputs, then implement only shared tenant, operation, idempotency, audit, outbox, storage-primitive, and request-boundary behavior.
 
-### RED specifications
+### Static executable specifications — GREEN before runtime work
 
-- [ ] T010 [P] Write and pass a traceability validator for FR-001..FR-085 and SC-001..SC-023 requiring fixture/gate, owner, command, and status in `backend/tests/contract/test_requirements_traceability.py`
-- [ ] T011 [P] Write failing manifest and deterministic runtime-copy hash tests for all frozen contract files in `backend/tests/contract/test_contract_manifest.py`
-- [ ] T012 [P] Write failing Draft 2020-12 tests for all 27 command variants, conditional payloads, actor union, version, and additional-property rejection in `backend/tests/contract/test_command_schema.py`
-- [ ] T013 [P] Write failing OpenAPI tests for 43 paths, 45 operations, response schemas, security, command mappings, examples, and external references in `backend/tests/contract/test_openapi.py`
-- [ ] T014 [P] Write failing static MCP manifest tests for 11 tools, closed scopes, roles, REST mappings, typed results, stateless metadata, and absence of direct publication in `backend/tests/contract/test_mcp_manifest.py`
-- [ ] T015 [P] Write failing course-import, artifact-provider, delivery/reconciliation, and email schema/fixture tests in `backend/tests/contract/test_provider_contracts.py`
-- [ ] T016 [P] Write failing wire-to-application tests proving actor/organization come only from user, agent, component, or installation-operator authorization in `backend/tests/contract/test_command_boundary.py`
-- [ ] T017 [P] Write failing state tests for CommandReceipt, Operation/Attempt, Outbox lease, and terminal failure visibility in `backend/tests/state/test_foundational_operations.py`
-- [ ] T018 [P] Write failing multi-relay tests for `SKIP LOCKED`, lease tokens, expiry recovery, duplicate messages, exhausted attempts, and actionable poison messages in `backend/tests/isolation/test_outbox_leasing.py`
-- [ ] T019 [P] Write failing S3 boundary tests for tenant prefixes, byte ceilings, digest verification, signed URL TTL, staged promotion, and orphan cleanup in `backend/tests/isolation/test_object_storage_limits.py`
-- [ ] T020 [P] Write failing log/error tests for token, PII, provider body, artifact content, and magic-link redaction in `backend/tests/isolation/test_secret_redaction.py`
+- [X] T011 [P] Write and pass a traceability validator for FR-001..FR-085 and SC-001..SC-023 requiring fixture/gate, owner, command, and status in `backend/tests/contract/test_requirements_traceability.py`
+- [X] T012 [P] Write and pass manifest/hash tests for all 19 contract-set artifacts, their manifest-declared candidate/frozen lifecycle status, compatibility notes, the byte-identical constitution snapshot, and shared fixtures in `backend/tests/contract/test_contract_manifest.py`
+- [X] T013 [P] Write and pass Draft 2020-12 tests for all 28 command variants, conditional payloads, actor/transport policy, version, and additional-property rejection in `backend/tests/contract/test_command_schema.py`
+- [X] T014 [P] Write and pass OpenAPI tests for 43 paths / 46 operations, exact per-route command refs, path/target equality, typed success/error responses, examples, and external references in `backend/tests/contract/test_openapi.py`
+- [X] T015 [P] Write and pass static MCP manifest tests for exactly 12 tools, closed scopes, roles, typed results, recommendation-to-iteration flow, and absence of direct publication in `backend/tests/contract/test_mcp_manifest.py`
+- [X] T016 [P] Write and pass typed identity, course-import, artifact-provider, delivery/reconciliation, email, exact credential-binding, AI, and shared fixture/vector tests in `backend/tests/contract/test_provider_contracts.py`
+
+### Shared behavioral specifications — RED before implementation
+
+- [X] T017 [P] Write failing runtime boundary tests for production-only component composition, exact route command, path/target equality, server-owned actor/organization, operator-only bootstrap/recovery, and REST-only human commands in `backend/tests/contract/test_command_boundary.py`
+- [X] T018 [P] Write failing state tests for CommandReceipt, Operation/OperationAttempt, Outbox lease, terminal failure visibility, and legal transition non-regression in `backend/tests/state/test_foundational_operations.py`
+- [X] T019 [P] Write failing multi-relay tests for `SKIP LOCKED`, lease tokens, expiry recovery, duplicate messages, exhausted attempts, and actionable poison messages in `backend/tests/isolation/test_outbox_leasing.py`
+- [X] T020 [P] Write failing foundational tenant tests for Organization-scoped operation/receipt/audit/outbox rows, composite foreign keys, Redis namespaces, S3 object keys/signed URLs, and generic API reads in `backend/tests/isolation/test_foundational_tenant_boundaries.py`
+- [X] T021 [P] Write failing shared-sink redaction tests for logs, generic API errors, OperationAttempt, OutboxMessage, and AuditEvent in `backend/tests/isolation/test_foundational_redaction.py`
 
 ### Shared implementation
 
-- [ ] T021 Implement deterministic contract copy/check tooling driven exclusively by `contracts/manifest.json` in `scripts/sync_backend_contracts.py`
-- [ ] T022 Package manifest-verified schemas as runtime resources in `backend/src/review_platform/contracts/schemas/`
-- [ ] T023 Implement schema loading, reference resolution, version selection, and generated-schema conformance in `backend/src/review_platform/contracts/registry.py`
-- [ ] T024 Implement strict Pydantic wire/application commands and user/agent/operator actor variants in `backend/src/review_platform/contracts/commands.py`
-- [ ] T025 [P] Implement UUIDv7, UTC clock, digest, revision, and sanitized error primitives in `backend/src/review_platform/domain/primitives.py`
-- [ ] T026 Configure asyncmy SQLAlchemy engine, sessions, naming conventions, and test transactions in `backend/src/review_platform/infrastructure/db/session.py`
-- [ ] T027 Implement organization-key mixins and composite tenant foreign-key helpers in `backend/src/review_platform/infrastructure/db/base.py`
-- [ ] T028 Implement CommandReceipt, AuditEvent, OutboxMessage, Operation, and OperationAttempt tables in `backend/src/review_platform/infrastructure/db/models/operations.py`
-- [ ] T029 Configure async Alembic and create reversible foundational operations migration with explicit root revision in `backend/migrations/versions/0001_foundational_operations.py`
-- [ ] T030 Implement tenant-scoped operation, receipt, audit, and outbox repositories in `backend/src/review_platform/infrastructure/db/repositories/operations.py`
-- [ ] T031 Implement authenticated request context and read/write/worker auth-epoch revalidation in `backend/src/review_platform/application/request_context.py`
-- [ ] T032 Implement role/scope authorization, closed-scope validation, and fail-closed tenant checks in `backend/src/review_platform/application/authorization.py`
-- [ ] T033 Implement shared validation, transaction, CAS, and transport-independent dispatch in `backend/src/review_platform/application/command_bus.py`
-- [ ] T034 Implement idempotency reservation, replay, payload-conflict rejection, and stable result references in `backend/src/review_platform/application/idempotency.py`
-- [ ] T035 Implement append-only audit creation and atomic rollback semantics in `backend/src/review_platform/application/audit.py`
-- [ ] T036 Implement stable outbox message creation, leasing, max-attempt visibility, and manual recovery in `backend/src/review_platform/infrastructure/db/outbox.py`
-- [ ] T037 Implement `FOR UPDATE SKIP LOCKED` relay, compare-and-set lease completion, Redis publication, and crash recovery in `backend/src/review_platform/infrastructure/tasks/outbox_relay.py`
-- [ ] T038 Configure Taskiq routing, bounded retry/backoff, tenant correlation, and worker auth revalidation in `backend/src/review_platform/infrastructure/tasks/broker.py`
-- [ ] T039 Implement tenant-scoped S3 staged upload, limits, digest/promotion, signed reads, and garbage collection in `backend/src/review_platform/infrastructure/object_storage/s3.py`
-- [ ] T040 Implement schema-backed provider ports and deterministic shared mocks/replays in `backend/src/review_platform/application/ports/providers.py` and `backend/src/review_platform/infrastructure/providers/mocks.py`
-- [ ] T041 Implement sanitized FastAPI middleware, application factory, generic operation read route, and health/readiness probes in `backend/src/review_platform/api/middleware.py`, `backend/src/review_platform/api/routes/operations.py`, and `backend/src/review_platform/main.py`
-- [ ] T042 Implement executable worker, relay, and email-worker process entrypoints in `backend/src/review_platform/infrastructure/tasks/__main__.py`, `backend/src/review_platform/infrastructure/tasks/relay_main.py`, and `backend/src/review_platform/infrastructure/tasks/email_main.py`
+- [ ] T022 After an Analyze READY verdict, verify candidate 1.1.0 plus fixtures, mechanically set status to frozen, and regenerate hashes without semantic edits in `scripts/sync_backend_contracts.py`
+- [ ] T023 Package manifest-verified schemas as runtime resources in `backend/src/review_platform/contracts/schemas/`
+- [ ] T024 Implement schema loading, reference resolution, version selection, and generated-schema conformance in `backend/src/review_platform/contracts/registry.py`
+- [ ] T025 Implement strict Pydantic wire/application commands and the user/agent/installation-operator RequestActor variants in `backend/src/review_platform/contracts/commands.py`
+- [ ] T026 Implement UUIDv7, UTC clock, digest, revision, and sanitized-error primitives in `backend/src/review_platform/domain/primitives.py`
+- [ ] T027 Configure asyncmy SQLAlchemy engine, sessions, naming conventions, and test transactions in `backend/src/review_platform/infrastructure/db/session.py`
+- [ ] T028 Implement tenant-key mixins and composite tenant foreign-key helpers in `backend/src/review_platform/infrastructure/db/base.py`
+- [ ] T029 Implement the minimal single-installation Organization tenant anchor in `backend/src/review_platform/infrastructure/db/models/organization.py`
+- [ ] T030 Implement CommandReceipt, AuditEvent, OutboxMessage, Operation, and OperationAttempt tables referencing Organization in `backend/src/review_platform/infrastructure/db/models/operations.py`
+- [ ] T031 Configure async Alembic metadata/discovery/single-head checks and create Organization plus foundational operations in `backend/alembic.ini`, `backend/migrations/env.py`, `backend/migrations/script.py.mako`, and `backend/migrations/versions/0001_foundation.py`
+- [ ] T032 Implement tenant-scoped operation, receipt, audit, and outbox repositories in `backend/src/review_platform/infrastructure/db/repositories/operations.py`
+- [ ] T033 Define authenticated RequestActor context and the transport-independent auth-version guard protocol without concrete OrganizationMembership or AgentAuthorization access in `backend/src/review_platform/application/request_context.py`
+- [ ] T034 Implement role/scope authorization, closed-scope validation, and fail-closed tenant checks against the guard protocol in `backend/src/review_platform/application/authorization.py`
+- [ ] T035 Implement shared validation, transaction, expected-revision CAS, and transport-independent dispatch in `backend/src/review_platform/application/command_bus.py`
+- [ ] T036 Implement idempotency reservation, replay, payload-conflict rejection, and stable result references in `backend/src/review_platform/application/idempotency.py`
+- [ ] T037 Implement append-only audit creation, shared-sink sanitization, and atomic rollback semantics in `backend/src/review_platform/application/audit.py`
+- [ ] T038 Implement stable outbox creation, leasing, max-attempt visibility, and operator-visible recovery state in `backend/src/review_platform/infrastructure/db/outbox.py`
+- [ ] T039 Implement `FOR UPDATE SKIP LOCKED` relay, compare-and-set lease completion, Redis publication, and crash recovery in `backend/src/review_platform/infrastructure/tasks/outbox_relay.py`
+- [ ] T040 Configure Taskiq routing, bounded retry/backoff, tenant correlation, concurrency-limit hooks, and worker auth revalidation hooks in `backend/src/review_platform/infrastructure/tasks/broker.py`
+- [ ] T041 Implement only tenant-scoped S3 key construction, bounded upload/download, digest verification, signed reads, and low-level deletion primitives in `backend/src/review_platform/infrastructure/object_storage/s3.py`
+- [ ] T042 Implement schema-backed provider ports and mocks loaded from frozen shared fixtures in `backend/src/review_platform/application/ports/providers.py` and `backend/src/review_platform/infrastructure/providers/mocks.py`
+- [ ] T043 Compose FoundationRuntime only from the real command bus, SQLAlchemy repositories, outbox, S3, and middleware components, then implement sanitized FastAPI middleware, router registry, operation history, and health probes in `backend/src/review_platform/application/foundation_runtime.py`, `backend/src/review_platform/api/middleware.py`, `backend/src/review_platform/api/routes/__init__.py`, `backend/src/review_platform/api/routes/operations.py`, and `backend/src/review_platform/main.py`
+- [ ] T044 Implement explicit Taskiq handler registry and executable worker, relay, and email-worker entrypoints in `backend/src/review_platform/infrastructure/tasks/registry.py`, `backend/src/review_platform/infrastructure/tasks/__main__.py`, `backend/src/review_platform/infrastructure/tasks/relay_main.py`, and `backend/src/review_platform/infrastructure/tasks/email_main.py`
+- [ ] T045 Run T011-T021 against the T009 MySQL/Redis/MinIO fixtures, assert FoundationRuntime exposes no test or in-memory adapters, run the migration single-head check, and record the Foundation GREEN evidence in `backend/tests/evidence/foundation.md`
 
-**Checkpoint**: T010-T020 are green. No user-story or concrete MCP transport test is required to complete Foundation.
-
----
-
-## Phase 3: User Story 1 — organization and courses (P1, MVP)
-
-**Independent Test**: Activate exact bootstrap identity, authenticate, import a roster, read it, add/remove roles safely, and archive/restore both Course and CourseRun.
-
-- [ ] T043 [P] [US1] Write failing bootstrap/operator actor, session, and recovery contract tests in `backend/tests/contract/test_identity_api.py`
-- [ ] T044 [P] [US1] Write failing course, CourseRun, roster-read, archive/restore, and operation-response contract tests in `backend/tests/contract/test_course_api.py`
-- [ ] T045 [P] [US1] Write failing bootstrap, invitation-email, import-retry, roster-upsert, and history acceptance tests in `backend/tests/integration/test_organization_course_lifecycle.py`
-- [ ] T046 [P] [US1] Write failing last-methodologist, invitation-consume, and membership-revocation race tests across REST read/write and claimed/unclaimed jobs in `backend/tests/isolation/test_identity_concurrency.py`
-- [ ] T047 [US1] Implement Organization, User, ExternalIdentity, Membership, Invitation, Session, AgentAuthorization/token, credentials, Course, CourseRun, and CourseMembership tables in `backend/src/review_platform/infrastructure/db/models/identity_learning.py`
-- [ ] T048 [US1] Create reversible identity/course migration with `down_revision=0001_foundational_operations` in `backend/migrations/versions/0002_identity_and_courses.py`
-- [ ] T049 [P] [US1] Implement tenant-scoped identity/course repositories and encrypted credential access in `backend/src/review_platform/infrastructure/db/repositories/identity_learning.py`
-- [ ] T050 [US1] Implement one-time exact-identity bootstrap and installation-operator recovery in `backend/src/review_platform/application/services/bootstrap.py`
-- [ ] T051 [US1] Implement Stepik OAuth boundary, magic-link sessions, logout, and read/write auth-epoch checks in `backend/src/review_platform/application/services/authentication.py`
-- [ ] T052 [US1] Implement invitation issue/email-delivery/consume/revoke flow with one-time email binding in `backend/src/review_platform/application/services/invitations.py`
-- [ ] T053 [US1] Implement serialized role mutation, last-methodologist recount, session/agent/pending-command invalidation, and audit in `backend/src/review_platform/application/services/memberships.py`
-- [ ] T054 [US1] Implement schema-backed course import, roster upsert, Operation attempts/errors, and idempotent resume in `backend/src/review_platform/application/services/course_import.py`
-- [ ] T055 [US1] Implement Course/CourseRun list, roster read, and conflict-safe archive/restore services in `backend/src/review_platform/application/services/courses.py`
-- [ ] T056 [US1] Implement identity, invitation, organization, Course, CourseRun, and roster routes from frozen OpenAPI in `backend/src/review_platform/api/routes/identity_courses.py`
-- [ ] T057 [US1] Implement `python -m review_platform.bootstrap` and course-import/email Taskiq handlers in `backend/src/review_platform/bootstrap.py` and `backend/src/review_platform/infrastructure/tasks/course_import.py`
-
-**Checkpoint**: US1 is independently green with mocks; external Stepik behavior remains BLOCKED until its authorized live gate.
+**Checkpoint**: T011-T021 are GREEN. No concrete identity, artifact promotion, external delivery, AgentAuthorization, MCP invocation, or full-system tenant matrix is required yet.
 
 ---
 
-## Phase 4: User Story 2 — versioned homework (P2)
+## Phase 3: User Story 1 — organization and courses (Priority: P1)
 
-**Independent Test**: Create/publish homework, read current and historical versions, change requirements, and mark existing review inputs as affected without mutating them.
+**Goal**: Bootstrap the installation, authenticate, manage membership safely, import courses and rosters, and archive/restore Course and CourseRun.
 
-- [ ] T058 [P] [US2] Write failing create/version/publish/read OpenAPI and command tests in `backend/tests/contract/test_homework_api.py`
-- [ ] T059 [P] [US2] Write failing version, criterion total, stable key, CourseRun publication, and immutable-history tests in `backend/tests/state/test_homework_versioning.py`
-- [ ] T060 [P] [US2] Write failing two-CourseRun current/history acceptance tests in `backend/tests/integration/test_homework_publication.py`
-- [ ] T061 [US2] Implement Homework, HomeworkVersion, CourseRunHomework, CriterionSet, and Criterion tables in `backend/src/review_platform/infrastructure/db/models/homework.py`
-- [ ] T062 [US2] Create reversible homework migration with `down_revision=0002_identity_and_courses` in `backend/migrations/versions/0003_homework_versions.py`
-- [ ] T063 [P] [US2] Implement immutable requirement digest and criterion-set validation in `backend/src/review_platform/domain/homework.py`
-- [ ] T064 [US2] Implement create/version/publish/current/history and affected-review marking services in `backend/src/review_platform/application/services/homeworks.py`
-- [ ] T065 [US2] Implement tenant-scoped homework repositories and history projections in `backend/src/review_platform/infrastructure/db/repositories/homeworks.py`
-- [ ] T066 [US2] Implement homework mutation, published-list, and history routes from frozen OpenAPI in `backend/src/review_platform/api/routes/homeworks.py`
+**Independent Test**: Activate the exact bootstrap identity locally, authenticate, import a roster, read it, add/remove roles safely, and archive/restore Course and CourseRun.
 
-**Checkpoint**: US2 is green; requirements are readable and immutable, while migration behavior remains an explicit later review command.
+- [ ] T046 [P] [US1] Write failing local-only bootstrap/recovery operator actor, OAuth state/callback/logout protocol-replay, typed identity/session, and absence-of-public-operator-endpoints tests, excluding agent-token behavior owned by US7, in `backend/tests/contract/test_identity_api.py`
+- [ ] T047 [P] [US1] Write failing Course/CourseRun identity, roster/membership/invitation reads, typed create results, archive/restore, archived-action guards, and operation-history tests in `backend/tests/contract/test_course_api.py`
+- [ ] T048 [P] [US1] Write failing local bootstrap, typed identity assertion, invitation-email, import-retry, roster-upsert, and history acceptance tests in `backend/tests/integration/test_organization_course_lifecycle.py`
+- [ ] T049 [P] [US1] Write failing last-methodologist, mismatched verified-email assertion, invitation token/state double-consume, consume-versus-revoke, and membership-revocation race tests across REST and claimed/unclaimed jobs in `backend/tests/isolation/test_identity_concurrency.py`
+- [ ] T050 [US1] Implement User, ExternalIdentity, OrganizationMembership, Invitation, OAuthState, Session, AgentAuthorization persistence, and ExternalCredential tables referencing the foundational Organization in `backend/src/review_platform/infrastructure/db/models/identity.py`
+- [ ] T051 [US1] Implement ExternalCourseBinding, Course, CourseRun, CourseMembership, and DestinationBinding tables in `backend/src/review_platform/infrastructure/db/models/learning.py`
+- [ ] T052 [US1] Create the reversible identity/course migration, including the AgentAuthorization table required by later PublicationRequest foreign keys, with `down_revision=0001_foundation` in `backend/migrations/versions/0002_identity_and_courses.py`
+- [ ] T053 [US1] Implement tenant-scoped identity, invitation, session, and encrypted credential repositories in `backend/src/review_platform/infrastructure/db/repositories/identity.py`
+- [ ] T054 [US1] Implement tenant-scoped Course/CourseRun/membership/binding repositories and cache-key factories in `backend/src/review_platform/infrastructure/db/repositories/learning.py`
+- [ ] T055 [US1] Implement fixed-order OrganizationMembership locks, auth-epoch validation, and final pre-commit revalidation as the concrete user guard in `backend/src/review_platform/application/auth_guards/membership.py`
+- [ ] T056 [US1] Implement one-time exact-identity bootstrap and installation-operator recovery in `backend/src/review_platform/application/services/bootstrap.py`
+- [ ] T057 [US1] Orchestrate Stepik OAuth and magic-link callbacks through atomically consumed OAuthState/invitation protocol identities and the frozen identity-provider assertion contract, then idempotently create/logout sessions with auth-epoch checks in `backend/src/review_platform/application/services/authentication.py`
+- [ ] T058 [US1] Implement invitation issue/consume/revoke against Invitation target identity plus typed email delivery intent in `backend/src/review_platform/application/services/invitations.py`
+- [ ] T059 [US1] Implement serialized role mutation, last-methodologist recount, session/pending-command invalidation, and audit in `backend/src/review_platform/application/services/memberships.py`
+- [ ] T060 [US1] Implement schema-backed course import, exact credential binding ID/version, roster upsert, Operation attempts/errors, and idempotent resume in `backend/src/review_platform/application/services/course_import.py`
+- [ ] T061 [US1] Implement Course/CourseRun list, roster read, conflict-safe archive/restore, and the shared archived-state guard for new recommendation/open-review/publication actions in `backend/src/review_platform/application/services/courses.py`
+- [ ] T062 [US1] Implement and register identity, invitation, membership, Course, CourseRun, and roster routes from frozen OpenAPI in `backend/src/review_platform/api/routes/identity_courses.py` and `backend/src/review_platform/api/routes/__init__.py`
+- [ ] T063 [US1] Implement local bootstrap and one-time recovery CLIs plus the registered course-import handler in `backend/src/review_platform/bootstrap.py`, `backend/src/review_platform/operator.py`, `backend/src/review_platform/infrastructure/tasks/course_import.py`, and `backend/src/review_platform/infrastructure/tasks/registry.py`
+- [ ] T064 [US1] Implement the schema-backed SMTP/Mailpit adapter and register the invitation-email handler in `backend/src/review_platform/infrastructure/providers/email_smtp.py`, `backend/src/review_platform/infrastructure/tasks/email.py`, and `backend/src/review_platform/infrastructure/tasks/registry.py`
+
+**Checkpoint**: US1 is independently GREEN with mocks; external Stepik behavior remains BLOCKED until its authorized live gate.
 
 ---
 
-## Phase 5: User Story 3 — submissions and immutable artifacts (P3)
+## Phase 4: User Story 2 — versioned homework (Priority: P2)
+
+**Goal**: Create immutable homework requirements and publish a selected version to a CourseRun.
+
+**Independent Test**: Create/publish homework, read current and historical versions, change requirements, and observe a durable requirements-changed event without mutating prior data.
+
+- [ ] T065 [P] [US2] Write failing create/version/publish/read OpenAPI and exact-command tests for a draft with no publication and per-CourseRun current publications in `backend/tests/contract/test_homework_api.py`
+- [ ] T066 [P] [US2] Write failing full-version round-trip, criterion total, stable-key, per-CourseRun publication, immutable-history, and durable requirements-changed event tests carrying previous/current version IDs in `backend/tests/state/test_homework_versioning.py`
+- [ ] T067 [P] [US2] Write failing two-CourseRun history tests where different versions are current simultaneously plus durable requirements-change event acceptance tests in `backend/tests/integration/test_homework_publication.py`
+- [ ] T068 [US2] Implement Homework, HomeworkVersion, CourseRunHomework, append-only CourseRunHomeworkPublication, CriterionSet, and Criterion tables in `backend/src/review_platform/infrastructure/db/models/homework.py`
+- [ ] T069 [US2] Create the reversible homework migration with `down_revision=0002_identity_and_courses` in `backend/migrations/versions/0003_homework_versions.py`
+- [ ] T070 [US2] Implement immutable requirement digest and criterion-set validation in `backend/src/review_platform/domain/homework.py`
+- [ ] T071 [US2] Implement create/version, append-only per-CourseRun publication/current selection, full history, and transactional HomeworkRequirementsChanged outbox events without requiring later ReviewIteration tables in `backend/src/review_platform/application/services/homeworks.py`
+- [ ] T072 [US2] Implement tenant-scoped homework repositories and history projections with no global current version in `backend/src/review_platform/infrastructure/db/repositories/homeworks.py`
+- [ ] T073 [US2] Implement and register homework mutation, published-list, and history routes from frozen OpenAPI in `backend/src/review_platform/api/routes/homeworks.py` and `backend/src/review_platform/api/routes/__init__.py`
+- [ ] T074 [US2] Run the US2 suite and record that event emission is GREEN while affected-review projection and successor creation remain explicitly owned by US5 in `backend/tests/evidence/us2.md`
+
+**Checkpoint**: US2 independently proves immutable requirements and durable change events; review-impact consumption is not claimed until US5.
+
+---
+
+## Phase 5: User Story 3 — submissions and immutable artifacts (Priority: P3)
+
+**Goal**: Preflight and capture immutable artifacts, submit versions inside a CourseRunHomework, and explicitly open one review iteration.
 
 **Independent Test**: Preflight returns an opaque reference, submit consumes it, replacements preserve history, late versions remain pending, and one ReviewIteration opens explicitly.
 
-- [ ] T067 [P] [US3] Write failing preflight-to-submit and submission-history contract tests in `backend/tests/contract/test_artifact_submission_api.py`
-- [ ] T068 [P] [US3] Write failing SubmissionVersion and initial ReviewIteration transition tests in `backend/tests/state/test_submission_review_states.py`
-- [ ] T069 [P] [US3] Write failing cross-tenant reference/version/S3/read and ReviewCase uniqueness tests in `backend/tests/isolation/test_artifact_submission_boundary.py`
-- [ ] T070 [P] [US3] Write failing preflight, capture, replacement, late revision, history, and cleanup acceptance tests in `backend/tests/integration/test_submission_lifecycle.py`
-- [ ] T071 [US3] Implement Submission, SubmissionVersion, ArtifactReference, ArtifactVersion, ReviewCase, and initial ReviewIteration tables in `backend/src/review_platform/infrastructure/db/models/submission.py`
-- [ ] T072 [US3] Create reversible submission/artifact migration with `down_revision=0003_homework_versions` in `backend/migrations/versions/0004_submissions_and_artifacts.py`
-- [ ] T073 [P] [US3] Implement schema-backed artifact preflight that persists/returns only usable tenant-scoped references in `backend/src/review_platform/application/services/artifact_preflight.py`
-- [ ] T074 [US3] Implement bounded immutable capture and artifact envelope validation in `backend/src/review_platform/application/services/artifact_capture.py`
-- [ ] T075 [US3] Implement submission CAS, effective requirements/deadline snapshots, replacement, and late versions in `backend/src/review_platform/application/services/submissions.py`
-- [ ] T076 [US3] Implement explicit conflict-safe opening of one ReviewIteration for a selected SubmissionVersion in `backend/src/review_platform/application/services/review_iterations.py`
-- [ ] T077 [US3] Implement tenant-scoped submission/artifact/review-case repositories and history projection in `backend/src/review_platform/infrastructure/db/repositories/submissions.py`
-- [ ] T078 [US3] Implement preflight, submit, submission-history, and open-iteration routes from frozen OpenAPI in `backend/src/review_platform/api/routes/submissions.py`
-- [ ] T079 [US3] Implement artifact-capture and staged-object cleanup workers with durable Operation attempts in `backend/src/review_platform/infrastructure/tasks/artifacts.py`
+- [ ] T075 [P] [US3] Write failing CourseRunHomework-addressed preflight tests for two-flow isolation, conditional usable reference, Submission ID/revision, capture Operation ID, exact target, typed result, and history in `backend/tests/contract/test_artifact_submission_api.py`
+- [ ] T076 [P] [US3] Write failing SubmissionVersion and initial ReviewIteration transition tests in `backend/tests/state/test_submission_review_states.py`
+- [ ] T077 [P] [US3] Write failing cross-tenant reference/version/S3/read and ReviewCase uniqueness tests in `backend/tests/isolation/test_artifact_submission_boundary.py`
+- [ ] T078 [P] [US3] Write failing preflight, capture, DB-commit-before-promotion recovery, replacement, late revision, history, and intent-aware cleanup tests in `backend/tests/integration/test_submission_lifecycle.py`
+- [ ] T079 [US3] Implement Submission, SubmissionVersion, ArtifactReference, ArtifactVersion, and ArtifactPromotion tables in `backend/src/review_platform/infrastructure/db/models/submission.py`
+- [ ] T080 [US3] Implement ReviewCase and initial ReviewIteration tables with CourseRun-aware uniqueness in `backend/src/review_platform/infrastructure/db/models/review_case.py`
+- [ ] T081 [US3] Create the reversible submission/artifact/review-case migration with `down_revision=0003_homework_versions` in `backend/migrations/versions/0004_submissions_and_artifacts.py`
+- [ ] T082 [US3] Implement idempotent preflight addressed to CourseRunHomework that creates/finds Submission and conditionally returns a usable tenant-scoped ArtifactReference in `backend/src/review_platform/application/services/artifact_preflight.py`
+- [ ] T083 [US3] Implement bounded immutable capture with atomic ArtifactVersion/ArtifactPromotion/outbox creation, provider credential binding provenance, and Operation linkage in `backend/src/review_platform/application/services/artifact_capture.py`
+- [ ] T084 [US3] Implement Submission CAS, effective requirements/deadline snapshots, replacement, and late pending versions in `backend/src/review_platform/application/services/submissions.py`
+- [ ] T085 [US3] Implement explicit conflict-safe opening of at most one ReviewIteration for a selected SubmissionVersion in `backend/src/review_platform/application/services/review_iterations.py`
+- [ ] T086 [US3] Implement tenant-scoped submission/artifact/review-case repositories and only the canonical US3 SubmissionHistory fields: submission versions, artifact versions, initial review iterations, immutable input IDs/digests, revisions, and capture Operation IDs in `backend/src/review_platform/infrastructure/db/repositories/submissions.py`
+- [ ] T087 [US3] Implement durable promotion/recovery and intent-aware orphan cleanup on top of the Foundation S3 primitives in `backend/src/review_platform/infrastructure/object_storage/promotions.py`
+- [ ] T088 [US3] Implement schema-backed GitHub and Google Docs artifact adapters with exact credential binding ID/version in `backend/src/review_platform/infrastructure/providers/github_artifacts.py` and `backend/src/review_platform/infrastructure/providers/google_docs_artifacts.py`
+- [ ] T089 [US3] Implement and register artifact capture, promotion recovery, and cleanup workers with full Operation attempts in `backend/src/review_platform/infrastructure/tasks/artifacts.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
+- [ ] T090 [US3] Implement and register exact-command preflight, submission-version create, history, and open-iteration routes in `backend/src/review_platform/api/routes/submissions.py` and `backend/src/review_platform/api/routes/__init__.py`
 
-**Checkpoint**: US3 is green; `preflight → artifact_reference_id → submit` works through the public API.
+**Checkpoint**: US3 is GREEN; `CourseRunHomework preflight → artifact_reference_id → submit` is observable through the public API.
 
 ---
 
-## Phase 6: User Story 4 — AI review over shared human-review spine (P4)
+## Phase 6: User Story 4 — AI review over a shared human-review spine (Priority: P4)
+
+**Goal**: Run AI against immutable versioned inputs while keeping human revisions authoritative and editable.
 
 **Independent Test**: Start AI for immutable inputs; accept partial/success/retry/stale/duplicate events; preserve an intervening human ReviewRevision.
 
-- [ ] T080 [P] [US4] Write failing AI request/event, fingerprint, criterion-completeness, sequence, and compatibility tests in `backend/tests/contract/test_ai_contract.py`
-- [ ] T081 [P] [US4] Write failing ReviewRevision/Decision/Note persistence and human-edit protection tests in `backend/tests/state/test_review_spine.py`
-- [ ] T082 [P] [US4] Write failing AIReviewRun transition and terminal non-regression tests in `backend/tests/state/test_ai_review_run.py`
-- [ ] T083 [P] [US4] Write failing duplicate/out-of-order/old-attempt/stale and human-override ingestion tests in `backend/tests/integration/test_ai_event_ingestion.py`
-- [ ] T084 [P] [US4] Write failing component-token and signed artifact URL tenant-isolation tests in `backend/tests/isolation/test_ai_component_access.py`
-- [ ] T085 [US4] Implement ReviewRevision, ReviewCriterionDecision, ReviewNote, AIReviewRun, AIReviewAttempt, AIReviewEventReceipt, suggestions, and signals tables in `backend/src/review_platform/infrastructure/db/models/review_ai.py`
-- [ ] T086 [US4] Create reversible shared review-spine migration with `down_revision=0004_submissions_and_artifacts` in `backend/migrations/versions/0005_review_spine.py`
-- [ ] T087 [US4] Create reversible AI tables migration with `down_revision=0005_review_spine` in `backend/migrations/versions/0006_ai_review.py`
-- [ ] T088 [P] [US4] Implement RFC 8785 fingerprints and golden vectors in `backend/src/review_platform/domain/ai_fingerprint.py`
-- [ ] T089 [P] [US4] Implement strict AI request/event Pydantic types against frozen schema in `backend/src/review_platform/contracts/ai_review.py`
-- [ ] T090 [US4] Implement AI start/retry, immutable snapshots, attempts, and component authorization in `backend/src/review_platform/application/services/ai_reviews.py`
-- [ ] T091 [US4] Implement event deduplication, sequence/attempt checks, completeness, stale detection, and historical storage in `backend/src/review_platform/application/services/ai_events.py`
-- [ ] T092 [US4] Implement tenant-scoped review-spine and AI repositories in `backend/src/review_platform/infrastructure/db/repositories/review_ai.py`
-- [ ] T093 [US4] Implement AI Taskiq invocation, bounded retries, sanitized failures, and correlation in `backend/src/review_platform/infrastructure/tasks/ai_review.py`
-- [ ] T094 [US4] Implement start-AI, event-ingestion, and component-download routes in `backend/src/review_platform/api/routes/ai_reviews.py`
+- [ ] T091 [P] [US4] Write failing AI request/event tests for required credential binding ID/version, full provenance, minimal-event-to-ReviewDetail round trip, shared fingerprint vectors, exact criterion coverage, score range zero..criterion max, terminal success/error rules, sequence, and 1.1.0 compatibility in `backend/tests/contract/test_ai_contract.py`
+- [ ] T092 [P] [US4] Write failing ReviewRevision/Decision/Note persistence and human-edit protection tests in `backend/tests/state/test_review_spine.py`
+- [ ] T093 [P] [US4] Write failing AIReviewRun transition, attempt separation, typed failures, and terminal non-regression tests in `backend/tests/state/test_ai_review_run.py`
+- [ ] T094 [P] [US4] Write failing identical replay, event-ID collision, duplicate/out-of-order/old-attempt/stale, fingerprint mismatch, and human-override ingestion tests in `backend/tests/integration/test_ai_event_ingestion.py`
+- [ ] T095 [P] [US4] Write failing component-token, provider-error redaction, and signed artifact URL tenant-isolation tests in `backend/tests/isolation/test_ai_component_access.py`
+- [ ] T096 [US4] Implement ReviewRevision, ReviewCriterionDecision, and ReviewNote tables without mutable publication state in `backend/src/review_platform/infrastructure/db/models/review_revision.py`
+- [ ] T097 [US4] Implement AIReviewRun, AIReviewAttempt, AIReviewEventReceipt, AICriterionSuggestion, and AISignal tables in `backend/src/review_platform/infrastructure/db/models/ai_review.py`
+- [ ] T098 [US4] Create the reversible review-spine migration with `down_revision=0004_submissions_and_artifacts` in `backend/migrations/versions/0005_review_spine.py`
+- [ ] T099 [US4] Create the reversible AI-review migration with `down_revision=0005_review_spine` in `backend/migrations/versions/0006_ai_review.py`
+- [ ] T100 [US4] Implement canonical immutable-input fingerprinting and shared vector verification in `backend/src/review_platform/domain/ai_fingerprint.py`
+- [ ] T101 [US4] Implement generated typed AI request/event/error models plus exact completeness and zero..criterion-max semantic validation for every AI suggestion in `backend/src/review_platform/contracts/ai_review.py`
+- [ ] T102 [US4] Implement tenant-scoped draft revision/decision/note repositories with expected-current CAS in `backend/src/review_platform/infrastructure/db/repositories/review_revisions.py`
+- [ ] T103 [US4] Implement tenant-scoped AI run/attempt/event/suggestion/signal repositories in `backend/src/review_platform/infrastructure/db/repositories/ai_reviews.py`
+- [ ] T104 [US4] Implement append-only human draft revision creation used to prove AI cannot overwrite a human edit in `backend/src/review_platform/application/services/review_drafts.py`
+- [ ] T105 [US4] Implement idempotent AI start with frozen immutable inputs, exact credential binding provenance, Operation ID, and signed artifact grant in `backend/src/review_platform/application/services/ai_review_start.py`
+- [ ] T106 [US4] Implement sequenced idempotent AI event ingestion, terminal completeness/error checks, stale detection, and separate AI signal storage in `backend/src/review_platform/application/services/ai_review_events.py`
+- [ ] T107 [US4] Implement and register AI dispatch/event workers with full Operation attempt history in `backend/src/review_platform/infrastructure/tasks/ai_review.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
+- [ ] T108 [US4] Implement and register AI start/read routes and enrich review detail with the canonical AI run/signal/suggestion fields in `backend/src/review_platform/api/routes/ai_reviews.py`, `backend/src/review_platform/api/routes/__init__.py`, and `backend/src/review_platform/application/projections/review_detail.py`
 
-**Checkpoint**: US4 is green and independently proves that AI output cannot mutate human revision data.
-
----
-
-## Phase 7: User Story 5 — human review, successors, and publication (P5)
-
-**Independent Test**: Select work, record all responsibility events, race edits, migrate requirements through a successor, correct a publication through a successor, and publish only by human action.
-
-- [ ] T095 [P] [US5] Write failing review reads/preferences/recommendation/responsibility/save/successor/publication contract tests in `backend/tests/contract/test_review_api.py`
-- [ ] T096 [P] [US5] Write failing recommendation ordering and responsibility non-exclusivity tests in `backend/tests/state/test_review_recommendation.py`
-- [ ] T097 [P] [US5] Write failing one-decision-per-active-criterion, note, correction, and requirements-migration tests in `backend/tests/state/test_review_successors.py`
-- [ ] T098 [P] [US5] Write failing concurrent save/publish/successor and stale revision tests in `backend/tests/isolation/test_review_concurrency.py`
-- [ ] T099 [P] [US5] Write failing human workflow and AI-unavailable publication tests in `backend/tests/integration/test_human_review_workflow.py`
-- [ ] T100 [P] [US5] Write failing PublicationRequest tests proving request alone has no result/delivery effect and human session confirms an exact revision once in `backend/tests/integration/test_publication_request.py`
-- [ ] T101 [P] [US5] Write failing publication-to-audit/outbox/minimal-delivery atomicity and provenance tests in `backend/tests/isolation/test_publication_atomicity.py`
-- [ ] T102 [US5] Implement ReviewerCourseSelection, AvailabilityPlan, ReviewResponsibility, PublicationRequest, ReviewPublication, and minimal ExternalDelivery tables in `backend/src/review_platform/infrastructure/db/models/human_review.py`
-- [ ] T103 [US5] Create reversible human review/publication migration with `down_revision=0006_ai_review` in `backend/migrations/versions/0007_human_review.py`
-- [ ] T104 [P] [US5] Implement deterministic recommendation ordering and explanations in `backend/src/review_platform/domain/recommendation.py`
-- [ ] T105 [US5] Implement course selection and advisory availability with current membership checks in `backend/src/review_platform/application/services/reviewer_preferences.py`
-- [ ] T106 [US5] Implement recommendation plus append-only started/joined/released/completed responsibility events in `backend/src/review_platform/application/services/review_queue.py`
-- [ ] T107 [US5] Implement immutable revision save, decision completeness, notes, and expected-current CAS in `backend/src/review_platform/application/services/review_revisions.py`
-- [ ] T108 [US5] Implement requirements migration as a new successor iteration with stable-key transfer only in `backend/src/review_platform/application/services/review_requirements.py`
-- [ ] T109 [US5] Implement published correction as a new successor iteration/revision without changing predecessor bytes in `backend/src/review_platform/application/services/review_corrections.py`
-- [ ] T110 [US5] Implement idempotent agent PublicationRequest creation without publication side effects in `backend/src/review_platform/application/services/publication_requests.py`
-- [ ] T111 [US5] Implement interactive-user publication that validates exact revision/request and atomically writes publication, minimal deliveries, outbox, and audit in `backend/src/review_platform/application/services/review_publication.py`
-- [ ] T112 [US5] Implement tenant-scoped review preference/responsibility/successor/publication repositories in `backend/src/review_platform/infrastructure/db/repositories/human_reviews.py`
-- [ ] T113 [US5] Implement all frozen human-review, successor, responsibility, publication-request, and human publish routes in `backend/src/review_platform/api/routes/reviews.py`
-- [ ] T114 [US5] Implement the complete review projection with decisions, notes, AI suggestions, responsibility, publication request, and delivery states in `backend/src/review_platform/application/projections/review_detail.py`
-
-**Checkpoint**: US5 is green; published bytes are immutable, agent request is harmless alone, and only an interactive human creates delivery intent.
+**Checkpoint**: US4 is GREEN for AI lifecycle and human-revision protection. Publishing a human review while AI is unavailable is deliberately proven in US5, where publication exists.
 
 ---
 
-## Phase 8: User Story 6 — delivery recovery (P6)
+## Phase 7: User Story 5 — human review, responsibility, and publication (Priority: P5)
+
+**Goal**: Recommend work, record non-exclusive participation, edit versioned reviews, request publication through an agent, and publish only through an interactive human command.
+
+**Independent Test**: Recommend/open/get a review, save revisions with conflict detection, record participation events, create a harmless publication request, publish as a human, and correct only through a successor iteration.
+
+- [ ] T109 [P] [US5] Write failing exact-command reviewer CourseRun selection, planned-hours, deterministic recommendation ordering, and archive-versus-recommend/open races in `backend/tests/state/test_review_recommendation.py`
+- [ ] T110 [P] [US5] Write failing started/joined/released/completed append-only and non-exclusive concurrency tests in `backend/tests/state/test_review_responsibility.py`
+- [ ] T111 [P] [US5] Write failing human revision completeness, per-criterion score range, total-score equality/upper-bound, expected-revision conflict, archive-versus-publish race, unpublished-successor current-result preservation, and immutable-byte tests in `backend/tests/state/test_human_review_publication.py`
+- [ ] T112 [P] [US5] Write failing idempotent ReviewImpactEvent persistence, affected-review projection, requirements migration, and correction successor race tests that preserve predecessor bytes in `backend/tests/isolation/test_review_successors.py`
+- [ ] T113 [P] [US5] Write failing agent PublicationRequest versus interactive-human publication boundary tests in `backend/tests/isolation/test_publication_authority.py`
+- [ ] T114 [P] [US5] Write failing review-detail tests for immutable inputs, current feedback/score, decisions, notes, AI run/signal, delivery provenance, and revisions in `backend/tests/contract/test_review_detail.py`
+- [ ] T115 [P] [US5] Write failing acceptance test proving a human can edit and publish while the AI component is unavailable in `backend/tests/integration/test_human_review_without_ai.py`
+- [ ] T116 [US5] Implement AvailabilityPlan, ReviewerCourseSelection, and append-only ReviewResponsibility tables in `backend/src/review_platform/infrastructure/db/models/review_work.py`
+- [ ] T117 [US5] Implement ReviewIterationRelation, append-only ReviewImpactEvent, ReviewPublication, PublicationRequest, ExternalDelivery intent, and destination snapshot tables in `backend/src/review_platform/infrastructure/db/models/publication.py`
+- [ ] T118 [US5] Create the reversible human-review migration for preferences, selections, responsibility, impacts, successors, and publication with `down_revision=0006_ai_review` in `backend/migrations/versions/0007_human_review.py`
+- [ ] T119 [US5] Implement deadline-first, same-reviewer-continuation, age, planned-hours, and workload recommendation ordering in `backend/src/review_platform/domain/recommendation.py`
+- [ ] T120 [US5] Implement exact-command CourseRun selection and free-form planned-hours updates without a hard work cap in `backend/src/review_platform/application/services/reviewer_course_selections.py` and `backend/src/review_platform/application/services/reviewer_availability.py`
+- [ ] T121 [US5] Implement deterministic tenant-scoped recommendation and recommend-to-open continuity in `backend/src/review_platform/application/services/recommendations.py`
+- [ ] T122 [US5] Implement append-only started/joined/released/completed participation events without locks or exclusive edit rights in `backend/src/review_platform/application/services/review_responsibility.py`
+- [ ] T123 [US5] Implement immutable revision save with every score in zero..criterion max, computed total equal to the decision sum and not above homework max, exact completeness, notes, and expected-current CAS in `backend/src/review_platform/application/services/review_revisions.py`
+- [ ] T124 [US5] Implement requirements migration by locking ReviewCase, creating one successor/relation, transferring matching stable criterion keys, and updating only the current pointer in `backend/src/review_platform/application/services/review_requirements.py`
+- [ ] T125 [US5] Implement correction with the same single-successor transaction while preserving predecessor revision/publication bytes in `backend/src/review_platform/application/services/review_corrections.py`
+- [ ] T126 [US5] Implement idempotent agent PublicationRequest creation with no current-result or delivery side effects in `backend/src/review_platform/application/services/publication_requests.py`
+- [ ] T127 [US5] Implement interactive-human publication that locks and rejects archived Course/CourseRun, validates the requested ReviewRevision, snapshots every required DestinationBinding, and atomically writes publication, deliveries with Operation IDs, outbox, and audit in `backend/src/review_platform/application/services/review_publication.py`
+- [ ] T128 [US5] Implement tenant-scoped availability, CourseRun selection, responsibility, and recommendation repositories in `backend/src/review_platform/infrastructure/db/repositories/review_work.py`
+- [ ] T129 [US5] Implement tenant-scoped successor, publication-request, publication, and delivery-intent repositories in `backend/src/review_platform/infrastructure/db/repositories/publications.py`
+- [ ] T130 [US5] Implement and register exact-command reviewer CourseRun selection, availability, review, successor, responsibility, publication-request, typed save, and human publish routes in `backend/src/review_platform/api/routes/reviews.py` and `backend/src/review_platform/api/routes/__init__.py`
+- [ ] T131 [US5] Complete the review projection with immutable inputs/download, current feedback/score selected only from published iterations, decisions, notes, AI run/signal/attempt/error, responsibility, publication request, delivery Operation ID, and provenance in `backend/src/review_platform/application/projections/review_detail.py`
+- [ ] T132 [US5] Consume HomeworkRequirementsChanged idempotently, persist one append-only ReviewImpactEvent per affected iteration/version pair, and expose successor proposals without mutating prior iterations in `backend/src/review_platform/application/services/review_requirement_impacts.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
+
+**Checkpoint**: US5 is GREEN; published bytes are immutable, the agent request is harmless alone, only an interactive human creates delivery intent, and AI unavailability does not block human publication.
+
+---
+
+## Phase 8: User Story 6 — delivery recovery (Priority: P6)
+
+**Goal**: Deliver every publication independently, reconcile ambiguous outcomes, and recover without duplicates or stale overwrites.
 
 **Independent Test**: Fail one destination ambiguously, reconcile before retry, recover without duplicates, preserve local publication, and reject stale delivery.
 
-- [ ] T115 [P] [US6] Write failing delivery state, payload fingerprint, retry-cap, and reconciliation contract tests in `backend/tests/state/test_external_delivery.py`
-- [ ] T116 [P] [US6] Write failing timeout/reconciliation/manual-retry/multi-destination acceptance tests in `backend/tests/integration/test_delivery_recovery.py`
-- [ ] T117 [P] [US6] Write failing duplicate-worker and stale-publication ordering tests in `backend/tests/isolation/test_delivery_idempotency.py`
-- [ ] T118 [US6] Implement DeliveryAttempt and reconciliation observation tables in `backend/src/review_platform/infrastructure/db/models/delivery.py`
-- [ ] T119 [US6] Create reversible delivery recovery migration with `down_revision=0007_human_review` in `backend/migrations/versions/0008_delivery_recovery.py`
-- [ ] T120 [P] [US6] Implement versioned provider payload rendering and full publication provenance fingerprint in `backend/src/review_platform/domain/delivery_payload.py`
-- [ ] T121 [US6] Implement scheduling, bounded retry, unknown outcome, reconciliation, supersession, and manual recovery in `backend/src/review_platform/application/services/deliveries.py`
-- [ ] T122 [US6] Implement tenant-scoped attempt repositories and stale-publication guards in `backend/src/review_platform/infrastructure/db/repositories/deliveries.py`
-- [ ] T123 [US6] Implement schema-backed delivery and reconciliation workers with stable logical keys in `backend/src/review_platform/infrastructure/tasks/deliveries.py`
-- [ ] T124 [US6] Implement delivery list and human-only retry routes from frozen OpenAPI in `backend/src/review_platform/api/routes/deliveries.py`
-- [ ] T125 [US6] Add attempt, error, action, provenance, and independent destination states to review projection in `backend/src/review_platform/application/projections/review_detail.py`
+- [ ] T133 [P] [US6] Write failing delivery state, destination snapshot, exact credential binding, full provenance, bounded payload/error, retry-cap, and reconciliation contract tests in `backend/tests/state/test_external_delivery.py`
+- [ ] T134 [P] [US6] Write failing timeout/reconciliation/manual-retry/multi-destination acceptance tests in `backend/tests/integration/test_delivery_recovery.py`
+- [ ] T135 [P] [US6] Write failing duplicate-worker, two-bindings-of-one-kind, cross-tenant provider batch, archive-after-durable-intent, and stale-publication ordering tests in `backend/tests/isolation/test_delivery_idempotency.py`
+- [ ] T136 [US6] Implement DeliveryAttempt and reconciliation observation tables in `backend/src/review_platform/infrastructure/db/models/delivery.py`
+- [ ] T137 [US6] Create the reversible delivery-recovery migration with `down_revision=0007_human_review` in `backend/migrations/versions/0008_delivery_recovery.py`
+- [ ] T138 [US6] Implement frozen 1.1.0 typed payload/error rendering and full publication provenance fingerprint in `backend/src/review_platform/domain/delivery_payload.py`
+- [ ] T139 [US6] Implement scheduling, bounded retry, unknown outcome, reconciliation-before-retry, supersession, and manual recovery in `backend/src/review_platform/application/services/deliveries.py`
+- [ ] T140 [US6] Implement tenant-scoped attempt/observation repositories and stale-publication guards in `backend/src/review_platform/infrastructure/db/repositories/deliveries.py`
+- [ ] T141 [US6] Implement schema-backed delivery and reconciliation workers with stable logical keys, exact credential binding provenance, and Operation attempts in `backend/src/review_platform/infrastructure/tasks/deliveries.py`
+- [ ] T142 [US6] Register delivery/reconciliation handlers and concurrency limits in `backend/src/review_platform/infrastructure/tasks/registry.py`
+- [ ] T143 [US6] Implement and register delivery list and exact-command human-only retry routes in `backend/src/review_platform/api/routes/deliveries.py` and `backend/src/review_platform/api/routes/__init__.py`
+- [ ] T144 [US6] Add typed delivery attempt history, error/action, reconciliation observations, provenance, and independent destination states to `backend/src/review_platform/application/projections/review_detail.py`
 
-**Checkpoint**: US6 is green; unknown outcomes never use blind retry and old results cannot overwrite new ones.
+**Checkpoint**: US6 is GREEN; unknown outcomes never use blind retry, every delivery is observable, and old results cannot overwrite new ones.
 
 ---
 
-## Phase 9: User Story 7 — authorized agent and MCP (P7)
+## Phase 9: User Story 7 — authorized agent and MCP (Priority: P7)
+
+**Goal**: Grant revocable scoped agent access and expose the existing application layer through MCP 2026-07-28 without granting publication authority.
 
 **Independent Test**: Human grants scoped access, agent reviews over MCP and requests publication, human publishes, revocation blocks concurrent reads/writes/jobs, and direct agent publication is impossible.
 
-- [ ] T126 [P] [US7] Write failing grant/revoke, closed-scope, TTL, and token contract tests in `backend/tests/contract/test_agent_authorization_api.py`
-- [ ] T127 [P] [US7] Write failing MCP 2026-07-28 transport tests for headers, stateless requests, auth, typed outputs, and obsolete handshake rejection in `backend/tests/contract/test_mcp_protocol.py`
-- [ ] T128 [P] [US7] Write failing 11-tool REST/MCP parity tests for handler, role, scope, CAS, idempotency, audit, and no direct publication in `backend/tests/contract/test_http_mcp_parity.py`
-- [ ] T129 [P] [US7] Write failing membership/agent revocation race tests against concurrent REST/MCP reads/writes and queued/claimed jobs in `backend/tests/isolation/test_agent_revocation.py`
-- [ ] T130 [P] [US7] Write failing end-to-end agent edit/responsibility/AI/publication-request plus human-confirmation tests in `backend/tests/integration/test_agent_review_workflow.py`
-- [ ] T131 [US7] Implement opaque agent token creation, hashing, rotation, and constant-time verification in `backend/src/review_platform/infrastructure/auth/agent_tokens.py`
-- [ ] T132 [US7] Implement tenant-scoped authorization repository and constant-time token lookup in `backend/src/review_platform/infrastructure/db/repositories/agents.py`
-- [ ] T133 [US7] Implement interactive grant/revoke, scope intersection, TTL, auth epoch, and pending-command invalidation in `backend/src/review_platform/application/services/agent_authorizations.py`
-- [ ] T134 [US7] Implement MCP bearer resolution to the existing AgentAuthorization and current membership/auth epoch in `backend/src/review_platform/mcp/authentication.py`
-- [ ] T135 [US7] Implement stateless MCP server, protocol/version headers, bearer context, and sanitized errors in `backend/src/review_platform/mcp/server.py`
-- [ ] T136 [US7] Bind exactly 11 frozen tools to existing application handlers with manifest roles/scopes and audit in `backend/src/review_platform/mcp/tools.py`
-- [ ] T137 [US7] Implement session-only agent grant/revoke REST routes and MCP entrypoint in `backend/src/review_platform/api/routes/agents.py` and `backend/src/review_platform/mcp/__main__.py`
+- [ ] T145 [P] [US7] Write failing grant/revoke, closed-scope, TTL, one-time response secret, and digest-only storage tests in `backend/tests/contract/test_agent_authorization_api.py`
+- [ ] T146 [P] [US7] Write failing MCP 2026-07-28 transport tests for headers, stateless requests, bearer auth, typed outputs, and obsolete handshake rejection in `backend/tests/contract/test_mcp_protocol.py`
+- [ ] T147 [P] [US7] Write failing 12-tool REST/MCP parity tests for CourseRun discovery, recommend→open→get flow, handler, role, scope, CAS, idempotency, audit, and no direct publication in `backend/tests/contract/test_http_mcp_parity.py`
+- [ ] T148 [P] [US7] Write failing revoke-versus-commit races against concurrent REST/MCP reads/writes and queued/claimed jobs using Membership and AgentAuthorization revalidation in `backend/tests/isolation/test_agent_revocation.py`
+- [ ] T149 [P] [US7] Write failing end-to-end agent edit/responsibility/AI/publication-request plus separate human-confirmation tests in `backend/tests/integration/test_agent_review_workflow.py`
+- [ ] T150 [US7] Implement opaque agent token creation, hashing, rotation, and constant-time verification for the existing AgentAuthorization table in `backend/src/review_platform/infrastructure/auth/agent_tokens.py`
+- [ ] T151 [US7] Implement the tenant-scoped AgentAuthorization repository, digest lookup, row locks, and revision checks in `backend/src/review_platform/infrastructure/db/repositories/agents.py`
+- [ ] T152 [US7] Implement interactive grant returning the bearer secret exactly once, digest-only storage, revoke, scope intersection, TTL, and pending-command invalidation in `backend/src/review_platform/application/services/agent_authorizations.py`
+- [ ] T153 [US7] Implement the concrete combined OrganizationMembership/AgentAuthorization fixed-order guard with final pre-commit revalidation in `backend/src/review_platform/application/auth_guards/agent.py`
+- [ ] T154 [US7] Implement MCP bearer resolution to current AgentAuthorization, represented user, membership, organization, and auth epochs in `backend/src/review_platform/mcp/authentication.py`
+- [ ] T155 [US7] Implement the stateless MCP server, protocol/version headers, bearer context, size limits, and sanitized errors in `backend/src/review_platform/mcp/server.py`
+- [ ] T156 [US7] Bind the frozen read/discovery MCP tools to existing handlers with typed results and audit in `backend/src/review_platform/mcp/tools/read.py`
+- [ ] T157 [US7] Bind the frozen review/recommendation/responsibility mutation MCP tools to existing handlers with exact scopes, CAS, and idempotency in `backend/src/review_platform/mcp/tools/review.py`
+- [ ] T158 [US7] Bind AI start and PublicationRequest MCP tools without any direct publication handler in `backend/src/review_platform/mcp/tools/ai_publication.py`
+- [ ] T159 [US7] Assemble and assert exactly 12 tools in the MCP registry in `backend/src/review_platform/mcp/tools/__init__.py`
+- [ ] T160 [US7] Implement and register session-only grant/revoke routes with one-time token response plus MCP entrypoint in `backend/src/review_platform/api/routes/agents.py`, `backend/src/review_platform/api/routes/__init__.py`, and `backend/src/review_platform/mcp/__main__.py`
+- [ ] T161 [US7] Run the complete revocation and REST/MCP parity suites and record the US7 GREEN evidence in `backend/tests/evidence/us7.md`
 
-**Checkpoint**: US7 is green; revocation blocks all subsequent authority and MCP can request but cannot perform final publication.
+**Checkpoint**: US7 is GREEN; revocation blocks all subsequent authority and uncommitted concurrent work, while MCP can request but cannot perform final publication.
 
 ---
 
 ## Phase 10: Cross-cutting release gates
 
-- [ ] T138 [P] Add enumerated audit coverage for every review, score, role, course/archive, agent, responsibility, publication, and delivery mutation in `backend/tests/isolation/test_audit_coverage.py`
-- [ ] T139 [P] Add measurable backend latency tests for sub-1-second mutations, sub-2-second recommendation, and sub-5-second operation visibility in `backend/tests/integration/test_performance_targets.py`
-- [ ] T140 Write failing retention and dry-run deletion tests for every configured lifecycle in `backend/tests/state/test_retention_policy.py`
-- [ ] T141 Implement tenant-safe retention scheduling, dry-run metrics, and deletion claims in `backend/src/review_platform/infrastructure/tasks/retention.py`
-- [ ] T142 Create provider-specific live tests and a durable NOT_RUN/BLOCKED/PASS/FAIL ledger in `backend/tests/live/test_provider_gates.py` and `backend/tests/live/gates.json`
-- [ ] T143 Walk every Alembic revision up/down/up against representative MySQL data in `backend/tests/integration/test_migration_walk.py`
-- [ ] T144 Run complete offline tests, Ruff, mypy, manifest verification, and migration walk and record observed commands in `specs/001-backend-core/quickstart.md`
-- [ ] T145 Validate that SC-002..SC-004 remain BLOCKED until authorized provider sandboxes and frontend timing harness exist in `specs/001-backend-core/requirements-traceability.md`
+**Purpose**: Test the accumulated system only after every referenced model, transport, worker, and provider boundary exists.
 
-**Checkpoint**: Offline gates are green; skipped live/product gates remain visibly BLOCKED and cannot be reported as provider support.
+- [ ] T162 [P] Add the full two-tenant matrix for DB/composite FKs, REST/MCP reads/writes/body limits, queued/claimed jobs/concurrency caps, outbox, Redis/cache, S3/signed URLs, credentials, provider batches/errors, audit, promotion, delivery, and cleanup in `backend/tests/isolation/test_tenant_boundary_matrix.py`
+- [ ] T163 [P] Add full-system redaction tests for REST/MCP, logs, attempts, outbox, audit, AI, delivery, provider bodies, artifact content, bearer secrets, PII, and magic links in `backend/tests/isolation/test_secret_redaction.py`
+- [ ] T164 [P] Add enumerated audit coverage for every review, score, role, course/archive, agent, responsibility, publication, artifact, and delivery mutation in `backend/tests/isolation/test_audit_coverage.py`
+- [ ] T165 [P] Add measurable backend latency tests for sub-1-second mutations, sub-2-second recommendation, and sub-5-second operation visibility in `backend/tests/integration/test_performance_targets.py`
+- [ ] T166 Write failing retention tests for explicit tombstones, preserved digests/provenance/successor history, audited purge, no dangling references, and dry-run deletion in `backend/tests/state/test_retention_policy.py`
+- [ ] T167 Implement and register tenant-safe retention scheduling, dry-run metrics, deletion claims, and audit in `backend/src/review_platform/infrastructure/tasks/retention.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
+- [ ] T168 Create provider-specific live tests and a durable NOT_RUN/BLOCKED/PASS/FAIL ledger without invoking providers by default in `backend/tests/live/test_provider_gates.py` and `backend/tests/live/gates.json`
+- [ ] T169 Walk every Alembic revision against representative immutable rows and assert lossless digests/publication bytes across supported upgrades in `backend/tests/integration/test_migration_walk.py`
+- [ ] T170 Run complete offline tests, Ruff, mypy, manifest verification, migration walk, application image build, and every process-entrypoint import, then record observed commands in `specs/001-backend-core/quickstart.md`
+- [ ] T171 Create the explicit reviewer-workflow timing gate that defaults to BLOCKED without a frontend harness, then validate and record that SC-002..SC-004 cannot be reported as passed prematurely in `backend/tests/e2e/test_reviewer_workflow_time.py` and `specs/001-backend-core/requirements-traceability.md`
+
+**Checkpoint**: All offline gates are GREEN; skipped live/product gates remain visibly BLOCKED and cannot be reported as provider support.
 
 ---
 
 ## Dependencies and execution order
 
 ```text
-Setup → Frozen Contracts/Foundation → US1 → US2 → US3 → US4 → US5 → US6 → US7 → Release Gates
+Setup → Candidate Contracts/Foundation → US1 → US2 → US3 → US4 → US5 → US6 → US7 → Cross-cutting Release Gates
 ```
 
-- Contract tests T010-T020 precede T021-T042 and must become green at the Foundation checkpoint.
-- Canonical files under `specs/001-backend-core/contracts/` are immutable during story implementation.
-- Migrations form one explicit chain: `0001 → 0002 → 0003 → 0004 → 0005 → 0006 → 0007 → 0008`; story code may be parallelized only where it does not create another Alembic head.
-- `[P]` marks only tasks that own distinct files and do not depend on another incomplete task in the same launch group.
-- Each story begins with its own RED tests and ends only when those tests and all earlier suites are green.
+- T001-T010 establish only the isolated harness; they do not import future API, worker, relay, email, operator, or MCP entrypoints.
+- Static gates T011-T016 must be GREEN before T022 freezes contracts. Behavioral tests T017-T021 must be demonstrably RED before T023-T044 and GREEN at T045.
+- T022 is conditional on an Analyze READY verdict. If Analyze finds a contract defect, repair the design artifacts, rerun Analyze, and only then freeze.
+- Canonical files under `specs/001-backend-core/contracts/` are immutable after T022; later semantic changes require a new contract version and compatibility note.
+- Migrations form one explicit chain: `0001 → 0002 → 0003 → 0004 → 0005 → 0006 → 0007 → 0008`; no story may create a second Alembic head.
+- Organization is created in T029/T031, so foundational tenant-owned rows never depend on the later identity migration.
+- Durable ArtifactPromotion begins in US3; concrete Membership locking begins in US1; AgentAuthorization locking and MCP begin in US7; full-system tenant/redaction gates wait until Phase 10.
+- HomeworkRequirementsChanged emission is independently complete in US2; affected-review projection and successor proposals become complete in US5.
+- Human draft protection is independently complete in US4; the AI-unavailable publication acceptance test becomes possible only in US5.
+- `[P]` marks tasks that own distinct files and do not depend on another incomplete task in the same launch group. Migrations, shared registries, and dependent domain/service layers are intentionally sequential.
+- Each user story begins with its own RED tests and ends only when those tests plus every earlier suite are GREEN.
 
 ## Suggested MVP
 
 Complete Setup, Foundation, and US1. Stop and validate bootstrap, tenant isolation, auth revocation, course import, roster reads, and Course/CourseRun recovery before beginning homework behavior.
 
+## Parallel execution examples
+
+- **Foundation**: T011-T016 are one static GREEN wave; T017-T021 are a separate behavioral RED wave. Do not start T022 until both the Analyze verdict and static gates permit it.
+- **US1**: T046-T049 may be authored together; after T052, T053 and T054 own distinct repositories, while services consume only completed interfaces.
+- **US2**: T065-T067 form one RED wave; implementation is sequential through migration and service integration.
+- **US3**: T075-T078 form one RED wave; model/migration work T079-T081 precedes services, promotion, adapters, workers, and routes.
+- **US4**: T091-T095 form one RED wave; T096-T099 establish storage before repositories and services.
+- **US5**: T109-T115 form one RED wave; T116-T118 establish storage before recommendation, editing, successor, and publication services.
+- **US6**: T133-T135 form one RED wave; T136-T137 precede payload, repositories, service, workers, and routes.
+- **US7**: T145-T149 form one RED wave; token/repository/service/guard tasks precede MCP transport and tool binding.
+- **Release**: T162-T165 own separate accumulated test files and may run in parallel; retention remains RED-before-GREEN in T166-T167.
+
+## Incremental implementation strategy
+
+Complete and validate one phase at a time. Static candidate-contract checks start GREEN; each behavioral phase then demonstrates purposeful RED, implements only the named owner files, and returns the accumulated suite to GREEN. No phase may rely on a later migration, router, worker registration, contract edit, or external live result.
+
 ## Authorization boundary
 
-This plan authorizes implementation tasks only when `$speckit-implement` is explicitly requested. It does not authorize commits, pushes, live-provider calls, credentials, or external publication.
+This task list authorizes implementation only when `$speckit-implement` is explicitly requested. It does not authorize commits, pushes, live-provider calls, credentials, or external publication.

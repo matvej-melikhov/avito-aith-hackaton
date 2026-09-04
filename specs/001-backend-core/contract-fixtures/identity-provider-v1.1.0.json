@@ -1,0 +1,5 @@
+{
+  "request": {"contract_version": "1.1.0", "provider": "stepik", "state_id": "00000000-0000-7000-8000-000000000050", "credential_binding_id": "00000000-0000-7000-8000-000000000051", "credential_binding_version": 1, "authorization_response": "fixture-code"},
+  "success_assertion": {"contract_version": "1.1.0", "provider": "stepik", "issuer": "https://stepik.org", "subject": "fixture-user", "verified_email": "user@example.com", "issued_at": "2026-09-04T12:00:00Z", "expires_at": "2026-09-04T12:05:00Z", "state_id": "00000000-0000-7000-8000-000000000050"},
+  "failure": {"contract_version": "1.1.0", "provider": "stepik", "state_id": "00000000-0000-7000-8000-000000000050", "error": {"code": "identity_verification_failed", "message": "Identity could not be verified", "retryable": false, "action": null}}
+}

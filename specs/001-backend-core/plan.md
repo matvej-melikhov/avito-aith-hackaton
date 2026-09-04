@@ -39,10 +39,21 @@
 | Unpacked snapshot | 250 MiB | 1 GiB |
 | Google DOCX export | 10 MB provider limit | 10 MB |
 | AI artifact download URL | 15 minutes | 60 minutes |
+| HTTP command body | 1 MiB | 5 MiB |
+| Provider request timeout | 15 seconds | 60 seconds |
+| Provider attempts per operation | 5 | 10 |
+| Retry backoff | 1 minute initial, 60 minutes max | 24 hours max |
+| Concurrent course imports per tenant | 2 | 10 |
+| Concurrent AI runs per tenant | 10 | 50 |
+| Concurrent deliveries per tenant | 20 | 100 |
+| Criteria or review decisions | 500 | 500 |
+| Review notes | 500 | 500 |
+| Provider roster page | 1 000 | 1 000 |
+| Stored provider error text | 2 KiB | 2 KiB |
 
-Artifacts remain while Course Run is active and 90 days after archive. Review revisions and audit events remain 365 days after archive. Operational telemetry remains 90 days; application logs remain 30 days. External credentials remain only while their binding is active. Values are configurable below hard ceilings.
+Artifact bytes remain while Course Run is active and 90 days after archive. Artifact identity, digest, provenance, ReviewRevision, ReviewPublication, successor relations and AuditEvent remain queryable for 365 days after archive. Expiry replaces removed bytes or personal fields with explicit tombstones and never leaves a dangling reference; an operator purge is audited. Operational telemetry remains 90 days; application logs remain 30 days. External credentials remain only while their binding is active. Values are configurable below hard ceilings.
 
-S3 lifecycle: staged upload → byte limit → digest verification → DB transaction → promotion. Staged objects older than 24 hours and unreferenced promoted objects older than 24 hours are garbage-collected.
+S3 lifecycle: staged upload → byte limit → digest verification → one DB transaction for ArtifactVersion + durable ArtifactPromotion + outbox → idempotent promotion/recovery. GC deletes only objects without a live promotion intent. Metadata, digests, review publications and successor relations remain queryable for the configured history period even when artifact bytes expire.
 
 ## Constitution Check
 
@@ -57,7 +68,7 @@ S3 lifecycle: staged upload → byte limit → digest verification → DB transa
 | Executable Specifications | contract/state/limit/revocation tests предшествуют behavior; live tests отделены и имеют явный status | PASS |
 | Modular Ownership | backend, AI и каждый provider boundary используют versioned schemas и shared fixtures | PASS |
 
-Нарушений конституции нет.
+Design-level constitution checks and adversarial reviews pass. The remaining pre-implementation gate is a READY `$speckit-analyze` result; T022 then performs the mechanical contract freeze before runtime implementation.
 
 ## Project Structure
 
@@ -80,7 +91,18 @@ S3 lifecycle: staged upload → byte limit → digest verification → DB transa
     │   ├── artifact-provider.schema.json
     │   ├── delivery.schema.json
     │   ├── email.schema.json
+    │   ├── identity-provider.schema.json
     │   └── mcp-tools.json
+    ├── contract-fixtures/
+    │   ├── ai-fingerprint-v1.1.0.json
+    │   ├── ai-events-v1.1.0.json
+    │   ├── course-import-v1.1.0.json
+    │   ├── artifact-provider-v1.1.0.json
+    │   ├── delivery-v1.1.0.json
+    │   ├── email-v1.1.0.json
+    │   └── identity-provider-v1.1.0.json
+    ├── contract-compatibility.md
+    ├── constitution-snapshot.md
     ├── checklists/
     │   └── requirements.md
     └── tasks.md
@@ -94,6 +116,7 @@ S3 lifecycle: staged upload → byte limit → digest verification → DB transa
     ├── src/review_platform/
     │   ├── api/
     │   ├── application/
+    │   │   └── foundation_runtime.py
     │   ├── domain/
     │   ├── infrastructure/
     │   │   ├── db/
@@ -118,9 +141,9 @@ S3 lifecycle: staged upload → byte limit → digest verification → DB transa
     ├── env.example
     └── mailpit/
 
-**Structure Decision**: модульный монолит. API, worker, outbox relay, email worker и MCP — отдельные процессы с общими domain/application модулями. Providers зависят от ports ядра; ядро providers не импортирует.
+**Structure Decision**: модульный монолит. API, worker, outbox relay, email worker и MCP — отдельные процессы с общими domain/application модулями. `application/foundation_runtime.py` является только composition adapter над реальными application/infrastructure components и не хранит in-memory domain state. Providers зависят от ports ядра; ядро providers не импортирует.
 
-**Contract Decision**: `specs/001-backend-core/contracts/` — design-time source of truth. `manifest.json` фиксирует version/status/hash inventory. Runtime package data синхронизируется deterministic command и проверяется against manifest; Pydantic/FastAPI conformance не меняет canonical files.
+**Contract Decision**: `specs/001-backend-core/contracts/` — design-time source of truth. Version 1.1.0 is a breaking pre-implementation candidate over committed 1.0.0. `manifest.json` фиксирует candidate/frozen status и SHA-256 для schemas, fixtures, compatibility notes и byte-identical constitution snapshot. Bootstrap/recovery остаются local operator commands; REST mutations используют exact route/target contracts. После READY-review одна mechanical task переводит candidate в frozen без semantic edits. Runtime package data синхронизируется deterministic command; Pydantic/FastAPI conformance не меняет canonical files.
 
 **Implementation Order**: contract and SC traceability freeze → foundational persistence (`CommandReceipt`, `AuditEvent`, `OutboxMessage`, `Operation`) → US1-US3 → shared review spine → US4/US5 → delivery recovery → MCP agent transport. Static contract checks block Foundation; concrete MCP parity does not block stories before handlers exist.
 
@@ -134,13 +157,13 @@ S3 lifecycle: staged upload → byte limit → digest verification → DB transa
 - [context-traceability.md](context-traceability.md) связывает прежние сущности и экраны с текущей моделью и явно отмечает later scope.
 - [contracts/openapi.yaml](contracts/openapi.yaml) определяет web/component interface.
 - JSON Schemas определяют command, artifact, AI и provider boundaries.
-- [contracts/manifest.json](contracts/manifest.json) замораживает contract set 1.0.0; после freeze изменения требуют новой версии и compatibility/migration notes.
+- [contracts/manifest.json](contracts/manifest.json) описывает candidate contract set 1.1.0; после READY он замораживается без semantic edits, а последующие изменения требуют новой версии и compatibility/migration notes.
 - [requirements-traceability.md](requirements-traceability.md) до implementation связывает FR-001..FR-085 и SC-001..SC-023 с fixture/sandbox, owner и воспроизводимой командой.
 - [quickstart.md](quickstart.md) связывает команды проверки с acceptance gates.
 
 ## Post-Design Constitution Check
 
-Все шесть принципов соблюдены. Stepik automatic delivery остаётся live gate. Google DOCX fixture подтверждён. GitHub fixture доступен текущему account, но GitHub App installation остаётся отдельным gate.
+Все шесть принципов отражены в design artifacts, adversarial reviews завершены, а финальным pre-implementation gate служит `$speckit-analyze`. После READY задача T022 механически замораживает contracts до runtime implementation. Stepik automatic delivery остаётся live gate. Google DOCX fixture подтверждён. GitHub fixture доступен текущему account, но GitHub App installation остаётся отдельным gate.
 
 ## Complexity Tracking
 

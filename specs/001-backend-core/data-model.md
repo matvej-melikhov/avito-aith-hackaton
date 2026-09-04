@@ -65,6 +65,10 @@ Token не хранится открыто. Consume атомарно прове�
 
 organization_id, user_id, membership_revision, auth_epoch, token_digest, expires_at и revoked_at. Каждый read, write и worker execution повторно сравнивает auth_epoch с текущим membership. Несовпадение отменяет операцию до чтения или изменения данных.
 
+### OAuthState
+
+Одноразовая protocol identity: organization_id, state_id, state_digest, provider, credential_binding_id/version, redirect_uri, encrypted PKCE verifier, expires_at, consumed_at и resulting_session_id nullable. Callback атомарно блокирует state, проверяет digest/expiry/binding, помечает consumed и создаёт не более одной Session. Повтор после успешного consume не создаёт новую Session и возвращает тот же безопасный disposition без токена или authorization response.
+
 ### AgentAuthorization
 
 | Field | Meaning |
@@ -76,6 +80,12 @@ organization_id, user_id, membership_revision, auth_epoch, token_digest, expires
 | revision | CAS |
 
 Авторизация содержит token_digest и закрытый набор scopes. Grant/revoke выполняет только интерактивная Session того же user. Revocation атомарно инвалидирует token и ожидающие CommandReceipt до их выполнения.
+
+Каждая agent mutation несёт agent_authorization_revision. Непосредственно перед commit транзакция блокирует OrganizationMembership, затем AgentAuthorization в фиксированном порядке и повторно проверяет auth_epoch, status, revision, scopes и expiry. Revoke берёт те же locks; поэтому уже claimed command не может commit после успешного revoke.
+
+### ExternalCredential
+
+Tenant-scoped encrypted provider credential: organization_id, id, provider, binding_version, ciphertext, key_id, status active или revoked, created_at, rotated_at и revoked_at. Lookup всегда требует organization_id; plaintext не сохраняется и не попадает в cache, log или audit.
 
 ## Learning structure
 
@@ -89,6 +99,10 @@ organization_id, user_id, membership_revision, auth_epoch, token_digest, expires
 | status | active или archived |
 | revision | CAS |
 
+### ExternalCourseBinding
+
+Версионируемая связь для повторной синхронизации: organization_id, course_id, provider, external_course_id, external_url, provider_version, credential_id, binding_version, status и last_synced_at. Уникальность: organization_id, provider, external_course_id, binding_version.
+
 ### CourseRun
 
 | Field | Meaning |
@@ -99,6 +113,8 @@ organization_id, user_id, membership_revision, auth_epoch, token_digest, expires
 | timezone | Интерпретация локальных дедлайнов |
 | status | draft, active, archived |
 | revision | CAS |
+
+Архивация Course или CourseRun атомарно запрещает новые recommendation, open-review и publication команды. Она не отменяет ReviewPublication и ExternalDelivery, уже записанные одной транзакцией до архивации: такие delivery intents продолжают retry/reconciliation до succeeded, action_required или superseded и остаются наблюдаемыми. Restore снова разрешает только новые действия и не создаёт повторных deliveries.
 
 ### CourseMembership
 
@@ -115,17 +131,19 @@ organization_id, user_id, membership_revision, auth_epoch, token_digest, expires
 
 ### Homework and HomeworkVersion
 
-Homework хранит стабильную идентичность внутри Course. HomeworkVersion содержит version_number, student_text, max_score, artifact_kinds, estimated_review_minutes, submission_deadline, review_deadline, published_at и revision.
-
-Publication связывает HomeworkVersion с CourseRun. Дедлайн каждой SubmissionVersion копируется из эффективной публикации и не меняется ретроактивно.
+Homework хранит стабильную идентичность внутри Course. HomeworkVersion содержит version_number, student_text, max_score, artifact_kinds, estimated_review_minutes и revision; она не содержит глобального current или published_at, потому что одна версия может публиковаться в разных Course Run в разное время.
 
 ### CourseRunHomework
 
-Явно связывает CourseRun, Homework и опубликованную HomeworkVersion. Содержит submission_deadline, review_deadline, status и revision. Все foreign keys включают organization_id; ссылка на сущность другой организации невозможна на уровне БД.
+Явно связывает CourseRun и Homework. Содержит current_publication_id nullable, status и revision; current publication определяется только внутри этого Course Run. Все foreign keys включают organization_id; ссылка на сущность другой организации невозможна на уровне БД.
+
+### CourseRunHomeworkPublication
+
+Append-only связывает HomeworkVersion с CourseRunHomework и содержит publication_sequence, submission_deadline, review_deadline и published_at. В каждом CourseRunHomework не более одной записи соответствует current_publication_id. Дедлайн каждой SubmissionVersion копируется из эффективной публикации и не меняется ретроактивно.
 
 ### CriterionSet and Criterion
 
-CriterionSet относится к HomeworkVersion. Criterion содержит stable criterion key, position, title, description, max_points и active. Сумма max_points должна согласовываться с HomeworkVersion.max_score до публикации.
+CriterionSet относится к HomeworkVersion. Criterion содержит stable criterion key, position, title, description, max_points и active. Max points неотрицателен. Сумма max_points должна согласовываться с HomeworkVersion.max_score до публикации.
 
 При переводе открытой проверки на новый CriterionSet значения переносятся только по stable criterion key; остальные становятся unset.
 
@@ -133,7 +151,7 @@ CriterionSet относится к HomeworkVersion. Criterion содержит s
 
 ### Submission
 
-Уникальность: organization_id, course_run_id, homework_id, student_id. Хранит current_predeadline_version_id и revision.
+Уникальность: organization_id, course_run_id, homework_id, student_id. Хранит current_predeadline_version_id и revision. Идемпотентный artifact preflight адресован CourseRunHomework, поэтому однозначно получает course_run_id и homework_id, создаёт или находит Submission и возвращает её ID/revision. Последующий submit адресован `/submissions/{submissionId}/versions` и использует эту revision как expected target.
 
 ### SubmissionVersion
 
@@ -148,6 +166,7 @@ CriterionSet относится к HomeworkVersion. Criterion содержит s
 | phase | before_deadline или revision |
 | status | validating, ready, access_error, pending_review, superseded |
 | revision | CAS |
+| capture_operation_id | Наблюдаемая Operation захвата ArtifactVersion |
 
 До дедлайна новая ready-версия заменяет current_predeadline_version_id. После дедлайна она остаётся pending до открытия ReviewIteration.
 
@@ -161,11 +180,15 @@ Provider-neutral original URL, provider, mutable locator, capability status и l
 
 Immutable provider identity: reference_id, provider_version, content_digest, object_key, media_type, byte_size, captured_at и metadata. Уникальность reference_id, content_digest.
 
+### ArtifactPromotion
+
+Durable staged-to-final intent: organization_id, artifact_version_id, operation_id, staged_key, final_key, state staged, db_committed, promoting, promoted или action_required, lease, attempts и sanitized_error. DB transaction создаёт ArtifactVersion, ArtifactPromotion, Operation и outbox message вместе. Recovery worker повторяет promotion по digest. GC не удаляет staged object, пока существует незавершённый promotion intent.
+
 ## Human review
 
 ### ReviewCase
 
-Уникальность: organization_id, course_run_id, homework_id, student_id. Связывает все SubmissionVersion и ReviewIteration одного прохождения задания.
+Уникальность: organization_id, course_run_id, homework_id, student_id. Связывает все SubmissionVersion и ReviewIteration одного прохождения задания. `current_iteration_id` меняется CAS-транзакцией при создании successor.
 
 ### ReviewIteration
 
@@ -182,17 +205,20 @@ Immutable provider identity: reference_id, provider_version, content_digest, obj
 | revision | CAS |
 | predecessor_iteration_id | Предыдущая итерация при correction или requirements migration |
 | origin | initial, resubmission, correction или requirements_migration |
-| requirements_changed_at | Момент появления более новых требований |
 
-Инварианты: одна active ReviewIteration на ReviewCase; проверяемые версии не меняются. New artifact требует new SubmissionVersion и ReviewIteration.
+Инварианты: ReviewIteration row immutable относительно submission/artifact/homework/criteria. Одна current iteration задаётся ReviewCase.current_iteration_id. New artifact требует new SubmissionVersion и ReviewIteration.
 
-Correction создаёт successor iteration со snapshot опубликованной ReviewRevision. Requirements migration создаёт successor iteration с новой HomeworkVersion/CriterionSet и переносит только решения по совпадающим stable criterion keys. Predecessor никогда не изменяется.
+Correction и requirements migration одной транзакцией блокируют ReviewCase, проверяют expected current iteration, создают successor и ReviewIterationRelation, затем CAS-обновляют только ReviewCase.current_iteration_id. Две конкурентные successor-команды не могут создать два current результата. Predecessor row не изменяется. `current_iteration_id` обозначает редактируемую итерацию и не является указателем текущего опубликованного результата.
+
+### ReviewIterationRelation and ReviewImpactEvent
+
+ReviewIterationRelation — append-only связь predecessor/successor с kind correction или requirements_migration и уникальностью predecessor_id, successor_id. ReviewImpactEvent — append-only уведомление, что опубликована новая HomeworkVersion; оно не изменяет ReviewIteration и служит основанием для явной migration-команды.
 
 ### ReviewRevision
 
-Immutable revision: iteration_id, revision_number, author_user_id, base_revision_id, criterion scores, feedback, total_score, state draft или published, created_at.
+Immutable revision: iteration_id, revision_number, author_user_id, base_revision_id, criterion scores, feedback, total_score и created_at. У ReviewRevision нет изменяемого publish-state. Каждый человеческий score находится в диапазоне от нуля до max_points зафиксированного Criterion; total_score вычисляется как сумма решений и не превышает max_score зафиксированной HomeworkVersion.
 
-Публикация требует expected current revision. Текущий итог — published revision ReviewIteration с максимальным iteration_number.
+Публикация требует expected current revision и создаёт отдельную ReviewPublication, ссылающуюся на неизменяемую ReviewRevision. Текущий итог — ReviewPublication для ReviewIteration с максимальным iteration_number среди опубликованных итераций; неопубликованный successor не скрывает предшествующую публикацию.
 
 ### ReviewCriterionDecision
 
@@ -229,21 +255,25 @@ ReviewerCourseSelection содержит course_run_id, reviewer_id и active. �
 
 Уникальность: organization_id, input_fingerprint.
 
-`input_fingerprint` вычисляется как SHA-256 от RFC 8785 canonical JSON с contract version, organization ID, ReviewIteration ID, ArtifactVersion ID и digest, HomeworkVersion ID и digest, CriterionSet ID и digest. AI request содержит неизменяемые snapshots задания и критериев и короткоживущий tenant-scoped URL чтения артефакта.
+`input_fingerprint` вычисляется как SHA-256 от RFC 8785 canonical JSON с contract version, organization ID, CourseRun ID, SubmissionVersion ID, ReviewIteration ID, ArtifactVersion ID и digest, HomeworkVersion ID и digest, CriterionSet ID и digest. AI request содержит эти identifiers, неизменяемые snapshots задания и критериев и короткоживущий tenant-scoped URL чтения артефакта.
 
 ### AIReviewAttempt
 
-run_id, attempt_number, status, last_sequence, started_at, finished_at, error_code и sanitized_error. Sequence монотонна внутри attempt. Событие старой попытки сохраняется в истории, но не меняет текущее состояние run; event_id уникален глобально.
+run_id, attempt_number, credential_binding_id, credential_binding_version, status, last_sequence, started_at, finished_at, error_code и sanitized_error. Exact credential binding сохраняется как provenance конкретной попытки и не входит в input fingerprint. Sequence монотонна внутри attempt. Событие старой попытки сохраняется в истории, но не меняет текущее состояние run; event_id уникален глобально.
 
-Final succeeded event обязан содержать ровно один suggestion для каждого criterion из request. Повторы criterion ID, неизвестные ID, неполный список и балл в `not_checked` отклоняются contract validation.
+Final succeeded event обязан содержать `criterion_coverage.complete=true`, ровно один suggestion для каждого criterion из request и совпадающие уникальные expected/reported ID arrays. Повторы, неизвестные ID, неполный список, несовпадение coverage и балл в `not_checked` отклоняются до сохранения события. Failure events обязаны содержать typed error; running/partial/succeeded обязаны иметь error=null.
 
 ### AICriterionSuggestion and AISignal
 
-Suggestions immutable и отделены от ReviewRevision. На каждый ожидаемый criterion_id хранится status suggested, needs_human или not_checked; proposed_points nullable; reason, evidence, confidence, reviewer_note, student_feedback, flags.
+Suggestions immutable и отделены от ReviewRevision. На каждый ожидаемый criterion_id хранится status suggested, needs_human или not_checked; proposed_points nullable; reason, evidence, confidence, reviewer_note, student_feedback, flags. Числовой proposed_points находится в диапазоне от нуля до max_points соответствующего Criterion; для not_checked он равен null.
 
 AISignal хранит level, evidence, limitations и questions. Он не влияет на total_score автоматически.
 
 ## Publication and operations
+
+### DestinationBinding
+
+Версионируемая настройка обязательного получателя результата: organization_id, course_run_id, id, kind stepik или github, binding_version, recipient_ref, credential_id, required, status active или archived и revision. Публикация делает snapshot всех active required bindings конкретного CourseRun; этот набор определяет точное число создаваемых ExternalDelivery.
 
 ### ReviewPublication
 
@@ -258,6 +288,9 @@ Tenant-scoped идемпотентный запрос агента на публ
 | Field | Meaning |
 |---|---|
 | organization_id, publication_id, destination | Логический ключ |
+| operation_id | Наблюдаемая Operation доставки и reconciliation |
+| destination_binding_id, binding_version, recipient_ref | Зафиксированный обязательный получатель |
+| course_run_id, homework_version_id, criterion_set_id, submission_version_id, artifact_version_id, artifact_content_digest, review_iteration_id, review_revision_id, contract_version | Полный provenance snapshot |
 | payload_version, payload_digest | Отправленное представление |
 | state | pending, processing, retryable_failed, unknown_outcome, reconciling, succeeded, action_required, superseded |
 | attempt_count, next_attempt_at | Retry |
@@ -265,13 +298,13 @@ Tenant-scoped идемпотентный запрос агента на публ
 | last_error_code, sanitized_error | Диагностика |
 | revision | CAS |
 
-Уникальность: organization_id, publication_id, destination, payload_version.
+Уникальность: organization_id, publication_id, destination_binding_id, binding_version, payload_version. Два обязательных binding одного kind создают две независимые доставки; kind не является identity адресата.
 
 ### OutboxMessage
 
-organization_id, message_id, aggregate_type, aggregate_id, event_type, payload_version, payload, available_at, lease_owner, lease_token, lease_expires_at, enqueue_state, completed_at, attempts, max_attempts и last_error. Создаётся в одной транзакции с domain mutation.
+organization_id, message_id, aggregate_type, aggregate_id, event_type, payload_version, payload, available_at, lease_owner, lease_token, lease_expires_at, enqueue_state, completed_at, attempts, max_attempts, error_code и sanitized_error. Создаётся в одной транзакции с domain mutation; raw provider error body не сохраняется.
 
-Relay выбирает сообщения через FOR UPDATE SKIP LOCKED, назначает ограниченный lease и публикует message_id в Redis. Истёкший lease можно получить снова. Worker атомарно claims соответствующую DB operation по стабильному message/delivery key и повторно проверяет organization, auth_epoch и актуальность версии. Неоднозначный внешний результат переводится в unknown_outcome, затем reconciling; обычный retry до reconciliation запрещён.
+Relay выбирает сообщения через FOR UPDATE SKIP LOCKED, назначает ограниченный lease и публикует message_id в Redis. Истёкший lease можно получить снова. Worker атомарно claims соответствующую DB operation по стабильному message/delivery key и непосредственно перед commit блокирует и повторно проверяет organization, membership auth_epoch, AgentAuthorization status/revision при наличии и актуальность версии. Неоднозначный внешний результат переводится в unknown_outcome, затем reconciling; обычный retry до reconciliation запрещён.
 
 ### CommandReceipt
 
@@ -279,11 +312,13 @@ organization_id, idempotency_key, request_id, command_name, target_id, expected_
 
 ### Operation and OperationAttempt
 
-Operation — tenant-scoped наблюдаемая identity для course import, artifact capture, AI review и delivery orchestration: kind, input_version, state, attempts, created_at, updated_at, finished_at, error_code и sanitized_error. OperationAttempt хранит номер, worker identity, started_at, finished_at, outcome и sanitized_error. GET operation читает эту модель независимо от конкретного worker.
+Operation — tenant-scoped наблюдаемая identity для course import, artifact capture, AI review и delivery orchestration: kind, input_version, state, created_at, updated_at, finished_at, error_code и sanitized_error. OperationAttempt хранит номер, worker identity, started_at, finished_at, outcome и sanitized_error. GET operation всегда возвращает kind, input_version и полную упорядоченную историю attempts независимо от конкретного worker.
 
 ### RequestActor
 
 Discriminated union: `user` содержит user_id, membership_revision и auth_epoch; `agent` дополнительно содержит agent_id и agent_authorization_id; `installation_operator` содержит installation_operator_id и reason и допустим только для bootstrap/recovery commands.
+
+Protocol mutations создают server-owned actor/context из OAuthState, Invitation, текущей Session либо AI component grant. Их replay identity — соответственно state_id, invitation_id + state_id, session_id либо event_id + attempt_id + sequence + input_fingerprint; они не принимают произвольный actor или target от клиента и не обходят audit/tenant checks.
 
 ### AuditEvent
 
@@ -296,7 +331,7 @@ organization_id, actor_type, actor_user_id, installation_operator_id, agent_id, 
 | CourseRun | draft → active → archived; archived → active |
 | Invitation | active → consumed, revoked или expired |
 | SubmissionVersion | validating → ready или access_error; ready → pending_review или superseded |
-| ReviewIteration | queued → in_review → ready_to_publish → published; active → canceled |
+| ReviewIteration | queued → in_review → ready_to_publish → published; queued/in_review/ready_to_publish → canceled |
 | AIReviewRun | pending → running → partial → succeeded; running/partial → retryable_failed → running; any nonterminal → action_required или stale |
 | ExternalDelivery | pending → processing → succeeded; processing → retryable_failed или unknown_outcome; unknown_outcome → reconciling → succeeded/retryable_failed/action_required |
 | PublicationRequest | pending → confirmed, rejected, expired или superseded |
@@ -305,6 +340,6 @@ Terminal state не регрессирует. Superseded delivery и stale AI re
 
 ## Storage lifecycle
 
-S3 object key начинается с organization ID и ArtifactVersion ID. Запись проходит staged upload, проверку размера и SHA-256, создание DB row, затем promotion; незавершённые staged objects старше 24 часов удаляет garbage collector.
+S3 object key начинается с organization ID и ArtifactVersion ID. Запись проходит staged upload, проверку размера и SHA-256, атомарное создание ArtifactVersion + ArtifactPromotion + outbox, затем идемпотентную promotion. Recovery использует digest и final key; garbage collector удаляет только объекты без живого promotion intent.
 
 Все tenant-owned foreign keys используют organization_id как часть candidate key и composite foreign key. Миграционные negative tests обязаны отклонять cross-tenant links.
