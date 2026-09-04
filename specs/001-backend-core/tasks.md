@@ -153,7 +153,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T087 [US3] Implement durable promotion/recovery and intent-aware orphan cleanup on top of the Foundation S3 primitives in `backend/src/review_platform/infrastructure/object_storage/promotions.py`
 - [X] T088 [US3] Implement schema-backed GitHub and Google Docs artifact adapters with exact credential binding ID/version in `backend/src/review_platform/infrastructure/providers/github_artifacts.py` and `backend/src/review_platform/infrastructure/providers/google_docs_artifacts.py`
 - [X] T089 [US3] Implement and register artifact capture, promotion recovery, and cleanup workers with full Operation attempts in `backend/src/review_platform/infrastructure/tasks/artifacts.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
-- [ ] T090 [US3] Implement and register exact-command preflight, submission-version create, history, and open-iteration routes in `backend/src/review_platform/api/routes/submissions.py` and `backend/src/review_platform/api/routes/__init__.py`
+- [X] T090 [US3] Implement and register exact-command preflight, submission-version create, history, and open-iteration routes in `backend/src/review_platform/api/routes/submissions.py` and `backend/src/review_platform/api/routes/__init__.py`
 
 **Checkpoint**: US3 is GREEN; `CourseRunHomework preflight → artifact_reference_id → submit` is observable through the public API.
 

@@ -61,21 +61,24 @@ async def test_submission_version_state_and_immutable_requirement_snapshots(
         "student_id",
         "current_predeadline_version_id",
         "revision",
-    } <= set(submission.c)
+    } <= set(submission.c.keys())
     assert {
         "organization_id",
         "id",
         "submission_id",
+        "course_run_id",
+        "homework_id",
         "sequence",
         "homework_version_id",
         "artifact_reference_id",
+        "artifact_version_id",
         "submitted_at",
         "effective_deadline",
         "phase",
         "status",
         "revision",
         "capture_operation_id",
-    } <= set(version.c)
+    } <= set(version.c.keys())
     checks = _check_sql(version)
     for state in ("validating", "ready", "access_error", "pending_review", "superseded"):
         assert state in checks
@@ -99,9 +102,11 @@ async def test_predeadline_replacement_and_late_pending_are_explicit_not_automat
     submission = tables["submission"]
     version = tables["submission_version"]
 
-    assert "current_predeadline_version_id" in submission.c
-    assert "current_review_iteration_id" not in submission.c
-    assert "review_iteration_id" not in version.c
+    submission_columns = set(submission.c.keys())
+    version_columns = set(version.c.keys())
+    assert "current_predeadline_version_id" in submission_columns
+    assert "current_review_iteration_id" not in submission_columns
+    assert "review_iteration_id" not in version_columns
     assert "pending_review" in _check_sql(version)
     assert "superseded" in _check_sql(version)
     # Ready replacement is represented by the Submission pointer plus the old
@@ -127,13 +132,17 @@ async def test_explicit_initial_iteration_has_one_current_pointer_and_terminal_n
         "student_id",
         "current_iteration_id",
         "revision",
-    } <= set(review_case.c)
+    } <= set(review_case.c.keys())
     assert {
         "organization_id",
         "id",
         "review_case_id",
+        "course_run_id",
+        "homework_id",
+        "student_id",
         "iteration_number",
         "submission_version_id",
+        "initial_submission_version_id",
         "artifact_version_id",
         "homework_version_id",
         "criterion_set_id",
@@ -142,15 +151,13 @@ async def test_explicit_initial_iteration_has_one_current_pointer_and_terminal_n
         "revision",
         "predecessor_iteration_id",
         "origin",
-    } <= set(iteration.c)
+    } <= set(iteration.c.keys())
     assert frozenset(
         {"organization_id", "course_run_id", "homework_id", "student_id"}
     ) in _unique_column_sets(review_case)
     uniques = _unique_column_sets(iteration)
     assert frozenset({"organization_id", "review_case_id", "iteration_number"}) in uniques
-    assert frozenset(
-        {"organization_id", "review_case_id", "submission_version_id", "origin"}
-    ) in uniques
+    assert frozenset({"organization_id", "initial_submission_version_id"}) in uniques
     checks = _check_sql(iteration)
     for state in ("queued", "in_review", "ready_to_publish", "published", "canceled"):
         assert state in checks

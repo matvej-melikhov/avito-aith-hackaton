@@ -677,6 +677,136 @@ async def test_submission_cas_scheduler_and_history_keep_only_us3_fields(
         assert await session.scalar(select(func.count()).select_from(OutboxMessage)) == 1
 
 
+async def test_first_predeadline_and_replacement_flush_before_current_pointer_cas(
+    foundation_session_factory: AsyncSessionFactory,
+) -> None:
+    await _seed(foundation_session_factory)
+    repository = SqlSubmissionRepository()
+    first_id = UUID("00000000-0000-7000-8000-000000004201")
+    second_id = UUID("00000000-0000-7000-8000-000000004202")
+    first_operation = UUID("00000000-0000-7000-8000-000000004203")
+    second_operation = UUID("00000000-0000-7000-8000-000000004204")
+    async with session_scope(foundation_session_factory) as session:
+        reference = await SqlArtifactPreflightRepository().upsert_available_reference(
+            _candidate_reference(REFERENCE),
+            transaction=session,
+        )
+        context = await SqlArtifactPreflightRepository().lock_context(
+            ORG,
+            RELATION_A,
+            STUDENT,
+            expected_revision=1,
+            transaction=session,
+        )
+        assert context is not None
+        await SqlArtifactPreflightRepository().get_or_create_submission(
+            context,
+            student_id=STUDENT,
+            new_submission_id=SUBMISSION_A,
+            transaction=session,
+        )
+        publication = await repository.lock_current_publication(
+            ORG,
+            RUN_A,
+            HOMEWORK_ID,
+            transaction=session,
+        )
+        assert publication is not None
+        first = SubmissionVersionRecord(
+            organization_id=ORG,
+            version_id=first_id,
+            submission_id=SUBMISSION_A,
+            sequence=1,
+            homework_version_id=HOMEWORK_VERSION_ID,
+            artifact_reference_id=reference.artifact_reference_id,
+            capture_operation_id=first_operation,
+            submitted_at=NOW,
+            effective_deadline=publication.submission_deadline,
+            phase="before_deadline",
+            status="validating",
+        )
+        await repository.append_version(first, transaction=session)
+        await SqlCaptureScheduler(id_factory=IDs(8000), clock=lambda: NOW).schedule(
+            _capture_request(first),
+            transaction=session,
+        )
+        assert await repository.compare_and_set_submission(
+            ORG,
+            SUBMISSION_A,
+            expected_revision=0,
+            current_predeadline_version_id=first_id,
+            transaction=session,
+        )
+
+    async with session_scope(foundation_session_factory) as session:
+        second = SubmissionVersionRecord(
+            organization_id=ORG,
+            version_id=second_id,
+            submission_id=SUBMISSION_A,
+            sequence=2,
+            homework_version_id=HOMEWORK_VERSION_ID,
+            artifact_reference_id=REFERENCE,
+            capture_operation_id=second_operation,
+            submitted_at=NOW + timedelta(minutes=1),
+            effective_deadline=NOW + timedelta(days=1),
+            phase="before_deadline",
+            status="validating",
+        )
+        await repository.append_version(second, transaction=session)
+        await repository.mark_superseded(ORG, first_id, transaction=session)
+        await SqlCaptureScheduler(id_factory=IDs(8100), clock=lambda: NOW).schedule(
+            _capture_request(second),
+            transaction=session,
+        )
+        assert await repository.compare_and_set_submission(
+            ORG,
+            SUBMISSION_A,
+            expected_revision=1,
+            current_predeadline_version_id=second_id,
+            transaction=session,
+        )
+
+    async with foundation_session_factory() as session:
+        submission = await session.get(Submission, SUBMISSION_A)
+        versions = (
+            await session.scalars(
+                select(SubmissionVersion)
+                .where(SubmissionVersion.submission_id == SUBMISSION_A)
+                .order_by(SubmissionVersion.sequence)
+            )
+        ).all()
+        assert submission is not None
+        assert submission.current_predeadline_version_id == second_id
+        assert submission.revision == 2
+        assert [(row.id, row.status) for row in versions] == [
+            (first_id, "superseded"),
+            (second_id, "validating"),
+        ]
+        assert await session.scalar(select(func.count()).select_from(Operation)) == 2
+        assert await session.scalar(select(func.count()).select_from(OutboxMessage)) == 2
+
+
+def _capture_request(version: SubmissionVersionRecord) -> ArtifactCaptureRequest:
+    return ArtifactCaptureRequest(
+        organization_id=version.organization_id,
+        operation_id=version.capture_operation_id,
+        submission_id=version.submission_id,
+        submission_version_id=version.version_id,
+        artifact_reference_id=version.artifact_reference_id,
+        provider="github",
+        credential_binding_id=CREDENTIAL,
+        credential_binding_version=1,
+        course_run_id=RUN_A,
+        homework_id=HOMEWORK_ID,
+        homework_version_id=version.homework_version_id,
+        course_run_homework_id=RELATION_A,
+        homework_publication_id=PUBLICATION_A,
+        actor_user_id=STUDENT,
+        actor_membership_revision=0,
+        actor_auth_epoch=0,
+    )
+
+
 class ReviewAuthorization:
     async def authorize_open(self, **_: object) -> None:
         return None

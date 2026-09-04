@@ -23,7 +23,11 @@ from review_platform.infrastructure.db.models.homework import (
     Homework,
     HomeworkVersion,
 )
-from review_platform.infrastructure.db.models.identity import OrganizationMembership, User
+from review_platform.infrastructure.db.models.identity import (
+    ExternalCredential,
+    OrganizationMembership,
+    User,
+)
 from review_platform.infrastructure.db.models.learning import Course, CourseRun
 from review_platform.infrastructure.db.models.operations import Operation
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
@@ -47,6 +51,8 @@ HOMEWORK_VERSION_B = UUID("00000000-0000-7000-8000-000000002042")
 RELATION_A1 = UUID("00000000-0000-7000-8000-000000002051")
 RELATION_A2 = UUID("00000000-0000-7000-8000-000000002052")
 RELATION_B = UUID("00000000-0000-7000-8000-000000002053")
+CREDENTIAL_A = UUID("00000000-0000-7000-8000-000000002054")
+CREDENTIAL_B = UUID("00000000-0000-7000-8000-000000002055")
 REFERENCE_A = UUID("00000000-0000-7000-8000-000000002061")
 REFERENCE_B = UUID("00000000-0000-7000-8000-000000002062")
 ARTIFACT_VERSION_A = UUID("00000000-0000-7000-8000-000000002071")
@@ -122,7 +128,8 @@ async def _insert_row(
     values: Mapping[str, object],
 ) -> None:
     required_identity = {"id", "organization_id"}
-    assert required_identity <= set(table.c), (
+    column_names = set(table.c.keys())
+    assert required_identity <= column_names, (
         f"{table.name} lacks tenant candidate identity {sorted(required_identity)}"
     )
     missing = [
@@ -136,7 +143,13 @@ async def _insert_row(
     ]
     assert not missing, f"test fixture lacks required {table.name} columns: {missing}"
     await session.execute(
-        insert(table).values(**{key: value for key, value in values.items() if key in table.c})
+        insert(table).values(
+            **{
+                key: value
+                for key, value in values.items()
+                if key in column_names
+            }
+        )
     )
 
 
@@ -159,6 +172,28 @@ async def _seed_parent_graph(factory: AsyncSessionFactory) -> None:
                 revision=0,
                 auth_epoch=0,
             )
+        )
+        session.add_all(
+            [
+                ExternalCredential(
+                    id=CREDENTIAL_A,
+                    organization_id=ORG_A,
+                    provider="github",
+                    binding_version=1,
+                    ciphertext="encrypted-org-a",
+                    key_id="fixture-key",
+                    status="active",
+                ),
+                ExternalCredential(
+                    id=CREDENTIAL_B,
+                    organization_id=ORG_B,
+                    provider="github",
+                    binding_version=1,
+                    ciphertext="encrypted-org-b",
+                    key_id="fixture-key",
+                    status="active",
+                ),
+            ]
         )
         session.add_all(
             [
@@ -289,11 +324,14 @@ def _artifact_reference_values(
     *,
     organization_id: UUID,
     reference_id: UUID,
+    credential_id: UUID,
 ) -> dict[str, object]:
     return {
         "id": reference_id,
         "organization_id": organization_id,
         "provider": "github",
+        "credential_binding_id": credential_id,
+        "credential_binding_version": 1,
         "original_url": "https://github.com/example/repository",
         "url": "https://github.com/example/repository",
         "locator": {
@@ -359,11 +397,15 @@ def _submission_version_values(
     reference_id: UUID,
     artifact_version_id: UUID,
     homework_version_id: UUID,
+    run_id: UUID,
+    homework_id: UUID,
 ) -> dict[str, object]:
     return {
         "id": SUBMISSION_VERSION_A,
         "organization_id": organization_id,
         "submission_id": submission_id,
+        "course_run_id": run_id,
+        "homework_id": homework_id,
         "sequence": 1,
         "homework_version_id": homework_version_id,
         "artifact_reference_id": reference_id,
@@ -405,12 +447,20 @@ async def _seed_us3_rows(factory: AsyncSessionFactory) -> dict[str, Table]:
         await _insert_row(
             session,
             tables["artifact_reference"],
-            _artifact_reference_values(organization_id=ORG_A, reference_id=REFERENCE_A),
+            _artifact_reference_values(
+                organization_id=ORG_A,
+                reference_id=REFERENCE_A,
+                credential_id=CREDENTIAL_A,
+            ),
         )
         await _insert_row(
             session,
             tables["artifact_reference"],
-            _artifact_reference_values(organization_id=ORG_B, reference_id=REFERENCE_B),
+            _artifact_reference_values(
+                organization_id=ORG_B,
+                reference_id=REFERENCE_B,
+                credential_id=CREDENTIAL_B,
+            ),
         )
         await _insert_row(
             session,
@@ -469,6 +519,14 @@ async def test_mysql_rejects_cross_tenant_artifact_submission_and_review_links(
     async with foundation_session_factory() as session:
         invalid_rows = (
             (
+                tables["artifact_reference"],
+                _artifact_reference_values(
+                    organization_id=ORG_B,
+                    reference_id=UUID("00000000-0000-7000-8000-000000002063"),
+                    credential_id=CREDENTIAL_A,
+                ),
+            ),
+            (
                 tables["artifact_version"],
                 _artifact_version_values(
                     organization_id=ORG_B,
@@ -484,6 +542,8 @@ async def test_mysql_rejects_cross_tenant_artifact_submission_and_review_links(
                     reference_id=REFERENCE_A,
                     artifact_version_id=ARTIFACT_VERSION_A,
                     homework_version_id=HOMEWORK_VERSION_A,
+                    run_id=RUN_A1,
+                    homework_id=HOMEWORK_A,
                 ),
             ),
             (
@@ -557,7 +617,8 @@ async def test_opaque_artifact_reference_cannot_submit_or_read_across_tenant(
             SUBMIT_ROUTE.replace("{submissionId}", str(SUBMISSION_B)),
             json=command,
         )
-    assert foreign_read.status_code in {403, 404}
+    assert foreign_read.status_code == 409
+    assert foreign_read.json()["code"] == "command_conflict"
     assert foreign_submit.status_code in {403, 404, 409, 422}
     assert not 200 <= foreign_submit.status_code < 300
 

@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from hashlib import sha256
+from io import BytesIO
 from typing import Any, cast
 from uuid import UUID
 
 import boto3
 import pytest
-from fastapi import FastAPI, Request, Response
+from fastapi import Request, Response
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -24,6 +26,7 @@ from testcontainers.mysql import MySqlContainer
 from review_platform.application.foundation_runtime import build_foundation_runtime
 from review_platform.application.ports.providers import CONTRACT_VERSION, ProviderPayload
 from review_platform.application.request_context import RequestActor
+from review_platform.application.services.artifact_capture import ArtifactCaptureLimits
 from review_platform.infrastructure.db.base import Base
 from review_platform.infrastructure.db.models import (
     Course,
@@ -38,6 +41,7 @@ from review_platform.infrastructure.db.models import (
     HomeworkVersion,
     Organization,
     OrganizationMembership,
+    OutboxMessage,
     User,
 )
 from review_platform.infrastructure.db.session import (
@@ -46,11 +50,21 @@ from review_platform.infrastructure.db.session import (
     create_session_factory,
     session_scope,
 )
-from review_platform.infrastructure.object_storage.s3 import S3Client
+from review_platform.infrastructure.object_storage.promotions import (
+    FetchedArtifactContent,
+    StagedObjectCandidate,
+)
+from review_platform.infrastructure.object_storage.s3 import S3Client, S3ObjectStorage
 from review_platform.infrastructure.providers.mocks import (
     FixtureArtifactProvider,
     FrozenFixtureStore,
     JsonSchemaPayloadValidator,
+)
+from review_platform.infrastructure.tasks.artifacts import (
+    ArtifactCaptureTaskHandler,
+    ArtifactCleanupTaskHandler,
+    ArtifactPromotionTaskHandler,
+    ArtifactTaskRuntime,
 )
 from review_platform.main import create_app
 from review_platform.settings import Settings
@@ -72,6 +86,8 @@ COURSE_RUN_HOMEWORK_ID = UUID("00000000-0000-7000-8000-000000000311")
 PUBLICATION_ID = UUID("00000000-0000-7000-8000-000000000312")
 ARTIFACT_CREDENTIAL_ID = UUID("00000000-0000-7000-8000-000000000021")
 BUCKET = "submission-lifecycle"
+CAPTURE_BYTES = b"bounded artifact fixture bytes"
+REVIEW_CASE_ID = UUID("00000000-0000-7000-8000-000000000399")
 
 
 class MutableClock:
@@ -85,6 +101,9 @@ class MutableClock:
 class DynamicArtifactProvider:
     contract_version = CONTRACT_VERSION
     schema_name = "artifact-provider.schema.json"
+
+    def __init__(self) -> None:
+        self.capture_calls = 0
 
     async def preflight(self, request: ProviderPayload) -> ProviderPayload:
         validator = JsonSchemaPayloadValidator()
@@ -126,10 +145,24 @@ class DynamicArtifactProvider:
             definition="capture_request",
             payload=request,
         )
-        fixture = FrozenFixtureStore().load("artifact-provider-v1.1.0.json")
-        result = deepcopy(dict(fixture["success_result"]))
-        result["organization_id"] = request["organization_id"]
-        result["artifact_reference_id"] = request["artifact_reference_id"]
+        self.capture_calls += 1
+        content = CAPTURE_BYTES + f"-{self.capture_calls}".encode()
+        result = {
+            "contract_version": CONTRACT_VERSION,
+            "organization_id": request["organization_id"],
+            "artifact_reference_id": request["artifact_reference_id"],
+            "outcome": "succeeded",
+            "provider_version": "fixture-1",
+            "content": {
+                "download_url": (
+                    f"https://provider.example.test/artifacts/fixture-{self.capture_calls}"
+                ),
+                "media_type": "application/zip",
+                "byte_size": len(content),
+                "content_digest": f"sha256:{sha256(content).hexdigest()}",
+            },
+            "error": None,
+        }
         validator.validate(
             schema_name=self.schema_name,
             definition="capture_result",
@@ -138,13 +171,54 @@ class DynamicArtifactProvider:
         return cast(ProviderPayload, result)
 
 
+class FixtureContentFetcher:
+    async def fetch(self, download_url: str, *, max_bytes: int) -> FetchedArtifactContent:
+        call_number = int(download_url.rsplit("-", 1)[1])
+        content = CAPTURE_BYTES + f"-{call_number}".encode()
+        assert len(content) <= max_bytes
+        return FetchedArtifactContent(
+            body=BytesIO(content),
+            media_type="application/zip",
+            byte_size=len(content),
+            metadata={"source": "frozen-test-fixture"},
+        )
+
+
+class S3StagedInventory:
+    def __init__(self, client: Any, bucket: str) -> None:
+        self._client = client
+        self._bucket = bucket
+
+    async def list_staged(self, *, older_than: datetime) -> Sequence[StagedObjectCandidate]:
+        del older_than
+        contents = self._client.list_objects_v2(Bucket=self._bucket).get("Contents", [])
+        candidates = []
+        for item in contents:
+            key = str(item["Key"])
+            if "/staged/" not in key:
+                continue
+            organization, artifact_version, _ = key.split("/", 2)
+            candidates.append(
+                StagedObjectCandidate(
+                    organization_id=UUID(organization),
+                    artifact_version_id=UUID(artifact_version),
+                    key=key,
+                    last_modified=item["LastModified"].astimezone(UTC),
+                )
+            )
+        return tuple(candidates)
+
+
 @dataclass(slots=True)
 class SubmissionHarness:
-    app: FastAPI
     client: AsyncClient
     session_factory: AsyncSessionFactory
     clock: MutableClock
     s3_client: Any
+    capture_handler: ArtifactCaptureTaskHandler
+    promotion_handler: ArtifactPromotionTaskHandler
+    cleanup_handler: ArtifactCleanupTaskHandler
+    actor_state: dict[str, RequestActor]
 
 
 @pytest.fixture
@@ -196,16 +270,42 @@ async def submission_harness(
         membership_revision=0,
         auth_epoch=0,
     )
-    app.state.artifact_provider = DynamicArtifactProvider()
-    app.state.artifact_credential_binding_id = ARTIFACT_CREDENTIAL_ID
-    app.state.artifact_credential_binding_version = 1
+    provider = DynamicArtifactProvider()
+    app.state.github_artifact_provider = provider
+    app.state.github_credential_binding_id = ARTIFACT_CREDENTIAL_ID
+    app.state.github_credential_binding_version = 1
+    actor_state = {"actor": actor}
+    storage = S3ObjectStorage(
+        client=cast(S3Client, s3_client),
+        bucket=BUCKET,
+        max_object_bytes=settings.artifact_total_max_bytes,
+    )
+    task_runtime = ArtifactTaskRuntime(
+        session_factory=session_factory,
+        storage=storage,
+        providers={"github": provider},
+        fetcher=FixtureContentFetcher(),
+        inventory=S3StagedInventory(s3_client, BUCKET),
+        capture_limits=ArtifactCaptureLimits(
+            max_files=settings.github_max_files,
+            max_single_blob_bytes=settings.single_blob_max_bytes,
+            max_total_bytes=settings.artifact_total_max_bytes,
+            max_archive_bytes=settings.archive_max_bytes,
+            max_unpacked_bytes=settings.unpacked_max_bytes,
+        ),
+        id_factory=uuid7_factory,
+        clock=clock,
+    )
+    capture_handler = ArtifactCaptureTaskHandler(task_runtime)
+    promotion_handler = ArtifactPromotionTaskHandler(task_runtime, owner="test-promotion")
+    cleanup_handler = ArtifactCleanupTaskHandler(task_runtime)
 
     @app.middleware("http")
     async def inject_student(
         request: Request,
         call_next: RequestResponseEndpoint,
     ) -> Response:
-        request.state.request_actor = actor
+        request.state.request_actor = actor_state["actor"]
         return await call_next(request)
 
     async with AsyncClient(
@@ -213,11 +313,14 @@ async def submission_harness(
         base_url="https://review-platform.test",
     ) as client:
         yield SubmissionHarness(
-            app=app,
             client=client,
             session_factory=session_factory,
             clock=clock,
             s3_client=s3_client,
+            capture_handler=capture_handler,
+            promotion_handler=promotion_handler,
+            cleanup_handler=cleanup_handler,
+            actor_state=actor_state,
         )
     await runtime.close()
     objects = s3_client.list_objects_v2(Bucket=BUCKET).get("Contents", [])
@@ -407,6 +510,22 @@ async def _preflight(
     )
 
 
+async def _capture_message(
+    factory: AsyncSessionFactory,
+    operation_id: str,
+) -> OutboxMessage:
+    async with session_scope(factory) as session:
+        message = await session.scalar(
+            select(OutboxMessage).where(
+                OutboxMessage.organization_id == ORGANIZATION_ID,
+                OutboxMessage.aggregate_id == UUID(operation_id),
+                OutboxMessage.event_type == "ArtifactCaptureRequested",
+            )
+        )
+        assert message is not None
+        return message
+
+
 async def test_unavailable_preflight_returns_no_usable_artifact_reference(
     submission_harness: SubmissionHarness,
 ) -> None:
@@ -477,8 +596,29 @@ async def test_submission_capture_replacement_late_open_and_promotion_recovery(
         return cast(dict[str, Any], response.json())
 
     first = await submit(capability["submission_revision"], 322)
+    first_message = await _capture_message(
+        submission_harness.session_factory,
+        first["capture_operation_id"],
+    )
+    first_capture = await submission_harness.capture_handler(
+        organization_id=str(ORGANIZATION_ID),
+        message_id=str(first_message.message_id),
+    )
+    assert first_capture["state"] == "db_committed"
+    first_recovery = await submission_harness.promotion_handler.recover(ORGANIZATION_ID)
+    assert first_recovery[-1]["state"] == "promoted"
+
     second = await submit(first["submission_revision"], 323)
     assert first["capture_operation_id"] != second["capture_operation_id"]
+    second_message = await _capture_message(
+        submission_harness.session_factory,
+        second["capture_operation_id"],
+    )
+    second_capture = await submission_harness.capture_handler(
+        organization_id=str(ORGANIZATION_ID),
+        message_id=str(second_message.message_id),
+    )
+    assert second_capture["state"] == "db_committed"
 
     tables = Base.metadata.tables
     assert {"artifact_promotion", "artifact_version", "submission_version"} <= set(tables)
@@ -494,49 +634,71 @@ async def test_submission_capture_replacement_late_open_and_promotion_recovery(
         assert promotion["state"] in {"staged", "db_committed", "promoting"}
         assert promotion["staged_key"] and promotion["final_key"]
 
-    recovery = getattr(submission_harness.app.state, "artifact_promotion_recovery", None)
-    assert callable(recovery), "US3 durable artifact promotion recovery is not composed"
-    await cast(Callable[[], Awaitable[Any]], recovery)()
+    cleanup_before_recovery = await submission_harness.cleanup_handler.cleanup(
+        ORGANIZATION_ID,
+        older_than=NOW + timedelta(seconds=1),
+        dry_run=False,
+    )
+    assert cleanup_before_recovery.protected >= 1
+    submission_harness.s3_client.head_object(Bucket=BUCKET, Key=promotion["staged_key"])
+    recovered = await submission_harness.promotion_handler.recover(ORGANIZATION_ID)
+    assert any(item["state"] == "promoted" for item in recovered)
 
     submission_harness.clock.now = NOW + timedelta(days=1, seconds=1)
     late = await submit(second["submission_revision"], 324)
+    late_message = await _capture_message(
+        submission_harness.session_factory,
+        late["capture_operation_id"],
+    )
+    late_capture = await submission_harness.capture_handler(
+        organization_id=str(ORGANIZATION_ID),
+        message_id=str(late_message.message_id),
+    )
+    assert late_capture["state"] == "db_committed"
     history = await submission_harness.client.get(f"/api/v1/submissions/{submission_id}")
     assert history.status_code == 200, history.text
     versions = history.json()["versions"]
-    assert [item["status"] for item in versions[:2]] == ["superseded", "pending_review"]
+    assert [item["status"] for item in versions[:2]] == ["superseded", "ready"]
     assert versions[-1]["id"] == late["submission_version_id"]
     assert versions[-1]["phase"] == "revision"
     assert versions[-1]["status"] == "pending_review"
     assert history.json()["review_iterations"] == []
 
     async with session_scope(submission_harness.session_factory) as session:
-        review_case = (
-            await session.execute(
-                select(tables["review_case"].c.id).where(
-                    tables["review_case"].c.organization_id == ORGANIZATION_ID,
-                    tables["review_case"].c.course_run_id == COURSE_RUN_ID,
-                    tables["review_case"].c.homework_id == HOMEWORK_ID,
-                    tables["review_case"].c.student_id == USER_ID,
-                )
-            )
-        ).scalar_one()
+        membership = await session.get(OrganizationMembership, MEMBERSHIP_ID)
+        assert membership is not None
+        membership.roles = ["reviewer"]
+        membership.revision = 1
+        membership.auth_epoch = 1
+    submission_harness.actor_state["actor"] = RequestActor.user(
+        organization_id=ORGANIZATION_ID,
+        user_id=USER_ID,
+        roles=["reviewer"],
+        membership_revision=1,
+        auth_epoch=1,
+    )
+
     opened = await submission_harness.client.post(
-        f"/api/v1/review-cases/{review_case}/iterations",
+        f"/api/v1/review-cases/{REVIEW_CASE_ID}/iterations",
         json=_command(
             command_name="open_review_iteration",
             revision_target="review_case",
-            target_id=review_case,
+            target_id=REVIEW_CASE_ID,
             expected_revision=0,
             payload={"submission_version_id": late["submission_version_id"]},
             request_suffix=325,
         ),
     )
     assert opened.status_code == 201, opened.text
-    assert opened.json()["submission_version_id"] == late["submission_version_id"]
+    assert opened.json()["review_case_id"] == str(REVIEW_CASE_ID)
+    assert opened.json()["revision"] == 1
 
-    cleanup = getattr(submission_harness.app.state, "staged_artifact_cleanup", None)
-    assert callable(cleanup), "US3 intent-aware staged cleanup is not composed"
-    await cast(Callable[[], Awaitable[Any]], cleanup)()
+    cleanup_after_recovery = await submission_harness.cleanup_handler.cleanup(
+        ORGANIZATION_ID,
+        older_than=NOW + timedelta(days=2),
+        dry_run=False,
+    )
+    assert cleanup_after_recovery.deleted == ()
     assert submission_harness.s3_client.head_object(
         Bucket=BUCKET,
         Key=promotion["final_key"],

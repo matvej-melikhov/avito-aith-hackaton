@@ -302,21 +302,6 @@ class SubmissionService:
             status="validating" if before_deadline else "pending_review",
         )
         await self._repository.append_version(version, transaction=transaction)
-        if before_deadline and submission.current_predeadline_version_id is not None:
-            await self._repository.mark_superseded(
-                organization_id,
-                submission.current_predeadline_version_id,
-                transaction=transaction,
-            )
-        new_current = version_id if before_deadline else submission.current_predeadline_version_id
-        if not await self._repository.compare_and_set_submission(
-            organization_id,
-            submission_id,
-            expected_revision=expected_submission_revision,
-            current_predeadline_version_id=new_current,
-            transaction=transaction,
-        ):
-            raise SubmissionRevisionConflict("Submission CAS lost a concurrent race")
         if actor.user_id is None or actor.membership_revision is None or actor.auth_epoch is None:
             raise SubmissionScopeDenied("student actor authority snapshot is incomplete")
         if reference.provider == "github":
@@ -346,6 +331,21 @@ class SubmissionService:
             ),
             transaction=transaction,
         )
+        if before_deadline and submission.current_predeadline_version_id is not None:
+            await self._repository.mark_superseded(
+                organization_id,
+                submission.current_predeadline_version_id,
+                transaction=transaction,
+            )
+        new_current = version_id if before_deadline else submission.current_predeadline_version_id
+        if not await self._repository.compare_and_set_submission(
+            organization_id,
+            submission_id,
+            expected_revision=expected_submission_revision,
+            current_predeadline_version_id=new_current,
+            transaction=transaction,
+        ):
+            raise SubmissionRevisionConflict("Submission CAS lost a concurrent race")
         await self._audit.record(
             AuditEventDraft(
                 organization_id=organization_id,

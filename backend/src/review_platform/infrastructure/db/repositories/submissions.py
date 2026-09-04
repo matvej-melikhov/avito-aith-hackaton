@@ -1528,24 +1528,34 @@ class SqlCaptureScheduler:
         if existing is not None:
             if existing.kind != "artifact_capture" or existing.input_version != input_version:
                 raise SubmissionPersistenceConflict("capture Operation provenance mismatched")
+            await _flush_capture_dependencies(
+                session,
+                operation_id=request.operation_id,
+            )
             return
         now = self._clock()
-        session.add(
-            Operation(
-                id=request.operation_id,
-                organization_id=request.organization_id,
-                kind="artifact_capture",
-                input_version=input_version,
-                state="pending",
-                revision=0,
-                created_at=now,
-                updated_at=now,
-                finished_at=None,
-                error_code=None,
-                sanitized_error=None,
-            )
+        operation = Operation(
+            id=request.operation_id,
+            organization_id=request.organization_id,
+            kind="artifact_capture",
+            input_version=input_version,
+            state="pending",
+            revision=0,
+            created_at=now,
+            updated_at=now,
+            finished_at=None,
+            error_code=None,
+            sanitized_error=None,
         )
-        await session.flush()
+        session.add(operation)
+        # Explicit ordering is required because autoflush is disabled and the
+        # mapped graph intentionally has no ORM relationship that can order
+        # the Operation FK and Submission's current-version self-reference.
+        await session.flush([operation])
+        await _flush_capture_dependencies(
+            session,
+            operation_id=request.operation_id,
+        )
         await OutboxService(
             OutboxMessageRepository(session),
             token_factory=self._id_factory,
@@ -1563,6 +1573,24 @@ class SqlCaptureScheduler:
                 max_attempts=self._max_attempts,
             )
         )
+
+
+async def _flush_capture_dependencies(
+    session: AsyncSession,
+    *,
+    operation_id: UUID,
+) -> None:
+    pending_versions = [
+        candidate
+        for candidate in session.new
+        if isinstance(candidate, SubmissionVersion)
+        and candidate.capture_operation_id == operation_id
+    ]
+    if pending_versions:
+        # Operation is already durable inside this same uncommitted unit of
+        # work. Flushing only its dependent rows makes the later current-
+        # version CAS FK-safe without exposing any partial state.
+        await session.flush(pending_versions)
 
 
 class SqlReviewIterationRepository:

@@ -199,10 +199,9 @@ async def submission_client(
     await _seed(foundation_session_factory)
     app = create_app(Settings(), runtime=foundation_runtime)
     provider = ArtifactProviderStub()
-    app.state.artifact_provider = provider
-    app.state.artifact_provider_factory = lambda _session: provider
-    app.state.artifact_credential_binding_id = CREDENTIAL_ID
-    app.state.artifact_credential_binding_version = 1
+    app.state.github_artifact_provider = provider
+    app.state.github_credential_binding_id = CREDENTIAL_ID
+    app.state.github_credential_binding_version = 1
     actor = RequestActor.user(
         organization_id=ORGANIZATION_ID,
         user_id=USER_ID,

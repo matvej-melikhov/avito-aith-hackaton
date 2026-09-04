@@ -87,6 +87,8 @@ class Capture:
         self.requests: list[ArtifactCaptureRequest] = []
 
     async def schedule(self, request: ArtifactCaptureRequest, *, transaction: object) -> None:
+        if isinstance(transaction, list):
+            transaction.append("schedule_capture")
         self.requests.append(request)
 
 
@@ -151,11 +153,15 @@ class Repository:
     async def append_version(
         self, version: SubmissionVersionRecord, *, transaction: object
     ) -> None:
+        if isinstance(transaction, list):
+            transaction.append("append_version")
         self.pending = version
 
     async def mark_superseded(
         self, organization_id: UUID, version_id: UUID, *, transaction: object
     ) -> None:
+        if isinstance(transaction, list):
+            transaction.append("supersede")
         self.versions = [
             replace(version, status="superseded") if version.version_id == version_id else version
             for version in self.versions
@@ -170,6 +176,8 @@ class Repository:
         current_predeadline_version_id: UUID | None,
         transaction: object,
     ) -> bool:
+        if isinstance(transaction, list):
+            transaction.append("submission_cas")
         if self.fail_cas:
             self.pending = None
             return False
@@ -219,8 +227,9 @@ def _service(
 @pytest.mark.anyio
 async def test_predeadline_first_and_replacement_snapshot_and_supersede() -> None:
     repository, capture = Repository(), Capture()
+    first_order: list[str] = []
     first = await _service(repository, capture, NOW).submit_work(
-        transaction=object(),
+        transaction=first_order,
         organization_id=ORG,
         submission_id=SUBMISSION,
         expected_submission_revision=0,
@@ -229,10 +238,11 @@ async def test_predeadline_first_and_replacement_snapshot_and_supersede() -> Non
         request_id=UUID(int=1),
         trace_id=UUID(int=2),
     )
+    replacement_order: list[str] = []
     second = await _service(
         repository, capture, NOW + timedelta(hours=1), id_start=1200
     ).submit_work(
-        transaction=object(),
+        transaction=replacement_order,
         organization_id=ORG,
         submission_id=SUBMISSION,
         expected_submission_revision=1,
@@ -251,6 +261,13 @@ async def test_predeadline_first_and_replacement_snapshot_and_supersede() -> Non
     assert len(capture.requests) == 2
     assert capture.requests[-1].operation_id == second.version.capture_operation_id
     assert capture.requests[-1].homework_publication_id == PUBLICATION
+    assert first_order == ["append_version", "schedule_capture", "submission_cas"]
+    assert replacement_order == [
+        "append_version",
+        "schedule_capture",
+        "supersede",
+        "submission_cas",
+    ]
 
 
 @pytest.mark.anyio
@@ -279,9 +296,10 @@ async def test_late_version_is_pending_and_does_not_open_or_replace_review() -> 
 async def test_stale_cas_and_wrong_tenant_reference_fail_before_capture() -> None:
     repository, capture = Repository(), Capture()
     repository.fail_cas = True
+    failed_order: list[str] = []
     with pytest.raises(SubmissionRevisionConflict):
         await _service(repository, capture, NOW).submit_work(
-            transaction=object(),
+            transaction=failed_order,
             organization_id=ORG,
             submission_id=SUBMISSION,
             expected_submission_revision=0,
@@ -291,7 +309,10 @@ async def test_stale_cas_and_wrong_tenant_reference_fail_before_capture() -> Non
             trace_id=UUID(int=8),
         )
     assert repository.versions == []
-    assert capture.requests == []
+    assert failed_order == ["append_version", "schedule_capture", "submission_cas"]
+    # The scheduler request is staged in the same caller-owned transaction;
+    # the propagated CAS error makes the real unit of work roll it back.
+    assert len(capture.requests) == 1
 
     repository.fail_cas = False
     repository.references[REFERENCE] = replace(
@@ -308,7 +329,7 @@ async def test_stale_cas_and_wrong_tenant_reference_fail_before_capture() -> Non
             request_id=UUID(int=9),
             trace_id=UUID(int=10),
         )
-    assert capture.requests == []
+    assert len(capture.requests) == 1
 
 
 @pytest.mark.anyio
