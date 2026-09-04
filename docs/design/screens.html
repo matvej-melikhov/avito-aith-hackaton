@@ -927,7 +927,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С3">
   <div class="screen__head"><span class="screen__id">С3</span><h2>Та же страница в статусе «Нужны правки»</h2></div>
   <p class="screen__note">Ревьюер вернул работу. Разбор и комментарий лежат в табе Ревью блоком попытки, прошлые проверки в табе ИИ-ревью. Новая версия уходит формой ниже.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал. В блоке попытки только невыполненные требования, дальше строка «Другие», итог с чертой и вердикт строкой. Форма та же, что при первой сдаче.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал. В блоке попытки только невыполненные требования, дальше строка «Другие», итог с чертой и вердикт в той же сетке. Форма та же, что при первой сдаче.</p>
   <div class="shot" style="height:858px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
@@ -978,15 +978,18 @@ a:hover { border-bottom-color: var(--ink); }
                     <div class="acc__h"><span class="acc__t">Попытка 1, 20.02, 15:10</span><span class="acc__chev">▲</span></div>
                     <div class="acc__b" style="padding-left:0">
                       <div class="kv"><span style="color:var(--ink)">Контракты: формат, входы, выходы, ошибки</span><span class="neg">0 из 1</span></div>
+                      <div class="kv"><span style="color:var(--ink)">Диаграмма C4, контекст и компоненты</span><span class="neg">0 из 1</span></div>
                       <div class="kv"><span style="color:var(--ink)">Анализ связности компонентов</span><span class="neg">0 из 0,5</span></div>
                       <div class="kv"><span style="color:var(--ink)">Обоснование выбора границ компонентов</span><span class="neg">0 из 0,5</span></div>
-                      <div class="kv"><span style="color:var(--ink)">Другие</span><span style="color:var(--ink)">3 из 4</span></div>
-                      <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:var(--s-2);padding-top:var(--s-4)">
+                      <div class="kv" style="border-bottom:0"><span style="color:var(--ink)">Другие</span><span style="color:var(--ink)">3 из 3</span></div>
+                      <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);padding-top:var(--s-4)">
                         <span style="color:var(--ink);font-weight:var(--w-medium)">Итого</span><span style="color:var(--ink);font-weight:var(--w-semi)">3,0 из 6</span>
                       </div>
-                      <div class="small" style="margin-top:var(--s-3)">Вердикт: <b style="color:var(--bad)">не прошла проверку</b></div>
+                      <div class="kv" style="border-bottom:0">
+                        <span style="color:var(--ink)">Вердикт</span><span style="color:var(--bad);font-weight:var(--w-semi)">не прошла проверку</span>
+                      </div>
                       <div class="label" style="margin:var(--s-5) 0 var(--s-2)">Комментарий ревьюера, rev-2214</div>
-                      <div class="small" style="color:var(--ink-2);line-height:1.65">Привет! Структура хорошая, диаграммы читаются. Три вещи мешают зачёту: внутренние вызовы описаны без входов и выходов, нет анализа связности, по границам компонентов не хватает обоснования. Остальное принято. Пришлите правки до 23 февраля.</div>
+                      <div class="small" style="color:var(--ink-2);line-height:1.65">Привет! Декомпозиция и интерфейсы в порядке, диаграмма последовательностей читается. Четыре вещи мешают зачёту: нет диаграмм C4, внутренние вызовы описаны без входов и выходов, нет анализа связности, по границам компонентов не хватает обоснования. Остальное принято. Пришлите правки до 23 февраля.</div>
                     </div>
                   </div>
                 </div>
@@ -1029,7 +1032,6 @@ a:hover { border-bottom-color: var(--ink); }
                   </div>
                 </div>
               </div>
-              <div class="note">Пересдача после замечаний не считается просрочкой. Штраф начисляется только за первую сдачу позже срока.</div>
             </div>
           </div>
         </div>
