@@ -251,6 +251,33 @@ table.tbl{width:100%; border-collapse:collapse}
 .crit .acts{margin:12px 0 0 38px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
 .crit.own{background:var(--brand-soft); margin:0 -20px; padding:18px 20px; border-radius:10px; border-top:0}
 
+/* ── критерий-аккордеон с местами нарушений ── */
+.acc{border-top:1px solid var(--line)}
+.acc:first-child{border-top:0}
+.acc-h{display:flex; align-items:center; gap:14px; padding:13px 0}
+.acc-h .t{flex:1; font-size:15px; font-weight:550; line-height:1.4}
+.acc-h .cnt{font-size:12.5px; color:var(--bad); white-space:nowrap}
+.chev{width:22px; height:22px; border-radius:6px; background:var(--app-3); color:var(--ink-3);
+  display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0}
+.acc.open .chev{background:var(--brand); color:#fff}
+.acc-b{padding:0 0 16px 38px}
+.finding{border:1px solid var(--line); border-radius:9px; overflow:hidden; background:var(--app)}
+.finding + .finding{margin-top:10px}
+.f-src{display:flex; align-items:center; gap:12px; padding:9px 12px; border-bottom:1px solid var(--line); background:var(--app-2)}
+.f-file{font-family:"JetBrains Mono",monospace; font-size:12.5px; color:var(--brand)}
+.f-lines{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--ink-3)}
+.f-open{margin-left:auto; font-size:12.5px; color:var(--brand)}
+.code{font-family:"JetBrains Mono",monospace; font-size:12.5px; line-height:1.75; padding:8px 0}
+.cl{display:flex; gap:14px; padding:0 12px}
+.cl .n{color:var(--ink-3); min-width:30px; text-align:right}
+.cl .x{color:var(--ink-2); white-space:pre-wrap}
+.cl.hit{background:var(--bad-soft)}
+.cl.hit .x{color:var(--ink)}
+.cl.hit .n{color:var(--bad)}
+.f-why{padding:10px 12px; border-top:1px solid var(--line); font-size:13.5px;
+  color:var(--ink-2); line-height:1.55; background:var(--app-2)}
+.acc-empty{font-size:13.5px; color:var(--ink-3); padding:0 0 4px}
+
 .scale{display:inline-flex; border:1px solid var(--line-2); border-radius:8px; overflow:hidden; background:var(--app)}
 .scale > *{padding:7px 14px; font-size:13.5px; color:var(--ink-2); border-left:1px solid var(--line-2);
   font-family:"JetBrains Mono",monospace}
@@ -501,28 +528,51 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <span class="btn sm">Проверить повторно, осталось 2</span>
               </div>
               <div class="cb">
-                <div class="crit">
-                  <div class="r1"><span class="ck n">✕</span><div class="nm">Контракты: формат, входы, выходы, ошибки</div></div>
-                  <div class="why">Формат ответа и коды ошибок описаны для внешнего интерфейса. Для внутренних вызовов между Outfits и Wardrobe не указаны входы и выходы.</div>
+                <div class="acc open">
+                  <div class="acc-h">
+                    <span class="ck n">✕</span><div class="t">Контракты: формат, входы, выходы, ошибки</div>
+                    <span class="cnt">2 места</span><span class="chev">▲</span>
+                  </div>
+                  <div class="acc-b">
+                    <div class="finding">
+                      <div class="f-src"><span class="f-file">docs/architecture.md</span><span class="f-lines">строки 112–114</span><span class="f-open">Открыть</span></div>
+                      <div class="code">
+                        <div class="cl hit"><span class="n">112</span><span class="x">### 5.1 Единый формат ошибок для I1</span></div>
+                        <div class="cl hit"><span class="n">113</span><span class="x">Все ошибки возвращаются как {code, message}.</span></div>
+                        <div class="cl"><span class="n">114</span><span class="x">Коды: 400, 404, 409, 500.</span></div>
+                      </div>
+                      <div class="f-why">Здесь есть формат и ошибки, но нет входов и выходов. Требование просит все четыре элемента.</div>
+                    </div>
+                    <div class="finding">
+                      <div class="f-src"><span class="f-file">docs/architecture.md</span><span class="f-lines">строки 78–79</span><span class="f-open">Открыть</span></div>
+                      <div class="code">
+                        <div class="cl hit"><span class="n">78</span><span class="x">I2: Outfits обращается к Wardrobe за списком вещей.</span></div>
+                        <div class="cl hit"><span class="n">79</span><span class="x">I3: Wardrobe обращается к Catalog за размерами.</span></div>
+                      </div>
+                      <div class="f-why">Внутренние вызовы названы, но контракт для них не описан совсем.</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck n">✕</span><div class="nm">Анализ связности компонентов</div></div>
-                  <div class="why">В работе нет раздела, где разбираются зависимости между компонентами. В задании это отдельный пункт.</div>
+                <div class="acc">
+                  <div class="acc-h">
+                    <span class="ck n">✕</span><div class="t">Анализ связности компонентов</div>
+                    <span class="cnt">не найдено в работе</span><span class="chev">▼</span>
+                  </div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck y">✓</span><div class="nm">Декомпозиция по двум и более признакам</div></div>
+                <div class="acc">
+                  <div class="acc-h"><span class="ck y">✓</span><div class="t">Декомпозиция по двум и более признакам</div><span class="chev">▼</span></div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck y">✓</span><div class="nm">Диаграмма C4, контекст и компоненты</div></div>
+                <div class="acc">
+                  <div class="acc-h"><span class="ck y">✓</span><div class="t">Диаграмма C4, контекст и компоненты</div><span class="chev">▼</span></div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck y">✓</span><div class="nm">Диаграмма последовательностей</div></div>
+                <div class="acc">
+                  <div class="acc-h"><span class="ck y">✓</span><div class="t">Диаграмма последовательностей</div><span class="chev">▼</span></div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck y">✓</span><div class="nm">Интерфейсы между компонентами описаны</div></div>
+                <div class="acc">
+                  <div class="acc-h"><span class="ck y">✓</span><div class="t">Интерфейсы между компонентами описаны</div><span class="chev">▼</span></div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck y">✓</span><div class="nm">Предложены способы снижения связности</div></div>
+                <div class="acc">
+                  <div class="acc-h"><span class="ck y">✓</span><div class="t">Предложены способы снижения связности</div><span class="chev">▼</span></div>
                 </div>
               </div>
               <div class="cf">
@@ -593,20 +643,46 @@ document.addEventListener('DOMContentLoaded', fitShots);
             <div class="card" style="margin-bottom:20px">
               <div class="ch"><div><h4>Что просил поправить ревьюер</h4><div class="sub">Оценка за попытку 1, разбор по требованиям задания</div></div></div>
               <div class="cb">
-                <div class="crit">
-                  <div class="r1"><span class="ck n">✕</span><div class="nm">Контракты: формат, входы, выходы, ошибки</div><span class="tag mono">0 из 1</span></div>
-                  <div class="why">Опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe. Сейчас описан только внешний интерфейс.</div>
+                <div class="acc open">
+                  <div class="acc-h">
+                    <span class="ck n">✕</span><div class="t">Контракты: формат, входы, выходы, ошибки</div>
+                    <span class="cnt">2 места</span><span class="tag mono">0 из 1</span><span class="chev">▲</span>
+                  </div>
+                  <div class="acc-b">
+                    <div class="finding">
+                      <div class="f-src"><span class="f-file">docs/architecture.md</span><span class="f-lines">строки 78–79</span><span class="f-open">Открыть</span></div>
+                      <div class="code">
+                        <div class="cl hit"><span class="n">78</span><span class="x">I2: Outfits обращается к Wardrobe за списком вещей.</span></div>
+                        <div class="cl hit"><span class="n">79</span><span class="x">I3: Wardrobe обращается к Catalog за размерами.</span></div>
+                      </div>
+                      <div class="f-why">Опиши входы и выходы для этих вызовов. Сейчас описан только внешний интерфейс.</div>
+                    </div>
+                    <div class="finding">
+                      <div class="f-src"><span class="f-file">docs/architecture.md</span><span class="f-lines">строка 112</span><span class="f-open">Открыть</span></div>
+                      <div class="code">
+                        <div class="cl hit"><span class="n">112</span><span class="x">### 5.1 Единый формат ошибок для I1</span></div>
+                      </div>
+                      <div class="f-why">Раздел про контракты есть только для I1, добавь такой же для I2 и I3.</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck n">✕</span><div class="nm">Анализ связности компонентов</div><span class="tag mono">0 из 0.5</span></div>
-                  <div class="why">Раздела нет. Нужен разбор зависимостей между компонентами, а не общая фраза про слабую связность.</div>
+                <div class="acc">
+                  <div class="acc-h">
+                    <span class="ck n">✕</span><div class="t">Анализ связности компонентов</div>
+                    <span class="cnt">не найдено в работе</span><span class="tag mono">0 из 0.5</span><span class="chev">▼</span>
+                  </div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck n">✕</span><div class="nm">Обоснование выбора границ компонентов</div><span class="tag mono">0.5 из 1</span></div>
-                  <div class="why">Границы перечислены, но не объяснено, почему выбраны именно они.</div>
+                <div class="acc">
+                  <div class="acc-h">
+                    <span class="ck n">✕</span><div class="t">Обоснование выбора границ компонентов</div>
+                    <span class="cnt">1 место</span><span class="tag mono">0.5 из 1</span><span class="chev">▼</span>
+                  </div>
                 </div>
-                <div class="crit">
-                  <div class="r1"><span class="ck y">✓</span><div class="nm">Остальные 4 требования зачтены</div><span class="tag mono">3 из 3.5</span></div>
+                <div class="acc">
+                  <div class="acc-h">
+                    <span class="ck y">✓</span><div class="t">Остальные 4 требования зачтены</div>
+                    <span class="tag mono">3 из 3.5</span><span class="chev">▼</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -763,28 +839,46 @@ document.addEventListener('DOMContentLoaded', fitShots);
               <div class="sum"><span class="v">5.0</span><span class="of">из 6</span></div>
             </div>
             <div class="cb">
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Составлен чек-лист проверки формы</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h"><span class="ck y">✓</span><div class="t">Составлен чек-лист проверки формы</div><span class="tag mono">1 из 1</span><span class="chev">▼</span></div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Выделены классы эквивалентности</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h"><span class="ck y">✓</span><div class="t">Выделены классы эквивалентности</div><span class="tag mono">1 из 1</span><span class="chev">▼</span></div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Описаны граничные значения</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h"><span class="ck y">✓</span><div class="t">Описаны граничные значения</div><span class="tag mono">1 из 1</span><span class="chev">▼</span></div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Негативные сценарии покрыты</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h"><span class="ck y">✓</span><div class="t">Негативные сценарии покрыты</div><span class="tag mono">1 из 1</span><span class="chev">▼</span></div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck n">✕</span><div class="nm">Приоритеты тест-кейсов расставлены и обоснованы</div><span class="tag mono">0.5 из 1</span></div>
-                <div class="why">Приоритеты проставлены, но обоснования нет. По каким критериям кейс попал в высокий приоритет, из работы не следует.</div>
+              <div class="acc open">
+                <div class="acc-h">
+                  <span class="ck n">✕</span><div class="t">Приоритеты тест-кейсов расставлены и обоснованы</div>
+                  <span class="cnt">1 место</span><span class="tag mono">0.5 из 1</span><span class="chev">▲</span>
+                </div>
+                <div class="acc-b">
+                  <div class="finding">
+                    <div class="f-src"><span class="f-file">test-design.md</span><span class="f-lines">строки 42–46</span><span class="f-open">Открыть</span></div>
+                    <div class="code">
+                      <div class="cl"><span class="n">41</span><span class="x">| Кейс | Описание | Приоритет |</span></div>
+                      <div class="cl hit"><span class="n">42</span><span class="x">| TC-01 | Пустая форма | Высокий |</span></div>
+                      <div class="cl hit"><span class="n">43</span><span class="x">| TC-02 | Невалидный email | Высокий |</span></div>
+                      <div class="cl hit"><span class="n">44</span><span class="x">| TC-03 | Длина пароля 7 символов | Средний |</span></div>
+                      <div class="cl"><span class="n">45</span><span class="x"></span></div>
+                    </div>
+                    <div class="f-why">Приоритеты проставлены, но обоснования нет. По каким критериям кейс попал в высокий приоритет, из работы не следует.</div>
+                  </div>
+                </div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Оформление и структура документа</div><span class="tag mono">0.5 из 0.5</span></div>
+              <div class="acc">
+                <div class="acc-h"><span class="ck y">✓</span><div class="t">Оформление и структура документа</div><span class="tag mono">0.5 из 0.5</span><span class="chev">▼</span></div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck q">i</span><div class="nm">Читаемость формулировок кейсов</div><span class="tag">добавил ревьюер</span></div>
-                <div class="why">Кейсы написаны так, что их может прогнать другой человек без уточнений. Отдельных баллов за это в задании нет, отмечаю как плюс.</div>
+              <div class="acc" style="background:var(--app-2); margin:0 -20px; padding:0 20px">
+                <div class="acc-h">
+                  <span class="ck q">i</span><div class="t">Читаемость формулировок кейсов</div>
+                  <span class="tag">добавил ревьюер</span><span class="chev">▲</span>
+                </div>
+                <div class="acc-b"><div class="acc-empty">Кейсы написаны так, что их может прогнать другой человек без уточнений. Отдельных баллов за это в задании нет, отмечено как плюс.</div></div>
               </div>
             </div>
             <div class="cf">
@@ -1211,71 +1305,103 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <span class="btn sm">Принять все</span>
               </div>
               <div class="cb">
-                <div class="crit">
-                  <div class="r1">
+                <div class="acc open">
+                  <div class="acc-h">
                     <span class="ck y">✓</span>
-                    <div class="nm">Декомпозиция по двум и более признакам</div>
+                    <div class="t">Декомпозиция по двум и более признакам</div>
                     <span class="scale-lbl">шкала</span>
                     <span class="scale"><span>0</span><span class="on">1</span></span>
+                    <span class="chev">▲</span>
                   </div>
-                  <div class="quote">«2.1 По доменам и данным, 2.2 По ролям» — оба разреза описаны и объяснены.</div>
+                  <div class="acc-b"><div class="acc-empty">Нарушений не найдено</div></div>
                 </div>
 
-                <div class="crit">
-                  <div class="r1">
+                <div class="acc">
+                  <div class="acc-h">
                     <span class="ck y">✓</span>
-                    <div class="nm">Диаграмма C4, контекст и компоненты</div>
+                    <div class="t">Диаграмма C4, контекст и компоненты</div>
                     <span class="scale-lbl">шкала</span>
                     <span class="scale"><span>0</span><span class="on">1</span></span>
-                  </div>
-                </div>
-
-                <div class="crit">
-                  <div class="r1">
-                    <span class="ck y">✓</span>
-                    <div class="nm">Диаграмма последовательностей для основного сценария</div>
-                    <span class="scale-lbl">шкала</span>
-                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                    <span class="chev">▼</span>
                   </div>
                 </div>
 
-                <div class="crit">
-                  <div class="r1">
+                <div class="acc">
+                  <div class="acc-h">
                     <span class="ck y">✓</span>
-                    <div class="nm">Интерфейсы между компонентами описаны</div>
+                    <div class="t">Диаграмма последовательностей для основного сценария</div>
                     <span class="scale-lbl">шкала</span>
                     <span class="scale"><span>0</span><span class="on">1</span></span>
+                    <span class="chev">▼</span>
                   </div>
                 </div>
 
-                <div class="crit">
-                  <div class="r1">
+                <div class="acc">
+                  <div class="acc-h">
+                    <span class="ck y">✓</span>
+                    <div class="t">Интерфейсы между компонентами описаны</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                    <span class="chev">▼</span>
+                  </div>
+                </div>
+
+                <div class="acc open">
+                  <div class="acc-h">
                     <span class="ck n">✕</span>
-                    <div class="nm">Контракты: формат, входы, выходы, ошибки</div>
+                    <div class="t">Контракты: формат, входы, выходы, ошибки</div>
+                    <span class="cnt">2 места</span>
                     <span class="scale-lbl">шкала</span>
                     <span class="scale"><span class="on">0</span><span>0.5</span><span>1</span></span>
+                    <span class="chev">▲</span>
                   </div>
-                  <div class="quote">«5.1 Единый формат ошибок для I1» — описан только внешний интерфейс. Для внутренних вызовов I2 и I3 входы и выходы не заданы.</div>
+                  <div class="acc-b">
+                    <div class="finding">
+                      <div class="f-src"><span class="f-file">docs/architecture.md</span><span class="f-lines">строки 112–117</span><span class="f-open">Открыть в репозитории</span></div>
+                      <div class="code">
+                        <div class="cl"><span class="n">110</span><span class="x">## 5. Контракты интерфейсов</span></div>
+                        <div class="cl"><span class="n">111</span><span class="x"></span></div>
+                        <div class="cl hit"><span class="n">112</span><span class="x">### 5.1 Единый формат ошибок для I1</span></div>
+                        <div class="cl hit"><span class="n">113</span><span class="x">Все ошибки возвращаются как {code, message}.</span></div>
+                        <div class="cl hit"><span class="n">114</span><span class="x">Коды: 400, 404, 409, 500.</span></div>
+                        <div class="cl"><span class="n">115</span><span class="x"></span></div>
+                        <div class="cl"><span class="n">116</span><span class="x">## 6. Нефункциональные требования</span></div>
+                      </div>
+                      <div class="f-why">Описан только внешний интерфейс I1. Для него заданы формат и ошибки, но не входы и выходы. Требование просит все четыре элемента.</div>
+                    </div>
+                    <div class="finding">
+                      <div class="f-src"><span class="f-file">docs/architecture.md</span><span class="f-lines">строки 78–83</span><span class="f-open">Открыть в репозитории</span></div>
+                      <div class="code">
+                        <div class="cl"><span class="n">77</span><span class="x">## 4. Внутренние вызовы</span></div>
+                        <div class="cl hit"><span class="n">78</span><span class="x">I2: Outfits обращается к Wardrobe за списком вещей.</span></div>
+                        <div class="cl hit"><span class="n">79</span><span class="x">I3: Wardrobe обращается к Catalog за размерами.</span></div>
+                        <div class="cl"><span class="n">80</span><span class="x"></span></div>
+                        <div class="cl"><span class="n">81</span><span class="x">Оба вызова синхронные.</span></div>
+                      </div>
+                      <div class="f-why">Внутренние вызовы I2 и I3 названы, но контракт не описан: нет ни формата, ни входов и выходов, ни ошибок.</div>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="crit">
-                  <div class="r1">
+                <div class="acc">
+                  <div class="acc-h">
                     <span class="ck n">✕</span>
-                    <div class="nm">Анализ связности компонентов</div>
+                    <div class="t">Анализ связности компонентов</div>
+                    <span class="cnt">1 место</span>
                     <span class="scale-lbl">шкала</span>
                     <span class="scale"><span class="on">0</span><span>0.5</span></span>
+                    <span class="chev">▼</span>
                   </div>
-                  <div class="quote">Раздела с разбором зависимостей в работе нет. Ближайшее по смыслу — фраза «компоненты слабо связаны» в выводах, без разбора.</div>
                 </div>
 
-                <div class="crit">
-                  <div class="r1">
+                <div class="acc">
+                  <div class="acc-h">
                     <span class="ck y">✓</span>
-                    <div class="nm">Предложены способы снижения связности</div>
+                    <div class="t">Предложены способы снижения связности</div>
                     <span class="scale-lbl">шкала</span>
                     <span class="scale"><span>0</span><span class="on">0.5</span></span>
+                    <span class="chev">▼</span>
                   </div>
-                  <div class="quote">«7. Что можно развязать» — предложены очередь событий и вынос справочника размеров.</div>
                 </div>
 
                 <div class="crit own">
@@ -1978,32 +2104,67 @@ document.addEventListener('DOMContentLoaded', fitShots);
               <div class="sum"><span class="v">5.0</span><span class="of">из 6</span></div>
             </div>
             <div class="cb">
-              <div class="crit" style="border-top:0">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Выполнена декомпозиция по двум и более признакам</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck y">✓</span><div class="t">Выполнена декомпозиция по двум и более признакам</div>
+                  <span class="tag mono">1 из 1</span><span class="chev">▼</span>
+                </div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Построена диаграмма C4: контекст и компоненты</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck y">✓</span><div class="t">Построена диаграмма C4: контекст и компоненты</div>
+                  <span class="tag mono">1 из 1</span><span class="chev">▼</span>
+                </div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Диаграмма последовательностей для основного сценария</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck y">✓</span><div class="t">Диаграмма последовательностей для основного сценария</div>
+                  <span class="tag mono">1 из 1</span><span class="chev">▼</span>
+                </div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Интерфейсы между компонентами описаны</div><span class="tag mono">1 из 1</span></div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck y">✓</span><div class="t">Интерфейсы между компонентами описаны</div>
+                  <span class="tag mono">1 из 1</span><span class="chev">▼</span>
+                </div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck n">✕</span><div class="nm">Контракты: формат, входы, выходы, ошибки</div><span class="tag mono">0.5 из 1</span></div>
-                <div class="quote">«5.2 Ошибки I2» — во второй попытке добавлены ошибки внутренних вызовов, входы и выходы описаны частично.</div>
+              <div class="acc open">
+                <div class="acc-h">
+                  <span class="ck n">✕</span><div class="t">Контракты: формат, входы, выходы, ошибки</div>
+                  <span class="cnt">1 место</span><span class="tag mono">0.5 из 1</span><span class="chev">▲</span>
+                </div>
+                <div class="acc-b">
+                  <div class="finding">
+                    <div class="f-src"><span class="f-file">docs/architecture.md</span><span class="f-lines">строки 84–89</span><span class="f-open">Открыть в репозитории</span></div>
+                    <div class="code">
+                      <div class="cl"><span class="n">83</span><span class="x">### 5.2 Ошибки внутренних вызовов</span></div>
+                      <div class="cl"><span class="n">84</span><span class="x">I2 возвращает 404, если вещь не найдена.</span></div>
+                      <div class="cl hit"><span class="n">85</span><span class="x">I3 возвращает 503 при недоступности Catalog.</span></div>
+                      <div class="cl hit"><span class="n">86</span><span class="x"></span></div>
+                      <div class="cl"><span class="n">87</span><span class="x">## 6. Анализ связности</span></div>
+                    </div>
+                    <div class="f-why">Во второй попытке добавлены ошибки внутренних вызовов. Входы и выходы для I3 по-прежнему не описаны, поэтому требование закрыто наполовину.</div>
+                  </div>
+                </div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Проведён анализ связности компонентов</div><span class="tag mono">0.5 из 0.5</span></div>
-                <div class="quote">Модель предлагала 0. Ревьюер изменил: «раздел 6 добавлен во второй попытке, зависимости разобраны по парам компонентов».</div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck y">✓</span><div class="t">Проведён анализ связности компонентов</div>
+                  <span class="tag">изменено ревьюером</span><span class="tag mono">0.5 из 0.5</span><span class="chev">▼</span>
+                </div>
               </div>
-              <div class="crit">
-                <div class="r1"><span class="ck y">✓</span><div class="nm">Предложены способы снижения связности</div><span class="tag mono">0 из 0.5</span></div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck n">✕</span><div class="t">Предложены способы снижения связности</div>
+                  <span class="cnt">1 место</span><span class="tag mono">0 из 0.5</span><span class="chev">▼</span>
+                </div>
               </div>
-              <div class="crit own" style="background:var(--app-2)">
-                <div class="r1"><span class="ck q">i</span><div class="nm">Читаемость диаграмм без пояснений в тексте</div><span class="tag">добавил ревьюер, без баллов</span></div>
-                <div class="why">Диаграммы понятны без сопроводительного текста, это заметно лучше среднего по потоку.</div>
+              <div class="acc" style="background:var(--app-2); margin:0 -20px; padding:0 20px">
+                <div class="acc-h">
+                  <span class="ck q">i</span><div class="t">Читаемость диаграмм без пояснений в тексте</div>
+                  <span class="tag">добавил ревьюер, без баллов</span><span class="chev">▲</span>
+                </div>
+                <div class="acc-b"><div class="acc-empty">Диаграммы понятны без сопроводительного текста, это заметно лучше среднего по потоку. Мест нарушения нет, требование добавлено как отметка.</div></div>
               </div>
             </div>
             <div class="cf"><span class="hint">Ответ студенту отправлен 18 февраля</span><span class="btn link">Показать текст ответа</span></div>
