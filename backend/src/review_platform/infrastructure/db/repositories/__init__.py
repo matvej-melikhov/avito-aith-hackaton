@@ -1,5 +1,6 @@
 """Tenant-scoped persistence repositories."""
 
+from review_platform.infrastructure.db.repositories.homeworks import SqlHomeworkRepository
 from review_platform.infrastructure.db.repositories.identity import (
     AgentAuthorizationRepository,
     ExternalCredentialRepository,
@@ -45,5 +46,6 @@ __all__ = [
     "OutboxRepository",
     "ReceiptRepository",
     "SessionRepository",
+    "SqlHomeworkRepository",
     "UserIdentityRepository",
 ]
