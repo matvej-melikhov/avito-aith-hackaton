@@ -26,6 +26,18 @@ from review_platform.infrastructure.db.repositories.operations import (
     OutboxRepository,
     ReceiptRepository,
 )
+from review_platform.infrastructure.db.repositories.submissions import (
+    SqlArtifactCaptureAuthorization,
+    SqlArtifactCaptureRepository,
+    SqlArtifactCredentialBindings,
+    SqlArtifactPreflightArchiveGuard,
+    SqlArtifactPreflightRepository,
+    SqlArtifactPromotionOutbox,
+    SqlCaptureScheduler,
+    SqlReviewIterationRepository,
+    SqlSubmissionRepository,
+    SqlSubmissionScopeAuthorization,
+)
 
 __all__ = [
     "AgentAuthorizationRepository",
@@ -46,6 +58,16 @@ __all__ = [
     "OutboxRepository",
     "ReceiptRepository",
     "SessionRepository",
+    "SqlArtifactCaptureAuthorization",
+    "SqlArtifactCaptureRepository",
+    "SqlArtifactCredentialBindings",
+    "SqlArtifactPreflightArchiveGuard",
+    "SqlArtifactPreflightRepository",
+    "SqlArtifactPromotionOutbox",
+    "SqlCaptureScheduler",
     "SqlHomeworkRepository",
+    "SqlReviewIterationRepository",
+    "SqlSubmissionRepository",
+    "SqlSubmissionScopeAuthorization",
     "UserIdentityRepository",
 ]
