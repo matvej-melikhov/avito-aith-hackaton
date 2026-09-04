@@ -702,8 +702,8 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С1">
   <div class="screen__head"><span class="screen__id">С1</span><h2>Страница домашки по ссылке, до сдачи</h2></div>
   <p class="screen__note">Студент приходит по ссылке из Stepik, платформа узнаёт его по Stepik ID. Работа прикладывается ссылкой на репозиторий или файлами. Отсюда доступны оба действия — прогнать ИИ-ревью и отправить на ревью.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Контекст один, в плашке: курс и лаба строкой капители, топбар курсом не дублируется. Срок, порог и текущий статус в плашке даны полями «подпись — значение». Табов без результатов проверок нет. Правило штрафа замечанием под рубрикой, с отступом от карточки. В подвале формы главное действие первое слева, рядом вторичное с пояснением. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
-  <div class="shot" style="height:774px"><div class="vp">
+  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Контекст один, в плашке: курс и лаба строкой капители, топбар курсом не дублируется. Срок и порог зачёта в плашке даны полями «подпись — значение», статуса здесь нет: до первой сдачи он не несёт смысла. Табов без результатов проверок нет. Правило штрафа замечанием под рубрикой, с отступом от карточки. В подвале формы главное действие первое слева, рядом вторичное с пояснением. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
+  <div class="shot" style="height:778px"><div class="vp">
     <div style="background:var(--surface);min-height:1030px">
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
@@ -732,10 +732,6 @@ a:hover { border-bottom-color: var(--ink); }
             <div>
               <span class="caption" style="display:block">Порог зачёта</span>
               <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
-            </div>
-            <div>
-              <span class="caption" style="display:block">Статус</span>
-              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">Черновик</div>
             </div>
           </div>
         </div>
@@ -895,7 +891,7 @@ a:hover { border-bottom-color: var(--ink); }
                 <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
                   <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
                   <span class="btn" style="flex:none">ИИ-ревью</span>
-                  <span class="caption">Проверено 17 февраля в 14:20, осталось 2 попытки. Результат видит ревьюер.</span>
+                  <span class="caption">Проверено ИИ-ревью 17 февраля в 14:20, осталось 2 попытки. Результат видит ревьюер.</span>
                 </span>
               </div>
             </div>
@@ -1066,7 +1062,7 @@ a:hover { border-bottom-color: var(--ink); }
               <tbody>
                 <tr>
                   <td><div class="who">Лабораторная 1. Декомпозиция сервиса</div></td>
-                  <td>Системный дизайн</td><td class="n">23.02, 23:59</td><td class="n">2</td><td class="n r">3.0</td>
+                  <td>Системный дизайн</td><td class="n">23.02, 23:59</td><td class="n">2</td><td class="n r">3,0</td>
                   <td class="r"><span class="st st--fix">Нужны правки</span></td>
                 </tr>
                 <tr>
@@ -1086,12 +1082,12 @@ a:hover { border-bottom-color: var(--ink); }
                 </tr>
                 <tr class="is-done">
                   <td><div class="who">Домашнее задание 1. Введение</div></td>
-                  <td>Tech QA</td><td class="n">10.02, 23:59</td><td class="n">1</td><td class="n r">5.0</td>
+                  <td>Tech QA</td><td class="n">10.02, 23:59</td><td class="n">1</td><td class="n r">5,0</td>
                   <td class="r"><span class="st st--pass">Зачтена</span></td>
                 </tr>
                 <tr class="is-done">
                   <td><div class="who">Вводное задание. Выбор проекта</div></td>
-                  <td>Системный дизайн</td><td class="n">05.02, 23:59</td><td class="n">1</td><td class="n r">4.5</td>
+                  <td>Системный дизайн</td><td class="n">05.02, 23:59</td><td class="n">1</td><td class="n r">4,5</td>
                   <td class="r"><span class="st st--pass">Зачтена</span></td>
                 </tr>
               </tbody>
@@ -2203,12 +2199,12 @@ a:hover { border-bottom-color: var(--ink); }
                 <tbody>
                   <tr><td class="n mono">4790</td><td><span class="st st--review">На ревью</span></td><td class="n mono">rev-2214</td><td class="n">1</td><td class="n">18 фев</td><td class="n">19 фев</td><td class="n r">—</td></tr>
                   <tr><td class="n mono">4821</td><td><span class="st st--rereview">На повторном ревью</span></td><td class="n mono">rev-2214</td><td class="n">2</td><td class="n">14 фев</td><td class="n">21 фев</td><td class="n r">—</td></tr>
-                  <tr><td class="n mono">4805</td><td><span class="st st--fix">Нужны правки</span></td><td class="n mono">rev-3390</td><td class="n">1</td><td class="n">16 фев</td><td class="n">18 фев</td><td class="n r">3.0</td></tr>
+                  <tr><td class="n mono">4805</td><td><span class="st st--fix">Нужны правки</span></td><td class="n mono">rev-3390</td><td class="n">1</td><td class="n">16 фев</td><td class="n">18 фев</td><td class="n r">3,0</td></tr>
                   <tr class="is-hot"><td class="n mono">4902</td><td><span class="st st--sent">Сдана</span></td><td class="n" style="color:var(--late)">в пуле 5 дней</td><td class="n">1</td><td class="n">14 фев</td><td class="n">14 фев</td><td class="n r">—</td></tr>
-                  <tr class="is-done"><td class="n mono">4776</td><td><span class="st st--pass">Зачтена</span></td><td class="n mono">rev-2214</td><td class="n">2</td><td class="n">12 фев</td><td class="n">18 фев</td><td class="n r">5.0</td></tr>
-                  <tr class="is-done"><td class="n mono">4744</td><td><span class="st st--pass">Зачтена</span></td><td class="n mono">rev-4102</td><td class="n">1</td><td class="n">13 фев</td><td class="n">15 фев</td><td class="n r">4.5</td></tr>
-                  <tr class="is-done"><td class="n mono">4712</td><td><span class="st st--fail">Не зачтена</span></td><td class="n mono">rev-3390</td><td class="n">2</td><td class="n">11 фев</td><td class="n">20 фев</td><td class="n r">3.5</td></tr>
-                  <tr class="is-done"><td class="n mono">4698</td><td><span class="st st--pass">Зачтена</span></td><td class="n mono">rev-4102</td><td class="n">1</td><td class="n">10 фев</td><td class="n">12 фев</td><td class="n r">6.0</td></tr>
+                  <tr class="is-done"><td class="n mono">4776</td><td><span class="st st--pass">Зачтена</span></td><td class="n mono">rev-2214</td><td class="n">2</td><td class="n">12 фев</td><td class="n">18 фев</td><td class="n r">5,0</td></tr>
+                  <tr class="is-done"><td class="n mono">4744</td><td><span class="st st--pass">Зачтена</span></td><td class="n mono">rev-4102</td><td class="n">1</td><td class="n">13 фев</td><td class="n">15 фев</td><td class="n r">4,5</td></tr>
+                  <tr class="is-done"><td class="n mono">4712</td><td><span class="st st--fail">Не зачтена</span></td><td class="n mono">rev-3390</td><td class="n">2</td><td class="n">11 фев</td><td class="n">20 фев</td><td class="n r">3,5</td></tr>
+                  <tr class="is-done"><td class="n mono">4698</td><td><span class="st st--pass">Зачтена</span></td><td class="n mono">rev-4102</td><td class="n">1</td><td class="n">10 фев</td><td class="n">12 фев</td><td class="n r">6,0</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2350,7 +2346,7 @@ a:hover { border-bottom-color: var(--ink); }
                   <thead><tr><th>Студент</th><th>Статус</th><th class="n r">Балл</th></tr></thead>
                   <tbody>
                     <tr><td class="n mono">4790</td><td><span class="st st--review">На ревью</span></td><td class="n r">—</td></tr>
-                    <tr><td class="n mono">4776</td><td><span class="st st--pass">Зачтена</span></td><td class="n r">5.0</td></tr>
+                    <tr><td class="n mono">4776</td><td><span class="st st--pass">Зачтена</span></td><td class="n r">5,0</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -2408,7 +2404,11 @@ a:hover { border-bottom-color: var(--ink); }
   // как загрузились шрифты.
   function fitShots() {
     document.querySelectorAll('.shot').forEach(function (shot) {
-      var inner = shot.querySelector('.vp').firstElementChild;
+      var vp = shot.querySelector('.vp');
+      var inner = vp.firstElementChild;
+      // Макет верстается в 1600px, поэтому масштаб считается от ширины кадра:
+      // на узком окне иначе обрезается правый край.
+      vp.style.transform = 'scale(' + Math.min(0.68, shot.clientWidth / 1600) + ')';
       shot.style.height = 'auto';
       shot.style.height = Math.ceil(inner.getBoundingClientRect().height) + 'px';
     });

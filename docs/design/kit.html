@@ -293,6 +293,9 @@ a:hover { border-bottom-color: var(--ink); }
 .card__sub  { margin-top: 2px; font-size: var(--small-size); color: var(--ink-3); font-weight: var(--w-regular); }
 .card__body { padding: var(--s-5); }
 .card__body--tight { padding: var(--s-2) var(--s-5); }
+.card__body--compact { padding: var(--s-4) var(--s-5); }
+.card__body--compact .field { margin-bottom: var(--s-3); }
+.card__body--compact .field:last-child { margin-bottom: 0; }
 .card__body--flush { padding: 0; overflow-x: auto; }   /* широкая таблица скроллится внутри карточки, а не тянет страницу */
 .card__foot {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
