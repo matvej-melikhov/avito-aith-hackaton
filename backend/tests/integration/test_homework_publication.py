@@ -341,10 +341,11 @@ async def test_two_course_runs_keep_independent_current_versions_and_append_only
             event
             for event in events
             if event.payload.get("course_run_id") == str(RUN_A_ID)
-            and event.payload.get("previous_version_id") == str(version_ids[0])
-            and event.payload.get("current_version_id") == str(version_ids[2])
+            and event.payload.get("previous_homework_version_id") == str(version_ids[0])
+            and event.payload.get("current_homework_version_id") == str(version_ids[2])
         ]
         assert len(changed) == 1
         assert changed[0].payload["organization_id"] == str(ORGANIZATION_ID)
         assert changed[0].payload["homework_id"] == str(homework_id)
-        assert changed[0].aggregate_id == homework_id
+        assert changed[0].aggregate_type == "course_run_homework"
+        assert changed[0].aggregate_id == UUID(changed[0].payload["course_run_homework_id"])

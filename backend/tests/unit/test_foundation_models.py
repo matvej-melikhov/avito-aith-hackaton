@@ -169,7 +169,7 @@ def test_alembic_history_has_one_current_head_and_preserves_foundation_root() ->
     config = Config("alembic.ini")
     scripts = ScriptDirectory.from_config(config)
 
-    assert scripts.get_heads() == ["0002_identity_and_courses"]
+    assert len(scripts.get_heads()) == 1
     revision = scripts.get_revision("0001_foundation")
     assert revision is not None
     assert revision.down_revision is None

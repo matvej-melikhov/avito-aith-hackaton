@@ -142,7 +142,7 @@ async def test_full_version_round_trip_total_and_stable_unique_criterion_keys(
                 "id": UUID("00000000-0000-7000-8000-000000000814"),
                 "organization_id": ORG,
                 "criterion_set_id": CRITERION_SET_1,
-                "key": "correctness",
+                "stable_key": "correctness",
                 "position": 1,
                 "title": "Correctness",
                 "description": "The solution satisfies the requirements.",
@@ -153,7 +153,7 @@ async def test_full_version_round_trip_total_and_stable_unique_criterion_keys(
                 "id": UUID("00000000-0000-7000-8000-000000000815"),
                 "organization_id": ORG,
                 "criterion_set_id": CRITERION_SET_1,
-                "key": "explanation",
+                "stable_key": "explanation",
                 "position": 2,
                 "title": "Explanation",
                 "description": "The design is explained clearly.",
@@ -185,11 +185,14 @@ async def test_full_version_round_trip_total_and_stable_unique_criterion_keys(
         assert sum(Decimal(str(row["max_points"])) for row in stored_criteria) == Decimal(
             str(version["max_score"])
         )
-        assert [row["key"] for row in stored_criteria] == ["correctness", "explanation"]
+        assert [row["stable_key"] for row in stored_criteria] == [
+            "correctness",
+            "explanation",
+        ]
 
         duplicate = dict(criteria[1])
         duplicate["id"] = UUID("00000000-0000-7000-8000-000000000816")
-        duplicate["key"] = "correctness"
+        duplicate["stable_key"] = "correctness"
         with pytest.raises(IntegrityError):
             async with session.begin_nested():
                 await session.execute(tables["criterion"].insert().values(**duplicate))
@@ -303,6 +306,7 @@ async def test_course_run_current_publication_is_local_and_change_event_is_durab
                     **common,
                     "id": PUBLICATION_A1,
                     "course_run_homework_id": CRH_A,
+                    "homework_id": HOMEWORK,
                     "homework_version_id": VERSION_1,
                     "publication_sequence": 1,
                 },
@@ -310,6 +314,7 @@ async def test_course_run_current_publication_is_local_and_change_event_is_durab
                     **common,
                     "id": PUBLICATION_B1,
                     "course_run_homework_id": CRH_B,
+                    "homework_id": HOMEWORK,
                     "homework_version_id": VERSION_2,
                     "publication_sequence": 1,
                 },
@@ -333,6 +338,7 @@ async def test_course_run_current_publication_is_local_and_change_event_is_durab
                 **common,
                 id=PUBLICATION_A2,
                 course_run_homework_id=CRH_A,
+                homework_id=HOMEWORK,
                 homework_version_id=VERSION_2,
                 publication_sequence=2,
             )

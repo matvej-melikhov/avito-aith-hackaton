@@ -125,8 +125,8 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T070 [US2] Implement immutable requirement digest and criterion-set validation in `backend/src/review_platform/domain/homework.py`
 - [X] T071 [US2] Implement create/version, append-only per-CourseRun publication/current selection, full history, and transactional HomeworkRequirementsChanged outbox events without requiring later ReviewIteration tables in `backend/src/review_platform/application/services/homeworks.py`
 - [X] T072 [US2] Implement tenant-scoped homework repositories and history projections with no global current version in `backend/src/review_platform/infrastructure/db/repositories/homeworks.py`
-- [ ] T073 [US2] Implement and register homework mutation, published-list, and history routes from frozen OpenAPI in `backend/src/review_platform/api/routes/homeworks.py` and `backend/src/review_platform/api/routes/__init__.py`
-- [ ] T074 [US2] Run the US2 suite and record that event emission is GREEN while affected-review projection and successor creation remain explicitly owned by US5 in `backend/tests/evidence/us2.md`
+- [X] T073 [US2] Implement and register homework mutation, published-list, and history routes from frozen OpenAPI in `backend/src/review_platform/api/routes/homeworks.py` and `backend/src/review_platform/api/routes/__init__.py`
+- [X] T074 [US2] Run the US2 suite and record that event emission is GREEN while affected-review projection and successor creation remain explicitly owned by US5 in `backend/tests/evidence/us2.md`
 
 **Checkpoint**: US2 independently proves immutable requirements and durable change events; review-impact consumption is not claimed until US5.
 
