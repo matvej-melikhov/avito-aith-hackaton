@@ -2,6 +2,7 @@
    Avito AI Reviewer — библиотека компонентов
    Требует tokens.css. Ни одного цвета и размера мимо переменных.
    Правило геометрии: блоки с прямым углом, управляющие элементы — пилюли.
+   Правило веса: рабочий интерфейс на 400 и 500, границы зон волосяные.
    =========================================================================== */
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -10,7 +11,7 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--surface-2);
+  background: var(--page);
   color: var(--ink);
   font-family: var(--font-text);
   font-size: var(--body-size);
@@ -21,14 +22,15 @@ body {
 
 /* --- Типографика --------------------------------------------------------- */
 
-.d1, .d2, .d3 { font-family: var(--font-display); font-weight: var(--w-black); margin: 0; }
+.d1, .d2 { font-family: var(--font-display); font-weight: var(--w-bold); margin: 0; }
+.d3 { font-family: var(--font-display); font-weight: var(--w-semi); margin: 0; }
 .d1 { font-size: var(--d1-size); line-height: var(--d1-lh); letter-spacing: var(--d1-ls); }
 .d2 { font-size: var(--d2-size); line-height: var(--d2-lh); letter-spacing: var(--d2-ls); }
 .d3 { font-size: var(--d3-size); line-height: var(--d3-lh); letter-spacing: var(--d3-ls); }
 
-h1, .h1 { font-size: var(--h1-size); line-height: var(--h1-lh); letter-spacing: var(--h1-ls); font-weight: var(--w-bold); margin: 0; }
-h2, .h2 { font-size: var(--h2-size); line-height: var(--h2-lh); letter-spacing: var(--h2-ls); font-weight: var(--w-bold); margin: 0; }
-h3, .h3 { font-size: var(--h3-size); line-height: var(--h3-lh); letter-spacing: var(--h3-ls); font-weight: var(--w-semi); margin: 0; }
+h1, .h1 { font-size: var(--h1-size); line-height: var(--h1-lh); letter-spacing: var(--h1-ls); font-weight: var(--w-medium); margin: 0; }
+h2, .h2 { font-size: var(--h2-size); line-height: var(--h2-lh); letter-spacing: var(--h2-ls); font-weight: var(--w-medium); margin: 0; }
+h3, .h3 { font-size: var(--h3-size); line-height: var(--h3-lh); letter-spacing: var(--h3-ls); font-weight: var(--w-medium); margin: 0; }
 
 .small  { font-size: var(--small-size); line-height: var(--small-lh); }
 .caption{ font-size: var(--caption-size); line-height: var(--caption-lh); color: var(--ink-3); }
@@ -46,7 +48,7 @@ h3, .h3 { font-size: var(--h3-size); line-height: var(--h3-lh); letter-spacing: 
 /* Заголовок с цветной пилюлей поверх слова — фирменный приём Авито.
    Не больше одной пилюли на заголовок.                                      */
 .hl { display: inline-block; padding: 0 .28em; border-radius: var(--r-pill); background: var(--brand-green); }
-.hl-ink { background: var(--ink); color: var(--ink-inv); }
+.hl-ink { background: var(--brand-ink); color: #fff; }
 
 a { color: var(--ink); text-decoration: none; border-bottom: var(--bw-hair) solid var(--line-2); }
 a:hover { border-bottom-color: var(--ink); }
@@ -59,21 +61,21 @@ a:hover { border-bottom-color: var(--ink); }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
   height: var(--ctl-m); padding: 0 var(--s-5);
-  font-family: var(--font-text); font-size: var(--body-size); font-weight: var(--w-semi);
+  font-family: var(--font-text); font-size: var(--body-size); font-weight: var(--w-medium);
   line-height: 1; color: var(--ink); background: var(--surface);
-  border: var(--bw-hair) solid var(--ink); border-radius: var(--r-pill);
+  border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill);
   cursor: pointer; white-space: nowrap; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
 }
 .btn:hover  { background: var(--surface-2); }
 .btn:active { transform: translateY(1px); }
 
-.btn--pri   { background: var(--brand-green); border-color: var(--brand-green); }
+.btn--pri   { background: var(--brand-green); border-color: var(--brand-green); font-weight: var(--w-semi); }
 .btn--pri:hover { background: #00C954; border-color: #00C954; }
 
-.btn--dark  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); }
+.btn--dark  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
 .btn--dark:hover { background: var(--ink-2); border-color: var(--ink-2); }
 
-.btn--quiet { border-color: var(--line-2); color: var(--ink-2); font-weight: var(--w-medium); }
+.btn--quiet { border-color: var(--line); color: var(--ink-3); }
 .btn--quiet:hover { border-color: var(--ink); color: var(--ink); }
 
 .btn--danger{ border-color: var(--bad); color: var(--bad); }
@@ -116,7 +118,7 @@ a:hover { border-bottom-color: var(--ink); }
 /* --- Статусы домашки. Единый набор на всю платформу ----------------------- */
 
 .st { display: inline-flex; align-items: center; gap: var(--s-2); height: 26px; padding: 0 var(--s-3);
-      border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-semi);
+      border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-medium);
       border: var(--bw-hair) solid transparent; white-space: nowrap; }
 .st::before { content: ""; width: 8px; height: 8px; border-radius: var(--r-circle); background: currentColor; }
 .st--draft  { background: var(--surface-2);  color: var(--ink-3); border-color: var(--line); }
@@ -130,16 +132,16 @@ a:hover { border-bottom-color: var(--ink); }
 /* --- Карточка. Прямой угол, волосяная граница, без тени ------------------- */
 
 .card { background: var(--surface); border: var(--bw-hair) solid var(--line); border-radius: var(--r-0); }
-.card--hard { border-color: var(--ink); }
+.card--hard { border-color: var(--line-2); }
 .card__head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
   padding: var(--s-4) var(--s-5); border-bottom: var(--bw-hair) solid var(--line);
 }
-.card__head h3, .card__head h4 { margin: 0; font-size: var(--h3-size); font-weight: var(--w-semi); letter-spacing: var(--h3-ls); }
+.card__head h3, .card__head h4 { margin: 0; font-size: var(--h3-size); font-weight: var(--w-medium); letter-spacing: var(--h3-ls); }
 .card__sub  { margin-top: 2px; font-size: var(--small-size); color: var(--ink-3); font-weight: var(--w-regular); }
 .card__body { padding: var(--s-5); }
 .card__body--tight { padding: var(--s-2) var(--s-5); }
-.card__body--flush { padding: 0; }
+.card__body--flush { padding: 0; overflow-x: auto; }   /* широкая таблица скроллится внутри карточки, а не тянет страницу */
 .card__foot {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
   padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
@@ -151,7 +153,7 @@ a:hover { border-bottom-color: var(--ink); }
 
 /* Сводка «балл из максимума» в шапке карточки                               */
 .sum { display: flex; align-items: baseline; gap: var(--s-2); }
-.sum b { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 24px; letter-spacing: -.04em; }
+.sum b { font-family: var(--font-display); font-weight: var(--w-medium); font-size: 23px; letter-spacing: -.04em; }
 .sum span { font-size: var(--small-size); color: var(--ink-3); }
 
 /* --- Витринная плашка: пастельная заливка, круги, крупный заголовок ------- */
@@ -173,11 +175,11 @@ a:hover { border-bottom-color: var(--ink); }
 /* --- Полоса цифр ---------------------------------------------------------- */
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-         border-top: var(--bw-hair) solid var(--ink); border-bottom: var(--bw-hair) solid var(--ink);
+         border-top: var(--bw-hair) solid var(--line); border-bottom: var(--bw-hair) solid var(--line);
          background: var(--surface); }
 .stat { padding: var(--s-5) var(--gutter); border-right: var(--bw-hair) solid var(--line); }
 .stat:last-child { border-right: 0; }
-.stat b { display: block; font-family: var(--font-display); font-weight: var(--w-bold);
+.stat b { display: block; font-family: var(--font-display); font-weight: var(--w-semi);
           font-size: var(--d3-size); line-height: 1; letter-spacing: var(--d3-ls); }
 .stat span { display: block; margin-top: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
 .stat--alert b { color: var(--bad); }
@@ -185,7 +187,7 @@ a:hover { border-bottom-color: var(--ink); }
 /* Плитка отдельной метрикой (сетка вместо полосы)                           */
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-3); }
 .tile { background: var(--surface); border: var(--bw-hair) solid var(--line); padding: var(--s-5); }
-.tile .n { font-family: var(--font-display); font-weight: var(--w-bold); font-size: var(--d3-size);
+.tile .n { font-family: var(--font-display); font-weight: var(--w-semi); font-size: var(--d3-size);
            line-height: 1; letter-spacing: var(--d3-ls); }
 .tile .l { margin-top: var(--s-2); font-size: var(--small-size); }
 .tile .d { margin-top: var(--s-1); font-size: var(--caption-size); color: var(--ink-3); }
@@ -249,8 +251,9 @@ a:hover { border-bottom-color: var(--ink); }
              font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
              border-right: var(--bw-hair) solid var(--line); cursor: pointer; background: var(--surface); border-top:0;border-bottom:0;border-left:0; }
 .scale > *:last-child { border-right: 0; }
-.scale > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-bold); }
-.scale--zero > .is-on { background: var(--brand-red); color: var(--ink-inv); }
+.scale > .is-on { background: var(--surface); color: var(--ink); font-weight: var(--w-semi);
+                  box-shadow: inset 0 0 0 1px var(--ink); }
+.scale--zero > .is-on { background: var(--red-wash); color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
 
 /* --- Табы и крошки -------------------------------------------------------- */
 
@@ -258,7 +261,7 @@ a:hover { border-bottom-color: var(--ink); }
 .tab { display: inline-flex; align-items: center; gap: var(--s-2); padding: var(--s-3) 0;
        font-size: var(--body-size); font-weight: var(--w-medium); color: var(--ink-3);
        border-bottom: var(--bw-struct) solid transparent; margin-bottom: -1px; cursor: pointer; }
-.tab.is-on { color: var(--ink); font-weight: var(--w-semi); border-bottom-color: var(--ink); }
+.tab.is-on { color: var(--ink); font-weight: var(--w-medium); border-bottom-color: var(--ink); }
 .tab .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
 
 .crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
@@ -270,15 +273,15 @@ a:hover { border-bottom-color: var(--ink); }
 
 .tbl { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
 .tbl th {
-  text-align: left; padding: var(--s-3) var(--s-3); border-bottom: var(--bw-struct) solid var(--ink);
+  text-align: left; padding: var(--s-3) var(--s-3); border-bottom: var(--bw-hair) solid var(--line-2);
   font-family: var(--font-mono); font-size: var(--label-size); font-weight: var(--w-regular);
   letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
 }
-.tbl td { padding: var(--s-4) var(--s-3); border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
+.tbl td { padding: var(--s-5) var(--s-3); border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
 .tbl tbody tr:hover { background: var(--surface-2); }
 .tbl .r { text-align: right; }
 .tbl .n { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tbl .who { font-weight: var(--w-semi); }
+.tbl .who { font-weight: var(--w-medium); }
 .tbl .sub { font-size: var(--caption-size); color: var(--ink-3); margin-top: 2px; }
 /* Горит срок: красная засечка слева, а не заливка всей строки              */
 .tbl tr.is-hot td:first-child { box-shadow: inset 3px 0 0 var(--brand-red); }
@@ -289,20 +292,23 @@ a:hover { border-bottom-color: var(--ink); }
 
 .acc { border-bottom: var(--bw-hair) solid var(--line); }
 .acc:last-child { border-bottom: 0; }
-.acc__h { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4) 0; cursor: pointer; }
-.acc__t { flex: 1; font-size: var(--body-size); font-weight: var(--w-semi); letter-spacing: -.01em; }
+.acc__h { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-5) 0; cursor: pointer; }
+.acc__t { flex: 1; font-size: var(--body-size); font-weight: var(--w-medium); letter-spacing: -.005em; }
 .acc__chev { color: var(--ink-3); font-size: 11px; }
 .acc__b { padding: 0 0 var(--s-4) 36px; }
 .acc__empty { padding: var(--s-3) var(--s-4); background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3); }
 
 /* Маркер вердикта. Форма несёт смысл наравне с цветом:
    квадрат — выполнено, квадрат с крестом — нет, круг — решает человек.      */
-.ck { flex: none; width: 22px; height: 22px; display: grid; place-items: center;
-      font-size: 12px; font-weight: var(--w-bold); border: var(--bw-hair) solid; }
-.ck--y { background: var(--brand-green); border-color: var(--brand-green); color: var(--ink); }
-.ck--n { background: var(--surface); border-color: var(--bad); color: var(--bad); }
-.ck--h { background: var(--violet-pale); border-color: var(--brand-violet); color: var(--human); border-radius: var(--r-circle); }
-.ck--q { background: var(--surface-2); border-color: var(--line-2); color: var(--ink-3); border-radius: var(--r-circle); }
+/* Маркеры контурные, не заливные: в списке из девяти требований шесть
+   зелёных заливок подряд перегружают экран и ничего не сообщают.           */
+.ck { flex: none; width: 21px; height: 21px; display: grid; place-items: center;
+      font-size: 11px; font-weight: var(--w-semi); border: var(--bw-hair) solid;
+      background: var(--surface); }
+.ck--y { border-color: var(--ok);    color: var(--ok); }
+.ck--n { border-color: var(--bad);   color: var(--bad); }
+.ck--h { border-color: var(--human); color: var(--human); border-radius: var(--r-circle); }
+.ck--q { border-color: var(--line-2); color: var(--ink-3); border-radius: var(--r-circle); }
 
 /* Находка: где именно нарушено. Цитата обязательна, без неё вердикта нет.   */
 .finding { border: var(--bw-hair) solid var(--line); margin-top: var(--s-3); }
@@ -342,7 +348,7 @@ a:hover { border-bottom-color: var(--ink); }
 
 /* --- Примечание, предупреждение, пустое состояние ------------------------- */
 
-.note { padding: var(--s-4); background: var(--surface-2); border-left: var(--bw-focus) solid var(--ink);
+.note { padding: var(--s-4); background: var(--surface-2); border-left: var(--bw-focus) solid var(--line-2);
         font-size: var(--small-size); color: var(--ink-2); }
 .note--warn  { background: var(--late-bg);  border-left-color: var(--brand-orange); color: var(--late); }
 .note--bad   { background: var(--bad-bg);   border-left-color: var(--brand-red);    color: var(--bad); }
@@ -361,9 +367,9 @@ a:hover { border-bottom-color: var(--ink); }
 /* --- Оболочка приложения --------------------------------------------------- */
 
 .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100%; background: var(--surface); }
-.aside { border-right: var(--bw-hair) solid var(--ink); padding: var(--s-5) 0; display: flex; flex-direction: column; }
+.aside { border-right: var(--bw-hair) solid var(--line); padding: var(--s-5) 0; display: flex; flex-direction: column; }
 .brand { display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-5);
-         font-family: var(--font-display); font-weight: var(--w-bold); font-size: 16px; letter-spacing: -.03em; }
+         font-family: var(--font-display); font-weight: var(--w-semi); font-size: 15px; letter-spacing: -.03em; }
 .brand .dots { display: flex; align-items: center; gap: 3px; }
 .brand .dots i { display: block; border-radius: var(--r-circle); }
 .menu { display: flex; flex-direction: column; }
@@ -371,7 +377,7 @@ a:hover { border-bottom-color: var(--ink); }
           padding: var(--s-3) var(--s-5); font-size: var(--small-size); color: var(--ink-2); border: 0;
           border-left: var(--bw-focus) solid transparent; }
 .menu a:hover { background: var(--surface-2); color: var(--ink); }
-.menu a.is-on { color: var(--ink); font-weight: var(--w-semi); border-left-color: var(--brand-green); background: var(--green-wash); }
+.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
 .menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
 .menu__sep { padding: var(--s-5) var(--s-5) var(--s-2); font-family: var(--font-mono);
              font-size: var(--label-size); letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); }
@@ -381,17 +387,17 @@ a:hover { border-bottom-color: var(--ink); }
        display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--caption-size); flex: none; }
 
 .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-6);
-          padding: var(--s-5) var(--gutter); border-bottom: var(--bw-hair) solid var(--ink); background: var(--surface); }
-.main { padding: var(--s-6) var(--gutter) var(--s-14); background: var(--surface-2); }
+          padding: var(--s-6) var(--gutter); border-bottom: var(--bw-hair) solid var(--line); background: var(--surface); }
+.main { padding: var(--s-6) var(--gutter) var(--s-14); background: var(--page); }
 .main--flush { padding: 0; }
-.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
-.row-side { display: grid; grid-template-columns: 1fr 320px; gap: var(--s-4); align-items: start; }
-.row-rev  { display: grid; grid-template-columns: 380px 1fr; gap: var(--s-4); align-items: start; }
-.stack > * + * { margin-top: var(--s-4); }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+.row-side { display: grid; grid-template-columns: 1fr 336px; gap: var(--s-5); align-items: start; }
+.row-rev  { display: grid; grid-template-columns: 384px 1fr; gap: var(--s-5); align-items: start; }
+.stack > * + * { margin-top: var(--s-5); }
 
 /* --- Слои поверх страницы -------------------------------------------------- */
 
-.modal { background: var(--surface); border: var(--bw-struct) solid var(--ink); box-shadow: var(--shadow-overlay); max-width: 560px; }
+.modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
 .toast { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5);
          background: var(--ink); color: var(--ink-inv); border-radius: var(--r-pill); box-shadow: var(--shadow-overlay);
          font-size: var(--small-size); font-weight: var(--w-medium); }
