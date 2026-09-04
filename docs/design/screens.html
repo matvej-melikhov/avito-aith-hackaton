@@ -451,7 +451,8 @@ a:hover { border-bottom-color: var(--ink); }
 .acc__empty { padding: var(--s-3) var(--s-4); background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3); }
 
 /* Маркер вердикта. Форма несёт смысл наравне с цветом:
-   квадрат — выполнено, квадрат с крестом — нет, круг — решает человек.      */
+   квадрат с галочкой — выполнено, квадрат с минусом — нет,
+   круг — решает человек.                                                    */
 /* Маркеры контурные, не заливные: в списке из девяти требований шесть
    зелёных заливок подряд перегружают экран и ничего не сообщают.           */
 .ck { flex: none; width: 21px; height: 21px; display: grid; place-items: center;
@@ -782,7 +783,7 @@ a:hover { border-bottom-color: var(--ink); }
 
           <div class="stack">
             <div class="card">
-              <div class="card__head"><h4>Что будут проверять</h4></div>
+              <div class="card__head"><h4>Что будут проверять</h4><span class="btn btn--s btn--link">Свернуть</span></div>
               <div class="card__body card__body--tight">
                 <div class="kv"><span style="color:var(--ink)">Декомпозиция по двум признакам</span><span class="pill pill--mono">1 б.</span></div>
                 <div class="kv"><span style="color:var(--ink)">Диаграмма C4</span><span class="pill pill--mono">1 б.</span></div>
@@ -851,12 +852,13 @@ a:hover { border-bottom-color: var(--ink); }
               </div>
               <div class="card">
                 <div class="tabs" style="padding:var(--s-2) var(--s-5) 0">
-                  <span class="tab is-on">ИИ-ревью<span class="c">2</span></span>
+                  <span class="tab is-on">ИИ-ревью</span>
                   <span class="tab">Ревью</span>
                 </div>
                 <div class="card__body">
+                  <div class="acc"><div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Проверка от 16.02, 18:02</span><span class="acc__chev">▼</span></div></div>
                   <div class="acc">
-                    <div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Проверка от 17 февраля, 14:20</span><span class="pill">последняя</span><span class="acc__chev">▲</span></div>
+                    <div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Проверка от 17.02, 14:20</span><span class="pill">последняя</span><span class="acc__chev">▲</span></div>
                     <div class="acc__b">
                       <p class="small" style="margin:0 0 var(--s-3)">К отправке не готово: два места стоит поправить до отправки.</p>
                       <ul class="small" style="margin:0 0 var(--s-4);padding-left:1.1em;color:var(--ink-2);line-height:1.6">
@@ -867,7 +869,6 @@ a:hover { border-bottom-color: var(--ink); }
                       <div class="caption" style="margin-top:var(--s-3)">Доработайте работу и прикрепите новую ссылку в форме ниже. Осталось проверок: 2 из 3.</div>
                     </div>
                   </div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Проверка от 16 февраля, 18:02</span><span class="acc__chev">▼</span></div></div>
                 </div>
               </div>
 
@@ -899,7 +900,7 @@ a:hover { border-bottom-color: var(--ink); }
 
             <div class="stack">
             <div class="card">
-              <div class="card__head"><h4>Что будут проверять</h4></div>
+              <div class="card__head"><h4>Что будут проверять</h4><span class="btn btn--s btn--link">Свернуть</span></div>
               <div class="card__body card__body--tight">
                 <div class="kv"><span style="color:var(--ink)">Декомпозиция по двум признакам</span><span class="pill pill--mono">1 б.</span></div>
                 <div class="kv"><span style="color:var(--ink)">Диаграмма C4</span><span class="pill pill--mono">1 б.</span></div>
@@ -969,12 +970,12 @@ a:hover { border-bottom-color: var(--ink); }
               </div>
               <div class="card">
                 <div class="tabs" style="padding:var(--s-2) var(--s-5) 0">
-                  <span class="tab">ИИ-ревью<span class="c">2</span></span>
-                  <span class="tab is-on">Ревью<span class="c">1</span></span>
+                  <span class="tab">ИИ-ревью</span>
+                  <span class="tab is-on">Ревью</span>
                 </div>
                 <div class="card__body">
                   <div class="acc">
-                    <div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Попытка 1, 20 февраля</span><span class="pill pill--mono">3,0 из 6</span><span class="acc__chev">▲</span></div>
+                    <div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Попытка 1, 20.02, 15:10</span><span class="pill pill--mono">3,0 из 6</span><span class="acc__chev">▲</span></div>
                     <div class="acc__b">
                       <div class="kv"><span style="color:var(--ink)">Контракты: формат, входы, выходы, ошибки</span><span class="neg">0 из 1</span></div>
                       <div class="kv"><span style="color:var(--ink)">Анализ связности компонентов</span><span class="neg">0 из 0,5</span></div>
@@ -1008,7 +1009,7 @@ a:hover { border-bottom-color: var(--ink); }
 
             <div class="stack">
               <div class="card">
-                <div class="card__head"><h4>Что будут проверять</h4></div>
+                <div class="card__head"><h4>Что будут проверять</h4><span class="btn btn--s btn--link">Свернуть</span></div>
                 <div class="card__body card__body--tight">
                   <div class="kv"><span style="color:var(--ink)">Декомпозиция по двум признакам</span><span class="pill pill--mono">1 б.</span></div>
                   <div class="kv"><span style="color:var(--ink)">Диаграмма C4</span><span class="pill pill--mono">1 б.</span></div>
@@ -1148,7 +1149,7 @@ a:hover { border-bottom-color: var(--ink); }
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Негативные сценарии покрыты</span><span class="pill pill--mono">1 из 1</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc">
                   <div class="acc__h">
-                    <span class="ck ck--n">✕</span>
+                    <span class="ck ck--n">–</span>
                     <span class="acc__t">Приоритеты тест-кейсов расставлены и обоснованы</span>
                     <span class="pill pill--mono">1 место</span><span class="pill pill--mono">0.5 из 1</span><span class="acc__chev">▲</span>
                   </div>
@@ -1611,7 +1612,7 @@ a:hover { border-bottom-color: var(--ink); }
 
                   <div class="acc">
                     <div class="acc__h">
-                      <span class="ck ck--n">✕</span>
+                      <span class="ck ck--n">–</span>
                       <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
                       <span class="pill pill--mono">2 места</span>
                       <span class="label">шкала</span>
@@ -1644,7 +1645,7 @@ a:hover { border-bottom-color: var(--ink); }
                     </div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Анализ связности компонентов</span><span class="pill pill--mono">1 место</span><span class="label">шкала</span><span class="scale scale--zero"><span class="is-on">0</span><span>0.5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Анализ связности компонентов</span><span class="pill pill--mono">1 место</span><span class="label">шкала</span><span class="scale scale--zero"><span class="is-on">0</span><span>0.5</span></span><span class="acc__chev">▼</span></div></div>
                   <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0.5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc">
@@ -2327,7 +2328,7 @@ a:hover { border-bottom-color: var(--ink); }
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="pill pill--mono">0.5 из 0.5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc">
                   <div class="acc__h">
-                    <span class="ck ck--n">✕</span><span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
+                    <span class="ck ck--n">–</span><span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
                     <span class="pill pill--mono">1 место</span><span class="pill pill--mono">0.5 из 1</span><span class="acc__chev">▲</span>
                   </div>
                   <div class="acc__b">
@@ -2344,7 +2345,7 @@ a:hover { border-bottom-color: var(--ink); }
                   </div>
                 </div>
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Проведён анализ связности компонентов</span><span class="pill pill--human">изменено ревьюером</span><span class="pill pill--mono">0.5 из 0.5</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Предложены способы снижения связности</span><span class="pill pill--mono">1 место</span><span class="pill pill--mono">0 из 0.5</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Предложены способы снижения связности</span><span class="pill pill--mono">1 место</span><span class="pill pill--mono">0 из 0.5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="pill pill--mono">0.5 из 0.5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="pill pill--mono">0.5 из 0.5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc" style="background:var(--violet-wash);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
