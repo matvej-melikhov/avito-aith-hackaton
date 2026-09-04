@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import AsyncIterator, Callable, Mapping, Sequence
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, cast
 from uuid import UUID
 
 import boto3
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from review_platform.api.middleware import Redactor
 from review_platform.application.auth_guards.membership import UserMembershipAuthGuard
@@ -42,12 +43,14 @@ from review_platform.infrastructure.db.session import (
     AsyncSessionFactory,
     create_database_engine,
     create_session_factory,
+    session_scope,
 )
 from review_platform.infrastructure.object_storage.s3 import (
     ObjectStorageError,
     S3Client,
     S3ObjectStorage,
 )
+from review_platform.infrastructure.tasks.broker import MembershipWorkerAuthRevalidator
 from review_platform.settings import Settings, get_settings
 
 
@@ -121,10 +124,12 @@ class FoundationRuntime:
         )
         self._object_storage = object_storage
         self._redactor = Redactor()
+        self._membership_guard = UserMembershipAuthGuard(session_factory)
+        self._worker_auth_revalidator = MembershipWorkerAuthRevalidator(self._membership_guard)
         self._command_bus = CommandBus(
             transactions=self._transactions,
             revisions=self._revisions,
-            authorizer=Authorizer(UserMembershipAuthGuard(session_factory), clock=clock),
+            authorizer=Authorizer(self._membership_guard, clock=clock),
         )
 
     def components(self) -> Mapping[str, object]:
@@ -137,6 +142,37 @@ class FoundationRuntime:
             "object_storage": self._object_storage,
             "redactor": self._redactor,
         }
+
+    @property
+    def command_bus(self) -> CommandBus:
+        return self._command_bus
+
+    @property
+    def settings(self) -> Settings:
+        return self._settings
+
+    @property
+    def id_factory(self) -> Callable[[], UUID]:
+        return self._id_factory
+
+    @property
+    def clock(self) -> Callable[[], datetime]:
+        return self._clock
+
+    @property
+    def worker_auth_revalidator(self) -> MembershipWorkerAuthRevalidator:
+        return self._worker_auth_revalidator
+
+    @property
+    def user_auth_guard(self) -> UserMembershipAuthGuard:
+        return self._membership_guard
+
+    @asynccontextmanager
+    async def transaction(self) -> AsyncIterator[AsyncSession]:
+        """Open the caller-owned unit of work used by route/service adapters."""
+
+        async with session_scope(self._session_factory) as session:
+            yield session
 
     def bind_rest_command(
         self,

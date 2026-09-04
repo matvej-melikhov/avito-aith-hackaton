@@ -50,6 +50,9 @@ def create_app(
         lifespan=lifespan,
     )
     app.state.foundation_runtime = runtime
+    app.state.worker_auth_revalidator = (
+        runtime.worker_auth_revalidator if runtime is not None else None
+    )
     app.state.configuration_error = configuration_error
     app.add_middleware(SanitizedExceptionMiddleware)
     app.add_middleware(RequestBodyLimitMiddleware, max_bytes=selected.command_body_limit_bytes)

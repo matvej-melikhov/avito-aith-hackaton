@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
@@ -13,9 +14,20 @@ from httpx import ASGITransport, AsyncClient, Response
 from jsonschema import Draft202012Validator, FormatChecker
 from tests.support.contracts import load_openapi
 
+from review_platform.application.foundation_runtime import FoundationRuntime
 from review_platform.application.ports.providers import ProviderPayload
 from review_platform.contracts.commands import ApplicationCommand
 from review_platform.contracts.registry import ContractRegistry
+from review_platform.domain.primitives import sha256_digest
+from review_platform.infrastructure.db.models.identity import (
+    ExternalCredential,
+    ExternalIdentity,
+    Invitation,
+    OAuthState,
+    OrganizationMembership,
+    Session,
+    User,
+)
 from review_platform.main import create_app
 from review_platform.settings import Settings
 
@@ -23,7 +35,7 @@ pytestmark = [pytest.mark.behavioral, pytest.mark.anyio]
 
 ORGANIZATION_ID = "00000000-0000-7000-8000-000000000001"
 USER_ID = "00000000-0000-7000-8000-000000000002"
-MEMBERSHIP_ID = "00000000-0000-7000-8000-000000000003"
+MEMBERSHIP_ID = "00000000-0000-7000-8000-000000000030"
 REQUEST_ID = "00000000-0000-7000-8000-000000000004"
 TRACE_ID = "00000000-0000-7000-8000-000000000005"
 STATE_ID = "00000000-0000-7000-8000-000000000006"
@@ -71,9 +83,105 @@ class RecordingIdentityProvider:
 
 
 @pytest.fixture
-def identity_app() -> FastAPI:
-    app = create_app(Settings())
+async def identity_app(foundation_runtime: FoundationRuntime) -> FastAPI:
+    now = datetime(2026, 9, 4, 12, 0, tzinfo=UTC)
+    email_credential_id = UUID("00000000-0000-7000-8000-000000000017")
+    async with foundation_runtime.transaction() as session:
+        session.add_all(
+            [
+                User(id=UUID(USER_ID), display_name="Fixture User", status="active"),
+                ExternalCredential(
+                    id=UUID(CREDENTIAL_BINDING_ID),
+                    organization_id=UUID(ORGANIZATION_ID),
+                    provider="stepik",
+                    binding_version=1,
+                    ciphertext="sealed-stepik-fixture",
+                    key_id="fixture-key",
+                    status="active",
+                ),
+                ExternalCredential(
+                    id=email_credential_id,
+                    organization_id=UUID(ORGANIZATION_ID),
+                    provider="email_magic_link",
+                    binding_version=1,
+                    ciphertext="sealed-email-fixture",
+                    key_id="fixture-key",
+                    status="active",
+                ),
+            ]
+        )
+        await session.flush()
+        session.add_all(
+            [
+                ExternalIdentity(
+                    id=UUID("00000000-0000-7000-8000-000000000021"),
+                    user_id=UUID(USER_ID),
+                    provider="stepik",
+                    issuer="https://identity.example.test",
+                    subject="fixture-user",
+                    verified_email="reviewer@example.test",
+                    status="active",
+                ),
+                OrganizationMembership(
+                    id=UUID(MEMBERSHIP_ID),
+                    organization_id=UUID(ORGANIZATION_ID),
+                    user_id=UUID(USER_ID),
+                    roles=["methodologist", "reviewer"],
+                    status="active",
+                    revision=3,
+                    auth_epoch=2,
+                ),
+            ]
+        )
+        await session.flush()
+        session.add_all(
+            [
+                Invitation(
+                    id=UUID("00000000-0000-7000-8000-000000000018"),
+                    organization_id=UUID(ORGANIZATION_ID),
+                    role="reviewer",
+                    normalized_email="reviewer@example.test",
+                    token_digest=sha256_digest(MAGIC_LINK_TOKEN),
+                    expires_at=now + timedelta(hours=1),
+                    issued_by=UUID(USER_ID),
+                    status="active",
+                    revision=0,
+                ),
+                Session(
+                    id=UUID("00000000-0000-7000-8000-000000000019"),
+                    organization_id=UUID(ORGANIZATION_ID),
+                    user_id=UUID(USER_ID),
+                    membership_id=UUID(MEMBERSHIP_ID),
+                    membership_revision=3,
+                    auth_epoch=2,
+                    token_digest=sha256_digest(SESSION_SECRET),
+                    expires_at=now + timedelta(hours=1),
+                    status="active",
+                ),
+            ]
+        )
+        await session.flush()
+        session.add(
+            OAuthState(
+                state_id=UUID(STATE_ID),
+                organization_id=UUID(ORGANIZATION_ID),
+                state_digest=sha256_digest(STATE_ID),
+                provider="email_magic_link",
+                credential_binding_id=email_credential_id,
+                credential_binding_version=1,
+                redirect_uri="https://review.example.test/invite",
+                pkce_verifier_ciphertext="sealed-state-authority",
+                expires_at=now + timedelta(hours=1),
+            )
+        )
+    app = create_app(Settings(), runtime=foundation_runtime)
     app.state.identity_provider = RecordingIdentityProvider()
+    app.state.installation_organization_id = ORGANIZATION_ID
+    app.state.stepik_credential_binding_id = CREDENTIAL_BINDING_ID
+    app.state.stepik_credential_binding_version = 1
+    app.state.stepik_redirect_uri = "https://review.example.test/auth/stepik/callback"
+    app.state.stepik_pkce_verifier_ciphertext = "sealed-pkce-fixture"
+    app.state.stepik_authorization_url = "https://identity.example.test/authorize"
     return app
 
 
@@ -84,7 +192,6 @@ async def identity_client(identity_app: FastAPI) -> AsyncIterator[AsyncClient]:
         transport=transport,
         base_url="http://identity.test",
         follow_redirects=False,
-        cookies={SESSION_COOKIE: SESSION_SECRET},
     ) as client:
         yield client
 
@@ -111,7 +218,7 @@ def _oauth_state(response: Response) -> str:
     return state_values[0]
 
 
-def test_bootstrap_and_recovery_are_operator_only_and_have_no_public_routes(
+async def test_bootstrap_and_recovery_are_operator_only_and_have_no_public_routes(
     identity_app: FastAPI,
 ) -> None:
     registry = ContractRegistry()
@@ -252,7 +359,10 @@ async def test_magic_link_uses_typed_identity_assertion_and_rejects_replay(
 async def test_current_session_response_is_closed_and_typed(
     identity_client: AsyncClient,
 ) -> None:
-    response = await identity_client.get(f"{API_PREFIX}/v1/session")
+    response = await identity_client.get(
+        f"{API_PREFIX}/v1/session",
+        headers={"cookie": f"{SESSION_COOKIE}={SESSION_SECRET}"},
+    )
 
     assert response.status_code == 200
     payload = response.json()
@@ -274,8 +384,9 @@ async def test_current_session_response_is_closed_and_typed(
 async def test_logout_is_idempotently_bound_to_the_current_session(
     identity_client: AsyncClient,
 ) -> None:
-    first = await identity_client.delete(f"{API_PREFIX}/v1/session")
-    replay = await identity_client.delete(f"{API_PREFIX}/v1/session")
+    headers = {"cookie": f"{SESSION_COOKIE}={SESSION_SECRET}"}
+    first = await identity_client.delete(f"{API_PREFIX}/v1/session", headers=headers)
+    replay = await identity_client.delete(f"{API_PREFIX}/v1/session", headers=headers)
 
     assert first.status_code == replay.status_code == 204
     assert first.content == replay.content == b""

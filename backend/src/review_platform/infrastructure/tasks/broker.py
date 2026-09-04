@@ -6,11 +6,15 @@ import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Final, Protocol, cast
+from uuid import UUID
 
 from taskiq import SmartRetryMiddleware, TaskiqMessage, TaskiqMiddleware, TaskiqResult
 from taskiq.abc.broker import AsyncBroker
 from taskiq_redis import ListQueueBroker
 
+from review_platform.application.auth_guards.membership import UserMembershipAuthGuard
+from review_platform.application.authorization import AuthorizationDenied
+from review_platform.application.request_context import RequestActor, Role
 from review_platform.settings import Settings, get_settings
 
 TENANT_LABEL: Final = "organization_id"
@@ -32,6 +36,38 @@ class WorkerAuthRevalidator(Protocol):
     """Re-check current tenant/actor authorization immediately before work."""
 
     async def revalidate(self, message: TaskiqMessage) -> None: ...
+
+
+class MembershipWorkerAuthRevalidator:
+    """Resolve a closed Taskiq actor snapshot through the concrete user guard."""
+
+    def __init__(self, guard: UserMembershipAuthGuard) -> None:
+        self._guard = guard
+
+    async def revalidate(self, message: TaskiqMessage) -> None:
+        labels = message.labels
+        actor_value = labels.get("actor")
+        organization_value = labels.get(TENANT_LABEL)
+        if not isinstance(actor_value, Mapping) or not isinstance(organization_value, str):
+            raise AuthorizationDenied("worker message lacks tenant or actor authority")
+        roles_value = actor_value.get("roles")
+        if not isinstance(roles_value, list) or not all(
+            isinstance(role, str) for role in roles_value
+        ):
+            raise AuthorizationDenied("worker actor snapshot lacks closed roles")
+        if actor_value.get("type") != "user":
+            raise AuthorizationDenied("membership worker revalidator accepts only user actors")
+        try:
+            actor = RequestActor.user(
+                organization_id=UUID(organization_value),
+                user_id=UUID(str(actor_value["user_id"])),
+                roles=cast(list[Role], roles_value),
+                membership_revision=int(actor_value["membership_revision"]),
+                auth_epoch=int(actor_value["auth_epoch"]),
+            )
+        except (KeyError, TypeError, ValueError) as error:
+            raise AuthorizationDenied("worker actor snapshot is invalid") from error
+        await self._guard.revalidate(actor=actor)
 
 
 @dataclass(frozen=True, slots=True)

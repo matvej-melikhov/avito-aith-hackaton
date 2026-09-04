@@ -83,7 +83,10 @@ class HandlerRegistry:
 REGISTRY = HandlerRegistry()
 
 # T063/T064 and later story tasks append only modules containing real handlers.
-HANDLER_MODULES: tuple[str, ...] = ()
+HANDLER_MODULES: tuple[str, ...] = (
+    "review_platform.infrastructure.tasks.course_import",
+    "review_platform.infrastructure.tasks.email",
+)
 
 
 def task_handler(

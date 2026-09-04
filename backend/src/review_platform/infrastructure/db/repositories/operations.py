@@ -116,7 +116,19 @@ class OperationRepository:
         await self._session.flush()
 
     async def refresh_attempts(self, operation: Operation) -> None:
-        await self._session.refresh(operation, attribute_names=["attempts"])
+        await self._session.refresh(
+            operation,
+            attribute_names=[
+                "attempts",
+                "created_at",
+                "updated_at",
+                "finished_at",
+                "state",
+                "revision",
+                "error_code",
+                "sanitized_error",
+            ],
+        )
 
     async def add(self, operation: Operation) -> Operation:
         self._session.add(operation)

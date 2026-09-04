@@ -11,24 +11,36 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import cast
 from uuid import UUID
 
 import anyio
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient, Response
-from sqlalchemy import Table, insert, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from starlette.types import Receive, Scope, Send
 from taskiq import TaskiqMessage
 
 from review_platform.application.authorization import AuthorizationDenied
 from review_platform.application.foundation_runtime import FoundationRuntime
+from review_platform.application.ports.providers import ProviderPayload
 from review_platform.application.request_context import RequestActor, Role
+from review_platform.application.services.invitations import InvitationEmailIntent
+from review_platform.contracts.registry import ContractRegistry
 from review_platform.domain.primitives import sha256_digest
-from review_platform.infrastructure.db.base import Base
+from review_platform.infrastructure.db.models.identity import (
+    ExternalCredential,
+    Invitation,
+    OAuthState,
+    OrganizationMembership,
+    Session,
+    User,
+)
+from review_platform.infrastructure.db.models.operations import CommandReceipt
 from review_platform.infrastructure.db.session import AsyncSessionFactory
 from review_platform.main import create_app
 
@@ -43,15 +55,23 @@ MEMBERSHIP_B = UUID("00000000-0000-7000-8000-000000000112")
 REVIEWER_MEMBERSHIP = UUID("00000000-0000-7000-8000-000000000113")
 INVITATION = UUID("00000000-0000-7000-8000-000000000121")
 OAUTH_STATE = UUID("00000000-0000-7000-8000-000000000122")
+EMAIL_CREDENTIAL = UUID("00000000-0000-7000-8000-000000000124")
 QUEUED_RECEIPT = UUID("00000000-0000-7000-8000-000000000131")
 CLAIMED_RECEIPT = UUID("00000000-0000-7000-8000-000000000132")
+REVIEWER_SESSION = UUID("00000000-0000-7000-8000-000000000133")
 NOW = datetime(2026, 9, 4, 12, 0, tzinfo=UTC)
 INVITATION_TOKEN = "offline-invitation-token-0000000000000001"
+REVIEWER_SESSION_SECRET = "offline-reviewer-session-secret-000000000001"
 
 MEMBERSHIP_ROLES_PATH = "/api/v1/memberships/{membershipId}/roles"
 MAGIC_LINK_PATH = "/api/v1/auth/reviewer/magic-link"
 REVOKE_INVITATION_PATH = "/api/v1/invitations/{invitationId}/revoke"
 SESSION_PATH = "/api/v1/session"
+
+_ASSERTION: ContextVar[Mapping[str, object] | None] = ContextVar(
+    "identity_concurrency_assertion",
+    default=None,
+)
 
 
 class _StateInjectedApp:
@@ -72,7 +92,51 @@ class _StateInjectedApp:
             request_state = dict(scope.get("state", {}))
             request_state.update(self._state)
             scope["state"] = request_state
-        await self._app(scope, receive, send)
+        assertion = self._state.get("identity_assertion")
+        token = _ASSERTION.set(cast(Mapping[str, object], assertion)) if assertion else None
+        try:
+            await self._app(scope, receive, send)
+        finally:
+            if token is not None:
+                _ASSERTION.reset(token)
+
+
+class _DynamicIdentityProvider:
+    contract_version = "1.1.0"
+    schema_name = "identity-provider.schema.json"
+
+    def __init__(self) -> None:
+        self._registry = ContractRegistry()
+
+    async def verify_identity(self, request: ProviderPayload) -> ProviderPayload:
+        self._registry.validate(
+            request,
+            self.schema_name,
+            definition="verification_request",
+        )
+        injected = _ASSERTION.get()
+        if injected is None:
+            raise RuntimeError("test request did not inject an identity assertion")
+        assertion = dict(injected)
+        assertion["provider"] = request["provider"]
+        assertion["state_id"] = request["state_id"]
+        self._registry.validate(
+            assertion,
+            self.schema_name,
+            definition="identity_assertion",
+        )
+        return cast(ProviderPayload, assertion)
+
+
+class _UnusedEmailIntents:
+    async def enqueue(self, intent: InvitationEmailIntent, *, transaction: object) -> None:
+        del intent, transaction
+        raise AssertionError("revoke path must not enqueue another invitation email")
+
+
+class _TestSecretProtector:
+    def seal(self, magic_link: str) -> str:
+        return "sealed:" + sha256_digest(magic_link)
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,7 +174,13 @@ def _actor(
 
 
 def _app(foundation_runtime: FoundationRuntime) -> FastAPI:
-    return create_app(runtime=foundation_runtime)
+    app = create_app(runtime=foundation_runtime)
+    app.state.installation_organization_id = ORG
+    app.state.identity_provider = _DynamicIdentityProvider()
+    app.state.invitation_email_intents = _UnusedEmailIntents()
+    app.state.invitation_secret_protector = _TestSecretProtector()
+    app.state.reviewer_magic_link_base_url = "https://review.example.test/invite"
+    return app
 
 
 def _require_route(app: FastAPI, *, path: str, method: str) -> None:
@@ -142,97 +212,79 @@ async def _client(
         yield client
 
 
-def _table(*names: str) -> Table:
-    for name in names:
-        table = Base.metadata.tables.get(name)
-        if table is not None:
-            return table
-    table = None
-    assert table is not None, f"identity persistence table is not registered: {' or '.join(names)}"
-    return table
-
-
-def _known_columns(table: Table, values: Mapping[str, object]) -> dict[str, object]:
-    return {name: value for name, value in values.items() if name in table.c}
-
-
-async def _insert(session: AsyncSession, table: Table, values: Mapping[str, object]) -> None:
-    await session.execute(insert(table).values(**_known_columns(table, values)))
-
-
 async def _seed_users_and_memberships(
     factory: AsyncSessionFactory,
     *,
     include_reviewer: bool = False,
 ) -> None:
-    users = _table("user_account", "user")
-    memberships = _table("organization_membership")
     async with factory.begin() as session:
         for user_id, name in ((METHOD_A, "Method A"), (METHOD_B, "Method B")):
-            await _insert(
-                session,
-                users,
-                {
-                    "id": user_id,
-                    "display_name": name,
-                    "status": "active",
-                    "created_at": NOW,
-                    "updated_at": NOW,
-                },
+            session.add(
+                User(
+                    id=user_id,
+                    display_name=name,
+                    status="active",
+                    created_at=NOW,
+                    updated_at=NOW,
+                )
             )
+        await session.flush()
         for membership_id, user_id in (
             (MEMBERSHIP_A, METHOD_A),
             (MEMBERSHIP_B, METHOD_B),
         ):
-            await _insert(
-                session,
-                memberships,
-                _membership_values(
-                    membership_id=membership_id,
+            session.add(
+                OrganizationMembership(
+                    id=membership_id,
                     user_id=user_id,
                     roles=["methodologist"],
                     auth_epoch=0,
-                ),
+                    **_membership_values(),
+                )
             )
         if include_reviewer:
-            await _insert(
-                session,
-                users,
-                {
-                    "id": REVIEWER,
-                    "display_name": "Reviewer",
-                    "status": "active",
-                    "created_at": NOW,
-                    "updated_at": NOW,
-                },
+            session.add(
+                User(
+                    id=REVIEWER,
+                    display_name="Reviewer",
+                    status="active",
+                    created_at=NOW,
+                    updated_at=NOW,
+                )
             )
-            await _insert(
-                session,
-                memberships,
-                _membership_values(
-                    membership_id=REVIEWER_MEMBERSHIP,
+            await session.flush()
+            session.add(
+                OrganizationMembership(
+                    id=REVIEWER_MEMBERSHIP,
                     user_id=REVIEWER,
                     roles=["reviewer"],
                     auth_epoch=7,
-                ),
+                    **_membership_values(),
+                )
+            )
+            session.add(
+                Session(
+                    id=REVIEWER_SESSION,
+                    organization_id=ORG,
+                    user_id=REVIEWER,
+                    membership_id=REVIEWER_MEMBERSHIP,
+                    membership_revision=0,
+                    auth_epoch=7,
+                    token_digest=sha256_digest(REVIEWER_SESSION_SECRET),
+                    expires_at=NOW + timedelta(hours=1),
+                    revoked_at=None,
+                    status="active",
+                    created_at=NOW,
+                    updated_at=NOW,
+                )
             )
 
 
-def _membership_values(
-    *,
-    membership_id: UUID,
-    user_id: UUID,
-    roles: list[str],
-    auth_epoch: int,
-) -> dict[str, object]:
+def _membership_values() -> dict[str, object]:
     return {
-        "id": membership_id,
         "organization_id": ORG,
-        "user_id": user_id,
-        "roles": roles,
         "status": "active",
         "revision": 0,
-        "auth_epoch": auth_epoch,
         "revoked_at": None,
         "revoked_by": None,
         "created_at": NOW,
@@ -241,64 +293,57 @@ def _membership_values(
 
 
 async def _seed_invitation(factory: AsyncSessionFactory, *, email: str) -> None:
-    invitations = _table("invitation")
-    oauth_states = _table("oauth_state")
-    credentials = _table("external_credential")
-    credential_id = UUID("00000000-0000-7000-8000-000000000124")
     async with factory.begin() as session:
-        await _insert(
-            session,
-            credentials,
-            {
-                "id": credential_id,
-                "organization_id": ORG,
-                "provider": "email_magic_link",
-                "binding_version": 1,
-                "ciphertext": "offline-encrypted-fixture",
-                "key_id": "offline-test-key",
-                "status": "active",
-                "created_at": NOW,
-                "rotated_at": None,
-                "revoked_at": None,
-            },
+        session.add(
+            ExternalCredential(
+                id=EMAIL_CREDENTIAL,
+                organization_id=ORG,
+                provider="email_magic_link",
+                binding_version=1,
+                ciphertext="offline-encrypted-fixture",
+                key_id="offline-test-key",
+                status="active",
+                created_at=NOW,
+                updated_at=NOW,
+                rotated_at=None,
+                revoked_at=None,
+            )
         )
-        await _insert(
-            session,
-            invitations,
-            {
-                "id": INVITATION,
-                "organization_id": ORG,
-                "role": "reviewer",
-                "normalized_email": email.casefold(),
-                "token_digest": sha256_digest(INVITATION_TOKEN),
-                "expires_at": NOW + timedelta(hours=1),
-                "issued_by": METHOD_A,
-                "consumed_by": None,
-                "status": "active",
-                "revision": 0,
-                "created_at": NOW,
-                "updated_at": NOW,
-            },
+        await session.flush()
+        session.add(
+            Invitation(
+                id=INVITATION,
+                organization_id=ORG,
+                role="reviewer",
+                normalized_email=email.casefold(),
+                token_digest=sha256_digest(INVITATION_TOKEN),
+                expires_at=NOW + timedelta(hours=1),
+                issued_by=METHOD_A,
+                consumed_by=None,
+                consumed_at=None,
+                revoked_at=None,
+                status="active",
+                revision=0,
+                created_at=NOW,
+                updated_at=NOW,
+            )
         )
-        await _insert(
-            session,
-            oauth_states,
-            {
-                "id": OAUTH_STATE,
-                "organization_id": ORG,
-                "state_id": OAUTH_STATE,
-                "state_digest": sha256_digest(str(OAUTH_STATE)),
-                "provider": "email_magic_link",
-                "credential_binding_id": credential_id,
-                "credential_binding_version": 1,
-                "redirect_uri": "https://review.example.test/auth/callback",
-                "encrypted_pkce_verifier": "offline-fixture-verifier",
-                "expires_at": NOW + timedelta(minutes=10),
-                "consumed_at": None,
-                "resulting_session_id": None,
-                "created_at": NOW,
-                "updated_at": NOW,
-            },
+        session.add(
+            OAuthState(
+                state_id=OAUTH_STATE,
+                organization_id=ORG,
+                state_digest=sha256_digest(str(OAUTH_STATE)),
+                provider="email_magic_link",
+                credential_binding_id=EMAIL_CREDENTIAL,
+                credential_binding_version=1,
+                redirect_uri="https://review.example.test/auth/callback",
+                pkce_verifier_ciphertext="offline-fixture-verifier",
+                expires_at=NOW + timedelta(minutes=10),
+                consumed_at=None,
+                resulting_session_id=None,
+                created_at=NOW,
+                updated_at=NOW,
+            )
         )
 
 
@@ -329,33 +374,53 @@ def _revoke_invitation_command(*, request: int) -> dict[str, object]:
 
 
 async def _membership_rows(factory: AsyncSessionFactory) -> list[Mapping[str, object]]:
-    memberships = _table("organization_membership")
     async with factory() as session:
         result = await session.execute(
-            select(memberships).where(memberships.c.organization_id == ORG)
+            select(OrganizationMembership).where(
+                OrganizationMembership.organization_id == ORG
+            )
         )
-        return [row._mapping for row in result]
+        return [
+            {
+                "id": row.id,
+                "user_id": row.user_id,
+                "roles": list(row.roles),
+                "status": row.status,
+                "revision": row.revision,
+                "auth_epoch": row.auth_epoch,
+            }
+            for row in result.scalars()
+        ]
 
 
 async def _invitation_row(factory: AsyncSessionFactory) -> Mapping[str, object]:
-    invitations = _table("invitation")
     async with factory() as session:
-        result = await session.execute(
-            select(invitations).where(
-                invitations.c.organization_id == ORG,
-                invitations.c.id == INVITATION,
+        row = await session.scalar(
+            select(Invitation).where(
+                Invitation.organization_id == ORG,
+                Invitation.id == INVITATION,
             )
         )
-        return result.one()._mapping
+        assert row is not None
+        return {
+            "id": row.id,
+            "status": row.status,
+            "revision": row.revision,
+            "consumed_by": row.consumed_by,
+        }
 
 
 async def _session_count(factory: AsyncSessionFactory) -> int:
-    sessions = _table("session", "user_session")
     async with factory() as session:
-        result = await session.execute(
-            select(sessions).where(sessions.c.organization_id == ORG)
-        )
+        result = await session.scalars(select(Session).where(Session.organization_id == ORG))
         return len(result.all())
+
+
+async def _reviewer_session_status(factory: AsyncSessionFactory) -> str:
+    async with factory() as session:
+        row = await session.get(Session, REVIEWER_SESSION)
+        assert row is not None
+        return row.status
 
 
 async def test_concurrent_role_removals_cannot_remove_the_last_methodologist(
@@ -512,49 +577,46 @@ async def test_invitation_consume_vs_revoke_has_one_linearizable_winner(
 
 
 async def _seed_revocation_receipts(factory: AsyncSessionFactory) -> None:
-    receipts = _table("command_receipt")
     actor_snapshot = {
         "type": "user",
         "user_id": str(REVIEWER),
         "membership_revision": 0,
         "auth_epoch": 7,
+        "roles": ["reviewer"],
     }
     async with factory.begin() as session:
         for receipt_id, status, suffix in (
             (QUEUED_RECEIPT, "reserved", 401),
             (CLAIMED_RECEIPT, "processing", 402),
         ):
-            await _insert(
-                session,
-                receipts,
-                {
-                    "id": receipt_id,
-                    "organization_id": ORG,
-                    "idempotency_key": f"revocation-race-{suffix:08d}",
-                    "request_id": UUID(f"00000000-0000-7000-8000-{suffix:012d}"),
-                    "command_name": "set_reviewer_availability",
-                    "target_id": REVIEWER_MEMBERSHIP,
-                    "expected_revision": 0,
-                    "payload_digest": "sha256:" + "4" * 64,
-                    "actor_snapshot": actor_snapshot,
-                    "status": status,
-                    "result_reference": None,
-                    "created_at": NOW,
-                    "updated_at": NOW,
-                },
+            session.add(
+                CommandReceipt(
+                    id=receipt_id,
+                    organization_id=ORG,
+                    idempotency_key=f"revocation-race-{suffix:08d}",
+                    request_id=UUID(f"00000000-0000-7000-8000-{suffix:012d}"),
+                    command_name="set_reviewer_availability",
+                    target_id=REVIEWER_MEMBERSHIP,
+                    expected_revision=0,
+                    payload_digest="sha256:" + "4" * 64,
+                    actor_snapshot=actor_snapshot,
+                    status=status,
+                    result_reference=None,
+                    created_at=NOW,
+                    updated_at=NOW,
+                )
             )
 
 
 async def _receipt_statuses(factory: AsyncSessionFactory) -> dict[UUID, str]:
-    receipts = _table("command_receipt")
     async with factory() as session:
-        result = await session.execute(
-            select(receipts).where(
-                receipts.c.organization_id == ORG,
-                receipts.c.id.in_((QUEUED_RECEIPT, CLAIMED_RECEIPT)),
+        result = await session.scalars(
+            select(CommandReceipt).where(
+                CommandReceipt.organization_id == ORG,
+                CommandReceipt.id.in_((QUEUED_RECEIPT, CLAIMED_RECEIPT)),
             )
         )
-        return {row._mapping["id"]: row._mapping["status"] for row in result}
+        return {row.id: row.status for row in result}
 
 
 async def test_membership_revocation_invalidates_rest_queued_and_claimed_work(
@@ -590,6 +652,7 @@ async def test_membership_revocation_invalidates_rest_queued_and_claimed_work(
                 "user_id": str(REVIEWER),
                 "membership_revision": 0,
                 "auth_epoch": 7,
+                "roles": ["reviewer"],
             },
         },
         args=[],
@@ -637,8 +700,10 @@ async def test_membership_revocation_invalidates_rest_queued_and_claimed_work(
 
     assert revoke_response[0].status_code == 200
     assert commit_outcome == ["rejected_stale_auth_epoch"]
+    assert await _reviewer_session_status(foundation_session_factory) == "revoked"
 
     async with _client(app, actor=stale_reviewer) as client:
+        client.cookies.set("review_session", REVIEWER_SESSION_SECRET, path="/api")
         rest_after_revoke = await client.get(SESSION_PATH)
     assert rest_after_revoke.status_code in {401, 403}
 
