@@ -1,0 +1,2096 @@
+<title>Экраны платформы</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --page:#EEF0F4;
+  --app:#FFFFFF;
+  --app-2:#F5F7F9;
+  --app-3:#EDF0F4;
+  --ink:#10151B;
+  --ink-2:#525C6A;
+  --ink-3:#8A93A0;
+  --line:#E3E7EC;
+  --line-2:#CDD4DC;
+  --brand:#1B5FCE;
+  --brand-soft:#E9F0FC;
+  --ok:#0E7A4D;
+  --ok-soft:#E4F3EB;
+  --warn:#8F6205;
+  --warn-soft:#FBF0D9;
+  --bad:#AF2E24;
+  --bad-soft:#FAE8E6;
+  --violet:#5A3FC0;
+  --violet-soft:#EEEAFA;
+  --shadow:0 1px 2px rgba(16,21,27,.06), 0 12px 32px rgba(16,21,27,.08);
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:#0B0E12;
+    --app:#151A20;
+    --app-2:#1B2129;
+    --app-3:#222A33;
+    --ink:#E9EDF2;
+    --ink-2:#A3ADBA;
+    --ink-3:#76808D;
+    --line:#242C35;
+    --line-2:#333C47;
+    --brand:#6A9BEF;
+    --brand-soft:#182430;
+    --ok:#54B487;
+    --ok-soft:#142420;
+    --warn:#CBA45C;
+    --warn-soft:#272014;
+    --bad:#DE8A80;
+    --bad-soft:#2A1A18;
+    --violet:#A28FE8;
+    --violet-soft:#1E1A2E;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 32px rgba(0,0,0,.4);
+  }
+}
+
+:root[data-theme="dark"]{
+  --page:#0B0E12;
+  --app:#151A20;
+  --app-2:#1B2129;
+  --app-3:#222A33;
+  --ink:#E9EDF2;
+  --ink-2:#A3ADBA;
+  --ink-3:#76808D;
+  --line:#242C35;
+  --line-2:#333C47;
+  --brand:#6A9BEF;
+  --brand-soft:#182430;
+  --ok:#54B487;
+  --ok-soft:#142420;
+  --warn:#CBA45C;
+  --warn-soft:#272014;
+  --bad:#DE8A80;
+  --bad-soft:#2A1A18;
+  --violet:#A28FE8;
+  --violet-soft:#1E1A2E;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 32px rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--page); color:var(--ink);
+  font-family:"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1400px; margin:0 auto; padding:56px 28px 110px}
+
+.doc-head{padding-bottom:26px; border-bottom:2px solid var(--ink)}
+.kicker{font-family:"JetBrains Mono",monospace; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+h1{margin:12px 0 0; font-size:40px; line-height:1.08; letter-spacing:-.025em; font-weight:700}
+.lede{margin:14px 0 0; max-width:70ch; color:var(--ink-2); font-size:16.5px}
+.docnav{display:flex; flex-wrap:wrap; gap:6px; margin-top:20px}
+.docnav a{font-family:"JetBrains Mono",monospace; font-size:11.5px; text-decoration:none; color:var(--ink-2);
+  border:1px solid var(--line-2); border-radius:20px; padding:4px 11px; background:var(--app)}
+.docnav a:hover{border-color:var(--brand); color:var(--brand)}
+
+.legend{margin-top:26px; background:var(--app); border:1px solid var(--line); border-radius:12px; padding:16px 18px}
+.legend h3{margin:0 0 10px; font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.legend-row{display:flex; flex-wrap:wrap; gap:8px}
+
+.group{display:flex; align-items:baseline; gap:14px; margin:76px 0 0; padding-top:26px; border-top:2px solid var(--ink)}
+.group-tag{font-family:"JetBrains Mono",monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--app); background:var(--ink); padding:4px 11px; border-radius:20px}
+.group h2{margin:0; font-size:22px; font-weight:650; letter-spacing:-.01em}
+
+.screen{margin-top:52px; scroll-margin-top:20px}
+.screen-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.screen-num{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--brand);
+  border:1px solid var(--brand); border-radius:5px; padding:2px 7px}
+.screen-head h3{margin:0; font-size:21px; font-weight:650; letter-spacing:-.012em}
+.screen-note{margin:8px 0 0; color:var(--ink-2); max-width:82ch; font-size:15px}
+.flows{margin-top:10px; font-size:13.5px; color:var(--ink-2); max-width:82ch}
+.flows b{font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); font-weight:600; margin-right:10px}
+.flows a{color:var(--brand); text-decoration:none; border-bottom:1px solid transparent}
+.flows a:hover{border-bottom-color:var(--brand)}
+
+.shot{width:100%; overflow:hidden; margin-top:18px; border:1px solid var(--line-2);
+  border-radius:14px; box-shadow:var(--shadow); background:var(--app-2)}
+.vp{width:1920px; min-height:1080px; transform-origin:top left; transform:scale(.6); display:flex;
+  position:relative; background:var(--app-2)}
+.vp::after{content:"граница первого экрана, 1080"; position:absolute; left:0; right:0; top:1080px;
+  border-top:1px dashed var(--line-2); font-family:"JetBrains Mono",monospace; font-size:11px;
+  color:var(--ink-3); text-align:right; padding:3px 10px 0; pointer-events:none}
+
+/* ── оболочка приложения ── */
+.side{width:256px; flex-shrink:0; background:var(--app); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; padding:22px 0}
+.brand{display:flex; align-items:center; gap:10px; padding:0 22px 22px; font-weight:650; font-size:16px}
+.brand .mark{width:28px; height:28px; border-radius:7px; background:var(--brand); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700}
+.nav{display:flex; flex-direction:column; gap:2px; padding:0 12px}
+.nav a{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:8px;
+  font-size:14.5px; color:var(--ink-2); text-decoration:none}
+.nav a.on{background:var(--brand-soft); color:var(--brand); font-weight:600}
+.nav .cnt{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--ink-3)}
+.nav a.on .cnt{color:var(--brand)}
+.nav-sep{margin:14px 22px 8px; font-family:"JetBrains Mono",monospace; font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.side-foot{margin-top:auto; padding:16px 22px 0; border-top:1px solid var(--line); display:flex; align-items:center; gap:10px}
+.ava{width:32px; height:32px; border-radius:50%; background:var(--app-3); color:var(--ink-2);
+  display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:600}
+
+.body{flex:1; display:flex; flex-direction:column; min-width:0}
+.top{height:72px; flex-shrink:0; background:var(--app); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; padding:0 32px; gap:20px}
+.crumbs{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--ink-3)}
+.crumbs a{color:var(--ink-3); text-decoration:none}
+.crumbs .cur{color:var(--ink); font-weight:500}
+.top h1.pt{margin:0; font-size:20px; font-weight:650; letter-spacing:-.01em}
+.top-actions{display:flex; align-items:center; gap:10px}
+.content{flex:1; padding:26px 32px}
+.content.narrow{max-width:1240px; width:100%; margin:0 auto}
+
+/* ── элементы ── */
+.btn{height:38px; padding:0 16px; border-radius:8px; border:1px solid var(--line-2); background:var(--app);
+  color:var(--ink); font-family:inherit; font-size:14px; font-weight:500; display:inline-flex;
+  align-items:center; gap:8px; white-space:nowrap; cursor:default}
+.btn.pri{background:var(--brand); border-color:var(--brand); color:#fff}
+.btn.sm{height:32px; padding:0 12px; font-size:13px}
+.btn.lg{height:46px; padding:0 24px; font-size:15px}
+.btn.link{border-color:transparent; background:transparent; color:var(--brand); padding:0}
+.btn[disabled]{color:var(--ink-3); background:var(--app-2); border-color:var(--line)}
+
+.card{background:var(--app); border:1px solid var(--line); border-radius:12px}
+.card > .ch{display:flex; align-items:center; justify-content:space-between; gap:14px;
+  padding:16px 20px; border-bottom:1px solid var(--line)}
+.card > .ch h4{margin:0; font-size:15.5px; font-weight:650}
+.card > .ch .sub{font-size:13px; color:var(--ink-3); margin-top:2px}
+.card > .cb{padding:20px}
+.card > .cb.tight{padding:8px 20px}
+.card > .cf{padding:16px 20px; border-top:1px solid var(--line); display:flex;
+  align-items:center; justify-content:space-between; gap:14px}
+
+.grid{display:grid; gap:20px}
+.g-2{grid-template-columns:1fr 1fr}
+.g-side{grid-template-columns:1fr 380px}
+.g-rev{grid-template-columns:400px 1fr}
+
+.tiles{display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
+.tile{background:var(--app); border:1px solid var(--line); border-radius:12px; padding:18px 20px}
+.tile .n{font-size:30px; font-weight:650; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.tile .l{font-size:13.5px; color:var(--ink-2); margin-top:2px}
+.tile .d{font-size:12.5px; color:var(--ink-3); margin-top:8px}
+.tile.alert .n{color:var(--bad)}
+
+table.tbl{width:100%; border-collapse:collapse}
+.tbl th{text-align:left; font-size:11.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3);
+  font-weight:600; padding:0 14px 12px 0}
+.tbl td{padding:14px 14px 14px 0; border-top:1px solid var(--line); font-size:14.5px; vertical-align:middle}
+.tbl tr.hot td{background:var(--bad-soft)}
+.tbl tr.hot td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+.tbl tr.done td{color:var(--ink-3)}
+.tbl td.num, .tbl th.num{font-family:"JetBrains Mono",monospace; font-variant-numeric:tabular-nums}
+.tbl td.right, .tbl th.right{text-align:right; padding-right:0}
+.tbl .who{font-weight:500}
+.tbl .sub{font-size:12.5px; color:var(--ink-3); margin-top:2px}
+
+.st{display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:6px;
+  font-size:12.5px; font-weight:500; white-space:nowrap}
+.st::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor}
+.st.draft{background:var(--app-3); color:var(--ink-2)}
+.st.sent{background:var(--brand-soft); color:var(--brand)}
+.st.review{background:var(--violet-soft); color:var(--violet)}
+.st.fix{background:var(--warn-soft); color:var(--warn)}
+.st.re{background:var(--violet-soft); color:var(--violet)}
+.st.pass{background:var(--ok-soft); color:var(--ok)}
+.st.fail{background:var(--bad-soft); color:var(--bad)}
+
+.tag{display:inline-flex; align-items:center; height:24px; padding:0 9px; border-radius:6px;
+  background:var(--app-3); color:var(--ink-2); font-size:12.5px; white-space:nowrap}
+.tag.mono{font-family:"JetBrains Mono",monospace; font-size:12px}
+
+.tabs{display:flex; gap:24px; border-bottom:1px solid var(--line)}
+.tabs .tab{padding:0 0 12px; font-size:14.5px; color:var(--ink-2); border-bottom:2px solid transparent; white-space:nowrap}
+.tabs .tab.on{color:var(--ink); font-weight:600; border-bottom-color:var(--brand)}
+.tabs .tab .c{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--ink-3); margin-left:6px}
+
+.seg{display:inline-flex; border:1px solid var(--line-2); border-radius:9px; overflow:hidden; background:var(--app)}
+.seg > *{padding:9px 18px; font-size:14px; color:var(--ink-2); border-left:1px solid var(--line-2)}
+.seg > *:first-child{border-left:0}
+.seg > *.on{background:var(--brand); color:#fff; font-weight:500}
+
+.field{display:flex; flex-direction:column; gap:7px}
+.field + .field{margin-top:18px}
+.lbl{font-size:13px; font-weight:500; color:var(--ink-2)}
+.inp{border:1px solid var(--line-2); border-radius:8px; padding:11px 13px; font-size:14.5px;
+  background:var(--app); color:var(--ink); min-height:42px}
+.inp.mono{font-family:"JetBrains Mono",monospace; font-size:13.5px}
+.inp.area{min-height:96px; line-height:1.55}
+.inp.ro{background:var(--app-2); color:var(--ink-2)}
+.hint{font-size:12.5px; color:var(--ink-3)}
+.drop{border:2px dashed var(--line-2); border-radius:10px; padding:34px; text-align:center; background:var(--app-2)}
+.drop .m{font-size:14.5px; color:var(--ink-2)}
+.drop .s{font-size:12.5px; color:var(--ink-3); margin-top:5px}
+
+.filerow{display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--line);
+  border-radius:9px; background:var(--app-2); font-size:14px}
+.filerow .nm{font-family:"JetBrains Mono",monospace; font-size:13.5px; flex:1}
+.filerow + .filerow{margin-top:8px}
+
+/* ── критерии и ревью ── */
+.ck{width:24px; height:24px; border-radius:50%; flex-shrink:0; display:inline-flex;
+  align-items:center; justify-content:center; font-size:13px; font-weight:700; line-height:1}
+.ck.y{background:var(--ok-soft); color:var(--ok)}
+.ck.n{background:var(--bad-soft); color:var(--bad)}
+.ck.q{background:var(--app-3); color:var(--ink-3)}
+
+.crit{padding:13px 0; border-top:1px solid var(--line)}
+.crit:first-child{border-top:0; padding-top:4px}
+.crit .r1{display:flex; align-items:flex-start; gap:14px}
+.crit .nm{flex:1; font-size:15px; font-weight:550; line-height:1.4}
+.crit .why{margin:10px 0 0 38px; font-size:13.5px; color:var(--ink-2); line-height:1.55}
+.crit .quote{margin:10px 0 0 38px; padding:11px 14px; background:var(--app-2); border-left:2px solid var(--brand);
+  border-radius:0 8px 8px 0; font-size:13.5px; color:var(--ink-2); line-height:1.55}
+.crit .acts{margin:12px 0 0 38px; display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.crit.own{background:var(--brand-soft); margin:0 -20px; padding:18px 20px; border-radius:10px; border-top:0}
+
+.scale{display:inline-flex; border:1px solid var(--line-2); border-radius:8px; overflow:hidden; background:var(--app)}
+.scale > *{padding:7px 14px; font-size:13.5px; color:var(--ink-2); border-left:1px solid var(--line-2);
+  font-family:"JetBrains Mono",monospace}
+.scale > *:first-child{border-left:0}
+.scale > *.on{background:var(--brand); color:#fff; font-weight:500}
+.scale-lbl{font-size:12.5px; color:var(--ink-3)}
+
+.meter{height:10px; border-radius:99px; background:var(--app-3); overflow:hidden}
+.meter i{display:block; height:100%; border-radius:99px; background:var(--warn)}
+.meter i.hi{background:var(--bad)}
+.bigpct{font-size:34px; font-weight:650; letter-spacing:-.03em; font-variant-numeric:tabular-nums; line-height:1}
+
+.bullets{margin:0; padding:0; list-style:none}
+.bullets li{position:relative; padding:0 0 0 20px; margin:9px 0; font-size:14px; color:var(--ink-2); line-height:1.5}
+.bullets li::before{content:""; position:absolute; left:4px; top:9px; width:5px; height:5px;
+  border-radius:50%; background:var(--ink-3)}
+
+.sum{display:flex; align-items:baseline; gap:10px}
+.sum .v{font-size:32px; font-weight:650; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.sum .of{font-size:15px; color:var(--ink-3)}
+.sumline{display:flex; align-items:center; justify-content:space-between; padding:9px 0; font-size:14px}
+.sumline + .sumline{border-top:1px solid var(--line)}
+.sumline .neg{color:var(--bad); font-family:"JetBrains Mono",monospace}
+
+.steps{display:flex; align-items:center; gap:0}
+.steps .s{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--ink-3)}
+.steps .s .n{width:26px; height:26px; border-radius:50%; background:var(--app-3); color:var(--ink-3);
+  display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600}
+.steps .s.on{color:var(--ink); font-weight:600}
+.steps .s.on .n{background:var(--brand); color:#fff}
+.steps .s.ok .n{background:var(--ok-soft); color:var(--ok)}
+.steps .bar{width:56px; height:1px; background:var(--line-2); margin:0 16px}
+
+.note{border:1px solid var(--line); border-left:3px solid var(--brand); border-radius:0 10px 10px 0;
+  background:var(--app); padding:14px 18px; font-size:14px; color:var(--ink-2)}
+.note.warn{border-left-color:var(--warn)}
+.note b{color:var(--ink)}
+
+/* ── модальное окно ── */
+.scrim{position:absolute; inset:0; background:rgba(10,14,18,.5)}
+.modal{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:620px;
+  background:var(--app); border-radius:14px; box-shadow:0 24px 70px rgba(0,0,0,.35); overflow:hidden}
+.modal.wide{width:760px}
+.modal .mh{display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid var(--line)}
+.modal .mh h4{margin:0; font-size:17px; font-weight:650}
+.modal .mb{padding:24px}
+.modal .mf{padding:18px 24px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:10px; background:var(--app-2)}
+.x{color:var(--ink-3); font-size:18px}
+
+.check{display:flex; align-items:center; gap:10px; padding:9px 0; font-size:14.5px}
+.box{width:18px; height:18px; border-radius:5px; border:1.5px solid var(--line-2); flex-shrink:0}
+.box.on{background:var(--brand); border-color:var(--brand); color:#fff; display:flex;
+  align-items:center; justify-content:center; font-size:11px; font-weight:700}
+.sw{width:38px; height:22px; border-radius:99px; background:var(--line-2); position:relative; flex-shrink:0}
+.sw.on{background:var(--brand)}
+.sw::after{content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#fff}
+.sw.on::after{left:18px}
+</style>
+<script>
+function fitShots(){
+  document.querySelectorAll('.shot').forEach(function(shot){
+    var vp = shot.firstElementChild;
+    if(!vp) return;
+    var k = shot.clientWidth / 1920;
+    vp.style.transform = 'scale(' + k + ')';
+    shot.style.height = Math.round(vp.offsetHeight * k) + 'px';
+  });
+}
+window.addEventListener('load', fitShots);
+window.addEventListener('resize', fitShots);
+document.addEventListener('DOMContentLoaded', fitShots);
+</script>
+
+<div class="wrap">
+
+<header class="doc-head">
+  <div class="kicker">Avito AI Reviewer</div>
+  <h1>Экраны платформы</h1>
+  <p class="lede">Каждый кадр ниже — экран в разрешении 1920 на 1080, как он выглядел бы в браузере. Под заголовком экрана указано его назначение и куда с него можно уйти. Логика переходов и таблица «функция, экран, переход» лежат в <a href="flows.md">flows.md</a>, модель данных — в <a href="entities-and-screens.md">entities-and-screens.md</a>.</p>
+  <nav class="docnav">
+    <a href="#С1">С1. Сдача по ссылке</a>
+    <a href="#С2">С2. Саморевью</a>
+    <a href="#С3">С3. Повторная сдача</a>
+    <a href="#С4">С4. Мои домашки</a>
+    <a href="#С5">С5. Результат ревью</a>
+    <a href="#Р1">Р1. Вход</a>
+    <a href="#Р2">Р2. Работы и пул</a>
+    <a href="#Р3">Р3. Настройки</a>
+    <a href="#Р4">Р4. Статистика</a>
+    <a href="#Р5">Р5. Карточка работы</a>
+    <a href="#К1">К1. Обзор</a>
+    <a href="#К2">К2. Новый курс</a>
+    <a href="#К3">К3. Новый поток</a>
+    <a href="#К4">К4. Задание, шаг 1</a>
+    <a href="#К5">К5. Задание, шаг 2</a>
+    <a href="#К6">К6. Пул проверок</a>
+    <a href="#К7">К7. Реестр домашек</a>
+    <a href="#К8">К8. Просмотр ревью</a>
+    <a href="#К9">К9. Выгрузка</a>
+  </nav>
+
+  <div class="legend">
+    <h3>Статусы домашки, одинаковые на всех экранах</h3>
+    <div class="legend-row">
+      <span class="st draft">Черновик</span>
+      <span class="st sent">Сдана</span>
+      <span class="st review">На ревью</span>
+      <span class="st fix">Нужны правки</span>
+      <span class="st re">На повторном ревью</span>
+      <span class="st pass">Зачтена</span>
+      <span class="st fail">Не зачтена</span>
+    </div>
+  </div>
+</header>
+
+<div class="group">
+  <span class="group-tag">Студент</span>
+  <h2>Одна страница по ссылке и личный кабинет</h2>
+</div>
+
+<section class="screen" id="С1">
+  <div class="screen-head"><span class="screen-num">С1</span><h3>Страница домашки по ссылке, до сдачи</h3></div>
+  <p class="screen-note">Студент приходит по ссылке из Stepik, платформа узнаёт его по Stepik ID. Работу можно приложить двумя способами: ссылкой на репозиторий или файлами, переключатель над полем. Отсюда доступны оба действия — прогнать саморевью и отправить на ревью. Отдельного экрана сдачи и отдельного экрана саморевью нет, это одна страница в разных состояниях.</p>
+  <div class="flows"><b>Переходы</b> <a href="#С2">С2</a> после саморевью, <a href="#С4">С4</a> по ссылке «Мои домашки» в шапке</div>
+  <div class="shot"><div class="vp">
+    <div class="body">
+      <div class="top">
+        <div style="display:flex; align-items:center; gap:12px">
+          <span class="brand" style="padding:0"><span class="mark">A</span>Обучение</span>
+          <span class="tag">Системный дизайн, поток «Февраль 2026»</span>
+        </div>
+        <div class="top-actions">
+          <span class="btn link">Мои домашки</span>
+          <span class="ava">4821</span>
+        </div>
+      </div>
+      <div class="content narrow">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:20px">
+          <div>
+            <h1 class="pt" style="font-size:26px">Лабораторная 1. Декомпозиция сервиса</h1>
+            <div style="display:flex; gap:8px; margin-top:10px">
+              <span class="st draft">Черновик</span>
+              <span class="tag">Сдать до 19 февраля, 23:59</span>
+              <span class="tag">Порог зачёта 4 из 6</span>
+            </div>
+          </div>
+          <div class="hint" style="text-align:right; padding-top:6px">Вы вошли по Stepik ID 88214<br>и зачислены на поток автоматически</div>
+        </div>
+
+        <div class="grid g-side">
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><h4>Задание</h4><span class="btn link">Свернуть</span></div>
+              <div class="cb" style="font-size:14.5px; color:var(--ink-2); line-height:1.65">
+                Выберите проект, который будете прорабатывать на всех лабораторных курса. Для выбранного проекта:
+                <ul class="bullets" style="margin-top:10px">
+                  <li>выполните декомпозицию системы минимум по двум признакам и объясните выбор,</li>
+                  <li>постройте диаграммы C4 уровня контекста и компонентов, а также диаграмму последовательностей для основного сценария,</li>
+                  <li>опишите интерфейсы между компонентами и контракты: формат, входы, выходы, ошибки,</li>
+                  <li>проанализируйте связность компонентов и предложите способы её снизить.</li>
+                </ul>
+                <div style="margin-top:12px">Работа сдаётся одним документом в Markdown или ссылкой на репозиторий с таким документом. Если пользовались ИИ, укажите это в работе.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><h4>Ваша работа</h4><div class="seg"><span class="on">Ссылка на репозиторий</span><span>Файлы</span></div></div>
+              <div class="cb">
+                <div class="field">
+                  <span class="lbl">Ссылка на репозиторий</span>
+                  <div class="inp mono" style="color:var(--ink-3)">https://github.com/username/wardrobe-service</div>
+                  <span class="hint">Публичный репозиторий или доступ для avito-edu-bot. Проверяется ветка main, если не указана другая.</span>
+                </div>
+                <div class="field">
+                  <span class="lbl">Комментарий к сдаче, необязательно</span>
+                  <div class="inp area" style="color:var(--ink-3)">Например: какие части делали с помощью ИИ и что дорабатывали руками</div>
+                </div>
+              </div>
+              <div class="cf">
+                <span class="hint">Саморевью не влияет на оценку и не видно ревьюеру. Осталось 3 попытки из 3.</span>
+                <div style="display:flex; gap:10px">
+                  <span class="btn">Проверить перед сдачей</span>
+                  <span class="btn pri">Отправить на ревью</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="ch"><h4>Что будут проверять</h4></div>
+              <div class="cb tight">
+                <div class="sumline"><span>Декомпозиция по двум признакам</span><span class="tag mono">1</span></div>
+                <div class="sumline"><span>Диаграмма C4</span><span class="tag mono">1</span></div>
+                <div class="sumline"><span>Диаграмма последовательностей</span><span class="tag mono">1</span></div>
+                <div class="sumline"><span>Интерфейсы между компонентами</span><span class="tag mono">1</span></div>
+                <div class="sumline"><span>Контракты: входы, выходы, ошибки</span><span class="tag mono">1</span></div>
+                <div class="sumline"><span>Анализ связности</span><span class="tag mono">0.5</span></div>
+                <div class="sumline"><span>Снижение связности</span><span class="tag mono">0.5</span></div>
+              </div>
+              <div class="cf"><span class="hint">Всего</span><b>6 баллов</b></div>
+            </div>
+            <div class="note" style="margin-top:20px">За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="С2">
+  <div class="screen-head"><span class="screen-num">С2</span><h3>Та же страница после саморевью</h3></div>
+  <p class="screen-note">Результат самопроверки появляется на той же странице над формой. Отметки только двух видов — выполнено или нет, без «частично»: как отличить частичное выполнение, мы не определили, а вводить третье состояние на глаз не хотим. Вид блока совпадает с предварительным ревью, которое видит ревьюер на <a href="#Р5">Р5</a>, чтобы студент и ревьюер смотрели на одно и то же. Баллов здесь нет намеренно.</p>
+  <div class="flows"><b>Переходы</b> «Проверить повторно» остаётся на этой же странице, «Отправить на ревью» переводит домашку в статус «Сдана» и открывает <a href="#С5">С5</a></div>
+  <div class="shot"><div class="vp">
+    <div class="body">
+      <div class="top">
+        <div style="display:flex; align-items:center; gap:12px">
+          <span class="brand" style="padding:0"><span class="mark">A</span>Обучение</span>
+          <span class="tag">Системный дизайн, поток «Февраль 2026»</span>
+        </div>
+        <div class="top-actions">
+          <span class="btn link">Мои домашки</span>
+          <span class="ava">4821</span>
+        </div>
+      </div>
+      <div class="content narrow">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:20px">
+          <div>
+            <h1 class="pt" style="font-size:26px">Лабораторная 1. Декомпозиция сервиса</h1>
+            <div style="display:flex; gap:8px; margin-top:10px">
+              <span class="st draft">Черновик</span>
+              <span class="tag">Сдать до 19 февраля, 23:59</span>
+              <span class="tag">Саморевью от 17 февраля, 14:20</span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="sum" style="justify-content:flex-end"><span class="v">5</span><span class="of">из 7 требований закрыто</span></div>
+            <div class="hint" style="margin-top:4px">Это не оценка. Баллы поставит ревьюер.</div>
+          </div>
+        </div>
+
+        <div class="grid g-side">
+          <div>
+            <div class="card">
+              <div class="ch">
+                <div><h4>Предварительная проверка</h4><div class="sub">Проверила модель. Ревьюер будет смотреть работу сам и может решить иначе.</div></div>
+                <span class="btn sm">Проверить повторно, осталось 2</span>
+              </div>
+              <div class="cb">
+                <div class="crit">
+                  <div class="r1"><span class="ck n">✕</span><div class="nm">Контракты: формат, входы, выходы, ошибки</div></div>
+                  <div class="why">Формат ответа и коды ошибок описаны для внешнего интерфейса. Для внутренних вызовов между Outfits и Wardrobe не указаны входы и выходы.</div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck n">✕</span><div class="nm">Анализ связности компонентов</div></div>
+                  <div class="why">В работе нет раздела, где разбираются зависимости между компонентами. В задании это отдельный пункт.</div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck y">✓</span><div class="nm">Декомпозиция по двум и более признакам</div></div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck y">✓</span><div class="nm">Диаграмма C4, контекст и компоненты</div></div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck y">✓</span><div class="nm">Диаграмма последовательностей</div></div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck y">✓</span><div class="nm">Интерфейсы между компонентами описаны</div></div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck y">✓</span><div class="nm">Предложены способы снижения связности</div></div>
+                </div>
+              </div>
+              <div class="cf">
+                <span class="hint">Можно доработать и проверить ещё раз или отправить как есть</span>
+                <div style="display:flex; gap:10px">
+                  <span class="btn">Обновить работу</span>
+                  <span class="btn pri">Отправить на ревью</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="ch"><h4>Что отправится</h4></div>
+              <div class="cb">
+                <div class="filerow"><span class="nm">github.com/username/wardrobe-service</span><span class="tag">ветка main</span></div>
+                <div class="hint" style="margin-top:12px">Последнее обновление репозитория 17 февраля, 13:58</div>
+              </div>
+            </div>
+            <div class="note" style="margin-top:20px"><b>Саморевью не видно ревьюеру.</b> Он увидит только ту версию, которую вы отправите на ревью, и свою собственную предварительную проверку по ней.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="С3">
+  <div class="screen-head"><span class="screen-num">С3</span><h3>Та же страница в статусе «Нужны правки»</h3></div>
+  <p class="screen-note">Ревьюер вернул работу. Вкладки слева — история сдач, в каждой видно, что ревьюер зачёл, что нет, и его комментарий. Отметки те же самые, что ревьюер проставил на <a href="#Р5">Р5</a>, никакого отдельного пересказа. Форма внизу вкладки «Попытка 2» — то же поле ссылки или файлов, что и при первой сдаче.</p>
+  <div class="flows"><b>Переходы</b> «Отправить исправленную версию» переводит домашку в «На повторном ревью», <a href="#С4">С4</a> и <a href="#С5">С5</a> из шапки</div>
+  <div class="shot"><div class="vp">
+    <div class="body">
+      <div class="top">
+        <div style="display:flex; align-items:center; gap:12px">
+          <span class="brand" style="padding:0"><span class="mark">A</span>Обучение</span>
+          <span class="tag">Системный дизайн, поток «Февраль 2026»</span>
+        </div>
+        <div class="top-actions">
+          <span class="btn link">Мои домашки</span>
+          <span class="ava">4821</span>
+        </div>
+      </div>
+      <div class="content narrow">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:18px">
+          <div>
+            <h1 class="pt" style="font-size:26px">Лабораторная 1. Декомпозиция сервиса</h1>
+            <div style="display:flex; gap:8px; margin-top:10px">
+              <span class="st fix">Нужны правки</span>
+              <span class="tag">Прислать до 23 февраля, 23:59</span>
+              <span class="tag">Ревьюер rev-2214</span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="sum" style="justify-content:flex-end"><span class="v">3.5</span><span class="of">из 6 за попытку 1</span></div>
+            <div class="hint" style="margin-top:4px">Порог зачёта 4</div>
+          </div>
+        </div>
+
+        <div class="tabs" style="margin-bottom:20px">
+          <span class="tab">Попытка 1<span class="c">14 фев</span></span>
+          <span class="tab on">Попытка 2<span class="c">черновик</span></span>
+        </div>
+
+        <div class="grid g-side">
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><div><h4>Что просил поправить ревьюер</h4><div class="sub">Оценка за попытку 1, разбор по требованиям задания</div></div></div>
+              <div class="cb">
+                <div class="crit">
+                  <div class="r1"><span class="ck n">✕</span><div class="nm">Контракты: формат, входы, выходы, ошибки</div><span class="tag mono">0 из 1</span></div>
+                  <div class="why">Опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe. Сейчас описан только внешний интерфейс.</div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck n">✕</span><div class="nm">Анализ связности компонентов</div><span class="tag mono">0 из 0.5</span></div>
+                  <div class="why">Раздела нет. Нужен разбор зависимостей между компонентами, а не общая фраза про слабую связность.</div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck n">✕</span><div class="nm">Обоснование выбора границ компонентов</div><span class="tag mono">0.5 из 1</span></div>
+                  <div class="why">Границы перечислены, но не объяснено, почему выбраны именно они.</div>
+                </div>
+                <div class="crit">
+                  <div class="r1"><span class="ck y">✓</span><div class="nm">Остальные 4 требования зачтены</div><span class="tag mono">3 из 3.5</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><h4>Исправленная версия</h4><div class="seg"><span class="on">Ссылка на репозиторий</span><span>Файлы</span></div></div>
+              <div class="cb">
+                <div class="field">
+                  <span class="lbl">Ссылка на репозиторий</span>
+                  <div class="inp mono">https://github.com/username/wardrobe-service</div>
+                  <span class="hint">Версия попытки 1 сохранится в истории, ревьюер увидит обе.</span>
+                </div>
+              </div>
+              <div class="cf">
+                <span class="hint">Саморевью по новой версии ещё не запускали</span>
+                <div style="display:flex; gap:10px">
+                  <span class="btn">Проверить перед сдачей</span>
+                  <span class="btn pri">Отправить исправленную версию</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="ch"><h4>Комментарий ревьюера</h4></div>
+              <div class="cb" style="font-size:14.5px; color:var(--ink-2); line-height:1.65">
+                Привет! Структура хорошая, диаграммы читаются. Три вещи мешают зачёту:
+                <ul class="bullets" style="margin-top:10px">
+                  <li>внутренние вызовы описаны без входов и выходов,</li>
+                  <li>нет анализа связности, это отдельный пункт задания,</li>
+                  <li>по границам компонентов не хватает обоснования.</li>
+                </ul>
+                <div style="margin-top:12px">Остальное принято. Пришлите правки до 23 февраля, штраф за просрочку в этом случае не начисляется.</div>
+              </div>
+            </div>
+            <div class="note" style="margin-top:20px">Пересдача после замечаний не считается просрочкой. Штраф начисляется только за первую сдачу позже срока.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="С4">
+  <div class="screen-head"><span class="screen-num">С4</span><h3>Мои домашки</h3></div>
+  <p class="screen-note">Личный кабинет появляется у студента после первой сдачи, до этого он ему не нужен и не показывается. Здесь все домашки по всем курсам с текущим статусом. Сдать что-то новое отсюда нельзя, сдача идёт только по ссылке из Stepik — поэтому в строке черновика стоит ссылка на страницу сдачи, а не кнопка отправки.</p>
+  <div class="flows"><b>Переходы</b> строка со статусом «Зачтена», «Не зачтена» или «На ревью» открывает <a href="#С5">С5</a>, строка «Нужны правки» и «Черновик» открывает страницу сдачи <a href="#С3">С3</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a class="on" href="#">Мои домашки<span class="cnt">6</span></a>
+        <a href="#">Мои курсы<span class="cnt">2</span></a>
+        <a href="#">Профиль</a>
+      </div>
+      <div class="side-foot"><span class="ava">4821</span><div><div style="font-size:13.5px; font-weight:500">Студент 4821</div><div class="hint">вход по Stepik ID</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <h1 class="pt">Мои домашки</h1>
+        <div class="top-actions">
+          <div class="seg"><span class="on">Все</span><span>В работе</span><span>Завершённые</span></div>
+          <span class="btn sm">Курс: все</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tiles" style="margin-bottom:24px">
+          <div class="tile"><div class="n">2</div><div class="l">ждут вашего действия</div><div class="d">черновик и работа с правками</div></div>
+          <div class="tile"><div class="n">2</div><div class="l">у ревьюера</div><div class="d">среднее время проверки 2 дня</div></div>
+          <div class="tile"><div class="n">2</div><div class="l">завершены</div><div class="d">обе зачтены</div></div>
+          <div class="tile"><div class="n">9.5</div><div class="l">баллов за курс</div><div class="d">из 12 возможных на сейчас</div></div>
+        </div>
+
+        <div class="card">
+          <div class="ch"><h4>Все домашки</h4><span class="hint">Обновлено только что</span></div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Задание</th><th>Курс</th><th>Срок</th><th>Статус</th><th class="num">Попытка</th><th class="num right">Балл</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="who">Лабораторная 1. Декомпозиция сервиса</div><div class="sub">ревьюер вернул 21 февраля</div></td>
+                  <td>Системный дизайн</td><td class="num">23 фев</td>
+                  <td><span class="st fix">Нужны правки</span></td><td class="num">2</td><td class="num right">3.5</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Лабораторная 2. Хранилище и кэш</div><div class="sub">не отправлена</div></td>
+                  <td>Системный дизайн</td><td class="num">28 фев</td>
+                  <td><span class="st draft">Черновик</span></td><td class="num">1</td><td class="num right">—</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Домашнее задание 3. Тест-дизайн</div><div class="sub">взята ревьюером 20 февраля</div></td>
+                  <td>Tech QA</td><td class="num">19 фев</td>
+                  <td><span class="st review">На ревью</span></td><td class="num">1</td><td class="num right">—</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Домашнее задание 2. Чек-листы</div><div class="sub">правки отправлены 18 февраля</div></td>
+                  <td>Tech QA</td><td class="num">18 фев</td>
+                  <td><span class="st re">На повторном ревью</span></td><td class="num">2</td><td class="num right">—</td>
+                </tr>
+                <tr class="done">
+                  <td><div class="who">Домашнее задание 1. Введение</div></td>
+                  <td>Tech QA</td><td class="num">10 фев</td>
+                  <td><span class="st pass">Зачтена</span></td><td class="num">1</td><td class="num right">5.0</td>
+                </tr>
+                <tr class="done">
+                  <td><div class="who">Вводное задание. Выбор проекта</div></td>
+                  <td>Системный дизайн</td><td class="num">5 фев</td>
+                  <td><span class="st pass">Зачтена</span></td><td class="num">1</td><td class="num right">4.5</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="С5">
+  <div class="screen-head"><span class="screen-num">С5</span><h3>Домашка в кабинете, результат ревью</h3></div>
+  <p class="screen-note">Тот же разбор, что студент видит на странице сдачи, но доступный из кабинета и после закрытия задания. Отдельного экрана «финальная обратная связь» нет: итог — это просто статус «Зачтена» или «Не зачтена» на карточке домашки. Вкладки сверху — попытки, справа история событий по работе.</p>
+  <div class="flows"><b>Переходы</b> <a href="#С4">С4</a> по крошке «Мои домашки», кнопка «Открыть страницу сдачи» ведёт на <a href="#С1">С1</a> в текущем состоянии</div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a class="on" href="#">Мои домашки<span class="cnt">6</span></a>
+        <a href="#">Мои курсы<span class="cnt">2</span></a>
+        <a href="#">Профиль</a>
+      </div>
+      <div class="side-foot"><span class="ava">4821</span><div><div style="font-size:13.5px; font-weight:500">Студент 4821</div><div class="hint">вход по Stepik ID</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <div class="crumbs"><a href="#">Мои домашки</a><span>/</span><span class="cur">Домашнее задание 1. Введение</span></div>
+          <h1 class="pt" style="margin-top:4px">Домашнее задание 1. Введение</h1>
+        </div>
+        <div class="top-actions">
+          <span class="st pass">Зачтена</span>
+          <span class="btn sm">Открыть страницу сдачи</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tabs" style="margin-bottom:20px">
+          <span class="tab on">Попытка 1<span class="c">итоговая</span></span>
+          <span class="tab">Работа</span>
+        </div>
+        <div class="grid g-side">
+          <div class="card">
+            <div class="ch">
+              <div><h4>Разбор по требованиям</h4><div class="sub">Проверил ревьюер rev-2214, 12 февраля</div></div>
+              <div class="sum"><span class="v">5.0</span><span class="of">из 6</span></div>
+            </div>
+            <div class="cb">
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Составлен чек-лист проверки формы</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Выделены классы эквивалентности</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Описаны граничные значения</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Негативные сценарии покрыты</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck n">✕</span><div class="nm">Приоритеты тест-кейсов расставлены и обоснованы</div><span class="tag mono">0.5 из 1</span></div>
+                <div class="why">Приоритеты проставлены, но обоснования нет. По каким критериям кейс попал в высокий приоритет, из работы не следует.</div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Оформление и структура документа</div><span class="tag mono">0.5 из 0.5</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck q">i</span><div class="nm">Читаемость формулировок кейсов</div><span class="tag">добавил ревьюер</span></div>
+                <div class="why">Кейсы написаны так, что их может прогнать другой человек без уточнений. Отдельных баллов за это в задании нет, отмечаю как плюс.</div>
+              </div>
+            </div>
+            <div class="cf">
+              <span class="hint">Сдано 10 февраля в 21:40, в срок</span>
+              <span>Итог <b>5.0 из 6</b>, порог зачёта 4</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><h4>Комментарий ревьюера</h4></div>
+              <div class="cb" style="font-size:14.5px; color:var(--ink-2); line-height:1.65">
+                Хорошая работа, чек-лист полный и им реально можно пользоваться. Единственное — распишите, почему кейсы получили именно такой приоритет. На следующем задании это будет отдельным требованием.
+              </div>
+            </div>
+            <div class="card">
+              <div class="ch"><h4>История</h4></div>
+              <div class="cb tight">
+                <div class="sumline"><span>Зачтена</span><span class="hint">12 фев, 16:30</span></div>
+                <div class="sumline"><span>На ревью, взял rev-2214</span><span class="hint">11 фев, 09:15</span></div>
+                <div class="sumline"><span>Сдана</span><span class="hint">10 фев, 21:40</span></div>
+                <div class="sumline"><span>Саморевью, 2 запуска</span><span class="hint">10 фев</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="group">
+  <span class="group-tag">Ревьюер</span>
+  <h2>Вход, работы, проверка</h2>
+</div>
+
+<section class="screen" id="Р1">
+  <div class="screen-head"><span class="screen-num">Р1</span><h3>Вход</h3></div>
+  <p class="screen-note">Один способ входа — Avito ID. Аккаунт создаётся при первом входе, никаких анкет и одобрений. Внешних экспертов пока не рассматриваем вообще, для них здесь ничего нет. Квота и курсы задаются после входа в настройках <a href="#Р3">Р3</a>, а не на этом экране.</p>
+  <div class="flows"><b>Переходы</b> первый вход ведёт на <a href="#Р3">Р3</a>, повторный сразу на <a href="#Р2">Р2</a></div>
+  <div class="shot"><div class="vp" style="background:var(--app-2)">
+    <div class="body" style="align-items:center; justify-content:center">
+      <div style="width:520px">
+        <div class="brand" style="padding:0 0 28px; font-size:18px"><span class="mark">A</span>Обучение</div>
+        <div class="card">
+          <div class="cb" style="padding:32px">
+            <h1 class="pt" style="font-size:24px; margin-bottom:10px">Проверка домашних заданий</h1>
+            <p style="margin:0 0 22px; color:var(--ink-2); font-size:14.5px; line-height:1.6">Вы берёте работы из общего пула сами, столько, сколько готовы проверить в спринте. Модель заранее разбирает работу по требованиям задания и готовит черновик, вы соглашаетесь или правите.</p>
+            <ul class="bullets" style="margin-bottom:26px">
+              <li>работы не назначаются сверху, вы выбираете их из пула,</li>
+              <li>по каждому требованию видно, что модель нашла в работе и где,</li>
+              <li>итоговый балл ставите вы, не система.</li>
+            </ul>
+            <span class="btn pri lg" style="width:100%; justify-content:center">Войти через Avito ID</span>
+            <div class="hint" style="text-align:center; margin-top:14px">Доступ у сотрудников Авито. Если вас нет в списке ревьюеров курса, напишите координатору.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="Р2">
+  <div class="screen-head"><span class="screen-num">Р2</span><h3>Мои работы и пул</h3></div>
+  <p class="screen-note">Главный экран ревьюера. Сверху то, что горит и просрочено, затем работы в процессе, закрытые уходят вниз и гаснут. «Нужны правки» означает, что мяч у студента и делать ничего не надо, «На повторном ревью» — правки пришли и работу снова ждут. Пул внизу: сколько работ доступно и сколько ещё можно взять по квоте.</p>
+  <div class="flows"><b>Переходы</b> строка работы открывает <a href="#Р5">Р5</a>, «Взять из пула» добавляет работу в верхнюю таблицу, шестерёнка ведёт в <a href="#Р3">Р3</a>, вкладка статистики в <a href="#Р4">Р4</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a class="on" href="#">Мои работы<span class="cnt">5</span></a>
+        <a href="#">Пул<span class="cnt">12</span></a>
+        <a href="#">Статистика</a>
+        <a href="#">Настройки</a>
+      </div>
+      <div class="nav-sep">Курсы</div>
+      <div class="nav">
+        <a href="#">Системный дизайн<span class="cnt">9</span></a>
+        <a href="#">Go<span class="cnt">3</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">РВ</span><div><div style="font-size:13.5px; font-weight:500">rev-2214</div><div class="hint">ревьюер</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <h1 class="pt">Мои работы</h1>
+          <div class="hint" style="margin-top:2px">Спринт до 21 февраля</div>
+        </div>
+        <div class="top-actions">
+          <span class="tag">Взято 5 из 6 по квоте</span>
+          <span class="btn sm">Настройки квоты</span>
+          <span class="btn pri sm">Взять из пула</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="card" style="margin-bottom:20px">
+          <div class="ch"><div><h4>В работе</h4><div class="sub">Сначала те, у кого срок ближе</div></div><span class="hint">Срок проверки 2 рабочих дня с момента, когда взяли</span></div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Студент</th><th>Задание</th><th>Статус</th><th class="num">Взята</th><th class="num">Проверить до</th><th class="right"></th></tr></thead>
+              <tbody>
+                <tr class="hot">
+                  <td class="num">4790</td>
+                  <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 1</div></td>
+                  <td><span class="st review">На ревью</span></td>
+                  <td class="num">17 фев</td><td class="num">19 фев, просрочено на 1 день</td>
+                  <td class="right"><span class="btn sm pri">Открыть</span></td>
+                </tr>
+                <tr>
+                  <td class="num">4821</td>
+                  <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 2, правки пришли</div></td>
+                  <td><span class="st re">На повторном ревью</span></td>
+                  <td class="num">21 фев</td><td class="num">23 фев</td>
+                  <td class="right"><span class="btn sm pri">Открыть</span></td>
+                </tr>
+                <tr>
+                  <td class="num">4833</td>
+                  <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 1</div></td>
+                  <td><span class="st review">На ревью</span></td>
+                  <td class="num">20 фев</td><td class="num">22 фев</td>
+                  <td class="right"><span class="btn sm">Открыть</span></td>
+                </tr>
+                <tr>
+                  <td class="num">4805</td>
+                  <td><div class="who">Лабораторная 2. Хранилище и кэш</div><div class="sub">ждём студента</div></td>
+                  <td><span class="st fix">Нужны правки</span></td>
+                  <td class="num">18 фев</td><td class="num">срок у студента, 24 фев</td>
+                  <td class="right"><span class="btn sm">Открыть</span></td>
+                </tr>
+                <tr class="done">
+                  <td class="num">4776</td>
+                  <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 2</div></td>
+                  <td><span class="st pass">Зачтена</span></td>
+                  <td class="num">15 фев</td><td class="num">закрыта 18 фев</td>
+                  <td class="right"><span class="btn sm">Открыть</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch">
+            <div><h4>Пул по вашим курсам</h4><div class="sub">12 работ ждут ревьюера, из них 3 просрочены</div></div>
+            <span class="btn sm">Показать все</span>
+          </div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Студент</th><th>Задание</th><th>Курс</th><th class="num">Сдана</th><th class="num">В пуле</th><th class="right"></th></tr></thead>
+              <tbody>
+                <tr class="hot">
+                  <td class="num">4902</td><td>Лабораторная 1. Декомпозиция</td><td>Системный дизайн</td>
+                  <td class="num">14 фев</td><td class="num">4 дня</td>
+                  <td class="right"><span class="btn sm pri">Взять</span></td>
+                </tr>
+                <tr>
+                  <td class="num">4915</td><td>Лабораторная 1. Декомпозиция</td><td>Системный дизайн</td>
+                  <td class="num">18 фев</td><td class="num">1 день</td>
+                  <td class="right"><span class="btn sm">Взять</span></td>
+                </tr>
+                <tr>
+                  <td class="num">4881</td><td>Домашнее задание 2. Горутины</td><td>Go</td>
+                  <td class="num">19 фев</td><td class="num">меньше суток</td>
+                  <td class="right"><span class="btn sm">Взять</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cf"><span class="hint">По квоте можно взять ещё 1 работу. Изменить квоту можно в настройках.</span><span class="btn link">Открыть пул целиком</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="Р3">
+  <div class="screen-head"><span class="screen-num">Р3</span><h3>Настройки ревьюера</h3></div>
+  <p class="screen-note">Квота на спринт — главное поле экрана. Значение от минимального до 100, по умолчанию подставлено рекомендованное, посчитанное от объёма потока и числа активных ревьюеров. Ниже минимума поставить нельзя, это условие участия в курсе. Здесь же курсы и отпуск. Настройки и статистика — вкладки одного кабинета, отдельными разделами меню они не являются.</p>
+  <div class="flows"><b>Переходы</b> вкладка «Статистика» ведёт на <a href="#Р4">Р4</a>, сохранение возвращает на <a href="#Р2">Р2</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Мои работы<span class="cnt">5</span></a>
+        <a href="#">Пул<span class="cnt">12</span></a>
+        <a class="on" href="#">Кабинет</a>
+      </div>
+      <div class="nav-sep">Курсы</div>
+      <div class="nav">
+        <a href="#">Системный дизайн<span class="cnt">9</span></a>
+        <a href="#">Go<span class="cnt">3</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">РВ</span><div><div style="font-size:13.5px; font-weight:500">rev-2214</div><div class="hint">ревьюер</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <h1 class="pt">Кабинет</h1>
+        <div class="top-actions"><span class="btn sm">Отменить</span><span class="btn pri sm">Сохранить</span></div>
+      </div>
+      <div class="content">
+        <div class="tabs" style="margin-bottom:22px">
+          <span class="tab on">Настройки</span>
+          <span class="tab">Статистика</span>
+        </div>
+        <div class="grid g-side">
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><div><h4>Сколько работ беру в спринт</h4><div class="sub">Спринт 10 рабочих дней, текущий заканчивается 21 февраля</div></div></div>
+              <div class="cb">
+                <div style="display:flex; align-items:center; gap:20px">
+                  <div class="seg" style="font-size:18px">
+                    <span>−</span>
+                    <span class="on" style="min-width:80px; justify-content:center; text-align:center; font-size:20px; font-weight:650">6</span>
+                    <span>+</span>
+                  </div>
+                  <div style="flex:1">
+                    <div class="meter"><i style="width:6%; background:var(--brand)"></i></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px" class="hint"><span>минимум 3</span><span>рекомендуем 6</span><span>максимум 100</span></div>
+                  </div>
+                </div>
+                <div class="note" style="margin-top:18px">Рекомендованное значение посчитано так: в потоке 96 студентов, срок проверки 2 дня, активных ревьюеров по курсу 14. Меньше трёх работ поставить нельзя, это минимум участия в курсе.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><h4>Курсы, которые готов проверять</h4></div>
+              <div class="cb">
+                <div class="check"><span class="box on">✓</span><span>Системный дизайн</span><span class="hint" style="margin-left:auto">в пуле 9 работ</span></div>
+                <div class="check"><span class="box on">✓</span><span>Go</span><span class="hint" style="margin-left:auto">в пуле 3 работы</span></div>
+                <div class="check"><span class="box"></span><span>Tech QA</span><span class="hint" style="margin-left:auto">нужны ревьюеры, в пуле 21 работа</span></div>
+                <div class="check"><span class="box"></span><span>Data Science</span><span class="hint" style="margin-left:auto">в пуле 4 работы</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><h4>Доступность</h4></div>
+              <div class="cb">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; padding:6px 0">
+                  <div><div style="font-size:14.5px">Показывать мне работы из пула</div><div class="hint" style="margin-top:2px">выключите, если временно не берёте новое</div></div>
+                  <span class="sw on"></span>
+                </div>
+                <div class="field" style="margin-top:16px">
+                  <span class="lbl">Отпуск или отсутствие</span>
+                  <div class="inp ro">не задано</div>
+                  <span class="hint">На это время квота обнуляется, уже взятые работы остаются за вами.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><h4>Уведомления</h4></div>
+              <div class="cb">
+                <div class="check"><span class="box on">✓</span><span>Работа, которую я взял, близка к сроку</span></div>
+                <div class="check"><span class="box on">✓</span><span>Студент прислал правки</span></div>
+                <div class="check"><span class="box"></span><span>В пуле по моим курсам появилось что-то новое</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="Р4">
+  <div class="screen-head"><span class="screen-num">Р4</span><h3>Статистика ревьюера</h3></div>
+  <p class="screen-note">Вторая вкладка того же кабинета, отдельным экраном в меню не висит. Показывает то, что ревьюер может использовать сам: сколько успел, сколько тратит на работу, как часто соглашается с моделью и где расходится с коллегами по одинаковым требованиям.</p>
+  <div class="flows"><b>Переходы</b> вкладка «Настройки» ведёт на <a href="#Р3">Р3</a>, строка требования открывает список своих работ по нему</div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Мои работы<span class="cnt">5</span></a>
+        <a href="#">Пул<span class="cnt">12</span></a>
+        <a class="on" href="#">Кабинет</a>
+      </div>
+      <div class="nav-sep">Курсы</div>
+      <div class="nav">
+        <a href="#">Системный дизайн<span class="cnt">9</span></a>
+        <a href="#">Go<span class="cnt">3</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">РВ</span><div><div style="font-size:13.5px; font-weight:500">rev-2214</div><div class="hint">ревьюер</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <h1 class="pt">Кабинет</h1>
+        <div class="top-actions"><span class="btn sm">Курс: Системный дизайн</span><span class="btn sm">Период: поток «Февраль 2026»</span></div>
+      </div>
+      <div class="content">
+        <div class="tabs" style="margin-bottom:22px">
+          <span class="tab">Настройки</span>
+          <span class="tab on">Статистика</span>
+        </div>
+        <div class="tiles" style="margin-bottom:22px">
+          <div class="tile"><div class="n">34</div><div class="l">работы проверено</div><div class="d">из них 8 повторных</div></div>
+          <div class="tile"><div class="n">12 мин</div><div class="l">в среднем на работу</div><div class="d">по курсу в среднем 15 минут</div></div>
+          <div class="tile"><div class="n">81%</div><div class="l">вердиктов модели принято без правок</div><div class="d">по курсу 76%</div></div>
+          <div class="tile"><div class="n">2</div><div class="l">просрочки за поток</div><div class="d">обе по одному заданию</div></div>
+        </div>
+        <div class="grid g-2">
+          <div class="card">
+            <div class="ch"><div><h4>Где вы чаще правите модель</h4><div class="sub">Доля работ, где вы изменили предложенную оценку</div></div></div>
+            <div class="cb tight">
+              <table class="tbl">
+                <thead><tr><th>Требование</th><th class="num">Работ</th><th class="num right">Правили</th></tr></thead>
+                <tbody>
+                  <tr><td>Обоснование границ компонентов</td><td class="num">34</td><td class="num right">41%</td></tr>
+                  <tr><td>Анализ связности</td><td class="num">34</td><td class="num right">18%</td></tr>
+                  <tr><td>Контракты интерфейсов</td><td class="num">34</td><td class="num right">12%</td></tr>
+                  <tr><td>Диаграмма C4</td><td class="num">34</td><td class="num right">3%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="cf"><span class="hint">Требование с высокой долей правок стоит обсудить с координатором</span></div>
+          </div>
+          <div class="card">
+            <div class="ch"><div><h4>Расхождение с другими ревьюерами</h4><div class="sub">По одинаковым требованиям на одинаковых работах</div></div></div>
+            <div class="cb">
+              <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:16px">
+                <span class="bigpct">6%</span>
+                <span class="hint">средний разброс по курсу 9%</span>
+              </div>
+              <div class="sumline"><span>Строже коллег</span><span>«Обоснование границ компонентов»</span></div>
+              <div class="sumline"><span>Мягче коллег</span><span>«Оформление документа»</span></div>
+              <div class="sumline"><span>Совпадение полное</span><span>4 требования из 7</span></div>
+              <div class="note" style="margin-top:16px">Расхождение само по себе не ошибка. Оно показывает требования, которые сформулированы так, что их можно понять по-разному.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="Р5">
+  <div class="screen-head"><span class="screen-num">Р5</span><h3>Карточка работы</h3></div>
+  <p class="screen-note">Экран, ради которого всё остальное существует. Справа — разбор от модели по требованиям задания: у каждого требования шкала из конфигурации задания, выбранное значение и обоснование с цитатой. Пометки «модель» у каждой строки нет, об этом сказано в заголовке блока. Ревьюер может добавить своё требование со своей шкалой, а не только текстовое замечание. Слева работа, признаки ИИ, итог и черновик ответа студенту. Штраф за просрочку показан строкой в итоге, а не плашкой в шапке.</p>
+  <div class="flows"><b>Переходы</b> «Вернуть на доработку» переводит домашку в «Нужны правки» и открывает её студенту на <a href="#С3">С3</a>, «Зачесть» закрывает работу и возвращает на <a href="#Р2">Р2</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a class="on" href="#">Мои работы<span class="cnt">5</span></a>
+        <a href="#">Пул<span class="cnt">12</span></a>
+        <a href="#">Кабинет</a>
+      </div>
+      <div class="nav-sep">В работе</div>
+      <div class="nav">
+        <a class="on" href="#">4790<span class="cnt">срок</span></a>
+        <a href="#">4821</a>
+        <a href="#">4833</a>
+        <a href="#">4805</a>
+      </div>
+      <div class="side-foot"><span class="ava">РВ</span><div><div style="font-size:13.5px; font-weight:500">rev-2214</div><div class="hint">ревьюер</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <div class="crumbs"><a href="#">Мои работы</a><span>/</span><span class="cur">Студент 4790</span></div>
+          <h1 class="pt" style="margin-top:4px">Лабораторная 1. Декомпозиция сервиса</h1>
+        </div>
+        <div class="top-actions">
+          <span class="st review">На ревью</span>
+          <span class="btn sm">Вернуть в пул</span>
+          <span class="btn sm">Сохранить черновик</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="grid g-rev">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="ch"><h4>Работа</h4><span class="tag">попытка 1</span></div>
+              <div class="cb">
+                <div class="filerow"><span class="nm">github.com/s4790/wardrobe</span><span class="btn sm">Открыть</span></div>
+                <div class="sumline" style="margin-top:10px"><span class="hint">Сдана</span><span>18 февраля, 21:40</span></div>
+                <div class="sumline"><span class="hint">Срок сдачи был</span><span>17 февраля, 23:59</span></div>
+                <div class="sumline"><span class="hint">Саморевью до сдачи</span><span>3 запуска</span></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:16px">
+              <div class="ch"><div><h4>Признаки генерации ИИ</h4><div class="sub">Оценка модели, на балл не влияет</div></div></div>
+              <div class="cb">
+                <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px">
+                  <span class="bigpct">72%</span>
+                  <div style="flex:1"><div class="meter"><i class="hi" style="width:72%"></i></div></div>
+                </div>
+                <ul class="bullets">
+                  <li>однородная длина абзацев по всему документу,</li>
+                  <li>разделы, которых нет в задании: «Trade-offs», «Что измеряется»,</li>
+                  <li>документ добавлен одним коммитом, черновиков в истории нет,</li>
+                  <li>декларации об использовании ИИ нет, хотя задание её требует.</li>
+                </ul>
+                <div style="display:flex; gap:8px; margin-top:12px">
+                  <span class="btn sm">Учесть в комментарии</span>
+                  <span class="btn sm">Отклонить сигнал</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><h4>Итог</h4><div class="sum"><span class="v">3.5</span><span class="of">из 6</span></div></div>
+              <div class="cb tight">
+                <div class="sumline"><span>По требованиям задания</span><span>4.5</span></div>
+                <div class="sumline"><span>Просрочка 1 день</span><span class="neg">−1</span></div>
+                <div class="sumline"><span><b>Итого</b></span><span><b>3.5</b>, порог 4</span></div>
+              </div>
+              <div class="cf" style="display:block">
+                <div class="hint" style="margin-bottom:10px">Ниже порога зачёта. Выберите, что делать дальше.</div>
+                <div style="display:flex; gap:8px">
+                  <span class="btn pri" style="flex:1; justify-content:center">Вернуть на доработку</span>
+                  <span class="btn" style="flex:1; justify-content:center">Зачесть</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="ch">
+                <div><h4>Предварительное ревью от модели</h4><div class="sub">Оценки проставлены моделью по шкалам из задания. Меняйте там, где не согласны, остальное подтвердится как есть.</div></div>
+                <span class="btn sm">Принять все</span>
+              </div>
+              <div class="cb">
+                <div class="crit">
+                  <div class="r1">
+                    <span class="ck y">✓</span>
+                    <div class="nm">Декомпозиция по двум и более признакам</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                  </div>
+                  <div class="quote">«2.1 По доменам и данным, 2.2 По ролям» — оба разреза описаны и объяснены.</div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <span class="ck y">✓</span>
+                    <div class="nm">Диаграмма C4, контекст и компоненты</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                  </div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <span class="ck y">✓</span>
+                    <div class="nm">Диаграмма последовательностей для основного сценария</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                  </div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <span class="ck y">✓</span>
+                    <div class="nm">Интерфейсы между компонентами описаны</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                  </div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <span class="ck n">✕</span>
+                    <div class="nm">Контракты: формат, входы, выходы, ошибки</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span class="on">0</span><span>0.5</span><span>1</span></span>
+                  </div>
+                  <div class="quote">«5.1 Единый формат ошибок для I1» — описан только внешний интерфейс. Для внутренних вызовов I2 и I3 входы и выходы не заданы.</div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <span class="ck n">✕</span>
+                    <div class="nm">Анализ связности компонентов</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span class="on">0</span><span>0.5</span></span>
+                  </div>
+                  <div class="quote">Раздела с разбором зависимостей в работе нет. Ближайшее по смыслу — фраза «компоненты слабо связаны» в выводах, без разбора.</div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <span class="ck y">✓</span>
+                    <div class="nm">Предложены способы снижения связности</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">0.5</span></span>
+                  </div>
+                  <div class="quote">«7. Что можно развязать» — предложены очередь событий и вынос справочника размеров.</div>
+                </div>
+
+                <div class="crit own">
+                  <div class="r1">
+                    <div class="nm">Требование, добавленное вами</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span class="on">0</span><span>0.5</span><span>1</span></span>
+                  </div>
+                  <div class="why" style="margin-left:0">
+                    <div class="inp" style="background:var(--app)">Читаемость диаграмм без пояснений в тексте</div>
+                    <div style="display:flex; gap:8px; margin-top:10px">
+                      <span class="btn sm">Не влияет на балл</span>
+                      <span class="btn sm pri">Добавить ещё требование</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cf">
+                <span class="hint">Своё требование видит студент и координатор, оно попадает в разбор наравне с требованиями задания</span>
+                <span>Сумма по требованиям <b>4.5 из 6</b></span>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:16px">
+              <div class="ch"><div><h4>Ответ студенту</h4><div class="sub">Черновик собран из ваших отметок, правьте свободно</div></div><span class="btn sm">Собрать заново</span></div>
+              <div class="cb">
+                <div class="inp area" style="min-height:84px; line-height:1.6">Привет! Диаграммы и декомпозиция в порядке. Что поправить: опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe, добавь раздел с анализом связности, укажи в работе, пользовался ли ты ИИ.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<div class="group">
+  <span class="group-tag">Координатор</span>
+  <h2>Курсы, задания, контроль</h2>
+</div>
+
+<section class="screen" id="К1">
+  <div class="screen-head"><span class="screen-num">К1</span><h3>Обзор</h3></div>
+  <p class="screen-note">Точка входа координатора и единственное место, откуда попадаешь во всё остальное. Слева постоянное меню разделов, оно одинаковое на всех экранах координатора. Сверху фильтры по курсу и потоку и поиск по студенту или заданию. В таблице потоков видно, что сдано, что у ревьюеров и что зависло без проверки.</p>
+  <div class="flows"><b>Переходы</b> «Создать курс» открывает <a href="#К2">К2</a>, «Создать поток» открывает <a href="#К3">К3</a>, строка потока ведёт в <a href="#К7">К7</a>, число в колонке «Зависло» ведёт в <a href="#К6">К6</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a class="on" href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="nav-sep">Активные потоки</div>
+      <div class="nav">
+        <a href="#">Системный дизайн, фев</a>
+        <a href="#">Tech QA, фев</a>
+        <a href="#">Go, янв</a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <h1 class="pt">Обзор</h1>
+        <div class="top-actions">
+          <span class="btn sm">Курс: все</span>
+          <span class="btn sm">Поток: активные</span>
+          <span class="btn sm">Поиск по студенту или заданию</span>
+          <span class="btn sm">Создать курс</span>
+          <span class="btn pri sm">Создать поток</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tiles" style="margin-bottom:22px">
+          <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div><div class="d">по 4 курсам</div></div>
+          <div class="tile"><div class="n">46</div><div class="l">у ревьюеров прямо сейчас</div><div class="d">средний срок проверки 1.8 дня</div></div>
+          <div class="tile alert"><div class="n">12</div><div class="l">в пуле без ревьюера</div><div class="d">3 из них дольше 3 дней</div></div>
+          <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div><div class="d">ближайший 19 февраля</div></div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="ch"><div><h4>Потоки</h4><div class="sub">Состояние по каждому активному запуску курса</div></div><span class="btn sm">Показать завершённые</span></div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Курс</th><th>Поток</th><th class="num">Студентов</th><th>Ближайший дедлайн</th><th class="num">Сдано</th><th class="num">На ревью</th><th class="num">Зависло</th><th class="num">Зачтено</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="who">Системный дизайн</div><div class="sub">4 задания</div></td>
+                  <td>Февраль 2026</td><td class="num">96</td>
+                  <td><span class="tag">19 фев, лабораторная 1</span></td>
+                  <td class="num">88</td><td class="num">21</td><td class="num" style="color:var(--bad); font-weight:600">9</td><td class="num">58</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Tech QA</div><div class="sub">6 заданий</div></td>
+                  <td>Февраль 2026</td><td class="num">120</td>
+                  <td><span class="tag">21 фев, домашнее задание 4</span></td>
+                  <td class="num">114</td><td class="num">18</td><td class="num" style="color:var(--bad); font-weight:600">3</td><td class="num">93</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Go</div><div class="sub">5 заданий</div></td>
+                  <td>Январь 2026</td><td class="num">68</td>
+                  <td><span class="tag">завершается 28 фев</span></td>
+                  <td class="num">64</td><td class="num">7</td><td class="num">0</td><td class="num">57</td>
+                </tr>
+                <tr class="done">
+                  <td><div class="who">Data Science</div><div class="sub">3 задания</div></td>
+                  <td>Ноябрь 2025</td><td class="num">54</td>
+                  <td>завершён</td>
+                  <td class="num">54</td><td class="num">0</td><td class="num">0</td><td class="num">51</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid g-2">
+          <div class="card">
+            <div class="ch"><h4>Требует внимания</h4></div>
+            <div class="cb tight">
+              <div class="sumline"><span>9 работ в пуле дольше 3 дней, курс «Системный дизайн»</span><span class="btn link">Открыть пул</span></div>
+              <div class="sumline"><span>4 ревьюера не набрали минимальную квоту на спринт</span><span class="btn link">Посмотреть</span></div>
+              <div class="sumline"><span>Задание «Лабораторная 2» опубликовано без эталонного решения</span><span class="btn link">Дополнить</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h4>Ближайшие дедлайны</h4></div>
+            <div class="cb tight">
+              <div class="sumline"><span>Системный дизайн, лабораторная 1</span><span class="tag">19 фев</span></div>
+              <div class="sumline"><span>Tech QA, домашнее задание 4</span><span class="tag">21 фев</span></div>
+              <div class="sumline"><span>Системный дизайн, лабораторная 2</span><span class="tag">28 фев</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К2">
+  <div class="screen-head"><span class="screen-num">К2</span><h3>Новый курс</h3></div>
+  <p class="screen-note">Отдельного экрана под это не нужно, полей всего три. Модальное окно поверх обзора. Курс — верхний уровень: внутри него живут задания и потоки, поэтому создаётся один раз на направление.</p>
+  <div class="flows"><b>Переходы</b> «Создать» закрывает окно и возвращает на <a href="#К1">К1</a> с новым курсом в списке</div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a class="on" href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <h1 class="pt">Обзор</h1>
+        <div class="top-actions"><span class="btn sm">Создать курс</span><span class="btn pri sm">Создать поток</span></div>
+      </div>
+      <div class="content">
+        <div class="tiles" style="opacity:.4">
+          <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div></div>
+          <div class="tile"><div class="n">46</div><div class="l">у ревьюеров прямо сейчас</div></div>
+          <div class="tile"><div class="n">12</div><div class="l">в пуле без ревьюера</div></div>
+          <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="modal">
+      <div class="mh"><h4>Новый курс</h4><span class="x">✕</span></div>
+      <div class="mb">
+        <div class="field">
+          <span class="lbl">Название</span>
+          <div class="inp">Системный дизайн</div>
+        </div>
+        <div class="field">
+          <span class="lbl">Короткое описание, видно студентам и ревьюерам</span>
+          <div class="inp area" style="min-height:76px">Проектирование распределённых систем: декомпозиция, интерфейсы, надёжность</div>
+        </div>
+        <div class="field">
+          <span class="lbl">Кто ведёт курс</span>
+          <div class="inp ro">Координатор (вы) и ещё 1 методист</div>
+          <span class="hint">Задания и потоки внутри курса смогут создавать оба.</span>
+        </div>
+      </div>
+      <div class="mf"><span class="btn">Отмена</span><span class="btn pri">Создать курс</span></div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К3">
+  <div class="screen-head"><span class="screen-num">К3</span><h3>Новый поток</h3></div>
+  <p class="screen-note">Тоже модальное окно. Поток всегда принадлежит курсу, поэтому курс выбирается первым полем и без него сохранить нельзя. ID не спрашиваем, он собирается из курса и дат и показан как есть — по нему потом строятся ссылки для сдачи и заголовки в выгрузке. Списка студентов здесь нет: студент попадает в поток сам, перейдя по ссылке задания со своим Stepik ID.</p>
+  <div class="flows"><b>Переходы</b> «Создать» возвращает на <a href="#К1">К1</a>, дальше в поток нужно добавить задания через <a href="#К4">К4</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a class="on" href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <h1 class="pt">Обзор</h1>
+        <div class="top-actions"><span class="btn sm">Создать курс</span><span class="btn pri sm">Создать поток</span></div>
+      </div>
+      <div class="content">
+        <div class="tiles" style="opacity:.4">
+          <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div></div>
+          <div class="tile"><div class="n">46</div><div class="l">у ревьюеров прямо сейчас</div></div>
+          <div class="tile"><div class="n">12</div><div class="l">в пуле без ревьюера</div></div>
+          <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="modal">
+      <div class="mh"><h4>Новый поток</h4><span class="x">✕</span></div>
+      <div class="mb">
+        <div class="field">
+          <span class="lbl">Курс</span>
+          <div class="inp">Системный дизайн</div>
+        </div>
+        <div class="field">
+          <span class="lbl">Даты</span>
+          <div style="display:flex; gap:12px">
+            <div class="inp" style="flex:1">2 февраля 2026</div>
+            <div class="inp" style="flex:1">30 марта 2026</div>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">ID потока</span>
+          <div class="inp mono ro">sysdesign-2026-02</div>
+          <span class="hint">Собран из названия курса и даты начала. Используется в ссылках для сдачи и в выгрузке, менять нельзя.</span>
+        </div>
+        <div class="note" style="margin-top:18px">Студентов добавлять не нужно. Зачисление происходит при первом переходе по ссылке задания, платформа узнаёт студента по Stepik ID.</div>
+      </div>
+      <div class="mf"><span class="btn">Отмена</span><span class="btn pri">Создать поток</span></div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К4">
+  <div class="screen-head"><span class="screen-num">К4</span><h3>Задание, шаг 1: что видит студент</h3></div>
+  <p class="screen-note">Задание принадлежит курсу и заполняется по шагам, а не двумя половинами одного экрана. Сначала то, что увидит студент: название, условие, формат сдачи, срок и правило штрафа. Критерии на следующем шаге, чтобы не смешивать текст для студента с конфигурацией проверки. Задание можно сохранить черновиком и вернуться, а после публикации отредактировать с созданием новой версии.</p>
+  <div class="flows"><b>Переходы</b> «Дальше» ведёт на <a href="#К5">К5</a>, «Сохранить черновик» возвращает в список заданий курса</div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a class="on" href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="nav-sep">Курс «Системный дизайн»</div>
+      <div class="nav">
+        <a href="#">Вводное задание</a>
+        <a class="on" href="#">Лабораторная 1</a>
+        <a href="#">Лабораторная 2</a>
+        <a href="#">Лабораторная 3</a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <div class="crumbs"><a href="#">Курсы</a><span>/</span><a href="#">Системный дизайн</a><span>/</span><span class="cur">Лабораторная 1</span></div>
+          <h1 class="pt" style="margin-top:4px">Лабораторная 1. Декомпозиция сервиса</h1>
+        </div>
+        <div class="top-actions">
+          <span class="st draft">Черновик</span>
+          <span class="btn sm">Сохранить черновик</span>
+          <span class="btn pri sm">Дальше: критерии</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="steps" style="margin-bottom:24px">
+          <div class="s on"><span class="n">1</span>Для студента</div>
+          <span class="bar"></span>
+          <div class="s"><span class="n">2</span>Критерии ревью</div>
+          <span class="bar"></span>
+          <div class="s"><span class="n">3</span>Публикация в потоках</div>
+        </div>
+
+        <div class="grid g-side">
+          <div class="card">
+            <div class="ch"><h4>Условие задания</h4><span class="hint">Виден студенту на странице сдачи</span></div>
+            <div class="cb">
+              <div class="field">
+                <span class="lbl">Название</span>
+                <div class="inp">Лабораторная 1. Декомпозиция сервиса</div>
+              </div>
+              <div class="field">
+                <span class="lbl">Условие</span>
+                <div class="inp area" style="min-height:330px; line-height:1.6">Выберите проект, который будете прорабатывать на всех лабораторных курса. Для выбранного проекта выполните декомпозицию системы минимум по двум признакам и объясните выбор. Постройте диаграммы C4 уровня контекста и компонентов, а также диаграмму последовательностей для основного сценария. Опишите интерфейсы между компонентами и контракты: формат, входы, выходы, ошибки. Проанализируйте связность компонентов и предложите способы её снизить.</div>
+              </div>
+              <div class="field">
+                <span class="lbl">Что сдаём</span>
+                <div style="display:flex; gap:10px">
+                  <div class="seg"><span class="on">Ссылка или файлы</span><span>Только ссылка</span><span>Только файлы</span></div>
+                </div>
+                <span class="hint">Студент выбирает способ сам на странице сдачи.</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><h4>Сроки и штраф</h4></div>
+              <div class="cb">
+                <div class="field">
+                  <span class="lbl">Срок сдачи</span>
+                  <div class="inp">19 февраля 2026, 23:59</div>
+                  <span class="hint">Для каждого потока срок задаётся отдельно на шаге 3.</span>
+                </div>
+                <div class="field">
+                  <span class="lbl">Штраф за просрочку</span>
+                  <div style="display:flex; gap:10px; align-items:center">
+                    <div class="inp" style="width:80px">1</div>
+                    <span class="hint" style="margin:0">балл за каждый день после срока</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="lbl">Саморевью до сдачи</span>
+                  <div style="display:flex; gap:10px; align-items:center">
+                    <div class="inp" style="width:80px">3</div>
+                    <span class="hint" style="margin:0">попытки на студента</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="note">Задание привязано к курсу «Системный дизайн» и переиспользуется в его потоках. Срок и ссылку для сдачи каждый поток получает свои.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К5">
+  <div class="screen-head"><span class="screen-num">К5</span><h3>Задание, шаг 2: конфигурация ревью</h3></div>
+  <p class="screen-note">Здесь собирается всё, по чему потом работают модель и ревьюер. У каждого критерия своя формулировка, шкала оценок, описание «что считается выполненным» и класс проверки. Ниже общие рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Эталонное решение прикладывается по желанию.</p>
+  <div class="flows"><b>Переходы</b> «Дальше» ведёт на шаг публикации, где задание привязывается к потокам и выдаёт ссылку для Stepik, «Назад» возвращает на <a href="#К4">К4</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a class="on" href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="nav-sep">Курс «Системный дизайн»</div>
+      <div class="nav">
+        <a href="#">Вводное задание</a>
+        <a class="on" href="#">Лабораторная 1</a>
+        <a href="#">Лабораторная 2</a>
+        <a href="#">Лабораторная 3</a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <div class="crumbs"><a href="#">Курсы</a><span>/</span><a href="#">Системный дизайн</a><span>/</span><span class="cur">Лабораторная 1</span></div>
+          <h1 class="pt" style="margin-top:4px">Лабораторная 1. Декомпозиция сервиса</h1>
+        </div>
+        <div class="top-actions">
+          <span class="tag">Версия 2, черновик</span>
+          <span class="btn sm">Назад</span>
+          <span class="btn pri sm">Дальше: публикация</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="steps" style="margin-bottom:24px">
+          <div class="s ok"><span class="n">✓</span>Для студента</div>
+          <span class="bar"></span>
+          <div class="s on"><span class="n">2</span>Критерии ревью</div>
+          <span class="bar"></span>
+          <div class="s"><span class="n">3</span>Публикация в потоках</div>
+        </div>
+
+        <div class="grid g-side">
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch">
+                <div><h4>Критерии</h4><div class="sub">7 критериев, всего 6 баллов, порог зачёта 4</div></div>
+                <span class="btn sm pri">Добавить критерий</span>
+              </div>
+              <div class="cb">
+                <div class="crit" style="border-top:0">
+                  <div class="r1">
+                    <div class="nm"><div class="inp">Выполнена декомпозиция по двум и более признакам</div></div>
+                    <div style="width:220px">
+                      <div class="scale-lbl" style="margin-bottom:5px">шкала</div>
+                      <div class="seg"><span class="on">0 или 1</span><span>0, 0.5, 1</span></div>
+                    </div>
+                  </div>
+                  <div class="why" style="margin-left:0; margin-top:10px">
+                    <div class="inp" style="font-size:13.5px">Выполнено, если в работе есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они</div>
+                    <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
+                      <span class="scale-lbl">проверка</span>
+                      <div class="seg" style="font-size:12px"><span>формальная</span><span class="on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <div class="nm"><div class="inp">Построена диаграмма C4: контекст и компоненты</div></div>
+                    <div style="width:220px">
+                      <div class="scale-lbl" style="margin-bottom:5px">шкала</div>
+                      <div class="seg"><span class="on">0 или 1</span><span>0, 0.5, 1</span></div>
+                    </div>
+                  </div>
+                  <div class="why" style="margin-left:0; margin-top:10px">
+                    <div class="inp" style="font-size:13.5px">Выполнено, если обе диаграммы присутствуют и подписаны</div>
+                    <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
+                      <span class="scale-lbl">проверка</span>
+                      <div class="seg" style="font-size:12px"><span class="on">формальная</span><span>по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="crit">
+                  <div class="r1">
+                    <div class="nm"><div class="inp">Проведён анализ связности компонентов</div></div>
+                    <div style="width:220px">
+                      <div class="scale-lbl" style="margin-bottom:5px">шкала</div>
+                      <div class="seg"><span>0 или 1</span><span class="on">0 или 0.5</span></div>
+                    </div>
+                  </div>
+                  <div class="why" style="margin-left:0; margin-top:10px">
+                    <div class="inp" style="font-size:13.5px">Выполнено, если разобраны конкретные зависимости между компонентами, а не общая фраза про слабую связность</div>
+                    <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
+                      <span class="scale-lbl">проверка</span>
+                      <div class="seg" style="font-size:12px"><span>формальная</span><span class="on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="crit" style="border-top:1px dashed var(--line-2); color:var(--ink-3)">
+                  <div class="r1"><div class="nm" style="font-weight:400; color:var(--ink-3)">Ещё 4 критерия: диаграмма последовательностей, интерфейсы, контракты, снижение связности</div><span class="btn sm">Развернуть</span></div>
+                </div>
+              </div>
+              <div class="cf">
+                <span class="hint">Порядок критериев меняется перетаскиванием, он же определяет порядок в разборе у ревьюера и студента</span>
+                <span>Сумма баллов <b>6</b></span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><div><h4>Рекомендации ревьюерам</h4><div class="sub">Видно только ревьюерам на карточке работы, студенту не показывается</div></div></div>
+              <div class="cb">
+                <div class="inp area" style="min-height:110px; line-height:1.6">Диаграммы принимаем в любой нотации, если читаются. Не снижайте за инструмент рисования. По контрактам смотрите, описаны ли ошибки, а не только успешный ответ. Если студент выбрал очень простой проект, это не повод снижать балл, но отметьте в комментарии.</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><h4>Эталонное решение</h4><span class="hint">Необязательно</span></div>
+              <div class="cb">
+                <div class="drop" style="padding:24px">
+                  <div class="m">Перетащите файл или выберите</div>
+                  <div class="s">PDF, Markdown или ссылка на репозиторий</div>
+                </div>
+                <span class="hint" style="display:block; margin-top:12px">Используется как пример для модели и ревьюеров при калибровке. Студентам не показывается никогда.</span>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:20px">
+              <div class="ch"><h4>Версии</h4></div>
+              <div class="cb tight">
+                <div class="sumline"><span><b>Версия 2</b>, черновик</span><span class="hint">вы, сегодня</span></div>
+                <div class="sumline"><span>Версия 1, опубликована</span><span class="hint">2 февраля</span></div>
+              </div>
+              <div class="cf"><span class="hint">Уже проверенные работы остаются на своей версии критериев</span></div>
+            </div>
+
+            <div class="note warn">Критерии видны ревьюеру и попадают в разбор студенту после проверки. До сдачи студент видит только названия критериев и баллы, но не описания «что считается выполненным».</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К6">
+  <div class="screen-head"><span class="screen-num">К6</span><h3>Пул проверок</h3></div>
+  <p class="screen-note">Что сдано и до сих пор не взято ревьюером. Принудительного назначения здесь нет: координатор видит проблему и может напомнить ревьюерам или расширить круг, но не раздаёт работы руками. Ниже по тому же потоку типичные ошибки — требования, на которых валится больше всего студентов. Их можно добавить в описание курса, чтобы следующий поток обратил внимание.</p>
+  <div class="flows"><b>Переходы</b> строка работы открывает <a href="#К8">К8</a>, «Добавить в описание курса» ведёт в карточку курса, «Напомнить» отправляет уведомление ревьюерам курса</div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a href="#">Задания<span class="cnt">17</span></a>
+        <a class="on" href="#">Пул проверок<span class="cnt">12</span></a>
+        <a href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="nav-sep">Активные потоки</div>
+      <div class="nav">
+        <a class="on" href="#">Системный дизайн, фев<span class="cnt">9</span></a>
+        <a href="#">Tech QA, фев<span class="cnt">3</span></a>
+        <a href="#">Go, янв<span class="cnt">0</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <h1 class="pt">Пул проверок</h1>
+          <div class="hint" style="margin-top:2px">Системный дизайн, поток «Февраль 2026»</div>
+        </div>
+        <div class="top-actions">
+          <span class="btn sm">Задание: все</span>
+          <span class="btn sm">Только зависшие</span>
+          <span class="btn pri sm">Напомнить ревьюерам</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tiles" style="margin-bottom:22px">
+          <div class="tile"><div class="n">9</div><div class="l">работ ждут ревьюера</div><div class="d">из 88 сданных в потоке</div></div>
+          <div class="tile alert"><div class="n">3</div><div class="l">лежат дольше 3 дней</div><div class="d">все по лабораторной 1</div></div>
+          <div class="tile"><div class="n">14</div><div class="l">активных ревьюеров на курсе</div><div class="d">суммарная квота 78 работ</div></div>
+          <div class="tile"><div class="n">1.8 дня</div><div class="l">среднее время до взятия</div><div class="d">неделей раньше 1.2 дня</div></div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="ch"><div><h4>Работы без ревьюера</h4><div class="sub">Сверху те, что лежат дольше всех</div></div><span class="btn sm">Расширить круг ревьюеров</span></div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Студент</th><th>Задание</th><th>Статус</th><th class="num">Сдана</th><th class="num">В пуле</th><th class="num">Попытка</th></tr></thead>
+              <tbody>
+                <tr class="hot"><td class="num">4902</td><td>Лабораторная 1. Декомпозиция</td><td><span class="st sent">Сдана</span></td><td class="num">14 фев</td><td class="num">5 дней</td><td class="num">1</td></tr>
+                <tr class="hot"><td class="num">4933</td><td>Лабораторная 1. Декомпозиция</td><td><span class="st sent">Сдана</span></td><td class="num">15 фев</td><td class="num">4 дня</td><td class="num">1</td></tr>
+                <tr class="hot"><td class="num">4871</td><td>Лабораторная 1. Декомпозиция</td><td><span class="st re">На повторном ревью</span></td><td class="num">16 фев</td><td class="num">3 дня</td><td class="num">2</td></tr>
+                <tr><td class="num">4915</td><td>Лабораторная 1. Декомпозиция</td><td><span class="st sent">Сдана</span></td><td class="num">18 фев</td><td class="num">1 день</td><td class="num">1</td></tr>
+                <tr><td class="num">4884</td><td>Лабораторная 2. Хранилище</td><td><span class="st sent">Сдана</span></td><td class="num">19 фев</td><td class="num">меньше суток</td><td class="num">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cf"><span class="hint">Показаны 5 из 9. Работа уходит из пула, когда её берёт ревьюер.</span><span class="btn link">Показать все</span></div>
+        </div>
+
+        <div class="card">
+          <div class="ch"><div><h4>Типичные ошибки потока</h4><div class="sub">Считается по 58 проверенным работам лабораторной 1</div></div><span class="btn sm">Добавить в описание курса</span></div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Требование</th><th class="num">Не выполнили</th><th>Доля</th></tr></thead>
+              <tbody>
+                <tr><td>Контракты: входы, выходы, ошибки</td><td class="num">41 из 58</td><td><div class="meter" style="width:220px"><i class="hi" style="width:71%"></i></div></td></tr>
+                <tr><td>Анализ связности компонентов</td><td class="num">31 из 58</td><td><div class="meter" style="width:220px"><i style="width:54%"></i></div></td></tr>
+                <tr><td>Диаграмма последовательностей</td><td class="num">17 из 58</td><td><div class="meter" style="width:220px"><i style="width:29%"></i></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cf"><span class="hint">Первые две строки стоит разобрать на занятии или переформулировать в задании</span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К7">
+  <div class="screen-head"><span class="screen-num">К7</span><h3>Реестр домашек курса</h3></div>
+  <p class="screen-note">Все домашки выбранного курса и потока, в отличие от пула — со всеми статусами, включая закрытые. Отсюда открывается любое ревью и отсюда же делается выгрузка. Кнопка выгрузки становится активной после дедлайна задания, до него выгружать нечего.</p>
+  <div class="flows"><b>Переходы</b> строка открывает <a href="#К8">К8</a>, «Выгрузить» открывает <a href="#К9">К9</a>, счётчик в пуле ведёт в <a href="#К6">К6</a></div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a class="on" href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="nav-sep">Активные потоки</div>
+      <div class="nav">
+        <a class="on" href="#">Системный дизайн, фев</a>
+        <a href="#">Tech QA, фев</a>
+        <a href="#">Go, янв</a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <div class="crumbs"><a href="#">Курсы</a><span>/</span><a href="#">Системный дизайн</a><span>/</span><span class="cur">Февраль 2026</span></div>
+          <h1 class="pt" style="margin-top:4px">Домашки потока</h1>
+        </div>
+        <div class="top-actions">
+          <span class="btn sm">Задание: лабораторная 1</span>
+          <span class="btn sm">Статус: все</span>
+          <span class="btn sm">Поиск по ID студента</span>
+          <span class="btn pri sm">Выгрузить</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tabs" style="margin-bottom:20px">
+          <span class="tab on">Все<span class="c">88</span></span>
+          <span class="tab">В пуле<span class="c">9</span></span>
+          <span class="tab">У ревьюеров<span class="c">21</span></span>
+          <span class="tab">Нужны правки<span class="c">14</span></span>
+          <span class="tab">Закрытые<span class="c">44</span></span>
+        </div>
+        <div class="card">
+          <div class="ch"><div><h4>Лабораторная 1. Декомпозиция сервиса</h4><div class="sub">Срок сдачи был 19 февраля, дедлайн прошёл</div></div><span class="hint">Показаны 8 из 88</span></div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Студент</th><th>Статус</th><th>Ревьюер</th><th class="num">Попытка</th><th class="num">Сдана</th><th class="num">Обновлена</th><th class="num right">Балл</th></tr></thead>
+              <tbody>
+                <tr><td class="num">4790</td><td><span class="st review">На ревью</span></td><td class="num">rev-2214</td><td class="num">1</td><td class="num">18 фев</td><td class="num">19 фев</td><td class="num right">—</td></tr>
+                <tr><td class="num">4821</td><td><span class="st re">На повторном ревью</span></td><td class="num">rev-2214</td><td class="num">2</td><td class="num">14 фев</td><td class="num">21 фев</td><td class="num right">—</td></tr>
+                <tr><td class="num">4805</td><td><span class="st fix">Нужны правки</span></td><td class="num">rev-3390</td><td class="num">1</td><td class="num">16 фев</td><td class="num">18 фев</td><td class="num right">3.0</td></tr>
+                <tr class="hot"><td class="num">4902</td><td><span class="st sent">Сдана</span></td><td class="num">в пуле 5 дней</td><td class="num">1</td><td class="num">14 фев</td><td class="num">14 фев</td><td class="num right">—</td></tr>
+                <tr class="done"><td class="num">4776</td><td><span class="st pass">Зачтена</span></td><td class="num">rev-2214</td><td class="num">2</td><td class="num">12 фев</td><td class="num">18 фев</td><td class="num right">5.0</td></tr>
+                <tr class="done"><td class="num">4744</td><td><span class="st pass">Зачтена</span></td><td class="num">rev-4102</td><td class="num">1</td><td class="num">13 фев</td><td class="num">15 фев</td><td class="num right">4.5</td></tr>
+                <tr class="done"><td class="num">4712</td><td><span class="st fail">Не зачтена</span></td><td class="num">rev-3390</td><td class="num">2</td><td class="num">11 фев</td><td class="num">20 фев</td><td class="num right">3.5</td></tr>
+                <tr class="done"><td class="num">4698</td><td><span class="st pass">Зачтена</span></td><td class="num">rev-4102</td><td class="num">1</td><td class="num">10 фев</td><td class="num">12 фев</td><td class="num right">6.0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="cf"><span class="hint">Клик по строке открывает ревью в режиме просмотра</span><span>Зачтено <b>44</b>, не зачтено <b>3</b>, в работе <b>41</b></span></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К8">
+  <div class="screen-head"><span class="screen-num">К8</span><h3>Просмотр ревью, только чтение</h3></div>
+  <p class="screen-note">Тот же экран, что у ревьюера, с теми же блоками и в том же порядке, но без возможности что-либо менять: шкалы зафиксированы, полей ввода нет, кнопок действия нет. Нужен для разбора жалоб студента и выборочного контроля качества. Дополнительно показана история решений по работе, чтобы видеть, где ревьюер разошёлся с моделью.</p>
+  <div class="flows"><b>Переходы</b> открывается из <a href="#К7">К7</a> и из <a href="#К6">К6</a>, крошка возвращает в реестр</div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a class="on" href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <div class="crumbs"><a href="#">Домашки</a><span>/</span><a href="#">Лабораторная 1</a><span>/</span><span class="cur">Студент 4776</span></div>
+          <h1 class="pt" style="margin-top:4px">Ревью работы 4776</h1>
+        </div>
+        <div class="top-actions">
+          <span class="tag">Только просмотр</span>
+          <span class="st pass">Зачтена</span>
+          <span class="btn sm">Открыть работу</span>
+        </div>
+      </div>
+      <div class="content">
+        <div class="grid g-rev">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="ch"><h4>Работа</h4><span class="tag">попытка 2</span></div>
+              <div class="cb tight">
+                <div class="sumline"><span class="hint">Ревьюер</span><span>rev-2214</span></div>
+                <div class="sumline"><span class="hint">Проверена</span><span>18 февраля, 16:40</span></div>
+                <div class="sumline"><span class="hint">Время проверки</span><span>11 минут</span></div>
+                <div class="sumline"><span class="hint">Признаки ИИ</span><span>18%, сигнал не поднимался</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ch"><div><h4>История решений</h4><div class="sub">Что предложила модель и что изменил человек</div></div></div>
+              <div class="cb tight">
+                <div class="sumline"><span>Модель предложила разбор по 7 требованиям</span><span class="hint">18 фев, 16:29</span></div>
+                <div class="sumline"><span>Ревьюер изменил «Анализ связности» с 0 на 0.5</span><span class="hint">18 фев, 16:36</span></div>
+                <div class="sumline"><span>Ревьюер добавил своё требование, без баллов</span><span class="hint">18 фев, 16:38</span></div>
+                <div class="sumline"><span>Ревьюер подтвердил итог 5.0 и отправил студенту</span><span class="hint">18 фев, 16:40</span></div>
+              </div>
+              <div class="cf"><span class="hint">Журнал ведётся по каждой работе и доступен для апелляции</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="ch">
+              <div><h4>Разбор по требованиям</h4><div class="sub">Итоговые оценки ревьюера, менять нельзя</div></div>
+              <div class="sum"><span class="v">5.0</span><span class="of">из 6</span></div>
+            </div>
+            <div class="cb">
+              <div class="crit" style="border-top:0">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Выполнена декомпозиция по двум и более признакам</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Построена диаграмма C4: контекст и компоненты</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Диаграмма последовательностей для основного сценария</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Интерфейсы между компонентами описаны</div><span class="tag mono">1 из 1</span></div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck n">✕</span><div class="nm">Контракты: формат, входы, выходы, ошибки</div><span class="tag mono">0.5 из 1</span></div>
+                <div class="quote">«5.2 Ошибки I2» — во второй попытке добавлены ошибки внутренних вызовов, входы и выходы описаны частично.</div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Проведён анализ связности компонентов</div><span class="tag mono">0.5 из 0.5</span></div>
+                <div class="quote">Модель предлагала 0. Ревьюер изменил: «раздел 6 добавлен во второй попытке, зависимости разобраны по парам компонентов».</div>
+              </div>
+              <div class="crit">
+                <div class="r1"><span class="ck y">✓</span><div class="nm">Предложены способы снижения связности</div><span class="tag mono">0 из 0.5</span></div>
+              </div>
+              <div class="crit own" style="background:var(--app-2)">
+                <div class="r1"><span class="ck q">i</span><div class="nm">Читаемость диаграмм без пояснений в тексте</div><span class="tag">добавил ревьюер, без баллов</span></div>
+                <div class="why">Диаграммы понятны без сопроводительного текста, это заметно лучше среднего по потоку.</div>
+              </div>
+            </div>
+            <div class="cf"><span class="hint">Ответ студенту отправлен 18 февраля</span><span class="btn link">Показать текст ответа</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+
+<section class="screen" id="К9">
+  <div class="screen-head"><span class="screen-num">К9</span><h3>Выгрузка</h3></div>
+  <p class="screen-note">Выгрузка делается вручную и по требованию, автоматической синхронизации с таблицей нет. Кнопка «Выгрузить» на реестре открывает это окно, координатор выбирает задание, состав колонок и формат, получает файл. Незакрытые работы можно исключить, чтобы не выгружать промежуточные баллы.</p>
+  <div class="flows"><b>Переходы</b> открывается из <a href="#К7">К7</a>, «Скачать» отдаёт файл и закрывает окно</div>
+  <div class="shot"><div class="vp">
+    <div class="side">
+      <div class="brand"><span class="mark">A</span>Обучение</div>
+      <div class="nav">
+        <a href="#">Обзор</a>
+        <a href="#">Курсы<span class="cnt">4</span></a>
+        <a href="#">Задания<span class="cnt">17</span></a>
+        <a href="#">Пул проверок<span class="cnt">12</span></a>
+        <a class="on" href="#">Домашки<span class="cnt">284</span></a>
+      </div>
+      <div class="side-foot"><span class="ava">КО</span><div><div style="font-size:13.5px; font-weight:500">Координатор</div><div class="hint">методист курса</div></div></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div>
+          <div class="crumbs"><a href="#">Курсы</a><span>/</span><a href="#">Системный дизайн</a><span>/</span><span class="cur">Февраль 2026</span></div>
+          <h1 class="pt" style="margin-top:4px">Домашки потока</h1>
+        </div>
+        <div class="top-actions"><span class="btn pri sm">Выгрузить</span></div>
+      </div>
+      <div class="content" style="opacity:.4">
+        <div class="card">
+          <div class="ch"><h4>Лабораторная 1. Декомпозиция сервиса</h4></div>
+          <div class="cb tight">
+            <table class="tbl">
+              <thead><tr><th>Студент</th><th>Статус</th><th class="num right">Балл</th></tr></thead>
+              <tbody>
+                <tr><td class="num">4790</td><td><span class="st review">На ревью</span></td><td class="num right">—</td></tr>
+                <tr><td class="num">4776</td><td><span class="st pass">Зачтена</span></td><td class="num right">5.0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="modal wide">
+      <div class="mh"><h4>Выгрузка результатов</h4><span class="x">✕</span></div>
+      <div class="mb">
+        <div class="field">
+          <span class="lbl">Что выгружаем</span>
+          <div class="inp">Лабораторная 1. Декомпозиция сервиса, поток «Февраль 2026»</div>
+          <span class="hint">Дедлайн прошёл 19 февраля. Проверено 47 работ из 88.</span>
+        </div>
+        <div class="field">
+          <span class="lbl">Колонки</span>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 24px; margin-top:4px">
+            <div class="check"><span class="box on">✓</span><span>ID студента</span></div>
+            <div class="check"><span class="box on">✓</span><span>Итоговый балл</span></div>
+            <div class="check"><span class="box on">✓</span><span>Статус</span></div>
+            <div class="check"><span class="box on">✓</span><span>Номер попытки</span></div>
+            <div class="check"><span class="box"></span><span>Баллы по каждому критерию</span></div>
+            <div class="check"><span class="box"></span><span>Комментарий ревьюера</span></div>
+            <div class="check"><span class="box"></span><span>ID ревьюера</span></div>
+            <div class="check"><span class="box"></span><span>Ссылка на работу</span></div>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">Что делать с незакрытыми работами</span>
+          <div class="seg"><span class="on">Не выгружать</span><span>Выгрузить с пустым баллом</span></div>
+          <span class="hint">41 работа ещё не закрыта. Промежуточные баллы в таблицу лучше не отдавать.</span>
+        </div>
+        <div class="field">
+          <span class="lbl">Формат</span>
+          <div class="seg"><span class="on">CSV</span><span>XLSX</span></div>
+        </div>
+      </div>
+      <div class="mf"><span class="btn">Отмена</span><span class="btn pri">Скачать, 47 строк</span></div>
+    </div>
+  </div></div>
+</section>
+
+</div>
+
+
+
