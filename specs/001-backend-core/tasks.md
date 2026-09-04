@@ -117,9 +117,9 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Independent Test**: Create/publish homework, read current and historical versions, change requirements, and observe a durable requirements-changed event without mutating prior data.
 
-- [ ] T065 [P] [US2] Write failing create/version/publish/read OpenAPI and exact-command tests for a draft with no publication and per-CourseRun current publications in `backend/tests/contract/test_homework_api.py`
-- [ ] T066 [P] [US2] Write failing full-version round-trip, criterion total, stable-key, per-CourseRun publication, immutable-history, and durable requirements-changed event tests carrying previous/current version IDs in `backend/tests/state/test_homework_versioning.py`
-- [ ] T067 [P] [US2] Write failing two-CourseRun history tests where different versions are current simultaneously plus durable requirements-change event acceptance tests in `backend/tests/integration/test_homework_publication.py`
+- [X] T065 [P] [US2] Write failing create/version/publish/read OpenAPI and exact-command tests for a draft with no publication and per-CourseRun current publications in `backend/tests/contract/test_homework_api.py`
+- [X] T066 [P] [US2] Write failing full-version round-trip, criterion total, stable-key, per-CourseRun publication, immutable-history, and durable requirements-changed event tests carrying previous/current version IDs in `backend/tests/state/test_homework_versioning.py`
+- [X] T067 [P] [US2] Write failing two-CourseRun history tests where different versions are current simultaneously plus durable requirements-change event acceptance tests in `backend/tests/integration/test_homework_publication.py`
 - [ ] T068 [US2] Implement Homework, HomeworkVersion, CourseRunHomework, append-only CourseRunHomeworkPublication, CriterionSet, and Criterion tables in `backend/src/review_platform/infrastructure/db/models/homework.py`
 - [ ] T069 [US2] Create the reversible homework migration with `down_revision=0002_identity_and_courses` in `backend/migrations/versions/0003_homework_versions.py`
 - [ ] T070 [US2] Implement immutable requirement digest and criterion-set validation in `backend/src/review_platform/domain/homework.py`
