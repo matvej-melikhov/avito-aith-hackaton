@@ -1,5 +1,13 @@
 """Import all currently migrated SQLAlchemy models for metadata discovery."""
 
+from review_platform.infrastructure.db.models.homework import (
+    CourseRunHomework,
+    CourseRunHomeworkPublication,
+    Criterion,
+    CriterionSet,
+    Homework,
+    HomeworkVersion,
+)
 from review_platform.infrastructure.db.models.identity import (
     AgentAuthorization,
     ExternalCredential,
@@ -33,10 +41,16 @@ __all__ = [
     "Course",
     "CourseMembership",
     "CourseRun",
+    "CourseRunHomework",
+    "CourseRunHomeworkPublication",
+    "Criterion",
+    "CriterionSet",
     "DestinationBinding",
     "ExternalCourseBinding",
     "ExternalCredential",
     "ExternalIdentity",
+    "Homework",
+    "HomeworkVersion",
     "Invitation",
     "OAuthState",
     "Operation",

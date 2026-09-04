@@ -288,10 +288,10 @@ def test_openapi_projection_fields_have_persisted_sources() -> None:
     } <= set(CourseRun.__table__.columns.keys())
 
 
-def test_alembic_identity_course_revision_is_the_single_head() -> None:
+def test_alembic_identity_course_revision_is_preserved_below_current_head() -> None:
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
 
-    assert scripts.get_heads() == ["0002_identity_and_courses"]
+    assert scripts.get_heads() == ["0003_homework_versions"]
     revision = scripts.get_revision("0002_identity_and_courses")
     assert revision is not None
     assert revision.down_revision == "0001_foundation"
