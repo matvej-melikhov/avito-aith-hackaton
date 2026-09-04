@@ -293,6 +293,9 @@ a:hover { border-bottom-color: var(--ink); }
 .card__sub  { margin-top: 2px; font-size: var(--small-size); color: var(--ink-3); font-weight: var(--w-regular); }
 .card__body { padding: var(--s-5); }
 .card__body--tight { padding: var(--s-2) var(--s-5); }
+.card__body--compact { padding: var(--s-4) var(--s-5); }
+.card__body--compact .field { margin-bottom: var(--s-3); }
+.card__body--compact .field:last-child { margin-bottom: 0; }
 .card__body--flush { padding: 0; overflow-x: auto; }   /* широкая таблица скроллится внутри карточки, а не тянет страницу */
 .card__foot {
   display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
@@ -760,7 +763,7 @@ a:hover { border-bottom-color: var(--ink); }
                 <h4>Ваша работа</h4>
                 <div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div>
               </div>
-              <div class="card__body">
+              <div class="card__body card__body--compact">
                 <label class="field">
                   <span class="field__lbl">Ссылка на репозиторий</span>
                   <input class="inp inp--mono" placeholder="https://github.com/username/wardrobe-service">
@@ -768,7 +771,7 @@ a:hover { border-bottom-color: var(--ink); }
                 </label>
                 <label class="field">
                   <span class="field__lbl">Комментарий к сдаче, необязательно</span>
-                  <textarea class="inp inp--area" placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками"></textarea>
+                  <input class="inp" placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками">
                 </label>
               </div>
               <div class="card__foot">
@@ -877,7 +880,7 @@ a:hover { border-bottom-color: var(--ink); }
                 <h4>Ваша работа</h4>
                 <div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div>
               </div>
-              <div class="card__body">
+              <div class="card__body card__body--compact">
                 <label class="field">
                   <span class="field__lbl">Ссылка на репозиторий</span>
                   <input class="inp inp--mono" value="https://github.com/username/wardrobe-service">
@@ -885,7 +888,7 @@ a:hover { border-bottom-color: var(--ink); }
                 </label>
                 <label class="field">
                   <span class="field__lbl">Комментарий к сдаче, необязательно</span>
-                  <textarea class="inp inp--area" placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками"></textarea>
+                  <input class="inp" placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками">
                 </label>
               </div>
               <div class="card__foot">
@@ -997,13 +1000,13 @@ a:hover { border-bottom-color: var(--ink); }
 
               <div class="card card--hard">
                 <div class="card__head"><h4>Ваша работа</h4><div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div></div>
-                <div class="card__body">
-                  <label class="field">
-                    <span class="field__lbl">Ссылка на репозиторий</span>
-                    <input class="inp inp--mono" value="https://github.com/username/wardrobe-service">
-                    <span class="field__hint">Версия попытки 1 сохранится в истории, ревьюер увидит обе.</span>
-                  </label>
-                </div>
+              <div class="card__body card__body--compact">
+                <label class="field">
+                  <span class="field__lbl">Ссылка на репозиторий</span>
+                  <input class="inp inp--mono" value="https://github.com/username/wardrobe-service">
+                  <span class="field__hint">Версия попытки 1 сохранится в истории, ревьюер увидит обе.</span>
+                </label>
+              </div>
                 <div class="card__foot">
                   <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
                     <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
