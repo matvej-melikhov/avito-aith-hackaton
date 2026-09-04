@@ -698,7 +698,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С1">
   <div class="screen__head"><span class="screen__id">С1</span><h2>Страница домашки по ссылке, до сдачи</h2></div>
   <p class="screen__note">Студент приходит по ссылке из Stepik, платформа узнаёт его по Stepik ID. Работа прикладывается ссылкой на репозиторий или файлами. Отсюда доступны оба действия — прогнать ИИ-ревью и отправить на ревью.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Срок и порог в плашке даны полями «подпись — значение», капитель в плашке одна, над заголовком. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
   <div class="shot" style="height:774px"><div class="vp">
     <div style="background:var(--surface);min-height:1030px">
       <div class="topbar" style="align-items:center">
@@ -723,11 +723,11 @@ a:hover { border-bottom-color: var(--ink); }
           <h1 class="d2" style="margin-top:var(--s-2);max-width:16ch">Декомпозиция сервиса</h1>
           <div style="display:flex;gap:var(--s-10);margin-top:var(--s-6)">
             <div>
-              <span class="label" style="display:block;color:var(--ink-2)">сдать до</span>
+              <span class="caption" style="display:block">Сдать до</span>
               <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">19 февраля, 23:59</div>
             </div>
             <div>
-              <span class="label" style="display:block;color:var(--ink-2)">порог зачёта</span>
+              <span class="caption" style="display:block">Порог зачёта</span>
               <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
             </div>
           </div>
@@ -768,11 +768,11 @@ a:hover { border-bottom-color: var(--ink); }
                 </label>
               </div>
               <div class="card__foot">
-                <span class="btn-row">
-                  <span class="btn">Проверить ИИ-ревью</span>
-                  <span class="btn btn--pri">Отправить на ревью</span>
+                <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0">
+                  <span class="btn" style="flex:none">Проверить ИИ-ревью</span>
+                  <span class="caption">Результат ИИ-ревью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
                 </span>
-                <span class="caption" style="text-align:right">Результат ИИ-ревью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
+                <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
               </div>
             </div>
           </div>
