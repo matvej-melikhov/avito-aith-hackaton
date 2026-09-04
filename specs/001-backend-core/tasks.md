@@ -165,11 +165,11 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Independent Test**: Start AI for immutable inputs; accept partial/success/retry/stale/duplicate events; preserve an intervening human ReviewRevision.
 
-- [ ] T091 [P] [US4] Write failing AI request/event tests for required credential binding ID/version, full provenance, minimal-event-to-ReviewDetail round trip, shared fingerprint vectors, exact criterion coverage, score range zero..criterion max, terminal success/error rules, sequence, and 1.1.0 compatibility in `backend/tests/contract/test_ai_contract.py`
-- [ ] T092 [P] [US4] Write failing ReviewRevision/Decision/Note persistence and human-edit protection tests in `backend/tests/state/test_review_spine.py`
-- [ ] T093 [P] [US4] Write failing AIReviewRun transition, attempt separation, typed failures, and terminal non-regression tests in `backend/tests/state/test_ai_review_run.py`
-- [ ] T094 [P] [US4] Write failing identical replay, event-ID collision, duplicate/out-of-order/old-attempt/stale, fingerprint mismatch, and human-override ingestion tests in `backend/tests/integration/test_ai_event_ingestion.py`
-- [ ] T095 [P] [US4] Write failing component-token, provider-error redaction, and signed artifact URL tenant-isolation tests in `backend/tests/isolation/test_ai_component_access.py`
+- [X] T091 [P] [US4] Write failing AI request/event tests for required credential binding ID/version, full provenance, minimal-event-to-ReviewDetail round trip, shared fingerprint vectors, exact criterion coverage, score range zero..criterion max, terminal success/error rules, sequence, and 1.1.0 compatibility in `backend/tests/contract/test_ai_contract.py`
+- [X] T092 [P] [US4] Write failing ReviewRevision/Decision/Note persistence and human-edit protection tests in `backend/tests/state/test_review_spine.py`
+- [X] T093 [P] [US4] Write failing AIReviewRun transition, attempt separation, typed failures, and terminal non-regression tests in `backend/tests/state/test_ai_review_run.py`
+- [X] T094 [P] [US4] Write failing identical replay, event-ID collision, duplicate/out-of-order/old-attempt/stale, fingerprint mismatch, and human-override ingestion tests in `backend/tests/integration/test_ai_event_ingestion.py`
+- [X] T095 [P] [US4] Write failing component-token, provider-error redaction, and signed artifact URL tenant-isolation tests in `backend/tests/isolation/test_ai_component_access.py`
 - [ ] T096 [US4] Implement ReviewRevision, ReviewCriterionDecision, and ReviewNote tables without mutable publication state in `backend/src/review_platform/infrastructure/db/models/review_revision.py`
 - [ ] T097 [US4] Implement AIReviewRun, AIReviewAttempt, AIReviewEventReceipt, AICriterionSuggestion, and AISignal tables in `backend/src/review_platform/infrastructure/db/models/ai_review.py`
 - [ ] T098 [US4] Create the reversible review-spine migration with `down_revision=0004_submissions_and_artifacts` in `backend/migrations/versions/0005_review_spine.py`
