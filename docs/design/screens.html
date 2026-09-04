@@ -804,7 +804,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С2">
   <div class="screen__head"><span class="screen__id">С2</span><h2>Та же страница после ИИ-ревью</h2></div>
   <p class="screen__note">Результат ИИ-ревью появляется на той же странице над формой. Отметки только двух видов, без «частично». Вид блока совпадает с предварительным ревью, которое видит ревьюер на Р5, чтобы студент и ревьюер смотрели на одно и то же. Баллов здесь нет намеренно.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Счёт «7 из 9 требований закрыто» набран дисплейным шрифтом, но словом «требований», а не «баллов»: это не оценка, и типографика не должна выдавать её за оценку. Невыполненные требования подняты наверх списка, поэтому красный маркер встречается первым.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Счёт «7 из 9 требований закрыто» набран дисплейным шрифтом, но словом «требований», а не «баллов»: это не оценка, и типографика не должна выдавать её за оценку. Невыполненные требования подняты наверх списка, поэтому красный маркер встречается первым. Набор блоков тот же, что до проверки: задание свернулось, форма осталась с заполненной ссылкой, разбор встал между ними.</p>
   <div class="shot" style="height:894px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
@@ -847,10 +847,13 @@ a:hover { border-bottom-color: var(--ink); }
           </div>
 
           <div class="row-side">
-            <div class="card">
+            <div class="stack">
+              <div class="card">
+                <div class="card__head"><h4>Задание</h4><span class="btn btn--s btn--link">Развернуть</span></div>
+              </div>
+              <div class="card">
               <div class="card__head">
                 <div><h4>Разбор по требованиям</h4><div class="card__sub">Проверила модель. Ревьюер будет смотреть работу сам и может решить иначе.</div></div>
-                <span class="btn btn--s">Проверить повторно, осталось 2</span>
               </div>
               <div class="card__body">
                 <div class="acc">
@@ -887,24 +890,53 @@ a:hover { border-bottom-color: var(--ink); }
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="acc__chev">▼</span></div></div>
               </div>
+            </div>
+
+            <div class="card card--hard">
+              <div class="card__head">
+                <h4>Ваша работа</h4>
+                <div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div>
+              </div>
+              <div class="card__body">
+                <label class="field">
+                  <span class="field__lbl">Ссылка на репозиторий</span>
+                  <input class="inp inp--mono" value="https://github.com/username/wardrobe-service">
+                  <span class="field__hint">Публичный репозиторий или доступ для avito-edu-bot. Проверяется ветка main, если не указана другая.</span>
+                </label>
+                <label class="field">
+                  <span class="field__lbl">Комментарий к сдаче, необязательно</span>
+                  <textarea class="inp inp--area" placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками"></textarea>
+                </label>
+              </div>
               <div class="card__foot">
                 <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
                   <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
-                  <span class="btn" style="flex:none">Обновить работу</span>
-                  <span class="caption">Можно доработать и проверить ещё раз или отправить как есть</span>
+                  <span class="btn" style="flex:none">ИИ-ревью</span>
+                  <span class="caption">Проверено 17 февраля в 14:20, осталось 2 попытки. Результат видит ревьюер.</span>
                 </span>
               </div>
             </div>
+            </div>
 
             <div class="stack">
-              <div class="card">
-                <div class="card__head"><h4>Что отправится</h4></div>
-                <div class="card__body">
-                  <div class="kv"><span class="mono" style="color:var(--ink)">github.com/username/wardrobe-service</span><span class="pill">ветка main</span></div>
-                  <div class="caption" style="margin-top:var(--s-3)">Последнее обновление репозитория 17 февраля, 13:58</div>
+            <div class="card">
+              <div class="card__head"><h4>Что будут проверять</h4></div>
+              <div class="card__body card__body--tight">
+                <div class="kv"><span style="color:var(--ink)">Декомпозиция по двум признакам</span><span class="pill pill--mono">1 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Диаграмма C4</span><span class="pill pill--mono">1 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Диаграмма последовательностей</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Интерфейсы между компонентами</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Контракты: входы, выходы, ошибки</span><span class="pill pill--mono">1 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Анализ связности</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Снижение связности</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Обоснование SRP</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv"><span style="color:var(--ink)">Структура и оформление</span><span class="pill pill--mono">0,5 б.</span></div>
+                <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:-1px">
+                  <span style="color:var(--ink)">Всего</span><span style="color:var(--ink);font-weight:var(--w-semi)">6 баллов</span>
                 </div>
               </div>
-              <div class="note">Результат ИИ-ревью видит ревьюер. Он учитывает, что вы проверяли и что правили, при оценке. Итоговый балл ставит ревьюер по отправленной версии.</div>
+            </div>
+            <div class="callout callout--warn"><span class="callout__mark">!</span><p>За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</p></div>
             </div>
           </div>
         </div>
@@ -915,7 +947,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С3">
   <div class="screen__head"><span class="screen__id">С3</span><h2>Та же страница в статусе «Нужны правки»</h2></div>
   <p class="screen__note">Ревьюер вернул работу. Вкладки — история сдач, в каждой видно, что ревьюер зачёл, что нет, и его комментарий. Отметки те же самые, что ревьюер проставил на Р5, никакого отдельного пересказа. Форма внизу вкладки «Попытка 2» — то же поле, что и при первой сдаче.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал. Набор блоков тот же: задание свернулось, рубрика и комментарий на месте, форма шлёт вторую попытку.</p>
   <div class="shot" style="height:858px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
@@ -965,6 +997,9 @@ a:hover { border-bottom-color: var(--ink); }
 
           <div class="row-side">
             <div class="stack">
+              <div class="card">
+                <div class="card__head"><h4>Задание</h4><span class="btn btn--s btn--link">Развернуть</span></div>
+              </div>
               <div class="card">
                 <div class="card__head"><div><h4>Что просил поправить ревьюер</h4><div class="card__sub">Оценка за попытку 1, разбор по требованиям задания</div></div></div>
                 <div class="card__body">
@@ -1025,6 +1060,23 @@ a:hover { border-bottom-color: var(--ink); }
                     <li>по границам компонентов не хватает обоснования.</li>
                   </ul>
                   <div style="margin-top:var(--s-3)">Остальное принято. Пришлите правки до 23 февраля, штраф за просрочку в этом случае не начисляется.</div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card__head"><h4>Что будут проверять</h4></div>
+                <div class="card__body card__body--tight">
+                  <div class="kv"><span style="color:var(--ink)">Декомпозиция по двум признакам</span><span class="pill pill--mono">1 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Диаграмма C4</span><span class="pill pill--mono">1 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Диаграмма последовательностей</span><span class="pill pill--mono">0,5 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Интерфейсы между компонентами</span><span class="pill pill--mono">0,5 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Контракты: входы, выходы, ошибки</span><span class="pill pill--mono">1 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Анализ связности</span><span class="pill pill--mono">0,5 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Снижение связности</span><span class="pill pill--mono">0,5 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Обоснование SRP</span><span class="pill pill--mono">0,5 б.</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Структура и оформление</span><span class="pill pill--mono">0,5 б.</span></div>
+                  <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:-1px">
+                    <span style="color:var(--ink)">Всего</span><span style="color:var(--ink);font-weight:var(--w-semi)">6 баллов</span>
+                  </div>
                 </div>
               </div>
               <div class="note">Пересдача после замечаний не считается просрочкой. Штраф начисляется только за первую сдачу позже срока.</div>
