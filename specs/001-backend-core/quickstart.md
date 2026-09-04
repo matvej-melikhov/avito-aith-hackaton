@@ -24,11 +24,11 @@
 
 ## Code specifications
 
-### Candidate contract schemas
+### Frozen contract schemas
 
     uv run --directory backend pytest tests/contract -q
 
-Проверяет candidate manifest hashes, exact constitution snapshot, compatibility notes и shared fixtures, 28 mutation-команд (26 REST + local bootstrap + local recovery), 43 OpenAPI paths/46 operations, 12 MCP tools, exact route-command binding, path/target equality, actor/transport boundary, обязательный AI credential binding, artifact envelope, per-CourseRun homework history, complete provenance, fingerprint vectors, criterion completeness, score bounds, attempt sequence и отклонение лишних полей.
+Проверяет frozen manifest hashes, exact constitution snapshot, compatibility notes и shared fixtures, 28 mutation-команд (26 REST + local bootstrap + local recovery), 43 OpenAPI paths/46 operations, 12 MCP tools, exact route-command binding, path/target equality, actor/transport boundary, обязательный AI credential binding, artifact envelope, per-CourseRun homework history, complete provenance, fingerprint vectors, criterion completeness, score bounds, attempt sequence и отклонение лишних полей.
 
 ### Domain state machines
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-04
 
-**Status**: Ready for implementation after the contract-freeze gate
+**Status**: Ready for implementation
 
 **Input**: Backend платформы с контрактом внешнего AI-review, без реализации AI-пайплайна и без внутренних контрактов Stepik, GitHub и Google Docs
 

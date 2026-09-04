@@ -6,7 +6,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Input**: `spec.md`, `plan.md`, `research.md`, `data-model.md`, `context-traceability.md`, `requirements-traceability.md`, `constitution-snapshot.md`, `contract-compatibility.md`, `contract-fixtures/`, `contracts/`, `quickstart.md`, `.specify/memory/constitution.md`
 
-**Contract state**: `contracts/manifest.json` describes candidate contract set 1.1.0: 28 commands, 43 OpenAPI paths / 46 operations, 12 MCP tools, and 19 hashed artifacts. T022 may freeze it only after `$speckit-analyze` returns READY and the mechanical hash/fixture checks pass without semantic edits. Story phases MUST NOT edit canonical contracts.
+**Contract state**: T022 froze contract set 1.1.0 after a READY `$speckit-analyze`: 28 commands, 43 OpenAPI paths / 46 operations, 12 MCP tools, and 19 hashed artifacts. Story phases MUST NOT edit canonical contracts; later semantic changes require a new version and compatibility/migration notes.
 
 **Executable-specification rule**: static schema/manifest checks are expected to be GREEN before runtime implementation. Behavioral, state-machine, concurrency, and isolation tests are introduced RED, must fail for the named missing behavior rather than import or infrastructure errors, and become GREEN before their phase checkpoint.
 
@@ -52,7 +52,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 ### Shared implementation
 
-- [ ] T022 After an Analyze READY verdict, verify candidate 1.1.0 plus fixtures, mechanically set status to frozen, and regenerate hashes without semantic edits in `scripts/sync_backend_contracts.py`
+- [X] T022 After an Analyze READY verdict, verify candidate 1.1.0 plus fixtures, mechanically set status to frozen, and regenerate hashes without semantic edits in `scripts/sync_backend_contracts.py`
 - [ ] T023 Package manifest-verified schemas as runtime resources in `backend/src/review_platform/contracts/schemas/`
 - [ ] T024 Implement schema loading, reference resolution, version selection, and generated-schema conformance in `backend/src/review_platform/contracts/registry.py`
 - [ ] T025 Implement strict Pydantic wire/application commands and the user/agent/installation-operator RequestActor variants in `backend/src/review_platform/contracts/commands.py`

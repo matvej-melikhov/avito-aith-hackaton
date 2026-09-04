@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:review-platform:delivery:1.1.0",
-  "x-contract-status": "candidate",
+  "x-contract-status": "frozen",
   "title": "ExternalDeliveryProviderContract",
   "oneOf": [{"$ref": "#/$defs/deliver_request"}, {"$ref": "#/$defs/reconcile_request"}, {"$ref": "#/$defs/result"}],
   "$defs": {

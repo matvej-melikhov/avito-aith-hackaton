@@ -51,7 +51,7 @@ This file is a pre-implementation gate. `PLANNED` means the named executable spe
 
 ## Contract and live-gate policy
 
-- Contract set 1.1.0 is a reviewed candidate in `contracts/manifest.json`; after a READY `$speckit-analyze` result it may become frozen mechanically with no semantic edits, and runtime copies must match every recorded SHA-256.
+- Contract set 1.1.0 is frozen in `contracts/manifest.json` after a READY `$speckit-analyze` result and a mechanical T022 transition with no semantic edits; runtime copies must match every recorded SHA-256.
 - Offline fixtures never access live URLs and prove only backend behavior.
 - Each live provider writes `NOT_RUN`, `BLOCKED`, `PASS`, or `FAIL` plus scope, time and evidence to `backend/tests/live/gates.json`.
 - A skipped or mock-only provider gate remains unverified and cannot be reported as provider support.

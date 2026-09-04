@@ -46,7 +46,7 @@
 
 ## Contract authority and freeze
 
-**Decision:** Файлы в `specs/001-backend-core/contracts/` являются design-time source of truth. Исправленная breaking pre-implementation версия 1.1.0 остаётся candidate до READY `$speckit-analyze` и замораживается одной механической операцией до runtime implementation. Runtime copies создаются deterministic sync-командой и проверяются по SHA-256. Pydantic и FastAPI OpenAPI обязаны соответствовать canonical artifacts, но не перезаписывают их автоматически.
+**Decision:** Файлы в `specs/001-backend-core/contracts/` являются design-time source of truth. Исправленная breaking pre-implementation версия 1.1.0 заморожена T022 одной механической операцией после READY `$speckit-analyze`. Runtime copies создаются deterministic sync-командой и проверяются по SHA-256. Pydantic и FastAPI OpenAPI обязаны соответствовать canonical artifacts, но не перезаписывают их автоматически.
 
 **Rationale:** Один канонический набор предотвращает расхождение checked-in JSON/YAML, package data и runtime-generated schemas. После freeze любое изменение требует новой версии, changelog и compatibility/migration rules. До первой реализации контракты исправляются один раз и только затем получают статус frozen.
 

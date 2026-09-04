@@ -68,7 +68,7 @@ S3 lifecycle: staged upload → byte limit → digest verification → one DB tr
 | Executable Specifications | contract/state/limit/revocation tests предшествуют behavior; live tests отделены и имеют явный status | PASS |
 | Modular Ownership | backend, AI и каждый provider boundary используют versioned schemas и shared fixtures | PASS |
 
-Design-level constitution checks and adversarial reviews pass. The remaining pre-implementation gate is a READY `$speckit-analyze` result; T022 then performs the mechanical contract freeze before runtime implementation.
+Design-level constitution checks and adversarial reviews pass. `$speckit-analyze` returned READY and T022 mechanically froze contract set 1.1.0 before runtime implementation.
 
 ## Project Structure
 
@@ -143,7 +143,7 @@ Design-level constitution checks and adversarial reviews pass. The remaining pre
 
 **Structure Decision**: модульный монолит. API, worker, outbox relay, email worker и MCP — отдельные процессы с общими domain/application модулями. `application/foundation_runtime.py` является только composition adapter над реальными application/infrastructure components и не хранит in-memory domain state. Providers зависят от ports ядра; ядро providers не импортирует.
 
-**Contract Decision**: `specs/001-backend-core/contracts/` — design-time source of truth. Version 1.1.0 is a breaking pre-implementation candidate over committed 1.0.0. `manifest.json` фиксирует candidate/frozen status и SHA-256 для schemas, fixtures, compatibility notes и byte-identical constitution snapshot. Bootstrap/recovery остаются local operator commands; REST mutations используют exact route/target contracts. После READY-review одна mechanical task переводит candidate в frozen без semantic edits. Runtime package data синхронизируется deterministic command; Pydantic/FastAPI conformance не меняет canonical files.
+**Contract Decision**: `specs/001-backend-core/contracts/` — design-time source of truth. Version 1.1.0 is a frozen breaking pre-implementation correction over committed 1.0.0. `manifest.json` фиксирует frozen status и SHA-256 для schemas, fixtures, compatibility notes и byte-identical constitution snapshot. Bootstrap/recovery остаются local operator commands; REST mutations используют exact route/target contracts. T022 выполнила только mechanical candidate-to-frozen transition без semantic edits. Runtime package data синхронизируется deterministic command; Pydantic/FastAPI conformance не меняет canonical files.
 
 **Implementation Order**: contract and SC traceability freeze → foundational persistence (`CommandReceipt`, `AuditEvent`, `OutboxMessage`, `Operation`) → US1-US3 → shared review spine → US4/US5 → delivery recovery → MCP agent transport. Static contract checks block Foundation; concrete MCP parity does not block stories before handlers exist.
 
@@ -157,13 +157,13 @@ Design-level constitution checks and adversarial reviews pass. The remaining pre
 - [context-traceability.md](context-traceability.md) связывает прежние сущности и экраны с текущей моделью и явно отмечает later scope.
 - [contracts/openapi.yaml](contracts/openapi.yaml) определяет web/component interface.
 - JSON Schemas определяют command, artifact, AI и provider boundaries.
-- [contracts/manifest.json](contracts/manifest.json) описывает candidate contract set 1.1.0; после READY он замораживается без semantic edits, а последующие изменения требуют новой версии и compatibility/migration notes.
+- [contracts/manifest.json](contracts/manifest.json) описывает frozen contract set 1.1.0; последующие semantic changes требуют новой версии и compatibility/migration notes.
 - [requirements-traceability.md](requirements-traceability.md) до implementation связывает FR-001..FR-085 и SC-001..SC-023 с fixture/sandbox, owner и воспроизводимой командой.
 - [quickstart.md](quickstart.md) связывает команды проверки с acceptance gates.
 
 ## Post-Design Constitution Check
 
-Все шесть принципов отражены в design artifacts, adversarial reviews завершены, а финальным pre-implementation gate служит `$speckit-analyze`. После READY задача T022 механически замораживает contracts до runtime implementation. Stepik automatic delivery остаётся live gate. Google DOCX fixture подтверждён. GitHub fixture доступен текущему account, но GitHub App installation остаётся отдельным gate.
+Все шесть принципов отражены в design artifacts, adversarial reviews завершены, `$speckit-analyze` вернул READY, а T022 механически заморозила contracts до runtime implementation. Stepik automatic delivery остаётся live gate. Google DOCX fixture подтверждён. GitHub fixture доступен текущему account, но GitHub App installation остаётся отдельным gate.
 
 ## Complexity Tracking
 
