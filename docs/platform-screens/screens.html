@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 </div>
               </div>
               <div class="cf">
-                <span class="hint">Саморевью не влияет на оценку и не видно ревьюеру. Осталось 3 попытки из 3.</span>
+                <span class="hint">Результат саморевью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
                 <div style="display:flex; gap:10px">
                   <span class="btn">Проверить перед сдачей</span>
                   <span class="btn pri">Отправить на ревью</span>
@@ -472,11 +472,13 @@ document.addEventListener('DOMContentLoaded', fitShots);
               <div class="cb tight">
                 <div class="sumline"><span>Декомпозиция по двум признакам</span><span class="tag mono">1</span></div>
                 <div class="sumline"><span>Диаграмма C4</span><span class="tag mono">1</span></div>
-                <div class="sumline"><span>Диаграмма последовательностей</span><span class="tag mono">1</span></div>
-                <div class="sumline"><span>Интерфейсы между компонентами</span><span class="tag mono">1</span></div>
+                <div class="sumline"><span>Диаграмма последовательностей</span><span class="tag mono">0.5</span></div>
+                <div class="sumline"><span>Интерфейсы между компонентами</span><span class="tag mono">0.5</span></div>
                 <div class="sumline"><span>Контракты: входы, выходы, ошибки</span><span class="tag mono">1</span></div>
                 <div class="sumline"><span>Анализ связности</span><span class="tag mono">0.5</span></div>
                 <div class="sumline"><span>Снижение связности</span><span class="tag mono">0.5</span></div>
+                <div class="sumline"><span>Обоснование SRP</span><span class="tag mono">0.5</span></div>
+                <div class="sumline"><span>Структура и оформление</span><span class="tag mono">0.5</span></div>
               </div>
               <div class="cf"><span class="hint">Всего</span><b>6 баллов</b></div>
             </div>
@@ -515,7 +517,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
             </div>
           </div>
           <div style="text-align:right">
-            <div class="sum" style="justify-content:flex-end"><span class="v">5</span><span class="of">из 7 требований закрыто</span></div>
+            <div class="sum" style="justify-content:flex-end"><span class="v">7</span><span class="of">из 9 требований закрыто</span></div>
             <div class="hint" style="margin-top:4px">Это не оценка. Баллы поставит ревьюер.</div>
           </div>
         </div>
@@ -574,6 +576,12 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <div class="acc">
                   <div class="acc-h"><span class="ck y">✓</span><div class="t">Предложены способы снижения связности</div><span class="chev">▼</span></div>
                 </div>
+                <div class="acc">
+                  <div class="acc-h"><span class="ck y">✓</span><div class="t">Обосновано соблюдение SRP</div><span class="chev">▼</span></div>
+                </div>
+                <div class="acc">
+                  <div class="acc-h"><span class="ck y">✓</span><div class="t">Структура и оформление документации</div><span class="chev">▼</span></div>
+                </div>
               </div>
               <div class="cf">
                 <span class="hint">Можно доработать и проверить ещё раз или отправить как есть</span>
@@ -593,7 +601,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <div class="hint" style="margin-top:12px">Последнее обновление репозитория 17 февраля, 13:58</div>
               </div>
             </div>
-            <div class="note" style="margin-top:20px"><b>Саморевью не влияет на балл.</b> Оценку ставит ревьюер по той версии, которую вы отправите. Сколько раз вы запускали самопроверку, ревьюеру видно.</div>
+            <div class="note" style="margin-top:20px"><b>Результат саморевью видит ревьюер.</b> Он учитывает, что вы проверяли и что правили, при оценке. Итоговый балл ставит ревьюер по отправленной версии.</div>
           </div>
         </div>
       </div>
@@ -628,7 +636,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
             </div>
           </div>
           <div style="text-align:right">
-            <div class="sum" style="justify-content:flex-end"><span class="v">3.5</span><span class="of">из 6 за попытку 1</span></div>
+            <div class="sum" style="justify-content:flex-end"><span class="v">3.0</span><span class="of">из 6 за попытку 1</span></div>
             <div class="hint" style="margin-top:4px">Порог зачёта 4</div>
           </div>
         </div>
@@ -675,13 +683,13 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <div class="acc">
                   <div class="acc-h">
                     <span class="ck n">✕</span><div class="t">Обоснование выбора границ компонентов</div>
-                    <span class="cnt">1 место</span><span class="tag mono">0.5 из 1</span><span class="chev">▼</span>
+                    <span class="cnt">1 место</span><span class="tag mono">0 из 0.5</span><span class="chev">▼</span>
                   </div>
                 </div>
                 <div class="acc">
                   <div class="acc-h">
-                    <span class="ck y">✓</span><div class="t">Остальные 4 требования зачтены</div>
-                    <span class="tag mono">3 из 3.5</span><span class="chev">▼</span>
+                    <span class="ck y">✓</span><div class="t">Остальные 6 требований зачтены</div>
+                    <span class="tag mono">3 из 4</span><span class="chev">▼</span>
                   </div>
                 </div>
               </div>
@@ -766,7 +774,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <tr>
                   <td><div class="who">Лабораторная 1. Декомпозиция сервиса</div><div class="sub">ревьюер вернул 21 февраля</div></td>
                   <td>Системный дизайн</td><td class="num">23 фев</td>
-                  <td><span class="st fix">Нужны правки</span></td><td class="num">2</td><td class="num right">3.5</td>
+                  <td><span class="st fix">Нужны правки</span></td><td class="num">2</td><td class="num right">3.0</td>
                 </tr>
                 <tr>
                   <td><div class="who">Лабораторная 2. Хранилище и кэш</div><div class="sub">не отправлена</div></td>
@@ -1275,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                   <li>декларации об использовании ИИ нет, хотя задание её требует.</li>
                 </ul>
                 <div style="display:flex; gap:8px; margin-top:12px">
-                  <span class="btn sm">Учесть в комментарии</span>
+                  <span class="btn sm">Подтвердить сигнал</span>
                   <span class="btn sm">Отклонить сигнал</span>
                 </div>
               </div>
@@ -1331,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                     <span class="ck y">✓</span>
                     <div class="t">Диаграмма последовательностей для основного сценария</div>
                     <span class="scale-lbl">шкала</span>
-                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                    <span class="scale"><span>0</span><span class="on">0.5</span></span>
                     <span class="chev">▼</span>
                   </div>
                 </div>
@@ -1341,7 +1349,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                     <span class="ck y">✓</span>
                     <div class="t">Интерфейсы между компонентами описаны</div>
                     <span class="scale-lbl">шкала</span>
-                    <span class="scale"><span>0</span><span class="on">1</span></span>
+                    <span class="scale"><span>0</span><span class="on">0.5</span></span>
                     <span class="chev">▼</span>
                   </div>
                 </div>
@@ -1398,6 +1406,26 @@ document.addEventListener('DOMContentLoaded', fitShots);
                   <div class="acc-h">
                     <span class="ck y">✓</span>
                     <div class="t">Предложены способы снижения связности</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">0.5</span></span>
+                    <span class="chev">▼</span>
+                  </div>
+                </div>
+
+                <div class="acc">
+                  <div class="acc-h">
+                    <span class="ck y">✓</span>
+                    <div class="t">Обосновано соблюдение SRP</div>
+                    <span class="scale-lbl">шкала</span>
+                    <span class="scale"><span>0</span><span class="on">0.5</span></span>
+                    <span class="chev">▼</span>
+                  </div>
+                </div>
+
+                <div class="acc">
+                  <div class="acc-h">
+                    <span class="ck y">✓</span>
+                    <div class="t">Структура и оформление документации</div>
                     <span class="scale-lbl">шкала</span>
                     <span class="scale"><span>0</span><span class="on">0.5</span></span>
                     <span class="chev">▼</span>
@@ -1799,7 +1827,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
           <div>
             <div class="card" style="margin-bottom:20px">
               <div class="ch">
-                <div><h4>Критерии</h4><div class="sub">7 критериев, всего 6 баллов, порог зачёта 4</div></div>
+                <div><h4>Критерии</h4><div class="sub">9 критериев, всего 6 баллов, порог зачёта 4</div></div>
                 <span class="btn sm pri">Добавить критерий</span>
               </div>
               <div class="cb">
@@ -1855,7 +1883,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 </div>
 
                 <div class="crit" style="border-top:1px dashed var(--line-2); color:var(--ink-3)">
-                  <div class="r1"><div class="nm" style="font-weight:400; color:var(--ink-3)">Ещё 4 критерия: диаграмма последовательностей, интерфейсы, контракты, снижение связности</div><span class="btn sm">Развернуть</span></div>
+                  <div class="r1"><div class="nm" style="font-weight:400; color:var(--ink-3)">Ещё 6 критериев: диаграмма последовательностей, интерфейсы, контракты, снижение связности, SRP, структура</div><span class="btn sm">Развернуть</span></div>
                 </div>
               </div>
               <div class="cf">
@@ -2089,7 +2117,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
             <div class="card">
               <div class="ch"><div><h4>История решений</h4><div class="sub">Что предложила модель и что изменил человек</div></div></div>
               <div class="cb tight">
-                <div class="sumline"><span>Модель предложила разбор по 7 требованиям</span><span class="hint">18 фев, 16:29</span></div>
+                <div class="sumline"><span>Модель предложила разбор по 9 требованиям</span><span class="hint">18 фев, 16:29</span></div>
                 <div class="sumline"><span>Ревьюер изменил «Анализ связности» с 0 на 0.5</span><span class="hint">18 фев, 16:36</span></div>
                 <div class="sumline"><span>Ревьюер добавил своё требование, без баллов</span><span class="hint">18 фев, 16:38</span></div>
                 <div class="sumline"><span>Ревьюер подтвердил итог 5.0 и отправил студенту</span><span class="hint">18 фев, 16:40</span></div>
@@ -2119,13 +2147,13 @@ document.addEventListener('DOMContentLoaded', fitShots);
               <div class="acc">
                 <div class="acc-h">
                   <span class="ck y">✓</span><div class="t">Диаграмма последовательностей для основного сценария</div>
-                  <span class="tag mono">1 из 1</span><span class="chev">▼</span>
+                  <span class="tag mono">0.5 из 0.5</span><span class="chev">▼</span>
                 </div>
               </div>
               <div class="acc">
                 <div class="acc-h">
                   <span class="ck y">✓</span><div class="t">Интерфейсы между компонентами описаны</div>
-                  <span class="tag mono">1 из 1</span><span class="chev">▼</span>
+                  <span class="tag mono">0.5 из 0.5</span><span class="chev">▼</span>
                 </div>
               </div>
               <div class="acc open">
@@ -2157,6 +2185,18 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <div class="acc-h">
                   <span class="ck n">✕</span><div class="t">Предложены способы снижения связности</div>
                   <span class="cnt">1 место</span><span class="tag mono">0 из 0.5</span><span class="chev">▼</span>
+                </div>
+              </div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck y">✓</span><div class="t">Обосновано соблюдение SRP</div>
+                  <span class="tag mono">0.5 из 0.5</span><span class="chev">▼</span>
+                </div>
+              </div>
+              <div class="acc">
+                <div class="acc-h">
+                  <span class="ck y">✓</span><div class="t">Структура и оформление документации</div>
+                  <span class="tag mono">0.5 из 0.5</span><span class="chev">▼</span>
                 </div>
               </div>
               <div class="acc" style="background:var(--app-2); margin:0 -20px; padding:0 20px">
