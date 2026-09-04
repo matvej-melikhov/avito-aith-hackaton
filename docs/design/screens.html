@@ -1104,8 +1104,8 @@ a:hover { border-bottom-color: var(--ink); }
 </section>
 <section class="screen" id="С5">
   <div class="screen__head"><span class="screen__id">С5</span><h2>Домашка в кабинете, результат ревью</h2></div>
-  <p class="screen__note">Тот же разбор, что студент видит на странице сдачи, но из списка «Мои домашки» и после закрытия задания. Отдельного экрана «финальная обратная связь» нет: итог — это статус на карточке. Вкладки сверху — попытки, справа история событий.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Итог вынесен крупной цифрой Unbounded в шапку карточки. Требования различаются формой маркера, а не только галочкой: квадрат — код или модель нашли, круг — добавил человек.</p>
+  <p class="screen__note">Архив закрытой работы из списка «Мои домашки». Те же табы и блоки попыток, что на странице сдачи, но без формы: вместо неё история событий. Отдельного экрана «финальная обратная связь» нет.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Итог и вердикт внутри блока попытки, маркеров нет. Вердикт «зачтена» зелёным: порог 4, итог 5,0.</p>
   <div class="shot" style="height:771px"><div class="vp">
     <div style="background:var(--surface);min-height:1130px">
       <div class="topbar" style="align-items:center">
@@ -1123,70 +1123,38 @@ a:hover { border-bottom-color: var(--ink); }
           <div class="btn-row" style="flex:none"><span class="st st--pass">Зачтена</span><span class="btn btn--s">Открыть страницу сдачи</span></div>
         </div>
           <div class="tabs" style="margin-bottom:var(--s-5)">
-            <span class="tab is-on">Попытка 1<span class="c">итоговая</span></span>
-            <span class="tab">Работа</span>
+            <span class="tab">ИИ-ревью</span>
+            <span class="tab is-on">Ревью</span>
           </div>
           <div class="row-side">
             <div class="card">
-              <div class="card__head">
-                <div><h4>Разбор по требованиям</h4><div class="card__sub">Проверил ревьюер rev-2214, 12 февраля</div></div>
-                <div class="sum"><b>5.0</b><span>из 6</span></div>
-              </div>
               <div class="card__body">
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Составлен чек-лист проверки формы</span><span class="pill pill--mono">1 из 1</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Выделены классы эквивалентности</span><span class="pill pill--mono">1 из 1</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Описаны граничные значения</span><span class="pill pill--mono">1 из 1</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Негативные сценарии покрыты</span><span class="pill pill--mono">1 из 1</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc">
-                  <div class="acc__h">
-                    <span class="ck ck--n">–</span>
-                    <span class="acc__t">Приоритеты тест-кейсов расставлены и обоснованы</span>
-                    <span class="pill pill--mono">1 место</span><span class="pill pill--mono">0.5 из 1</span><span class="acc__chev">▲</span>
-                  </div>
-                  <div class="acc__b">
-                    <div class="finding">
-                      <div class="finding__src"><span class="f">test-design.md</span><span>строки 42–46</span><span class="o">Открыть ↗</span></div>
-                      <div class="code">
-                        <div class="cl"><span class="n">41</span><span>| Кейс | Описание | Приоритет |</span></div>
-                        <div class="cl is-miss"><span class="n">42</span><span>| TC-01 | Пустая форма | Высокий |</span></div>
-                        <div class="cl is-miss"><span class="n">43</span><span>| TC-02 | Невалидный email | Высокий |</span></div>
-                        <div class="cl is-miss"><span class="n">44</span><span>| TC-03 | Длина пароля 7 символов | Средний |</span></div>
-                      </div>
-                      <div class="finding__why">Приоритеты проставлены, но обоснования нет. По каким критериям кейс попал в высокий приоритет, из работы не следует.</div>
+                  <div class="acc__h"><span class="acc__t">Попытка 1, 12.02, 16:30</span><span class="acc__chev">▲</span></div>
+                  <div class="acc__b" style="padding-left:0">
+                    <div class="kv"><span style="color:var(--ink)">Приоритеты тест-кейсов расставлены и обоснованы</span><span class="neg">0 из 1</span></div>
+                    <div class="kv" style="border-bottom:0"><span style="color:var(--ink)">Другие</span><span style="color:var(--ink)">5 из 5</span></div>
+                    <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);padding-top:var(--s-4)">
+                      <span style="color:var(--ink);font-weight:var(--w-medium)">Итого</span><span style="color:var(--ink);font-weight:var(--w-semi)">5,0 из 6</span>
                     </div>
+                    <div class="kv" style="border-bottom:0;padding-top:var(--s-1)">
+                      <span style="color:var(--ink)">Вердикт</span><span style="color:var(--ok);font-weight:var(--w-semi)">зачтена</span>
+                    </div>
+                    <div class="label" style="margin:var(--s-5) 0 var(--s-2)">Комментарий ревьюера, rev-2214</div>
+                    <div class="small" style="color:var(--ink-2);line-height:1.65">Хорошая работа, чек-лист полный и им реально можно пользоваться. Единственное — распишите, почему кейсы получили именно такой приоритет: без обоснования баллы за критерий не ставлю. На следующем задании это будет отдельным требованием.</div>
                   </div>
                 </div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Оформление и структура документа</span><span class="pill pill--mono">0.5 из 0.5</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc" style="background:var(--violet-wash);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
-                  <div class="acc__h">
-                    <span class="ck ck--h">i</span><span class="acc__t">Читаемость формулировок кейсов</span>
-                    <span class="pill pill--human">добавил ревьюер</span><span class="acc__chev">▲</span>
-                  </div>
-                  <div class="acc__b" style="padding-bottom:var(--s-4)">
-                    <div class="small" style="color:var(--ink-2)">Кейсы написаны так, что их может прогнать другой человек без уточнений. Отдельных баллов за это в задании нет, отмечено как плюс.</div>
-                  </div>
-                </div>
-              </div>
-              <div class="card__foot">
-                <span>Сдано 10 февраля в 21:40, в срок</span>
-                <span>Итог <b style="color:var(--ink)">5.0 из 6</b>, порог зачёта 4</span>
               </div>
             </div>
 
             <div class="stack">
               <div class="card">
-                <div class="card__head"><h4>Комментарий ревьюера</h4></div>
-                <div class="card__body" style="color:var(--ink-2);line-height:1.65">
-                  Хорошая работа, чек-лист полный и им реально можно пользоваться. Единственное — распишите, почему кейсы получили именно такой приоритет. На следующем задании это будет отдельным требованием.
-                </div>
-              </div>
-              <div class="card">
                 <div class="card__head"><h4>История</h4></div>
                 <div class="card__body card__body--tight">
-                  <div class="kv"><span style="color:var(--ink)">Зачтена</span><span>12 фев, 16:30</span></div>
-                  <div class="kv"><span style="color:var(--ink)">На ревью, взял rev-2214</span><span>11 фев, 09:15</span></div>
-                  <div class="kv"><span style="color:var(--ink)">Сдана</span><span>10 фев, 21:40</span></div>
-                  <div class="kv"><span style="color:var(--ink)">ИИ-ревью, 2 запуска</span><span>10 фев</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Зачтена</span><span>12.02, 16:30</span></div>
+                  <div class="kv"><span style="color:var(--ink)">На ревью, взял rev-2214</span><span>11.02, 09:15</span></div>
+                  <div class="kv"><span style="color:var(--ink)">Сдана</span><span>10.02, 21:40</span></div>
+                  <div class="kv"><span style="color:var(--ink)">ИИ-ревью, 2 запуска</span><span>10.02</span></div>
                 </div>
               </div>
             </div>
