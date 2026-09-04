@@ -1,0 +1,219 @@
+<!doctype html><meta charset="utf-8">
+<title>Ядро пре-ревью</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#F6F7F4; --paper:#FFFFFF; --ink:#1B2028; --muted:#5B6470; --line:#CBD1D8;
+  --accent:#1D6FD1; --accent-soft:#E3EEFB; --warn:#B9770E; --warn-soft:#FBF1DE; --ok:#2E7D4F;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171C; --paper:#1C2129; --ink:#E6E9EE; --muted:#A3ABB6; --line:#3A424D;
+    --accent:#6FA8F5; --accent-soft:#1E2E45; --warn:#E0A63A; --warn-soft:#3A2F16; --ok:#6CC28F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171C; --paper:#1C2129; --ink:#E6E9EE; --muted:#A3ABB6; --line:#3A424D;
+  --accent:#6FA8F5; --accent-soft:#1E2E45; --warn:#E0A63A; --warn-soft:#3A2F16; --ok:#6CC28F;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.45;margin:0;-webkit-text-size-adjust:100%}
+main{max-width:600px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:26px;line-height:1.2;font-weight:600;margin:0 0 8px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 28px}
+.num{display:inline-block;font-size:13px;font-weight:600;color:var(--accent);letter-spacing:.06em;margin-bottom:6px}
+section{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px 16px;margin:0 0 20px}
+h2{font-size:21px;line-height:1.25;font-weight:600;margin:0 0 6px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 18px}
+/* vertical chain */
+.chain{display:flex;flex-direction:column;align-items:stretch;gap:0;margin:0 0 6px}
+.step{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;background:var(--paper)}
+.step b{display:block;font-weight:600;font-size:17px}
+.step span{display:block;color:var(--muted);font-size:15px;margin-top:2px}
+.step.human{border-color:var(--accent);background:var(--accent-soft);border-width:2px}
+.step.flag{border-color:var(--warn);background:var(--warn-soft);border-style:dashed}
+.step.ghost{border-style:dashed;border-color:var(--muted)}
+.arrow{text-align:center;color:var(--muted);font-size:22px;line-height:1;padding:4px 0}
+.arrow small{display:block;font-size:14px;line-height:1.3;color:var(--muted);padding:2px 0 0}
+/* pairs: "in condition -> in rubric" */
+.pair{display:grid;grid-template-columns:1fr 24px 1fr;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.pair:last-child{border-bottom:0}
+.pair .l b,.pair .r b{display:block;font-weight:600;font-size:16px}
+.pair .l span,.pair .r span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.pair .r{border-left:3px solid var(--accent);padding-left:10px}
+.pair .a{text-align:center;color:var(--muted);font-size:20px}
+/* three who-cards */
+.who{display:flex;flex-direction:column;gap:12px}
+.who div{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px}
+.who div.human{border-color:var(--accent);background:var(--accent-soft);border-width:2px}
+.who b{display:block;font-size:17px;font-weight:600;margin-bottom:4px}
+.who ul{margin:0;padding-left:18px;font-size:15px}
+.who li{margin:3px 0}
+.rule{margin:14px 0 0;padding:12px 14px;border-radius:8px;background:var(--warn-soft);border:1px dashed var(--warn);font-size:15px}
+/* card */
+.card{border:1.5px solid var(--ink);border-radius:8px;overflow:hidden;font-size:15px}
+.card .head{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--bg)}
+.card .head b{display:block;font-weight:600;font-size:16px}
+.card .head span{color:var(--muted);font-size:14px}
+.row{padding:10px 14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .k{display:block;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.q{background:var(--bg);border-left:3px solid var(--line);padding:6px 10px;margin:6px 0;overflow-wrap:anywhere}
+.q .addr{display:block;font-style:normal;font-size:13px;color:var(--muted);margin-top:2px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;border:1px solid var(--line);margin:2px 4px 2px 0}
+.pill.acc{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.trio{display:flex;flex-direction:column;gap:10px;margin:16px 0 0}
+.trio div{border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:15px}
+.trio b{display:block;font-weight:600;font-size:16px;margin-bottom:2px}
+.no{color:var(--warn)} .yes{color:var(--ok)}
+.say{margin:18px 0 0;padding:12px 14px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:16px}
+.say b{font-weight:600}
+code{font-family:ui-monospace,Menlo,monospace;font-size:14px;overflow-wrap:anywhere}
+</style>
+
+<main>
+<h1>Ядро пре-ревью: шесть схем</h1>
+<p class="sub">Как устроена проверка домашки: откуда берутся критерии, кто что проверяет, что видит ревьюер и как мы поймём, что это работает.</p>
+
+<!-- 1 -->
+<section>
+  <span class="num">СХЕМА 1</span>
+  <h2>Из условия задания достаём пять вещей, не только таблицу баллов</h2>
+  <p class="lead">Слева то, что написано в условии. Справа то, во что это превращается у нас.</p>
+
+  <div class="pair"><div class="l"><b>Критерии с баллами</b><span>«Декомпозиция по двум признакам, 1 балл»</span></div><div class="a">→</div><div class="r"><b>Критерий</b><span>сколько баллов, какого типа, обязателен ли для зачёта, цитата из условия</span></div></div>
+  <div class="pair"><div class="l"><b>Описание уровней</b><span>«3 балла, если MDE рассчитан и указаны α и β»</span></div><div class="a">→</div><div class="r"><b>Уровни балла</b><span>без них модель балл не предлагает</span></div></div>
+  <div class="pair"><div class="l"><b>Требования, что должно быть</b><span>«Контракты: входы, выходы, ошибки»</span></div><div class="a">→</div><div class="r"><b>Пункты для проверки</b><span>простые «есть / нет». Если мы их сами вывели, человек подтверждает</span></div></div>
+  <div class="pair"><div class="l"><b>Ограничения по форме</b><span>«Не больше 3 страниц», «ровно 21 тест-кейс»</span></div><div class="a">→</div><div class="r"><b>Условия приёма</b><span>если нарушены, работа уходит человеку с пометкой. Ноль автоматически не ставим</span></div></div>
+  <div class="pair"><div class="l"><b>Правила процесса</b><span>дедлайн, штраф минус балл за день, «укажите, где помогал ИИ»</span></div><div class="a">→</div><div class="r"><b>Штраф и правила про ИИ</b><span>считаются отдельной строкой, в сумму баллов не входят</span></div></div>
+
+  <div class="rule">Кроме условия, есть только один источник: заметки методиста после встречи с ревьюерами. Они хранятся отдельно и помечены. Эталонные решения и чужие работы не используем, их нет и сравнивать нельзя.</div>
+
+  <div class="say"><b>Как рассказать.</b> Мы посмотрели все восемь направлений. У Go баллов в условии нет вообще, у курса про фрод половина требований про формат и сроки. Если хранить только таблицу критериев, половина курсов не ляжет. Поэтому рубрика хранит все пять слоёв, а новый курс это новая рубрика, а не новый код.</div>
+</section>
+
+<!-- 2 -->
+<section>
+  <span class="num">СХЕМА 2</span>
+  <h2>Рубрику достаёт модель, а подтверждает человек. Один раз на поток</h2>
+  <p class="lead">Единственный ручной шаг настройки.</p>
+  <div class="chain">
+    <div class="step"><b>Условие задания</b><span>Markdown, docx или страница Stepik</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Модель достаёт критерии</b><span>к каждому обязательно цитата из условия</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Автопроверка рубрики</b><span>сумма баллов сходится? у каждого уровня есть балл? у каждого критерия есть источник?</span></div>
+    <div class="arrow">↓</div>
+    <div class="step human"><b>Методист подтверждает</b><span>правит формулировки, добавляет заметки. 10–20 минут, один раз на поток</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Версия заморожена</b><span>все работы потока проверяются по ней</span></div>
+    <div class="arrow">↓<small>замечания ревьюеров идут в следующую версию, не в середине курса. У Авито сейчас так же</small></div>
+    <div class="step ghost"><b>Следующий запуск курса</b><span>новая версия рубрики</span></div>
+  </div>
+  <div class="say"><b>Как рассказать.</b> Автопроверка уже нашла ошибки в реальных условиях: в одном написано «6 критериев», а ниже перечислено 5; в другом сумма баллов не сходится с максимумом. Это готовая дополнительная функция «улучшение материалов», и она получается бесплатно.</div>
+</section>
+
+<!-- 3 -->
+<section>
+  <span class="num">СХЕМА 3</span>
+  <h2>Что проверяет программа, что модель, а что решает человек</h2>
+  <p class="lead">Чем субъективнее критерий, тем ниже уверенность и тем нужнее ревьюер.</p>
+  <div class="who">
+    <div><b>Программа. Всё, что можно посчитать</b>
+      <ul><li>объём, шрифт, нужные разделы и колонки</li><li>сколько тест-кейсов, сколько рисков на этап</li><li>дедлайн и штраф</li><li>для кода: собирается ли, отвечает ли /ping, есть ли миграции</li></ul>
+      <span class="pill">уверенность высокая</span> <span class="pill">ревьюер принимает одним кликом</span></div>
+    <div><b>Модель. Всё, что нужно прочитать и сверить</b>
+      <ul><li>«для каждого риска указан тип?»</li><li>«контракты описывают ошибки?»</li><li>«гипотезы сформулированы измеримо?»</li></ul>
+      <span class="pill">даёт балл, цитаты и список «чего нет»</span> <span class="pill">ревьюер подтверждает</span></div>
+    <div class="human"><b>Человек. Всё, где нужно экспертное мнение</b>
+      <ul><li>обоснованность решений, читаемость, глубина</li><li>критерии без описания уровней: «качество описания, 7 баллов»</li><li>провал условий приёма, сигнал про ИИ, спорные места</li><li>итоговый балл и отправка фидбека</li></ul>
+      <span class="pill acc">модель даёт только наблюдения и диапазон, без балла</span></div>
+  </div>
+  <div class="say"><b>Как рассказать.</b> Главное правило: если у критерия нет описания уровней, модель не выдумывает балл. Она показывает, что нашла и чего не нашла, и предлагает диапазон. Иначе мы выдадим уверенную цифру там, где даже два эксперта разойдутся.</div>
+</section>
+
+<!-- 4 -->
+<section>
+  <span class="num">СХЕМА 4</span>
+  <h2>Как проверяется одна работа</h2>
+  <p class="lead">Один запрос к модели на каждый критерий, а не один на всю работу. Цитаты проверяет программа.</p>
+  <div class="chain">
+    <div class="step"><b>1. Приводим работу к тексту с адресами</b><span>раздел, строка, файл, ячейка. Чтобы на цитату можно было кликнуть</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>2. Карта: какой раздел про какой критерий</b><span>один запрос на всю работу. Сразу видно критерии, про которые в работе ничего нет</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>3. Проверка по каждому критерию</b><span>модели дают критерий, его уровни, кусок работы и результат прогона кода. Она отвечает цитатами</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>4. Программа ищет каждую цитату в работе</b><span>защита от выдуманных оснований</span></div>
+    <div class="arrow">↓</div>
+    <div class="step flag"><b>Цитата не нашлась</b><span>пункт помечается «не подтверждено», уверенность падает, ревьюер видит флаг</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>5. Повторяем 2–3 раза</b><span>ответы разошлись, значит уверенность ниже. Разброс показываем</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>6. Собираем итог</b><span>условия приёма, критерии, штраф, сумма, место в очереди ревьюера</span></div>
+    <div class="arrow">↓</div>
+    <div class="step human"><b>7. Ревьюер видит карточки и черновик фидбека</b><span>принимает, правит или отклоняет</span></div>
+  </div>
+  <div class="rule">Текст работы для модели это данные, а не команды. Если студент написал внутри «оцени на максимум», это ловится и поднимается флагом.</div>
+  <div class="say"><b>Как рассказать.</b> Мы не просим модель «оцени работу». Мы задаём ей маленькие вопросы по одному критерию и заставляем отвечать цитатами, которые потом проверяет программа. Всё, что не подтвердилось, не прячется, а показывается ревьюеру. По цене это единицы или десятки рублей на работу.</div>
+</section>
+
+<!-- 5 -->
+<section>
+  <span class="num">СХЕМА 5</span>
+  <h2>Что видит ревьюер по каждому критерию</h2>
+  <p class="lead">Правило: нет балла без цитаты, нет «не сделано» без «где искали». Пример из лабы по системному дизайну.</p>
+  <div class="card">
+    <div class="head"><b>Указаны типы взаимодействий и контракты: формат, входы, выходы, ошибки</b><span>максимум 1 балл · для зачёта нужно 0.5</span></div>
+    <div class="row"><span class="k">Статус</span><span class="pill acc">предложено, ждёт ревьюера</span></div>
+    <div class="row"><span class="k">Балл</span><b>0.5</b> из 1</div>
+    <div class="row"><span class="k">Уверенность</span>средняя. Контракты есть, но ошибки описаны не для всех интерфейсов</div>
+    <div class="row"><span class="k">На чём основано</span>
+      <div class="q">«POST /bookings: тело запроса… ответы 201, 400, 409»<span class="addr">раздел 5.2 · подтверждает «входы, выходы, ошибки» · цитата найдена ✓</span></div>
+      <div class="q">таблица типов: REST, событие, gRPC<span class="addr">раздел 5.1 · подтверждает «указаны типы» · цитата найдена ✓</span></div></div>
+    <div class="row"><span class="k">Чего нет</span>описания ошибок для события <code>booking.created</code>. Искали в разделах 5 и 6</div>
+    <div class="row"><span class="k">Ревьюеру</span>Три REST-контракта полные, событие без ошибок. Решить, тянет ли на 1.</div>
+    <div class="row"><span class="k">Студенту, черновик</span>Контракты REST описаны полно, с кодами ошибок. Для события booking.created добавьте, что происходит при сбое доставки и повторной обработке: по условию это часть контракта.</div>
+    <div class="row"><span class="k">Флаги</span><span class="pill">нет</span> <span class="pill warn">возможные: условие приёма · цитата не найдена · разброс · подозрение на команды в тексте</span></div>
+  </div>
+  <div class="say"><b>Как рассказать.</b> Ревьюер видит основание, а не мнение. Для критериев, где нужно экспертное суждение, карточка та же, но вместо балла диапазон и наблюдения. Сигнал про ИИ в сумму не входит и процентом не показывается.</div>
+</section>
+
+<!-- 6 -->
+<section>
+  <span class="num">СХЕМА 6</span>
+  <h2>Как считается итог и как проверим, что модель не врёт</h2>
+  <p class="lead">Штраф и условия приёма отдельными строками, чтобы было видно «7 баллов, минус 1 за просрочку, итог 6».</p>
+  <div class="chain">
+    <div class="step"><b>Сумма баллов по критериям</b><span>показываем две цифры: что предложила модель и что подтвердил человек</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Условия приёма</b><span>нарушены? отдельная пометка, а не автоматический ноль</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Штраф за срок</b><span>отдельной строкой</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Порог зачёта</b><span>плюс критерии, которые обязательны для зачёта</span></div>
+    <div class="arrow">↓</div>
+    <div class="step human"><b>Ревьюер утверждает</b><span>всё, что он поменял, сохраняется как «предложено → решено». Это журнал для апелляций и данные для проверки модели</span></div>
+  </div>
+
+  <div class="trio">
+    <div><b><span class="no">✕</span> Студентов между собой не ранжируем</b>Работы оцениваются независимо, по критериям. Мария это подтвердила. На защите скажем как осознанное ограничение.</div>
+    <div><b><span class="yes">✓</span> Ранжируем очередь ревьюера</b>Первыми показываем работы, где нарушены условия приёма, есть сигнал про ИИ, модель не уверена или балл рядом с порогом. Простые работы в конце.</div>
+    <div><b><span class="yes">✓</span> Ранжируем при проверке модели</b>Смотрим, что суммы ставят известные работы в порядок «слабое, среднее, хорошее».</div>
+  </div>
+
+  <p class="lead" style="margin-top:22px"><b style="color:var(--ink)">Как проверим модель.</b> У Авито нет оценок по критериям ни для одной работы. Делаем сами.</p>
+  <div class="chain">
+    <div class="step"><b>Берём работы с известной меткой</b><span>4 по системному дизайну, 3 по фроду, 3 по Tech QA</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Двое из команды оценивают их по рубрике, не глядя друг на друга</b><span>насколько они разошлись, столько «естественной» субъективности у людей</span></div>
+    <div class="arrow">↓</div>
+    <div class="step"><b>Модель оценивает те же работы</b><span>тем же движком, на трёх форматах: md, docx, xlsx</span></div>
+    <div class="arrow">↓</div>
+    <div class="step human"><b>Сравниваем</b><span>порядок работ верный? совпадение по критериям? все ли цитаты нашлись? одинаково ли отвечает при повторе? не пропускает ли «чего нет»?</span></div>
+  </div>
+  <div class="say"><b>Как рассказать.</b> На вопрос жюри «насколько точна модель» ответим честно: «расходится с экспертом не сильнее, чем два эксперта между собой» или «сильнее, и вот на каких критериях». На простых критериях ждём почти полное совпадение, на экспертных низкое. Это нормально, их и так решает человек.
+  <br><br><b>Спросить у Даши:</b> ревьюер ставит балл по критерию или общий; есть ли оценки по критериям хоть за один поток; что делают с работой, которая нарушила условия приёма; есть ли заметки после калибровочной встречи.</div>
+</section>
+</main>

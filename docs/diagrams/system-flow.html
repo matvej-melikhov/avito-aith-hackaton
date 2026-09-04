@@ -1,0 +1,603 @@
+<title>Экраны и механика ревьюера</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F6F7F4; --paper:#FFFFFF; --ink:#1B2028; --muted:#5B6470; --line:#CBD1D8; --line-soft:#E4E8EC;
+  --accent:#1D6FD1; --accent-soft:#E3EEFB; --warn:#B9770E; --warn-soft:#FBF1DE; --ok:#2E7D4F; --ok-soft:#E2F1E7;
+  --sys:#5A4FB0; --sys-soft:#ECE9F8; --code:#3B4451; --code-soft:#EDEFF2; --mirror:#B04F8A; --mirror-soft:#F7E6F0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171C; --paper:#1C2129; --ink:#E6E9EE; --muted:#A3ABB6; --line:#3A424D; --line-soft:#2A313A;
+    --accent:#6FA8F5; --accent-soft:#1E2E45; --warn:#E0A63A; --warn-soft:#3A2F16; --ok:#6CC28F; --ok-soft:#1B3527;
+    --sys:#A79BF0; --sys-soft:#2A2645; --code:#C3CAD4; --code-soft:#262C35; --mirror:#E48BC4; --mirror-soft:#3F2334;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14171C; --paper:#1C2129; --ink:#E6E9EE; --muted:#A3ABB6; --line:#3A424D; --line-soft:#2A313A;
+  --accent:#6FA8F5; --accent-soft:#1E2E45; --warn:#E0A63A; --warn-soft:#3A2F16; --ok:#6CC28F; --ok-soft:#1B3527;
+  --sys:#A79BF0; --sys-soft:#2A2645; --code:#C3CAD4; --code-soft:#262C35; --mirror:#E48BC4; --mirror-soft:#3F2334;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;margin:0;-webkit-text-size-adjust:100%}
+main{max-width:1280px;margin:0 auto;padding:28px 20px 80px}
+h1{font-size:28px;line-height:1.2;font-weight:600;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 22px;max-width:70ch}
+h2{font-size:22px;line-height:1.25;font-weight:600;margin:0 0 4px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 16px;max-width:80ch}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:.92em}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* tabs */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 20px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.tabs button{background:transparent;border:1.5px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:500}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button:hover{border-color:var(--ink)}
+[hidden]{display:none!important}
+
+/* component strip */
+.arch{display:flex;gap:6px;align-items:stretch;overflow-x:auto;padding:12px 0 6px;margin:0 0 18px}
+.arch .c{flex:1 0 150px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--paper);font-size:13.5px;min-width:150px}
+.arch .c b{display:block;font-weight:600;font-size:14px}
+.arch .c span{color:var(--muted)}
+.arch .c.sys{border-color:var(--sys)}
+.arch .c.hum{border-color:var(--accent);background:var(--accent-soft)}
+.arch .c.store{border-style:dashed}
+.arch .gap{flex:0 0 14px;display:flex;align-items:center;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin:0 0 14px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1.5px solid}
+.legend .k1 i{border-color:var(--code);background:var(--code-soft)}
+.legend .k2 i{border-color:var(--sys);background:var(--sys-soft)}
+.legend .k3 i{border-color:var(--accent);background:var(--accent-soft)}
+.legend .k4 i{border-color:var(--warn);background:var(--warn-soft);border-style:dashed}
+
+/* scenario track */
+.scenario{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px 18px;margin:0 0 24px}
+.track{display:flex;gap:0;align-items:flex-start;overflow-x:auto;padding:6px 2px 14px;scroll-snap-type:x proximity}
+.screen{flex:0 0 340px;width:340px;border:1.5px solid var(--ink);border-radius:10px;background:var(--bg);overflow:hidden;scroll-snap-align:start;font-size:13.5px}
+.screen .bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--paper)}
+.screen .bar .dots{display:flex;gap:4px}
+.screen .bar .dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.screen .bar b{font-weight:600;font-size:13px;flex:1}
+.screen .bar .role{font-size:11.5px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.screen .body{padding:12px}
+.screen h4{margin:0 0 8px;font-size:14px;font-weight:600}
+.f{display:grid;grid-template-columns:110px 1fr;gap:4px 8px;font-size:12.5px;margin:0 0 8px}
+.f span{color:var(--muted)}
+.f div{background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:3px 7px;min-height:24px}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tbl th,.tbl td{text-align:left;padding:5px 7px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.tbl th{color:var(--muted);font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+.tbl tr:last-child td{border-bottom:0}
+.q{background:var(--paper);border-left:3px solid var(--line);padding:4px 8px;margin:4px 0;font-size:12.5px;overflow-wrap:anywhere}
+.q .addr{display:block;font-size:11.5px;color:var(--muted)}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;border:1px solid var(--line);margin:1px 3px 1px 0;white-space:nowrap;background:var(--paper)}
+.pill.acc{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.pill.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.pill.sys{background:var(--sys-soft);border-color:var(--sys);color:var(--sys)}
+.pill.mir{background:var(--mirror-soft);border-color:var(--mirror);color:var(--mirror)}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.btns span{border:1px solid var(--ink);border-radius:6px;padding:4px 10px;font-size:12.5px;background:var(--paper)}
+.btns span.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.warnbox{border:1px dashed var(--warn);background:var(--warn-soft);border-radius:6px;padding:6px 8px;font-size:12.5px;margin:6px 0}
+.okbox{border:1px solid var(--ok);background:var(--ok-soft);border-radius:6px;padding:6px 8px;font-size:12.5px;margin:6px 0}
+.list{margin:0;padding-left:16px;font-size:12.5px}
+.list li{margin:2px 0}
+.rows{display:flex;flex-direction:column;gap:5px}
+.rows div{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:5px 8px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+
+/* connector */
+.conn{flex:0 0 150px;width:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 6px 0;position:relative}
+.conn button{width:100%;border:1.5px solid var(--sys);background:var(--sys-soft);color:var(--ink);border-radius:8px;padding:8px 8px;cursor:pointer;font-size:12.5px;line-height:1.3;text-align:center;position:relative}
+.conn button b{display:block;font-weight:600;color:var(--sys);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+.conn button[aria-expanded="true"]{background:var(--sys);color:#fff}
+.conn button[aria-expanded="true"] b{color:#fff}
+.conn .shaft{position:absolute;top:46px;left:0;right:0;height:2px;background:var(--sys)}
+.conn .shaft::after{content:"";position:absolute;right:-1px;top:-5px;border:6px solid transparent;border-left:8px solid var(--sys);border-right:0}
+.conn .n{position:absolute;top:22px;font-size:11.5px;color:var(--sys);font-weight:600;letter-spacing:.05em}
+.conn button:hover{filter:brightness(.96)}
+
+/* detail panel */
+.detail{margin:4px 0 0;border:1.5px solid var(--sys);border-radius:10px;background:var(--paper);padding:14px 16px}
+.detail .hd{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}
+.detail .hd b{font-size:16px;font-weight:600}
+.detail .hd span{color:var(--muted);font-size:14px}
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px}
+.step{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13.5px;background:var(--bg);border-left-width:4px}
+.step.code{border-left-color:var(--code)}
+.step.llm{border-left-color:var(--sys)}
+.step.human{border-left-color:var(--accent);background:var(--accent-soft)}
+.step.flag{border-left-color:var(--warn);border-style:dashed}
+.step .who{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.step .who em{font-style:normal}
+.step b{display:block;font-weight:600;margin:2px 0 3px;font-size:14px}
+.step p{margin:0;color:var(--muted)}
+.step .io{margin-top:6px;font-size:12.5px}
+.step .io code{background:var(--code-soft);padding:0 4px;border-radius:3px}
+.detail .empty{color:var(--muted);font-size:14px}
+.guar{margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+.guar span{font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--muted)}
+
+/* AI signal section */
+.two{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+.graphbox{border:1.5px solid var(--ink);border-radius:10px;background:var(--bg);padding:10px;position:relative}
+.graphbox svg{width:100%;height:auto;display:block;touch-action:manipulation}
+.ctrl{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13.5px;margin:0 0 8px}
+.ctrl label{display:flex;gap:8px;align-items:center}
+.ctrl input[type=range]{width:180px;accent-color:var(--accent)}
+.ctrl .val{font-family:"IBM Plex Mono",monospace;min-width:38px}
+.glegend{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.glegend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1.5px solid}
+.card{border:1.5px solid var(--ink);border-radius:10px;background:var(--paper);overflow:hidden;font-size:13.5px}
+.card .head{padding:10px 14px;border-bottom:1px solid var(--line);background:var(--bg)}
+.card .head b{display:block;font-weight:600;font-size:15px}
+.card .head span{color:var(--muted);font-size:13px}
+.card .row{padding:9px 14px;border-bottom:1px solid var(--line)}
+.card .row:last-child{border-bottom:0}
+.card .k{display:block;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.card .lvl{font-weight:600}
+.card .lvl.none{color:var(--ok)} .card .lvl.mid{color:var(--warn)} .card .lvl.high{color:var(--mirror)}
+.pipe{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding:8px 0 4px;margin:14px 0 0}
+.pipe .p{flex:1 0 170px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--paper);font-size:13px;min-width:170px}
+.pipe .p b{display:block;font-weight:600;font-size:13.5px}
+.pipe .p span{color:var(--muted)}
+.pipe .p.mir{border-color:var(--mirror)}
+.pipe .p.sys{border-color:var(--sys)}
+.pipe .p.hum{border-color:var(--accent);background:var(--accent-soft)}
+.pipe .gap{flex:0 0 14px;display:flex;align-items:center;color:var(--muted)}
+.sig{margin:16px 0 0}
+.sig table{width:100%;border-collapse:collapse;font-size:13.5px}
+.sig th,.sig td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.sig th{color:var(--muted);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+@media (prefers-reduced-motion:no-preference){.conn button,.step,.node{transition:filter .15s,opacity .15s}}
+</style>
+
+<main>
+<h1>Экраны и механика ревьюера</h1>
+<p class="sub">Два сценария Avito AI Reviewer: как методист заводит задание и как проверяется работа студента. Экраны — то, что видит человек. Стрелки между ними — что делает система; нажмите на стрелку, чтобы раскрыть шаги. Третья вкладка — как собирается ИИ-сигнал через зеркала и граф схожести.</p>
+
+<div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="a">А. Создание задания</button>
+  <button role="tab" aria-selected="false" data-tab="b">Б. Проверка работы</button>
+  <button role="tab" aria-selected="false" data-tab="c">В. ИИ-сигнал: зеркала и граф</button>
+</div>
+
+<div class="legend">
+  <span class="k1"><i></i>Код, детерминированно</span>
+  <span class="k2"><i></i>Модель через шлюз с анонимизацией</span>
+  <span class="k3"><i></i>Человек решает</span>
+  <span class="k4"><i></i>Флаг ревьюеру</span>
+</div>
+
+<div class="arch" aria-label="Компоненты системы">
+  <div class="c"><b>Адаптеры каналов</b><span>GitHub · Stepik · Google Docs · файл</span></div><div class="gap">→</div>
+  <div class="c"><b>Нормализатор</b><span>любой вход → текст с адресами: раздел, строка, ячейка</span></div><div class="gap">→</div>
+  <div class="c store"><b>Реестр заданий и рубрик</b><span>JSON, версия на поток, заморозка</span></div><div class="gap">→</div>
+  <div class="c sys"><b>Ядро пре-ревью</b><span>детерминированные проверки · песочница · LLM-судья по критерию · верификатор цитат · ИИ-сигнал</span></div><div class="gap">→</div>
+  <div class="c store"><b>Хранилище</b><span>источник правды: работы, результаты, решения, журнал</span></div><div class="gap">→</div>
+  <div class="c hum"><b>Интерфейсы</b><span>методист · координатор · ревьюер · экспорт в Stepik и Sheets</span></div>
+</div>
+
+<!-- ================= A ================= -->
+<section class="scenario" id="tab-a">
+  <h2>А. Методист создаёт задание</h2>
+  <p class="lead">Один раз на задание на поток. Ручной шаг ровно один — подтверждение рубрики в редакторе, 10–20 минут. Всё остальное делает система и показывает результат на следующем экране.</p>
+
+  <div class="track" data-scn="a">
+
+    <div class="screen">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>Новое задание</b><span class="role">Методист</span></div>
+      <div class="body">
+        <h4>Регистрация</h4>
+        <div class="f">
+          <span>Курс</span><div>Системный дизайн, поток осень-2026</div>
+          <span>Условие</span><div class="mono">github.com/…/lab1/условие.md</div>
+          <span>Канал сдачи</span><div>GitHub, один Markdown</div>
+          <span>Дедлайн</span><div>21.09.2026 23:59</div>
+          <span>Штраф</span><div>−1 балл, досдача 1 день</div>
+          <span>Политика по ИИ</span><div>Декларация обязательна</div>
+        </div>
+        <div class="btns"><span class="primary">Подтянуть условие</span></div>
+        <p class="note">Пять полей. Ссылки на внешние вводные система найдёт сама на следующем шаге.</p>
+      </div>
+    </div>
+
+    <div class="conn"><span class="n">A1</span><span class="shaft"></span>
+      <button aria-expanded="false" data-detail="a1"><b>внутри системы</b>условие → черновик рубрики</button>
+    </div>
+
+    <div class="screen">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>Рубрика · черновик v1</b><span class="role">Методист</span></div>
+      <div class="body">
+        <div class="warnbox">Линтер: сумма максимумов 6.0 = заявлено 6 ✓ · порог 4 достижим ✓ · 2 пункта помечены «выведено», нужно подтвердить</div>
+        <table class="tbl">
+          <tr><th>Критерий</th><th>Тип</th><th>Макс</th></tr>
+          <tr><td>Декомпозиция по двум и более признакам<div class="q">«Декомпозиция системы минимум по двум признакам»<span class="addr">условие.md · Функциональные требования</span></div></td><td><span class="pill sys">содерж.</span></td><td>1 · мин 1</td></tr>
+          <tr><td>Типы взаимодействий и контракты<div class="q">«входы, выходы, ошибки»<span class="addr">условие.md · строка 31</span></div><span class="pill warn">выведено: «ошибки для каждого интерфейса»</span></td><td><span class="pill sys">содерж.</span></td><td>1 · мин 0.5</td></tr>
+          <tr><td>Построена диаграмма C4</td><td><span class="pill">формал.</span> <span class="pill sys">содерж.</span></td><td>1 · мин 1</td></tr>
+          <tr><td>Обоснование архитектурных решений</td><td><span class="pill acc">оценочн.</span></td><td>0.5</td></tr>
+        </table>
+        <div class="f" style="margin-top:8px"><span>Гейты</span><div>единый документ · md/docx/pdf</div><span>Заметки</span><div style="color:var(--muted)">калибровочные, добавьте при желании</div></div>
+        <div class="btns"><span>Изменить тип</span><span>Снять пункт</span><span class="primary">Подтвердить рубрику</span></div>
+      </div>
+    </div>
+
+    <div class="conn"><span class="n">A2</span><span class="shaft"></span>
+      <button aria-expanded="false" data-detail="a2"><b>внутри системы</b>спецификация прогона и сухой прогон</button>
+    </div>
+
+    <div class="screen">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>Сухой прогон</b><span class="role">Методист</span></div>
+      <div class="body">
+        <h4>Три синтетические работы с известными дефектами</h4>
+        <div class="rows">
+          <div><span>Полная</span><span><span class="pill ok">6.0 · зачёт</span></span></div>
+          <div><span>Без ошибок в контрактах, без sequence</span><span><span class="pill warn">4.0 · на грани</span></span></div>
+          <div><span>Нарушает гейт: три файла вместо одного</span><span><span class="pill warn">гейт · ревьюеру</span></span></div>
+        </div>
+        <div class="okbox">Рубрика различает три работы ожидаемым образом. «Не найдено» по контрактам поймано: <span class="mono">раздел 5 · Event</span></div>
+        <p class="note">Это проверка пайплайна, не качества суждений модели. Так и говорим.</p>
+        <div class="btns"><span>Изменить спецификацию</span><span class="primary">Заморозить v1</span></div>
+      </div>
+    </div>
+
+    <div class="conn"><span class="n">A3</span><span class="shaft"></span>
+      <button aria-expanded="false" data-detail="a3"><b>внутри системы</b>заморозка и приём работ</button>
+    </div>
+
+    <div class="screen">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>Задание готово</b><span class="role">Координатор</span></div>
+      <div class="body">
+        <div class="okbox">Рубрика v1 заморожена 05.09 14:12 · подтвердил: методист</div>
+        <div class="f">
+          <span>Приём работ</span><div>PR в организации <span class="mono">Avito-courses</span>, метка <span class="mono">lab1</span></div>
+          <span>Пул</span><div>0 из ~120 · открывается по дедлайну</div>
+          <span>Зеркала</span><div><span class="pill mir">24 сгенерированы</span> 4 модели × 3 промпта × 2</div>
+          <span>Правки</span><div>идут в v2 для следующего потока</div>
+        </div>
+        <p class="note">С этого момента новый курс — это новая рубрика, а не новый код. Незнакомый формат сдачи регистрируется в режиме «только процесс».</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="detail" data-panel="a"><p class="empty">Нажмите на стрелку A1, A2 или A3, чтобы увидеть шаги внутри системы.</p></div>
+</section>
+
+<!-- ================= B ================= -->
+<section class="scenario" id="tab-b" hidden>
+  <h2>Б. Проверка работы студента</h2>
+  <p class="lead">После дедлайна весь пул сразу. Система делает пре-ревью по каждому критерию, ревьюер решает по критерию, его решения калибруют остальные работы потока. Работы между собой не сравниваются, сигнал об ИИ на балл не влияет.</p>
+
+  <div class="track" data-scn="b">
+
+    <div class="screen">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>Пул · лаба 1</b><span class="role">Координатор</span></div>
+      <div class="body">
+        <div class="f"><span>Собрано</span><div>118 работ · 2 недоступны (нет прав)</div><span>Пре-ревью</span><div><span class="pill ok">118 готово</span> 11 мин, 0.9 $ на работу</div><span>Ревьюеры</span><div>6 · квота 20</div></div>
+        <table class="tbl">
+          <tr><th>Работа</th><th>Предл.</th><th>Увер.</th><th>Статус</th></tr>
+          <tr><td class="mono">S-042</td><td>5.5</td><td>выс.</td><td><span class="pill acc">калибровка</span></td></tr>
+          <tr><td class="mono">S-017</td><td>2.0</td><td>выс.</td><td><span class="pill acc">калибровка</span></td></tr>
+          <tr><td class="mono">S-088</td><td>4.0</td><td>низк.</td><td><span class="pill acc">калибровка</span></td></tr>
+          <tr><td class="mono">S-101</td><td>4.5</td><td>сред.</td><td><span class="pill warn">гейт</span></td></tr>
+          <tr><td class="mono">S-007</td><td>5.0</td><td>сред.</td><td><span class="pill warn">ИИ-сигнал</span></td></tr>
+        </table>
+        <p class="note">Первыми ревьюеру уходят две с самым высоким баллом, две с самым низким, две с самой низкой уверенностью.</p>
+      </div>
+    </div>
+
+    <div class="conn"><span class="n">B1</span><span class="shaft"></span>
+      <button aria-expanded="false" data-detail="b1"><b>внутри системы</b>сбор → пре-ревью по критериям</button>
+    </div>
+
+    <div class="screen" style="flex-basis:400px;width:400px">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>S-007 · лаба 1 · рубрика v1</b><span class="role">Ревьюер</span></div>
+      <div class="body">
+        <div class="rows" style="margin-bottom:8px"><div><span>Гейт: единый документ</span><span class="pill ok">пройден</span></div></div>
+        <table class="tbl">
+          <tr><th>Критерий</th><th>Предл.</th><th></th></tr>
+          <tr><td><b>Типы взаимодействий и контракты</b> · увер. средняя
+            <div class="q">«POST /bookings — тело запроса … ответы 201, 400, 409»<span class="addr">раздел 5.2 · подтверждает входы, выходы, ошибки</span></div>
+            <div class="q" style="border-left-color:var(--warn)">Не найдено: ошибки для события <span class="mono">booking.created</span><span class="addr">искали в разделах 5 и 6</span></div>
+          </td><td>0.5 / 1</td><td><span class="pill ok">✓</span> <span class="pill">✎</span> <span class="pill warn">✗</span></td></tr>
+          <tr><td><b>Обоснование архитектурных решений</b> · <span class="pill acc">нужен ревьюер</span><div class="q">Наблюдение: обоснования есть у 3 из 6 компонентов, для Gallery выбор событий не аргументирован<span class="addr">разделы 2.1, 4</span></div></td><td>—</td><td>0 · 0.25 · 0.5</td></tr>
+        </table>
+        <div class="warnbox" style="margin-top:8px"><b>ИИ-сигнал: есть признаки, стоит уточнить.</b> Сходство с кластером зеркал 71 %, медиана потока 8 % · один коммит на весь документ · декларация: «ИИ не использовал». Невинное объяснение: типовая предметная область. <span class="mono">→ вопрос студенту</span></div>
+        <div class="f" style="margin-top:8px"><span>Итог</span><div>предложено 5.0 · подтверждено 4.5 · порог 4 · <span class="pill ok">зачёт</span></div></div>
+        <div class="btns"><span>Задать вопрос студенту</span><span class="primary">Утвердить</span></div>
+      </div>
+    </div>
+
+    <div class="conn"><span class="n">B2</span><span class="shaft"></span>
+      <button aria-expanded="false" data-detail="b2"><b>внутри системы</b>решения ревьюера → интерпретации</button>
+    </div>
+
+    <div class="screen">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>Калибровка потока</b><span class="role">Ревьюер</span></div>
+      <div class="body">
+        <h4>Проверено 6 из 20 · сходимость по критериям 78 %</h4>
+        <div class="rows">
+          <div><span>C4 без уровня контейнеров считается достаточной</span><span class="pill ok">подтвердить</span></div>
+          <div><span>Нет ошибок для событий: −0.5, а не −1</span><span class="pill ok">подтвердить</span></div>
+          <div><span>SRP: один абзац на компонент достаточно</span><span class="pill">снять</span></div>
+        </div>
+        <div class="okbox" style="margin-top:8px">Пересчитано 14 непроверенных работ · 9 изменились · дифф по критериям в каждой карточке · подтверждённые не тронуты</div>
+        <p class="note">Это калибровочные заметки, полученные из реальных решений, а не написанные заранее.</p>
+      </div>
+    </div>
+
+    <div class="conn"><span class="n">B3</span><span class="shaft"></span>
+      <button aria-expanded="false" data-detail="b3"><b>внутри системы</b>утверждение → фидбек и экспорт</button>
+    </div>
+
+    <div class="screen">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><b>Фидбек · S-007</b><span class="role">Студент</span></div>
+      <div class="body">
+        <div class="f"><span>Итог</span><div>4.5 из 6 · зачёт</div><span>Статус</span><div>утверждено 23.09 · журнал #412</div></div>
+        <ul class="list">
+          <li><b>Контракты.</b> Для REST-интерфейсов входы, выходы и ошибки описаны. Для события <span class="mono">booking.created</span> не указаны ошибки и повторная доставка. Добавьте по образцу раздела 5.2.</li>
+          <li><b>Обоснование.</b> Выбор событий для Gallery не аргументирован. Один абзац: почему не синхронный вызов.</li>
+          <li><b>Вопрос ревьюера.</b> Расскажите, как вы выбирали границу между Outfits и Public Gallery. Ответ в PR до 26.09.</li>
+        </ul>
+        <p class="note">Черновик написала модель по подтверждённым пунктам, ревьюер поправил и отправил. Экспорт: Stepik · Sheets.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="detail" data-panel="b"><p class="empty">Нажмите на стрелку B1, B2 или B3, чтобы увидеть шаги внутри системы.</p></div>
+</section>
+
+<!-- ================= C ================= -->
+<section class="scenario" id="tab-c" hidden>
+  <h2>В. ИИ-сигнал: зеркала и граф схожести</h2>
+  <p class="lead">Детектор «ИИ или нет» не работает при смене модели и домена, поэтому мы не обучаем детектор. Вместо этого для каждого задания генерируем зеркала — решения от нескольких моделей — и смотрим, куда попадает сдача студента на графе схожести всего пула. Это один из слоёв сигнала, рядом с несоответствием условию, метаданными и декларацией.</p>
+
+  <div class="pipe" aria-label="Как строятся зеркала">
+    <div class="p"><b>Условие v1</b><span>то же, что видят студенты</span></div><div class="gap">→</div>
+    <div class="p mir"><b>Зеркала</b><span>4 модели × 3 промпта × 2 семпла: «реши», «реши как студент», «реши и отполируй»</span></div><div class="gap">→</div>
+    <div class="p sys"><b>Представление</b><span>текст: эмбеддинги по разделам; код: AST-токены, JPlag</span></div><div class="gap">→</div>
+    <div class="p sys"><b>Матрица схожести</b><span>пул × пул, пул × зеркала</span></div><div class="gap">→</div>
+    <div class="p"><b>Порог по пулу</b><span>срабатывает не более чем на 5 % студенческих работ</span></div><div class="gap">→</div>
+    <div class="p hum"><b>Карточка ревьюеру</b><span>факт · источник · невинное объяснение · вопрос</span></div>
+  </div>
+
+  <div class="two" style="margin-top:16px">
+    <div>
+      <div class="ctrl">
+        <label>Порог схожести <input type="range" id="thr" min="10" max="90" value="45" step="1"> <span class="val" id="thrv">0.45</span></label>
+        <label><input type="checkbox" id="showMir" checked> показывать зеркала</label>
+      </div>
+      <div class="graphbox">
+        <svg id="graph" viewBox="0 0 760 520" role="img" aria-label="Граф схожести: работы студентов и зеркала; рёбра выше порога. Две работы тянутся к кластеру зеркал, две похожи друг на друга."></svg>
+      </div>
+      <div class="glegend">
+        <span><i style="border-color:var(--ink);background:var(--paper)"></i>работа студента</span>
+        <span><i style="border-color:var(--mirror);background:var(--mirror-soft)"></i>зеркало (модель × промпт)</span>
+        <span><i style="border-color:var(--warn);background:var(--warn-soft)"></i>работа в кластере зеркал</span>
+        <span><i style="border-color:var(--accent);background:var(--accent-soft)"></i>пара похожих студентов</span>
+        <span>толщина ребра — схожесть</span>
+      </div>
+      <p class="note">Нажмите на узел. Позиции — из силовой раскладки по схожести, цифры демонстрационные.</p>
+    </div>
+    <div class="card" id="nodecard">
+      <div class="head"><b>Выберите узел</b><span>Карточка покажет, из чего складывается сигнал</span></div>
+      <div class="row"><span class="k">Что считаем</span>Ближайшее зеркало, ближайшая студенческая работа, медиана потока, попадание в кластер зеркал.</div>
+      <div class="row"><span class="k">Что не делаем</span>Не сравниваем студентов между собой ради балла. Пара похожих студентов — отдельный сигнал о заимствовании, не об ИИ.</div>
+    </div>
+  </div>
+
+  <div class="sig">
+    <h2 style="font-size:18px;margin-top:6px">Из чего собирается карточка сигнала</h2>
+    <table>
+      <tr><th>Слой</th><th>Факт для ревьюера</th><th>Невинное объяснение</th><th>MVP</th></tr>
+      <tr><td>Соответствие условию, галлюцинации</td><td>«Импорт <span class="mono">foo.bar</span> не существует в PyPI», «условие требовало X, реализовано Y»</td><td>Опечатка, устаревшая версия</td><td><span class="pill ok">да</span> побочный продукт LLM-судьи</td></tr>
+      <tr><td>Метаданные процесса</td><td>«Файл создан python-docx, 2 ревизии, 4 мин.», «один коммит на весь PR», «ячейки выполнены не по порядку»</td><td>Экспорт из Google Docs обнуляет время; squash перед сдачей</td><td><span class="pill ok">да</span></td></tr>
+      <tr><td>Граф схожести с зеркалами</td><td>«Сходство с кластером зеркал 71 %, медиана потока 8 %»</td><td>Типовая предметная область, шаблон из лекции</td><td><span class="pill ok">демо</span> 24 зеркала на лабу 1</td></tr>
+      <tr><td>Стилометрия внутри работы</td><td>«84 тире на 1000 слов при медиане 0», «нет чисел и ссылок на свой код»</td><td>Русская типографика, формальный стиль</td><td><span class="pill ok">да</span></td></tr>
+      <tr><td>Разрыв со своими прошлыми работами</td><td>«Комментарии стали англоязычными и в 4 раза плотнее, чем в ДЗ 1–2»</td><td>Студент вырос, сменил IDE</td><td><span class="pill">пилот</span> со второго ДЗ</td></tr>
+      <tr><td>Готовый детектор как один голос</td><td>DroidDetect для кода, GigaCheck для русского текста, порог переопределён на пуле</td><td>Формальный стиль ложно помечается</td><td><span class="pill">пилот</span> нужен GPU</td></tr>
+      <tr><td>Декларация студента</td><td>«ИИ не использовал» рядом с сигналами</td><td>—</td><td><span class="pill ok">да</span></td></tr>
+      <tr><td>Вопросы студенту</td><td>2–3 вопроса по конкретным строкам, ответ в PR</td><td>—</td><td><span class="pill ok">да</span> кнопка у ревьюера</td></tr>
+    </table>
+    <p class="note">Уровень «сильные признаки» требует минимум двух независимых слоёв. Процент не показываем никогда. Сигнал не влияет на балл и не запускает разбирательство сам по себе: сначала сверка с декларацией, потом вопрос студенту.</p>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function(){
+  /* ---------- tabs ---------- */
+  var tabs=document.querySelectorAll('.tabs button');
+  function showTab(id){
+    tabs.forEach(function(b){b.setAttribute('aria-selected',b.dataset.tab===id?'true':'false');});
+    ['a','b','c'].forEach(function(k){document.getElementById('tab-'+k).hidden=(k!==id);});
+    try{localStorage.setItem('flow-tab',id);}catch(e){}
+    if(id==='c'&&!graphBuilt){buildGraph();}
+  }
+  tabs.forEach(function(b){b.addEventListener('click',function(){showTab(b.dataset.tab);});});
+  var saved=null; try{saved=localStorage.getItem('flow-tab');}catch(e){}
+  if(saved&&document.getElementById('tab-'+saved)){showTab(saved);}
+
+  /* ---------- connector details ---------- */
+  var D={
+    a1:{title:'A1 · Условие → черновик рубрики',sub:'Один раз на задание. Ручной работы нет.',steps:[
+      {w:'code',c:'Адаптер каналов',t:'Забрать условие',p:'GitHub md, страница Stepik, Google Docs или файл. Ссылки на внешние вводные (требования в Docs, макет, шаблон таблицы) собираются списком.',io:'вход: ссылка · выход: сырой документ + список внешних вводных'},
+      {w:'code',c:'Нормализатор',t:'Текст с адресами',p:'Таблицы сохраняются, каждому абзацу и строке таблицы присваивается адрес. Это нужно, чтобы дальше любая цитата была проверяемой.',io:'выход: <code>условие.txt</code> с адресами'},
+      {w:'llm',c:'LLM через шлюз',t:'Извлечь пять слоёв',p:'Критерии с баллами, дескрипторы уровней, требования и DoD, гейты, правила процесса. На каждый элемент дословная цитата с адресом. Выведенное из требований, а не написанное как критерий, помечается «выведено». Модель предлагает тип критерия: формальный, содержательный, оценочный.',io:'выход: JSON рубрики v1-draft'},
+      {w:'code',c:'Линтер рубрики',t:'Проверить условие на ошибки',p:'Сумма максимумов равна заявленной, у каждого уровня есть балл, нет критериев без источника, гейты не противоречат критериям, порог достижим. В реальных условиях нашли «6 критериев» и ниже «5 критериев».',io:'выход: предупреждения рядом с рубрикой'},
+      {w:'flag',c:'Реестр рубрик',t:'Сохранить черновик',p:'Статус «черновик», версия v1, автор извлечения — система. Показать методисту.',io:''}
+    ]},
+    a2:{title:'A2 · Подтверждение → спецификация прогона и сухой прогон',sub:'Единственный ручной шаг настройки и проверка, что рубрика вообще работает.',steps:[
+      {w:'human',c:'Редактор рубрики',t:'Методист подтверждает',p:'Правит формулировки, меняет типы, снимает или подтверждает «выведенные» пункты, для формальных критериев задаёт способ подсчёта, добавляет калибровочные заметки. 10–20 минут.',io:'выход: рубрика «подтверждена», журнал правок'},
+      {w:'llm',c:'LLM через шлюз',t:'Спецификация прогона для кода',p:'Из требований вида «GET /ping → 200 и {"message":"pong"}» модель генерирует команды и ожидания. Для нетехнических заданий шаг пропускается.',io:'выход: список «команда → ожидание»'},
+      {w:'human',c:'Редактор',t:'Эксперт правит спецификацию',p:'Подтверждает команды, добавляет проверки, которых модель не увидела.',io:''},
+      {w:'llm',c:'LLM через шлюз',t:'Три синтетические работы',p:'Полная; с намеренными пропусками (нет ошибок в контрактах, нет диаграммы последовательностей); нарушающая гейты. Дефекты заданы нами, ожидаемый результат известен.',io:'выход: 3 работы с известными дефектами'},
+      {w:'code',c:'Ядро пре-ревью',t:'Сухой прогон',p:'Тот же пайплайн, что для настоящих работ (см. B1). Проверяем, что рубрика различает три работы и что «не найдено» ловится.',io:'выход: таблица «работа → балл → найдено / не найдено»'},
+      {w:'code',c:'Проверка готовности',t:'Признаки готовности',p:'У каждого критерия есть тип, балл и цитата; линтер чист или ошибки приняты; спецификация проходит на «полной» синтетике; внешние вводные приложены.',io:''}
+    ]},
+    a3:{title:'A3 · Заморозка → приём работ',sub:'После заморозки правки идут в следующую версию, как в практике Авито «замечания в бэклог следующего запуска».',steps:[
+      {w:'code',c:'Реестр рубрик',t:'Заморозить v1',p:'Версия привязывается к потоку и дедлайну. Работы проверяются по той версии, что была заморожена на момент дедлайна.',io:'выход: рубрика «заморожена», хеш версии'},
+      {w:'code',c:'Адаптер каналов',t:'Настроить сбор',p:'GitHub: организация, шаблон репозитория, метка PR. Stepik: список сдач через API. Docs: форма со ссылкой.',io:'выход: правило «за чем следить»'},
+      {w:'llm',c:'LLM через шлюз',t:'Сгенерировать зеркала',p:'20–50 решений по условию от 3–5 моделей с разными промптами и температурой. Это положительные примеры для калибровки ИИ-сигнала (вкладка В). Обновляются раз в поток.',io:'выход: зеркала с меткой «модель × промпт»'},
+      {w:'code',c:'Хранилище',t:'Открыть пул',p:'Пул принимает работы, по дедлайну закрывается. Незнакомый формат сдачи — режим «только процесс»: очередь, дедлайны, гейты, без пре-ревью содержания.',io:''}
+    ]},
+    b1:{title:'B1 · Сбор пула → пре-ревью по критериям',sub:'Один дешёвый вызов на карту покрытия, потом вызовы только по релевантным кускам. Порядок величины 1 $ на работу.',steps:[
+      {w:'code',c:'Адаптер каналов',t:'Собрать пул по дедлайну',p:'PR в организации, сдачи Stepik, ссылки из формы. Проверка доступности и прав: недоступные работы помечаются координатору.',io:'выход: 118 работ, 2 недоступны'},
+      {w:'code',c:'Нормализатор',t:'Текст с адресами + анонимизация',p:'md: заголовок и строка; docx: раздел и абзац; xlsx: лист и ячейка; репозиторий: файл и строка. ФИО, телефоны, ключи вырезаются до отправки в модель.',io:'выход: работа с адресами, карта анонимизации'},
+      {w:'code',c:'Детерминированные проверки',t:'Гейты, счётчики, метаданные',p:'Объём, формат, история правок, число тест-кейсов, структура репозитория, дедлайн и штраф. docx: автор, приложение, ревизии, время редактирования. ipynb: порядок выполнения ячеек.',io:'выход: гейты «пройден / не пройден», факты для ИИ-сигнала'},
+      {w:'code',c:'Песочница',t:'Автопрогон кода',p:'Контейнер без сети, лимит времени и памяти, чистая база. Спецификация прогона из A2. Упала сборка — зависимые пункты получают «не проверено», а не «провалено».',io:'выход: таблица «ожидание → факт → лог»'},
+      {w:'llm',c:'LLM через шлюз',t:'Карта покрытия',p:'Один вызов на работу: соответствие «раздел работы → критерии». Критерии без разделов — кандидаты на «не найдено». Дальше в каждый вызов идут только релевантные куски.',io:'выход: раздел → критерии'},
+      {w:'llm',c:'LLM через шлюз',t:'Оценка по критерию',p:'Один вызов на критерий: критерий с дескрипторами и проверочными пунктами, калибровочные заметки, релевантные куски, для кода результаты прогона. Судить только по рубрике, не сравнивать с другими работами, не додумывать. На оценочных критериях наблюдения, не вердикт.',io:'выход: статус, балл или диапазон, уверенность, цитаты с адресами, не найдено'},
+      {w:'code',c:'Верификатор цитат',t:'Проверить каждую цитату по адресу',p:'Цитаты нет — «основание не подтверждено», уверенность вниз, флаг ревьюеру. Главная защита от галлюцинаций. Инструкции внутри работы не выполняются и поднимают флаг «инъекция».',io:'выход: цитаты «подтверждена / нет»'},
+      {w:'llm',c:'LLM через шлюз',t:'Повторы для устойчивости',p:'Критерии с баллом прогоняются 2–3 раза при низкой температуре. Разошлись — медиана, уверенность вниз, разброс виден ревьюеру.',io:''},
+      {w:'code',c:'ИИ-сигнал',t:'Собрать карточку сигнала',p:'Из уже полученного: несоответствие условию и галлюцинации, метаданные, стилометрия, сходство с пулом и зеркалами (вкладка В), декларация. Уровень, основания, невинные объяснения, ограничения. На балл не влияет.',io:'выход: карточка «нет оснований / стоит уточнить / сильные признаки»'},
+      {w:'code',c:'Сборка результата',t:'Итог и приоритет',p:'Гейты, критерии, штраф отдельной строкой, предложенный итог, порог зачёта и обязательные критерии. Приоритет в очереди ревьюера: калибровочная шестёрка первой.',io:'выход: карточка работы в хранилище'},
+      {w:'llm',c:'LLM через шлюз',t:'Черновик фидбека',p:'По предложенным пунктам: что хорошо, чего не хватает, что сделать. Тон и длина из реальных ревью: 5–7 конкретных пунктов.',io:''}
+    ]},
+    b2:{title:'B2 · Решения ревьюера → интерпретации и пересчёт',sub:'Калибровка из реальных решений, без теневого режима и лишней нагрузки.',steps:[
+      {w:'human',c:'Интерфейс ревьюера',t:'Решение по критерию',p:'Подтвердить, поправить балл, отклонить с комментарием. Каждое действие в журнал с временем и причиной.',io:'выход: «предложено» → «решено»'},
+      {w:'human',c:'Интерфейс ревьюера',t:'Реакция на ИИ-сигнал',p:'Сначала сверка с декларацией. Совпало — закрыть. Нет — «задать вопрос студенту»: модель предлагает 2–3 вопроса по конкретным строкам, ревьюер правит.',io:''},
+      {w:'code',c:'Ядро пре-ревью',t:'Вывести интерпретации',p:'По каждому критерию сравнить «предложено» и «решено» на проверенных работах. Устойчивое расхождение превращается в интерпретацию: «C4 без уровня контейнеров достаточно».',io:'выход: список интерпретаций на подтверждение'},
+      {w:'human',c:'Интерфейс ревьюера',t:'Подтвердить или снять',p:'Интерпретации показаны списком. Это те же калибровочные заметки, только из реальных решений.',io:''},
+      {w:'llm',c:'LLM через шлюз',t:'Пересчитать непроверенные',p:'С подтверждёнными интерпретациями пересчитываются только затронутые критерии непроверенных работ. Подтверждённые работы не трогаются. Статус «пересчитано после калибровки» с диффом.',io:'выход: дифф по критериям'},
+      {w:'code',c:'Хранилище',t:'Сходимость по потоку',p:'Доля критериев, по которым модель и ревьюер сходятся на проверенных работах. Стабилизировалась — оставшиеся работы идут в обычном порядке очереди.',io:''}
+    ]},
+    b3:{title:'B3 · Утверждение → фидбек, журнал, экспорт',sub:'Финальное решение по каждому критерию за ревьюером. Хранилище — источник правды, экспорт — дополнение.',steps:[
+      {w:'human',c:'Интерфейс ревьюера',t:'Утвердить итог',p:'Сумма подтверждённых баллов, штраф, порог зачёта и минимумы по обязательным критериям. Изменение после утверждения — новая запись в журнале с причиной.',io:'выход: итог «утверждён»'},
+      {w:'human',c:'Интерфейс ревьюера',t:'Отправить фидбек',p:'Черновик модели по подтверждённым пунктам, ревьюер правит. Вопросы к студенту с дедлайном ответа.',io:''},
+      {w:'code',c:'Хранилище',t:'Журнал и образцы',p:'Решения ревьюеров логируются: это первые метки для калибровки следующего потока. Работы, подтверждённые лучшими по критерию, становятся образцами внутри потока по выбору самого ревьюера.',io:''},
+      {w:'code',c:'Адаптер каналов',t:'Экспорт',p:'Комментарий в PR, оценка в Stepik, строка в Sheets координатора. Уведомления студенту и координатору.',io:''},
+      {w:'code',c:'Хранилище',t:'Повторная попытка',p:'Новая версия работы проходит B1 заново, ревьюер видит дифф по критериям: что изменилось, какие замечания закрыты.',io:''}
+    ]}
+  };
+  var WHO={code:'Код',llm:'Модель',human:'Человек',flag:'Флаг'};
+  function render(key,panel){
+    var d=D[key];var h='<div class="hd"><b>'+d.title+'</b><span>'+d.sub+'</span></div><div class="steps">';
+    d.steps.forEach(function(s,i){
+      h+='<div class="step '+s.w+'"><div class="who"><em>'+(i+1)+' · '+WHO[s.w]+'</em><em>'+s.c+'</em></div><b>'+s.t+'</b><p>'+s.p+'</p>'+(s.io?'<div class="io">'+s.io+'</div>':'')+'</div>';
+    });
+    h+='</div><div class="guar"><span>нет балла без цитаты</span><span>цитата проверена кодом</span><span>финальное решение за человеком</span><span>сигнал об ИИ не влияет на балл</span></div>';
+    panel.innerHTML=h;
+  }
+  document.querySelectorAll('.conn button').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var key=btn.dataset.detail, scn=key.charAt(0);
+      var panel=document.querySelector('.detail[data-panel="'+scn+'"]');
+      var open=btn.getAttribute('aria-expanded')==='true';
+      document.querySelectorAll('.track[data-scn="'+scn+'"] .conn button').forEach(function(b){b.setAttribute('aria-expanded','false');});
+      if(open){panel.innerHTML='<p class="empty">Нажмите на стрелку, чтобы увидеть шаги внутри системы.</p>';return;}
+      btn.setAttribute('aria-expanded','true'); render(key,panel);
+      panel.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
+    });
+  });
+
+  /* ---------- similarity graph ---------- */
+  var graphBuilt=false;
+  var nodes=[],edges=[];
+  function buildData(){
+    var i;
+    var mirrorModels=['GPT-4o','Claude','DeepSeek','GigaChat'];
+    var prompts=['реши','как студент','отполируй'];
+    for(i=0;i<18;i++){nodes.push({id:'S-'+String(i*7%120+1).padStart(3,'0'),kind:'s'});}
+    var m=0;
+    mirrorModels.forEach(function(mm){prompts.forEach(function(p){nodes.push({id:'M'+(++m),kind:'m',model:mm,prompt:p});});});
+    var N=nodes.length; var S=18;
+    function add(a,b,w){edges.push({a:a,b:b,w:w});}
+    /* mirrors are dense among themselves */
+    for(i=S;i<N;i++){for(var j=i+1;j<N;j++){var same=nodes[i].model===nodes[j].model;add(i,j,same?0.62+((i*j)%7)/40:0.48+((i+j)%9)/60);}}
+    /* students: mostly low similarity, a few pairs */
+    for(i=0;i<S;i++){for(var k=i+1;k<S;k++){var w=0.05+((i*13+k*7)%17)/100;add(i,k,w);}}
+    /* student-mirror baseline */
+    for(i=0;i<S;i++){for(var q=S;q<N;q++){add(i,q,0.04+((i*11+q*5)%14)/100);}}
+    /* special cases */
+    function set(a,b,w){for(var e=0;e<edges.length;e++){if((edges[e].a===a&&edges[e].b===b)||(edges[e].a===b&&edges[e].b===a)){edges[e].w=w;return;}}}
+    /* S index 6 (S-043) strongly in mirror cluster */
+    for(q=S;q<N;q++){set(6,q,0.58+((q*3)%9)/40);}
+    nodes[6].role='cluster'; nodes[6].note='71 % к ближайшему зеркалу GPT-4o «реши», медиана потока 8 %. Плюс один коммит на весь документ.';
+    /* S index 11 (S-078) hybrid: mid similarity to 'как студент' mirrors */
+    for(q=S;q<N;q++){if(nodes[q].prompt==='как студент')set(11,q,0.46+((q*5)%6)/50);}
+    nodes[11].role='hybrid'; nodes[11].note='52 % к зеркалам «как студент», остальные разделы непохожи. Возможен гибрид: каркас от модели, логика своя.';
+    /* S index 2 and 9 similar to each other */
+    set(2,9,0.66); nodes[2].role='pair'; nodes[9].role='pair';
+    nodes[2].note='66 % с S-064 при медиане потока 8 %. К зеркалам 9 %. Это сигнал о заимствовании между студентами, не об ИИ.';
+    nodes[9].note='66 % с S-015 при медиане потока 8 %. К зеркалам 11 %.';
+    nodes[6].id='S-043'; nodes[11].id='S-078'; nodes[2].id='S-015'; nodes[9].id='S-064';
+  }
+  function layout(){
+    var W=760,H=520,i,j,it;
+    nodes.forEach(function(n,idx){n.x=W/2+Math.cos(idx*2.4)*(n.kind==='m'?60:220)+(n.kind==='m'?170:-40);n.y=H/2+Math.sin(idx*2.4)*(n.kind==='m'?60:180);n.vx=0;n.vy=0;});
+    for(it=0;it<400;it++){
+      for(i=0;i<nodes.length;i++){for(j=i+1;j<nodes.length;j++){
+        var dx=nodes[j].x-nodes[i].x,dy=nodes[j].y-nodes[i].y,d2=dx*dx+dy*dy+0.01,d=Math.sqrt(d2);
+        var rep=2600/d2; nodes[i].vx-=dx/d*rep;nodes[i].vy-=dy/d*rep;nodes[j].vx+=dx/d*rep;nodes[j].vy+=dy/d*rep;
+      }}
+      edges.forEach(function(e){
+        var a=nodes[e.a],b=nodes[e.b],dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)+0.01;
+        var target=340-e.w*330; var f=(d-target)*0.02*(e.w>0.2?1:0.15);
+        a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;
+      });
+      nodes.forEach(function(n){n.vx+=(W/2-n.x)*0.003;n.vy+=(H/2-n.y)*0.003;n.x+=n.vx*0.5;n.y+=n.vy*0.5;n.vx*=0.6;n.vy*=0.6;n.x=Math.max(30,Math.min(W-30,n.x));n.y=Math.max(30,Math.min(H-30,n.y));});
+    }
+  }
+  var svg,thr=0.45,showMir=true,selected=null;
+  function color(n){
+    if(n.kind==='m')return{f:'var(--mirror-soft)',s:'var(--mirror)'};
+    if(n.role==='cluster'||n.role==='hybrid')return{f:'var(--warn-soft)',s:'var(--warn)'};
+    if(n.role==='pair')return{f:'var(--accent-soft)',s:'var(--accent)'};
+    return{f:'var(--paper)',s:'var(--ink)'};
+  }
+  function draw(){
+    var h='';
+    edges.forEach(function(e){
+      var a=nodes[e.a],b=nodes[e.b]; if(!showMir&&(a.kind==='m'||b.kind==='m'))return; if(e.w<thr)return;
+      var mir=(a.kind==='m'||b.kind==='m'), both=(a.kind==='m'&&b.kind==='m');
+      var st=both?'var(--mirror)':(mir?'var(--warn)':'var(--accent)');
+      var hi=selected!==null&&(e.a===selected||e.b===selected);
+      h+='<line x1="'+a.x.toFixed(1)+'" y1="'+a.y.toFixed(1)+'" x2="'+b.x.toFixed(1)+'" y2="'+b.y.toFixed(1)+'" stroke="'+st+'" stroke-width="'+(0.6+e.w*4).toFixed(1)+'" stroke-opacity="'+(hi?0.95:(both?0.35:0.6))+'"/>';
+    });
+    nodes.forEach(function(n,i){
+      if(!showMir&&n.kind==='m')return;
+      var c=color(n),r=n.kind==='m'?9:12,sel=selected===i;
+      h+='<g class="node" data-i="'+i+'" style="cursor:pointer"><circle cx="'+n.x.toFixed(1)+'" cy="'+n.y.toFixed(1)+'" r="'+r+'" fill="'+c.f+'" stroke="'+c.s+'" stroke-width="'+(sel?3:1.6)+'"/>';
+      h+='<text x="'+n.x.toFixed(1)+'" y="'+(n.y+r+12).toFixed(1)+'" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="currentColor">'+n.id+'</text></g>';
+    });
+    svg.innerHTML=h;
+    svg.querySelectorAll('.node').forEach(function(g){g.addEventListener('click',function(){select(parseInt(g.dataset.i,10));});});
+  }
+  function nearest(i,kind){
+    var best=null;edges.forEach(function(e){if(e.a!==i&&e.b!==i)return;var o=nodes[e.a===i?e.b:e.a];if(o.kind!==kind)return;if(!best||e.w>best.w)best={w:e.w,n:o};});return best;
+  }
+  function select(i){
+    selected=i;draw();var n=nodes[i],card=document.getElementById('nodecard'),h='';
+    if(n.kind==='m'){
+      h='<div class="head"><b>'+n.id+' · зеркало</b><span>'+n.model+' · промпт «'+n.prompt+'»</span></div>';
+      h+='<div class="row"><span class="k">Зачем</span>Положительный пример «так решает модель» для этого задания. Ближайшая работа студента: '+(nearest(i,'s')?nearest(i,'s').n.id+' · '+Math.round(nearest(i,'s').w*100)+' %':'—')+'.</div>';
+      h+='<div class="row"><span class="k">Обновление</span>Раз в поток, потому что генераторы меняются. Зеркала не показываются студентам и не используются как эталон качества.</div>';
+    }else{
+      var nm=nearest(i,'m'),ns=nearest(i,'s');
+      var lvl=n.role==='cluster'?['high','сильные признаки: два независимых слоя']:(n.role==='hybrid'?['mid','есть признаки, стоит уточнить']:(n.role==='pair'?['mid','сигнал о заимствовании, не об ИИ']:['none','нет оснований']));
+      h='<div class="head"><b>'+n.id+' · работа студента</b><span>лаба 1 · рубрика v1</span></div>';
+      h+='<div class="row"><span class="k">Ближайшее зеркало</span>'+(nm?nm.n.id+' ('+nm.n.model+', «'+nm.n.prompt+'») · <b>'+Math.round(nm.w*100)+' %</b>':'—')+' · медиана потока 8 %</div>';
+      h+='<div class="row"><span class="k">Ближайшая работа студента</span>'+(ns?ns.n.id+' · <b>'+Math.round(ns.w*100)+' %</b>':'—')+'</div>';
+      h+='<div class="row"><span class="k">Уровень сигнала</span><span class="lvl '+lvl[0]+'">'+lvl[1]+'</span></div>';
+      if(n.note)h+='<div class="row"><span class="k">Основание</span>'+n.note+'</div>';
+      h+='<div class="row"><span class="k">Невинное объяснение</span>'+(n.role==='pair'?'Совместная работа над одним проектом, общий шаблон из лекции.':'Типовая предметная область, шаблон из лекции, полировка ИИ допустима по декларации.')+'</div>';
+      h+='<div class="row"><span class="k">Дальше</span>'+(n.role?'Сверка с декларацией → вопрос студенту по конкретным разделам. На балл не влияет.':'Ничего. Карточка сигнала не показывается.')+'</div>';
+    }
+    card.innerHTML=h;
+  }
+  function buildGraph(){
+    graphBuilt=true; svg=document.getElementById('graph'); buildData(); layout(); draw();
+    var r=document.getElementById('thr'),v=document.getElementById('thrv');
+    r.addEventListener('input',function(){thr=r.value/100;v.textContent=thr.toFixed(2);draw();});
+    document.getElementById('showMir').addEventListener('change',function(e){showMir=e.target.checked;draw();});
+    select(6);
+  }
+  if(!document.getElementById('tab-c').hidden)buildGraph();
+})();
+</script>
