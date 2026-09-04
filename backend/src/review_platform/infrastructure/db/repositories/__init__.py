@@ -16,7 +16,6 @@ from review_platform.infrastructure.db.repositories.learning import (
     DestinationBindingRepository,
     ExternalCourseBindingRepository,
 )
-
 from review_platform.infrastructure.db.repositories.operations import (
     AuditEventRepository,
     AuditRepository,

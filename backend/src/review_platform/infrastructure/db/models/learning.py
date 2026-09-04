@@ -126,6 +126,12 @@ class CourseRun(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
     __table_args__ = (
         tenant_candidate_key(),
         tenant_foreign_key("course_id", "course", name="fk_course_run_org_course"),
+        UniqueConstraint(
+            "organization_id",
+            "course_id",
+            "external_run_id",
+            name="uq_course_run_org_course_external_run",
+        ),
         CheckConstraint(
             string_enum_check("status", COURSE_RUN_STATUSES),
             name="status",
@@ -139,6 +145,7 @@ class CourseRun(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
     )
 
     course_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    external_run_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     starts_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     ends_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)

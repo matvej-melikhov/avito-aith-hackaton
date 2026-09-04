@@ -455,6 +455,7 @@ def upgrade() -> None:
         sa.Column("revision", sa.Integer(), server_default=sa.text("0"), nullable=False),
         *_timestamps(),
         sa.Column("course_id", UUID, nullable=False),
+        sa.Column("external_run_id", sa.String(length=256), nullable=True),
         sa.Column("title", sa.String(length=512), nullable=False),
         sa.Column("starts_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("ends_at", sa.DateTime(timezone=True), nullable=True),
@@ -483,6 +484,12 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name="pk_course_run"),
         _tenant_candidate("course_run"),
+        sa.UniqueConstraint(
+            "organization_id",
+            "course_id",
+            "external_run_id",
+            name="uq_course_run_org_course_external_run",
+        ),
     )
     op.create_index(
         "ix_course_run_org_course_status",

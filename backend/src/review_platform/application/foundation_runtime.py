@@ -12,13 +12,14 @@ import boto3
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from review_platform.api.middleware import Redactor
-from review_platform.application.authorization import AuthorizationDenied, Authorizer
+from review_platform.application.auth_guards.membership import UserMembershipAuthGuard
+from review_platform.application.authorization import Authorizer
 from review_platform.application.command_bus import CommandBus
 from review_platform.application.idempotency import (
     IdempotencyConflict,
     IdempotencyCoordinator,
 )
-from review_platform.application.request_context import AuthVersionSnapshot, RequestActor
+from review_platform.application.request_context import RequestActor
 from review_platform.contracts.commands import ApplicationCommand, WireCommand
 from review_platform.domain.primitives import sanitize_error, utc_now, uuid7
 from review_platform.infrastructure.db.adapters import (
@@ -83,20 +84,6 @@ class Lease:
     max_attempts: int
 
 
-class _DeferredFoundationAuthGuard:
-    """Fail closed until US1 installs the concrete membership guard."""
-
-    async def revalidate(self, *, actor: RequestActor) -> AuthVersionSnapshot:
-        del actor
-        raise AuthorizationDenied("concrete membership authorization is not installed")
-
-    async def lock_and_revalidate(
-        self, *, actor: RequestActor, transaction: object
-    ) -> AuthVersionSnapshot:
-        del actor, transaction
-        raise AuthorizationDenied("concrete membership authorization is not installed")
-
-
 class FoundationRuntime:
     """Compose SQL, outbox, storage, command, and redaction adapters."""
 
@@ -137,7 +124,7 @@ class FoundationRuntime:
         self._command_bus = CommandBus(
             transactions=self._transactions,
             revisions=self._revisions,
-            authorizer=Authorizer(_DeferredFoundationAuthGuard(), clock=clock),
+            authorizer=Authorizer(UserMembershipAuthGuard(session_factory), clock=clock),
         )
 
     def components(self) -> Mapping[str, object]:

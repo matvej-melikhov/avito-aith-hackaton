@@ -211,6 +211,11 @@ def test_required_identity_and_roster_uniqueness_is_enforced_by_schema() -> None
     assert ("organization_id", "user_id") in _unique_column_sets(
         OrganizationMembership.__table__
     )
+    assert (
+        "organization_id",
+        "course_id",
+        "external_run_id",
+    ) in _unique_column_sets(CourseRun.__table__)
 
 
 def test_session_and_authorization_persist_exact_revocation_versions() -> None:
@@ -272,9 +277,15 @@ def test_openapi_projection_fields_have_persisted_sources() -> None:
         Invitation.__table__.columns.keys()
     )
     assert {"id", "title", "status", "revision"} <= set(Course.__table__.columns.keys())
-    assert {"id", "course_id", "title", "timezone", "status", "revision"} <= set(
-        CourseRun.__table__.columns.keys()
-    )
+    assert {
+        "id",
+        "course_id",
+        "external_run_id",
+        "title",
+        "timezone",
+        "status",
+        "revision",
+    } <= set(CourseRun.__table__.columns.keys())
 
 
 def test_alembic_identity_course_revision_is_the_single_head() -> None:
