@@ -64,7 +64,7 @@ def test_foundation_metadata_has_deterministic_named_constraints() -> None:
         "outbox_message",
     }
 
-    assert set(Base.metadata.tables) == expected_tables
+    assert expected_tables.issubset(Base.metadata.tables)
     assert all(
         constraint.name
         for table in Base.metadata.sorted_tables
@@ -165,11 +165,11 @@ async def test_sql_application_adapters_reject_non_session_transactions() -> Non
     assert SqlAppendOnlyAuditRepository() is not None
 
 
-def test_alembic_history_has_one_foundation_head() -> None:
+def test_alembic_history_has_one_current_head_and_preserves_foundation_root() -> None:
     config = Config("alembic.ini")
     scripts = ScriptDirectory.from_config(config)
 
-    assert scripts.get_heads() == ["0001_foundation"]
+    assert scripts.get_heads() == ["0002_identity_and_courses"]
     revision = scripts.get_revision("0001_foundation")
     assert revision is not None
     assert revision.down_revision is None

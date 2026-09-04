@@ -13,12 +13,25 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from review_platform.infrastructure.db.base import Base
 from review_platform.infrastructure.db.models import (
+    AgentAuthorization,
     AuditEvent,
     CommandReceipt,
+    Course,
+    CourseMembership,
+    CourseRun,
+    DestinationBinding,
+    ExternalCourseBinding,
+    ExternalCredential,
+    ExternalIdentity,
+    Invitation,
+    OAuthState,
     Operation,
     OperationAttempt,
     Organization,
+    OrganizationMembership,
     OutboxMessage,
+    Session,
+    User,
 )
 from review_platform.infrastructure.db.session import asyncmy_url
 
@@ -37,6 +50,19 @@ MIGRATED_MODELS = (
     Operation,
     OperationAttempt,
     OutboxMessage,
+    User,
+    ExternalIdentity,
+    OrganizationMembership,
+    Invitation,
+    Session,
+    ExternalCredential,
+    OAuthState,
+    AgentAuthorization,
+    Course,
+    ExternalCourseBinding,
+    CourseRun,
+    CourseMembership,
+    DestinationBinding,
 )
 target_metadata = Base.metadata
 
