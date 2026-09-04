@@ -138,10 +138,10 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Independent Test**: Preflight returns an opaque reference, submit consumes it, replacements preserve history, late versions remain pending, and one ReviewIteration opens explicitly.
 
-- [ ] T075 [P] [US3] Write failing CourseRunHomework-addressed preflight tests for two-flow isolation, conditional usable reference, Submission ID/revision, capture Operation ID, exact target, typed result, and history in `backend/tests/contract/test_artifact_submission_api.py`
-- [ ] T076 [P] [US3] Write failing SubmissionVersion and initial ReviewIteration transition tests in `backend/tests/state/test_submission_review_states.py`
-- [ ] T077 [P] [US3] Write failing cross-tenant reference/version/S3/read and ReviewCase uniqueness tests in `backend/tests/isolation/test_artifact_submission_boundary.py`
-- [ ] T078 [P] [US3] Write failing preflight, capture, DB-commit-before-promotion recovery, replacement, late revision, history, and intent-aware cleanup tests in `backend/tests/integration/test_submission_lifecycle.py`
+- [X] T075 [P] [US3] Write failing CourseRunHomework-addressed preflight tests for two-flow isolation, conditional usable reference, Submission ID/revision, capture Operation ID, exact target, typed result, and history in `backend/tests/contract/test_artifact_submission_api.py`
+- [X] T076 [P] [US3] Write failing SubmissionVersion and initial ReviewIteration transition tests in `backend/tests/state/test_submission_review_states.py`
+- [X] T077 [P] [US3] Write failing cross-tenant reference/version/S3/read and ReviewCase uniqueness tests in `backend/tests/isolation/test_artifact_submission_boundary.py`
+- [X] T078 [P] [US3] Write failing preflight, capture, DB-commit-before-promotion recovery, replacement, late revision, history, and intent-aware cleanup tests in `backend/tests/integration/test_submission_lifecycle.py`
 - [ ] T079 [US3] Implement Submission, SubmissionVersion, ArtifactReference, ArtifactVersion, and ArtifactPromotion tables in `backend/src/review_platform/infrastructure/db/models/submission.py`
 - [ ] T080 [US3] Implement ReviewCase and initial ReviewIteration tables with CourseRun-aware uniqueness in `backend/src/review_platform/infrastructure/db/models/review_case.py`
 - [ ] T081 [US3] Create the reversible submission/artifact/review-case migration with `down_revision=0003_homework_versions` in `backend/migrations/versions/0004_submissions_and_artifacts.py`
