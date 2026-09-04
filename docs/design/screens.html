@@ -698,7 +698,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С1">
   <div class="screen__head"><span class="screen__id">С1</span><h2>Страница домашки по ссылке, до сдачи</h2></div>
   <p class="screen__note">Студент приходит по ссылке из Stepik, платформа узнаёт его по Stepik ID. Работа прикладывается ссылкой на репозиторий или файлами. Отсюда доступны оба действия — прогнать ИИ-ревью и отправить на ревью.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Контекст один, в плашке: курс и лаба строкой капители, топбар курсом не дублируется. Срок и порог в плашке даны полями «подпись — значение». Правило штрафа замечанием под рубрикой, с отступом от карточки. В подвале формы главное действие первое слева, рядом вторичное с пояснением. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Витринная плашка сверху вместо серого заголовка: студент открывает страницу впервые и должен понять, куда попал. Контекст один, в плашке: курс и лаба строкой капители, топбар курсом не дублируется. Срок, порог и текущий статус в плашке даны полями «подпись — значение». Табов без результатов проверок нет. Правило штрафа замечанием под рубрикой, с отступом от карточки. В подвале формы главное действие первое слева, рядом вторичное с пояснением. Ниже плашки цвета почти нет — форма сдачи и рубрика читаются как документ.</p>
   <div class="shot" style="height:774px"><div class="vp">
     <div style="background:var(--surface);min-height:1030px">
       <div class="topbar" style="align-items:center">
@@ -728,6 +728,10 @@ a:hover { border-bottom-color: var(--ink); }
             <div>
               <span class="caption" style="display:block">Порог зачёта</span>
               <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
+            </div>
+            <div>
+              <span class="caption" style="display:block">Статус</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">Черновик</div>
             </div>
           </div>
         </div>
@@ -803,8 +807,8 @@ a:hover { border-bottom-color: var(--ink); }
 </section>
 <section class="screen" id="С2">
   <div class="screen__head"><span class="screen__id">С2</span><h2>Та же страница после ИИ-ревью</h2></div>
-  <p class="screen__note">Результат ИИ-ревью появляется на той же странице над формой. Отметки только двух видов, без «частично». Вид блока совпадает с предварительным ревью, которое видит ревьюер на Р5, чтобы студент и ревьюер смотрели на одно и то же. Баллов здесь нет намеренно.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Счёт «7 из 9 требований закрыто» набран дисплейным шрифтом, но словом «требований», а не «баллов»: это не оценка, и типографика не должна выдавать её за оценку. Невыполненные требования подняты наверх списка, поэтому красный маркер встречается первым. Набор блоков тот же, что до проверки: задание свернулось, форма осталась с заполненной ссылкой, разбор встал между ними.</p>
+  <p class="screen__note">Проверки копятся в табе ИИ-ревью раскрывающимися блоками с датой и временем, открыт только последний. Вывод абстрактный: сдавать или нет и на что смотреть, без разбора по критериям. Таб Ревью пустует до отправки работы.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> У вывода ИИ нет баллов и шкал: они живут только у ревьюера, студенту они не помогут, только научат подгонять работу под разбор. Непрочитанные критерии не называются, только места для внимания обычным языком.</p>
   <div class="shot" style="height:894px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
@@ -830,67 +834,42 @@ a:hover { border-bottom-color: var(--ink); }
               <span class="caption" style="display:block">Порог зачёта</span>
               <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
             </div>
+            <div>
+              <span class="caption" style="display:block">Статус</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">Черновик</div>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="main">
         <div style="max-width:var(--page-max);margin:0 auto">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-6);margin-bottom:var(--s-5)">
-            <div>
-              <div class="h2">ИИ-ревью</div>
-              <div class="caption" style="margin-top:var(--s-1)">от 17 февраля, 14:20. Это не оценка, баллы поставит ревьюер.</div>
-            </div>
-            <div style="text-align:right;flex:none">
-              <div class="d3">7 <span style="font-family:var(--font-text);font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink-3)">из 9 требований закрыто</span></div>
-            </div>
-          </div>
-
           <div class="row-side">
             <div class="stack">
               <div class="card">
                 <div class="card__head"><h4>Задание</h4><span class="btn btn--s btn--link">Развернуть</span></div>
               </div>
               <div class="card">
-              <div class="card__head">
-                <div><h4>Разбор по требованиям</h4><div class="card__sub">Проверила модель. Ревьюер будет смотреть работу сам и может решить иначе.</div></div>
-              </div>
-              <div class="card__body">
-                <div class="acc">
-                  <div class="acc__h">
-                    <span class="ck ck--n">✕</span><span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
-                    <span class="pill pill--mono">2 места</span><span class="acc__chev">▲</span>
-                  </div>
-                  <div class="acc__b">
-                    <div class="finding">
-                      <div class="finding__src"><span class="f">docs/architecture.md</span><span>строки 112–114</span><span class="o">Открыть ↗</span></div>
-                      <div class="code">
-                        <div class="cl is-miss"><span class="n">112</span><span>### 5.1 Единый формат ошибок для I1</span></div>
-                        <div class="cl is-miss"><span class="n">113</span><span>Все ошибки возвращаются как {code, message}.</span></div>
-                        <div class="cl"><span class="n">114</span><span>Коды: 400, 404, 409, 500.</span></div>
-                      </div>
-                      <div class="finding__why">Здесь есть формат и ошибки, но нет входов и выходов. Требование просит все четыре элемента.</div>
-                    </div>
-                    <div class="finding">
-                      <div class="finding__src"><span class="f">docs/architecture.md</span><span>строки 78–79</span><span class="o">Открыть ↗</span></div>
-                      <div class="code">
-                        <div class="cl is-miss"><span class="n">78</span><span>I2: Outfits обращается к Wardrobe за списком вещей.</span></div>
-                        <div class="cl is-miss"><span class="n">79</span><span>I3: Wardrobe обращается к Catalog за размерами.</span></div>
-                      </div>
-                      <div class="finding__why">Внутренние вызовы названы, но контракт для них не описан совсем.</div>
-                    </div>
-                  </div>
+                <div class="tabs" style="padding:var(--s-2) var(--s-5) 0">
+                  <span class="tab is-on">ИИ-ревью<span class="c">2</span></span>
+                  <span class="tab">Ревью</span>
                 </div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Анализ связности компонентов</span><span class="pill">не найдено в работе</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Декомпозиция по двум и более признакам</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="acc__chev">▼</span></div></div>
+                <div class="card__body">
+                  <div class="acc">
+                    <div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Проверка от 17 февраля, 14:20</span><span class="pill">последняя</span><span class="acc__chev">▲</span></div>
+                    <div class="acc__b">
+                      <p class="small" style="margin:0 0 var(--s-3)">К отправке не готово: два места стоит поправить до отправки.</p>
+                      <ul class="small" style="margin:0 0 var(--s-4);padding-left:1.1em;color:var(--ink-2);line-height:1.6">
+                        <li>договорённости между внутренними сервисами описаны слабее внешнего интерфейса: добавьте входы и выходы для внутренних вызовов,</li>
+                        <li>разбора связности компонентов в работе нет, а задание его требует.</li>
+                      </ul>
+                      <div class="callout callout--human"><span class="callout__mark">?</span><p>ИИ-ревью не гарантирует, что работу примут. Верно и обратное: замечания не означают, что работу отклонят. Итоговое решение принимает ревьюер.</p></div>
+                      <div class="caption" style="margin-top:var(--s-3)">Доработайте работу и прикрепите новую ссылку в форме ниже. Осталось проверок: 2 из 3.</div>
+                    </div>
+                  </div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Проверка от 16 февраля, 18:02</span><span class="acc__chev">▼</span></div></div>
+                </div>
               </div>
-            </div>
 
             <div class="card card--hard">
               <div class="card__head">
@@ -946,8 +925,8 @@ a:hover { border-bottom-color: var(--ink); }
 </section>
 <section class="screen" id="С3">
   <div class="screen__head"><span class="screen__id">С3</span><h2>Та же страница в статусе «Нужны правки»</h2></div>
-  <p class="screen__note">Ревьюер вернул работу. Вкладки — история сдач, в каждой видно, что ревьюер зачёл, что нет, и его комментарий. Отметки те же самые, что ревьюер проставил на Р5, никакого отдельного пересказа. Форма внизу вкладки «Попытка 2» — то же поле, что и при первой сдаче.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал. Набор блоков тот же: задание свернулось, рубрика и комментарий на месте, форма шлёт вторую попытку.</p>
+  <p class="screen__note">Ревьюер вернул работу. Разбор и комментарий лежат в табе Ревью блоком попытки, прошлые проверки в табе ИИ-ревью. Новая версия уходит формой ниже.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал. Баллы по критериям и комментарий внутри блока попытки, а не отдельными карточками.</p>
   <div class="shot" style="height:858px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
@@ -973,60 +952,38 @@ a:hover { border-bottom-color: var(--ink); }
               <span class="caption" style="display:block">Порог зачёта</span>
               <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-medium)">4 из 6</div>
             </div>
+            <div>
+              <span class="caption" style="display:block">Статус</span>
+              <div style="margin-top:var(--s-1);font-size:17px;font-weight:var(--w-semi);color:var(--late)">Нужны правки</div>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="main">
         <div style="max-width:var(--page-max);margin:0 auto">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-6);margin-bottom:var(--s-5)">
-            <div>
-              <span class="st st--fix">Нужны правки</span>
-              <div class="caption" style="margin-top:var(--s-2)">Разбор и комментарий ревьюера ниже, правки отправляйте формой</div>
-            </div>
-            <div style="text-align:right;flex:none">
-              <div class="d3">3.0 <span style="font-family:var(--font-text);font-size:16px;font-weight:400;letter-spacing:0;color:var(--ink-3)">из 6 за попытку 1</span></div>
-              <div class="caption" style="margin-top:var(--s-1)">Порог зачёта 4</div>
-            </div>
-          </div>
-
-          <div class="tabs" style="margin-bottom:var(--s-5)">
-            <span class="tab">Попытка 1<span class="c">14 фев</span></span>
-            <span class="tab is-on">Попытка 2<span class="c">черновик</span></span>
-          </div>
-
           <div class="row-side">
             <div class="stack">
               <div class="card">
                 <div class="card__head"><h4>Задание</h4><span class="btn btn--s btn--link">Развернуть</span></div>
               </div>
               <div class="card">
-                <div class="card__head"><div><h4>Что просил поправить ревьюер</h4><div class="card__sub">Оценка за попытку 1, разбор по требованиям задания</div></div></div>
+                <div class="tabs" style="padding:var(--s-2) var(--s-5) 0">
+                  <span class="tab">ИИ-ревью<span class="c">2</span></span>
+                  <span class="tab is-on">Ревью<span class="c">1</span></span>
+                </div>
                 <div class="card__body">
                   <div class="acc">
-                    <div class="acc__h">
-                      <span class="ck ck--n">✕</span><span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
-                      <span class="pill pill--mono">2 места</span><span class="pill pill--mono">0 из 1</span><span class="acc__chev">▲</span>
-                    </div>
+                    <div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Попытка 1, 20 февраля</span><span class="pill pill--mono">3,0 из 6</span><span class="acc__chev">▲</span></div>
                     <div class="acc__b">
-                      <div class="finding">
-                        <div class="finding__src"><span class="f">docs/architecture.md</span><span>строки 78–79</span><span class="o">Открыть ↗</span></div>
-                        <div class="code">
-                          <div class="cl is-miss"><span class="n">78</span><span>I2: Outfits обращается к Wardrobe за списком вещей.</span></div>
-                          <div class="cl is-miss"><span class="n">79</span><span>I3: Wardrobe обращается к Catalog за размерами.</span></div>
-                        </div>
-                        <div class="finding__why">Опиши входы и выходы для этих вызовов. Сейчас описан только внешний интерфейс.</div>
-                      </div>
-                      <div class="finding">
-                        <div class="finding__src"><span class="f">docs/architecture.md</span><span>строка 112</span><span class="o">Открыть ↗</span></div>
-                        <div class="code"><div class="cl is-miss"><span class="n">112</span><span>### 5.1 Единый формат ошибок для I1</span></div></div>
-                        <div class="finding__why">Раздел про контракты есть только для I1, добавь такой же для I2 и I3.</div>
-                      </div>
+                      <div class="kv"><span style="color:var(--ink)">Контракты: формат, входы, выходы, ошибки</span><span class="neg">0 из 1</span></div>
+                      <div class="kv"><span style="color:var(--ink)">Анализ связности компонентов</span><span class="neg">0 из 0,5</span></div>
+                      <div class="kv"><span style="color:var(--ink)">Обоснование выбора границ компонентов</span><span class="neg">0 из 0,5</span></div>
+                      <div class="kv" style="border-bottom:0"><span style="color:var(--ink)">Остальные 6 требований зачтены</span><span style="color:var(--ink)">3 из 4</span></div>
+                      <div class="label" style="margin:var(--s-4) 0 var(--s-2)">Комментарий ревьюера, rev-2214</div>
+                      <div class="small" style="color:var(--ink-2);line-height:1.65">Привет! Структура хорошая, диаграммы читаются. Три вещи мешают зачёту: внутренние вызовы описаны без входов и выходов, нет анализа связности, по границам компонентов не хватает обоснования. Остальное принято. Пришлите правки до 23 февраля.</div>
                     </div>
                   </div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Анализ связности компонентов</span><span class="pill">не найдено в работе</span><span class="pill pill--mono">0 из 0.5</span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Обоснование выбора границ компонентов</span><span class="pill pill--mono">1 место</span><span class="pill pill--mono">0 из 0.5</span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Остальные 6 требований зачтены</span><span class="pill pill--mono">3 из 4</span><span class="acc__chev">▼</span></div></div>
                 </div>
               </div>
 
@@ -1050,18 +1007,6 @@ a:hover { border-bottom-color: var(--ink); }
             </div>
 
             <div class="stack">
-              <div class="card">
-                <div class="card__head"><div><h4>Комментарий ревьюера</h4><div class="card__sub">Ревьюер rev-2214</div></div></div>
-                <div class="card__body" style="color:var(--ink-2);line-height:1.65">
-                  Привет! Структура хорошая, диаграммы читаются. Три вещи мешают зачёту:
-                  <ul style="margin:var(--s-3) 0 0;padding-left:1.1em">
-                    <li>внутренние вызовы описаны без входов и выходов,</li>
-                    <li>нет анализа связности, это отдельный пункт задания,</li>
-                    <li>по границам компонентов не хватает обоснования.</li>
-                  </ul>
-                  <div style="margin-top:var(--s-3)">Остальное принято. Пришлите правки до 23 февраля, штраф за просрочку в этом случае не начисляется.</div>
-                </div>
-              </div>
               <div class="card">
                 <div class="card__head"><h4>Что будут проверять</h4></div>
                 <div class="card__body card__body--tight">
