@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:review-platform:email:1.0.0",
+  "x-contract-status": "frozen",
+  "title": "EmailProviderContract",
+  "oneOf": [{"$ref": "#/$defs/send_request"}, {"$ref": "#/$defs/send_result"}],
+  "$defs": {
+    "send_request": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "message_id", "template", "recipient", "expires_at"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "message_id": {"type": "string", "format": "uuid"}, "template": {"enum": ["reviewer_magic_link"]}, "recipient": {"type": "string", "format": "email"}, "template_data": {"type": "object"}, "expires_at": {"type": "string", "format": "date-time"}}},
+    "send_result": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "message_id", "outcome"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "message_id": {"type": "string", "format": "uuid"}, "outcome": {"enum": ["accepted", "retryable_failed", "action_required"]}, "provider_message_id": {"type": ["string", "null"]}, "error": {"type": ["object", "null"]}}}
+  }
+}

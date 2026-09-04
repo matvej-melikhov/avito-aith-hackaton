@@ -1,0 +1,949 @@
+openapi: 3.1.0
+info:
+  title: Review Platform Backend Core
+  version: 1.0.0
+x-contract-status: frozen
+servers:
+  - url: /api
+security:
+  - sessionCookie: []
+paths:
+  /v1/bootstrap/activate:
+    post:
+      operationId: activateBootstrapMethodologist
+      x-command-name: activate_bootstrap
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "201": {description: Bootstrap consumed and first methodologist activated}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/operator/recover-methodologist:
+    post:
+      operationId: recoverMethodologist
+      x-command-name: recover_methodologist
+      security:
+        - operatorToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "command.schema.json#/$defs/recover_methodologist"
+      responses:
+        "204": {description: Methodologist access recovered and audited}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/auth/stepik/callback:
+    post:
+      operationId: completeStepikAuthentication
+      security: []
+      responses:
+        "204": {description: Server session established}
+        "401": {description: Invalid OAuth response}
+  /v1/auth/stepik/start:
+    get:
+      operationId: startStepikAuthentication
+      security: []
+      responses:
+        "302": {description: Redirect to Stepik authorization}
+  /v1/session:
+    get:
+      operationId: getCurrentSession
+      responses:
+        "200":
+          description: Current user, organization, roles, auth epoch and agent context
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Session"}
+    delete:
+      operationId: revokeCurrentSession
+      responses:
+        "204": {description: Session revoked}
+  /v1/auth/reviewer/magic-link:
+    post:
+      operationId: consumeReviewerMagicLink
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token]
+              properties:
+                token: {type: string, minLength: 32}
+      responses:
+        "204": {description: Invitation consumed and session established}
+        "401": {description: Invalid, expired, used, or mismatched invitation}
+  /v1/organization:
+    get:
+      operationId: getOrganization
+      responses:
+        "200":
+          description: Current organization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+  /v1/courses:
+    get:
+      operationId: listCourses
+      responses:
+        "200":
+          description: Courses visible to the current actor
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CourseList"}
+  /v1/invitations:
+    post:
+      operationId: createInvitation
+      x-command-name: create_invitation
+      x-required-role: methodologist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/WireCommand"
+                - type: object
+                  properties:
+                    payload:
+                      type: object
+                      required: [email, role]
+                      properties:
+                        email: {type: string, format: email}
+                        role: {enum: [methodologist, reviewer]}
+      responses:
+        "201": {description: Invitation created}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/invitations/{invitationId}/revoke:
+    post:
+      operationId: revokeInvitation
+      x-command-name: revoke_invitation
+      x-required-role: methodologist
+      parameters:
+        - name: invitationId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "204": {description: Invitation revoked}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/courses/imports:
+    post:
+      operationId: startCourseImport
+      x-command-name: start_course_import
+      x-required-role: methodologist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/WireCommand"
+                - type: object
+                  properties:
+                    payload:
+                      type: object
+                      required: [provider, external_url]
+                      properties:
+                        provider: {type: string}
+                        external_url: {type: string, format: uri}
+      responses:
+        "202":
+          description: Import accepted
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Operation"}
+  /v1/course-runs/{courseRunId}/homeworks:
+    get:
+      operationId: listPublishedHomeworks
+      x-required-role: methodologist-or-reviewer-or-student
+      parameters:
+        - $ref: "#/components/parameters/CourseRunId"
+      responses:
+        "200":
+          description: Published homework summaries visible to the current actor
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/HomeworkList"}
+    post:
+      operationId: createHomework
+      x-command-name: create_homework
+      x-required-role: methodologist
+      parameters:
+        - $ref: "#/components/parameters/CourseRunId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "201": {description: Homework created}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/course-runs/{courseRunId}/memberships:
+    get:
+      operationId: listCourseRunMemberships
+      x-required-role: methodologist
+      parameters:
+        - $ref: "#/components/parameters/CourseRunId"
+      responses:
+        "200":
+          description: Current and historically relevant course-run memberships
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CourseMembershipList"}
+  /v1/course-runs/{courseRunId}/archive:
+    post:
+      operationId: archiveCourseRun
+      x-command-name: archive_course_run
+      x-required-role: methodologist
+      parameters:
+        - $ref: "#/components/parameters/CourseRunId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/archive_course_run"}
+      responses:
+        "204": {description: Course run archived with history preserved}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/course-runs/{courseRunId}/restore:
+    post:
+      operationId: restoreCourseRun
+      x-command-name: restore_course_run
+      x-required-role: methodologist
+      parameters:
+        - $ref: "#/components/parameters/CourseRunId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/restore_course_run"}
+      responses:
+        "204": {description: Course run restored}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/courses/{courseId}/archive:
+    post:
+      operationId: archiveCourse
+      x-command-name: archive_course
+      x-required-role: methodologist
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "204": {description: Course archived}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/courses/{courseId}/restore:
+    post:
+      operationId: restoreCourse
+      x-command-name: restore_course
+      x-required-role: methodologist
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "204": {description: Course restored}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/memberships/{membershipId}/roles:
+    put:
+      operationId: changeMembershipRoles
+      x-command-name: change_membership_roles
+      x-required-role: methodologist
+      parameters:
+        - name: membershipId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "200": {description: Roles changed and auth epoch advanced}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/homeworks/{homeworkId}/versions:
+    post:
+      operationId: createHomeworkVersion
+      x-command-name: create_homework_version
+      x-required-role: methodologist
+      parameters:
+        - $ref: "#/components/parameters/HomeworkId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "201": {description: Version created}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/homeworks/{homeworkId}:
+    get:
+      operationId: getHomeworkHistory
+      x-required-role: methodologist-or-reviewer-or-enrolled-student
+      parameters:
+        - $ref: "#/components/parameters/HomeworkId"
+      responses:
+        "200":
+          description: Current published homework and immutable version history
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/HomeworkHistory"}
+  /v1/homework-versions/{homeworkVersionId}/publish:
+    post:
+      operationId: publishHomeworkVersion
+      x-command-name: publish_homework_version
+      x-required-role: methodologist
+      parameters:
+        - name: homeworkVersionId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "201": {description: Version published to Course Run}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/reviewer/course-selections:
+    post:
+      operationId: setReviewerCourseSelection
+      x-command-name: set_reviewer_course_selection
+      x-required-role: reviewer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "204": {description: Selection updated}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/reviewer/availability:
+    put:
+      operationId: setReviewerAvailability
+      x-command-name: set_reviewer_availability
+      x-required-role: reviewer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "200": {description: Availability plan updated}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/homeworks/{homeworkId}/submissions/preflight:
+    post:
+      operationId: preflightSubmission
+      x-required-role: student
+      parameters:
+        - $ref: "#/components/parameters/HomeworkId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [artifact_url]
+              properties:
+                artifact_url: {type: string, format: uri}
+      responses:
+        "200":
+          description: Artifact capability result
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ArtifactCapability"}
+  /v1/homeworks/{homeworkId}/submissions:
+    post:
+      operationId: submitWork
+      x-command-name: submit_work
+      x-required-role: student
+      parameters:
+        - $ref: "#/components/parameters/HomeworkId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "201": {description: Submission version created}
+        "409": {$ref: "#/components/responses/Conflict"}
+        "422": {description: Artifact inaccessible or unsupported}
+  /v1/submissions/{submissionId}:
+    get:
+      operationId: getSubmissionHistory
+      x-required-role: methodologist-or-reviewer-or-owning-student
+      parameters:
+        - name: submissionId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Submission versions, review iterations, publications, and effective requirements
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/SubmissionHistory"}
+  /v1/review-cases/{reviewCaseId}/iterations:
+    post:
+      operationId: openReviewIteration
+      x-command-name: open_review_iteration
+      x-required-role: reviewer-or-methodologist
+      parameters:
+        - name: reviewCaseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "201": {description: Review iteration opened}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/review-queue/next:
+    get:
+      operationId: recommendNextReview
+      x-required-role: reviewer
+      parameters:
+        - name: course_run_id
+          in: query
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Recommendation or empty queue
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ReviewRecommendation"
+                  - type: "null"
+  /v1/review-iterations/{reviewIterationId}/revisions:
+    post:
+      operationId: saveReviewRevision
+      x-command-name: save_review_revision
+      x-required-role: reviewer-or-methodologist
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "201": {description: Revision saved}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/review-iterations/{reviewIterationId}/requirements-migrations:
+    post:
+      operationId: migrateReviewRequirements
+      x-command-name: migrate_review_requirements
+      x-required-role: reviewer-or-methodologist
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/migrate_review_requirements"}
+      responses:
+        "201": {description: Successor review iteration created for new requirements}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/review-iterations/{reviewIterationId}/corrections:
+    post:
+      operationId: createReviewCorrection
+      x-command-name: create_review_correction
+      x-required-role: reviewer-or-methodologist
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/create_review_correction"}
+      responses:
+        "201": {description: Correction review iteration created without mutating the publication}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/review-iterations/{reviewIterationId}/responsibility-events:
+    post:
+      operationId: recordReviewResponsibility
+      x-command-name: record_review_responsibility
+      x-required-role: reviewer-or-methodologist
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/record_review_responsibility"}
+      responses:
+        "201": {description: Non-exclusive responsibility event recorded}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/review-iterations/{reviewIterationId}:
+    get:
+      operationId: getReviewIteration
+      x-required-role: reviewer-or-methodologist
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      responses:
+        "200":
+          description: Review iteration with immutable inputs, human decisions, notes, AI suggestions, responsibility, publication request, and deliveries
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ReviewDetail"}
+  /v1/review-iterations/{reviewIterationId}/publish:
+    post:
+      operationId: publishReview
+      x-command-name: publish_review
+      x-required-role: reviewer-or-methodologist
+      x-interactive-session-only: true
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "202":
+          description: Local publication committed and deliveries queued
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Publication"}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/review-iterations/{reviewIterationId}/publication-requests:
+    post:
+      operationId: requestReviewPublication
+      x-command-name: request_review_publication
+      x-required-role: reviewer-or-methodologist-or-authorized-agent
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/request_review_publication"}
+      responses:
+        "201":
+          description: Publication request created without publishing or creating deliveries
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/PublicationRequest"}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/review-iterations/{reviewIterationId}/ai-review:
+    post:
+      operationId: startAIReview
+      x-command-name: start_ai_review
+      x-required-role: reviewer-or-methodologist
+      parameters:
+        - $ref: "#/components/parameters/ReviewIterationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "202":
+          description: Existing or new AI review run
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Operation"}
+  /v1/agent-authorizations:
+    post:
+      operationId: grantAgentAuthorization
+      x-command-name: grant_agent_authorization
+      x-required-role: reviewer
+      x-interactive-session-only: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/grant_agent_authorization"}
+      responses:
+        "201":
+          description: Scoped expiring agent authorization granted
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/AgentAuthorization"}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/agent-authorizations/{agentAuthorizationId}/revoke:
+    post:
+      operationId: revokeAgentAuthorization
+      x-command-name: revoke_agent_authorization
+      x-required-role: owning-reviewer
+      x-interactive-session-only: true
+      parameters:
+        - name: agentAuthorizationId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "command.schema.json#/$defs/revoke_agent_authorization"}
+      responses:
+        "204": {description: Authorization and pending agent commands revoked}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/internal/ai-review/events:
+    post:
+      operationId: acceptAIReviewEvent
+      security:
+        - componentToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "ai-review.schema.json#/$defs/event"
+      responses:
+        "202": {description: Event accepted or deduplicated}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/operations/{operationId}:
+    get:
+      operationId: getOperation
+      parameters:
+        - name: operationId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Operation state
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Operation"}
+  /v1/deliveries/{deliveryId}/retry:
+    post:
+      operationId: retryDelivery
+      x-command-name: retry_delivery
+      x-required-role: methodologist
+      parameters:
+        - name: deliveryId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/WireCommand"}
+      responses:
+        "202": {description: Retry or reconciliation accepted}
+        "409": {$ref: "#/components/responses/Conflict"}
+  /v1/deliveries:
+    get:
+      operationId: listDeliveries
+      x-required-role: methodologist
+      parameters:
+        - name: state
+          in: query
+          schema: {type: string}
+      responses:
+        "200":
+          description: Delivery exceptions and current states
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/DeliveryList"}
+  /v1/internal/artifacts/{artifactVersionId}/content:
+    get:
+      operationId: downloadArtifactVersion
+      security:
+        - componentToken: []
+      parameters:
+        - name: artifactVersionId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Immutable artifact bytes with digest header
+          headers:
+            Digest:
+              schema: {type: string}
+        "403": {description: Component is not authorized for this organization or run}
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: review_session
+    componentToken:
+      type: http
+      scheme: bearer
+    operatorToken:
+      type: http
+      scheme: bearer
+  parameters:
+    CourseRunId:
+      name: courseRunId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    HomeworkId:
+      name: homeworkId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    ReviewIterationId:
+      name: reviewIterationId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+  responses:
+    Conflict:
+      description: Expected revision or current-state conflict
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+  schemas:
+    WireCommand:
+      $ref: "command.schema.json#/$defs/wire"
+    Organization:
+      type: object
+      required: [id, name, status, revision]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        status: {enum: [active, archived]}
+        revision: {type: integer, minimum: 0}
+    Session:
+      type: object
+      additionalProperties: false
+      required: [user_id, organization_id, roles, membership_revision, auth_epoch, actor_type]
+      properties:
+        user_id: {type: string, format: uuid}
+        organization_id: {type: string, format: uuid}
+        roles: {type: array, uniqueItems: true, items: {enum: [methodologist, reviewer, student]}}
+        membership_revision: {type: integer, minimum: 0}
+        auth_epoch: {type: integer, minimum: 0}
+        actor_type: {enum: [user, agent]}
+        agent_id: {type: [string, "null"], format: uuid}
+    Course:
+      type: object
+      additionalProperties: false
+      required: [id, title, status, revision]
+      properties:
+        id: {type: string, format: uuid}
+        title: {type: string}
+        status: {enum: [active, archived]}
+        revision: {type: integer, minimum: 0}
+    CourseList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/Course"}}
+    CourseMembershipList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [user_id, kind, status, source]
+            properties:
+              user_id: {type: string, format: uuid}
+              kind: {enum: [student, reviewer]}
+              status: {enum: [active, removed, archived]}
+              source: {enum: [imported, invitation, self_selected]}
+    HomeworkSummary:
+      type: object
+      additionalProperties: false
+      required: [homework_id, current_version_id, title, max_score, artifact_kinds, submission_deadline, review_deadline]
+      properties:
+        homework_id: {type: string, format: uuid}
+        current_version_id: {type: string, format: uuid}
+        title: {type: string}
+        max_score: {type: number, minimum: 0}
+        artifact_kinds: {type: array, items: {enum: [github, google_docs]}}
+        submission_deadline: {type: string, format: date-time}
+        review_deadline: {type: string, format: date-time}
+    HomeworkList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items: {type: array, items: {$ref: "#/components/schemas/HomeworkSummary"}}
+    HomeworkHistory:
+      type: object
+      additionalProperties: false
+      required: [homework_id, current_version_id, versions]
+      properties:
+        homework_id: {type: string, format: uuid}
+        current_version_id: {type: string, format: uuid}
+        versions:
+          type: array
+          items:
+            type: object
+            required: [id, version_number, student_text, max_score, criteria, published_at]
+            properties:
+              id: {type: string, format: uuid}
+              version_number: {type: integer, minimum: 1}
+              student_text: {type: string}
+              max_score: {type: number, minimum: 0}
+              criteria: {type: array, items: {type: object}}
+              published_at: {type: [string, "null"], format: date-time}
+    SubmissionHistory:
+      type: object
+      additionalProperties: false
+      required: [submission_id, versions, review_iterations]
+      properties:
+        submission_id: {type: string, format: uuid}
+        versions: {type: array, items: {type: object}}
+        review_iterations: {type: array, items: {type: object}}
+    ReviewDetail:
+      type: object
+      additionalProperties: false
+      required: [review_iteration_id, revision, status, criterion_decisions, review_notes, ai_suggestions, responsibility_events, deliveries]
+      properties:
+        review_iteration_id: {type: string, format: uuid}
+        revision: {type: integer, minimum: 0}
+        status: {enum: [queued, in_review, ready_to_publish, published, canceled]}
+        criterion_decisions: {type: array, items: {type: object}}
+        review_notes: {type: array, items: {type: object}}
+        ai_suggestions: {type: array, items: {type: object}}
+        responsibility_events: {type: array, items: {type: object}}
+        publication_request: {oneOf: [{$ref: "#/components/schemas/PublicationRequest"}, {type: "null"}]}
+        deliveries: {type: array, items: {type: object}}
+    PublicationRequest:
+      type: object
+      additionalProperties: false
+      required: [id, review_revision_id, status, expires_at, revision]
+      properties:
+        id: {type: string, format: uuid}
+        review_revision_id: {type: string, format: uuid}
+        status: {enum: [pending, confirmed, rejected, expired, superseded]}
+        expires_at: {type: string, format: date-time}
+        revision: {type: integer, minimum: 0}
+    AgentAuthorization:
+      type: object
+      additionalProperties: false
+      required: [id, agent_id, scopes, expires_at, revision]
+      properties:
+        id: {type: string, format: uuid}
+        agent_id: {type: string, format: uuid}
+        scopes: {type: array, uniqueItems: true, items: {type: string}}
+        expires_at: {type: string, format: date-time}
+        revision: {type: integer, minimum: 0}
+    DeliveryList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, destination, state, attempts, updated_at]
+            properties:
+              id: {type: string, format: uuid}
+              destination: {type: string}
+              state: {type: string}
+              attempts: {type: integer, minimum: 0}
+              updated_at: {type: string, format: date-time}
+              error: {$ref: "#/components/schemas/Error"}
+    ArtifactCapability:
+      type: object
+      required: [provider, read_capability, feedback_capability]
+      properties:
+        provider: {enum: [github, google_docs]}
+        read_capability: {enum: [available, requires_action, unavailable]}
+        feedback_capability: {enum: [available, not_supported, requires_action]}
+        artifact_reference_id: {type: [string, "null"], format: uuid}
+        error: {$ref: "#/components/schemas/Error"}
+    ReviewRecommendation:
+      type: object
+      required: [review_case_id, submission_version_id, reason]
+      properties:
+        review_case_id: {type: string, format: uuid}
+        submission_version_id: {type: string, format: uuid}
+        reason: {type: array, items: {type: string}}
+    Operation:
+      type: object
+      required: [id, state, attempts, updated_at]
+      properties:
+        id: {type: string, format: uuid}
+        state: {enum: [pending, processing, partial, succeeded, retryable_failed, unknown_outcome, reconciling, action_required, stale]}
+        attempts: {type: integer, minimum: 0}
+        updated_at: {type: string, format: date-time}
+        error: {$ref: "#/components/schemas/Error"}
+    Publication:
+      type: object
+      required: [id, review_revision_id, published_by, publication_request_id, status, deliveries]
+      properties:
+        id: {type: string, format: uuid}
+        review_revision_id: {type: string, format: uuid}
+        published_by: {type: string, format: uuid}
+        publication_request_id: {type: [string, "null"], format: uuid}
+        status: {enum: [published]}
+        deliveries:
+          type: array
+          items:
+            type: object
+            required: [id, destination, state]
+            properties:
+              id: {type: string, format: uuid}
+              destination: {type: string}
+              state: {type: string}
+    Error:
+      type: [object, "null"]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        action: {type: [string, "null"]}
+  examples:
+    AvailableArtifact:
+      value:
+        provider: github
+        read_capability: available
+        feedback_capability: available
+        artifact_reference_id: 018f62b4-5a3e-7c91-a8bd-42c61733f21a
+        error: null
+    PendingPublicationRequest:
+      value:
+        id: 018f62b4-5a3e-7c91-a8bd-42c61733f21b
+        review_revision_id: 018f62b4-5a3e-7c91-a8bd-42c61733f21c
+        status: pending
+        expires_at: 2026-09-04T12:30:00Z
+        revision: 0
+    RecoverableOperation:
+      value:
+        id: 018f62b4-5a3e-7c91-a8bd-42c61733f21d
+        state: action_required
+        attempts: 3
+        updated_at: 2026-09-04T12:00:00Z
+        error:
+          code: provider_auth_required
+          message: Provider access must be restored
+          action: reconnect_provider

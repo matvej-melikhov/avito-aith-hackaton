@@ -1,0 +1,147 @@
+# Implementation Plan: Backend Core Review Platform
+
+**Branch**: backend | **Date**: 2026-09-04 | **Spec**: [spec.md](spec.md)
+
+**Input**: specs/001-backend-core/spec.md
+
+## Summary
+
+Создать self-hosted backend одной организации на Python/FastAPI. MySQL хранит доменное состояние, версии, audit, operations и transactional outbox. S3 хранит снимки артефактов. Taskiq/Redis исполняет импорт, AI-review и доставки. REST и MCP 2026-07-28 вызывают один application layer. Агент может запросить публикацию, но окончательное действие выполняет человек. Stepik, GitHub, Google Docs, email и AI logic подключаются через замороженные версионируемые contracts и shared fixtures.
+
+## Technical Context
+
+**Language/Version**: Python 3.13
+
+**Primary Dependencies**: FastAPI, Pydantic 2, SQLAlchemy 2.0, asyncmy, Alembic, Taskiq, taskiq-redis, Redis client, boto3, Authlib, MCP Python SDK
+
+**Storage**: MySQL 8.4 LTS для состояния, S3-compatible storage для артефактов, Redis как broker
+
+**Testing**: pytest, AnyIO, HTTPX, Testcontainers, JSON Schema/OpenAPI validation, mock/replay providers, отдельные live tests
+
+**Target Platform**: Linux containers, self-hosted single-tenant
+
+**Project Type**: web service с API, worker и MCP endpoint
+
+**Performance Goals**: обычная mutation отвечает за 1 секунду без ожидания provider; рекомендация работы за 2 секунды; изменение фонового состояния видно за 5 секунд
+
+**Constraints**: human-in-the-loop; AI failure не блокирует; нет silent fallback; tenant boundary во всех sync/async путях; snapshots в S3; Stepik live gate открыт
+
+**Scale/Scope**: одна организация на deployment; несколько Course Run; до 1 000 студентов, 100 ревьюеров и 100 000 submission/review revisions без изменения архитектуры
+
+### Resource limits and retention
+
+| Setting | Default | Hard ceiling |
+|---|---:|---:|
+| GitHub files | 10 000 | 50 000 |
+| Single blob | 10 MiB | 50 MiB |
+| Sum of blobs | 100 MiB | 500 MiB |
+| Downloaded archive | 100 MiB | 500 MiB |
+| Unpacked snapshot | 250 MiB | 1 GiB |
+| Google DOCX export | 10 MB provider limit | 10 MB |
+| AI artifact download URL | 15 minutes | 60 minutes |
+
+Artifacts remain while Course Run is active and 90 days after archive. Review revisions and audit events remain 365 days after archive. Operational telemetry remains 90 days; application logs remain 30 days. External credentials remain only while their binding is active. Values are configurable below hard ceilings.
+
+S3 lifecycle: staged upload → byte limit → digest verification → DB transaction → promotion. Staged objects older than 24 hours and unreferenced promoted objects older than 24 hours are garbage-collected.
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
+| Principle | Plan evidence | Status |
+|---|---|---|
+| Human Controls Consequences | AI suggestions отделены от ReviewRevision; publish требует human actor | PASS |
+| Immutable Inputs and Versioned Contracts | Artifact digest и версии входят в fingerprints; correction/migration создают successor iteration | PASS |
+| Private Self-Hosted Boundary | organization ID обязателен в sync/async paths и storage | PASS |
+| Observable and Recoverable Operations | attempts, errors, unknown/reconciling и outbox | PASS |
+| Executable Specifications | contract/state/limit/revocation tests предшествуют behavior; live tests отделены и имеют явный status | PASS |
+| Modular Ownership | backend, AI и каждый provider boundary используют versioned schemas и shared fixtures | PASS |
+
+Нарушений конституции нет.
+
+## Project Structure
+
+### Documentation (this feature)
+
+    specs/001-backend-core/
+    ├── plan.md
+    ├── research.md
+    ├── data-model.md
+    ├── context-traceability.md
+    ├── requirements-traceability.md
+    ├── quickstart.md
+    ├── contracts/
+    │   ├── manifest.json
+    │   ├── openapi.yaml
+    │   ├── command.schema.json
+    │   ├── artifact.schema.json
+    │   ├── ai-review.schema.json
+    │   ├── course-import.schema.json
+    │   ├── artifact-provider.schema.json
+    │   ├── delivery.schema.json
+    │   ├── email.schema.json
+    │   └── mcp-tools.json
+    ├── checklists/
+    │   └── requirements.md
+    └── tasks.md
+
+### Source Code
+
+    backend/
+    ├── pyproject.toml
+    ├── alembic.ini
+    ├── migrations/
+    ├── src/review_platform/
+    │   ├── api/
+    │   ├── application/
+    │   ├── domain/
+    │   ├── infrastructure/
+    │   │   ├── db/
+    │   │   ├── object_storage/
+    │   │   ├── tasks/
+    │   │   ├── auth/
+    │   │   └── providers/
+    │   ├── mcp/
+    │   ├── contracts/
+    │   ├── settings.py
+    │   └── main.py
+    └── tests/
+        ├── contract/
+        ├── state/
+        ├── integration/
+        ├── isolation/
+        ├── live/
+        └── fixtures/
+
+    deploy/
+    ├── compose.yaml
+    ├── env.example
+    └── mailpit/
+
+**Structure Decision**: модульный монолит. API, worker, outbox relay, email worker и MCP — отдельные процессы с общими domain/application модулями. Providers зависят от ports ядра; ядро providers не импортирует.
+
+**Contract Decision**: `specs/001-backend-core/contracts/` — design-time source of truth. `manifest.json` фиксирует version/status/hash inventory. Runtime package data синхронизируется deterministic command и проверяется against manifest; Pydantic/FastAPI conformance не меняет canonical files.
+
+**Implementation Order**: contract and SC traceability freeze → foundational persistence (`CommandReceipt`, `AuditEvent`, `OutboxMessage`, `Operation`) → US1-US3 → shared review spine → US4/US5 → delivery recovery → MCP agent transport. Static contract checks block Foundation; concrete MCP parity does not block stories before handlers exist.
+
+## Phase 0: Research Result
+
+Все технические неизвестные разрешены в [research.md](research.md). Точные версии зависимостей фиксируются lockfile при bootstrap. Выбрана стабильная SQLAlchemy 2.0 вместо prerelease 2.1.
+
+## Phase 1: Design
+
+- [data-model.md](data-model.md) определяет tenant keys, aggregates, state transitions и invariants.
+- [context-traceability.md](context-traceability.md) связывает прежние сущности и экраны с текущей моделью и явно отмечает later scope.
+- [contracts/openapi.yaml](contracts/openapi.yaml) определяет web/component interface.
+- JSON Schemas определяют command, artifact, AI и provider boundaries.
+- [contracts/manifest.json](contracts/manifest.json) замораживает contract set 1.0.0; после freeze изменения требуют новой версии и compatibility/migration notes.
+- [requirements-traceability.md](requirements-traceability.md) до implementation связывает FR-001..FR-085 и SC-001..SC-023 с fixture/sandbox, owner и воспроизводимой командой.
+- [quickstart.md](quickstart.md) связывает команды проверки с acceptance gates.
+
+## Post-Design Constitution Check
+
+Все шесть принципов соблюдены. Stepik automatic delivery остаётся live gate. Google DOCX fixture подтверждён. GitHub fixture доступен текущему account, но GitHub App installation остаётся отдельным gate.
+
+## Complexity Tracking
+
+Нарушений, требующих обоснования, нет.

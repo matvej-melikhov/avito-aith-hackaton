@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:review-platform:artifact-provider:1.0.0",
+  "x-contract-status": "frozen",
+  "title": "ArtifactProviderContract",
+  "oneOf": [{"$ref": "#/$defs/preflight_request"}, {"$ref": "#/$defs/preflight_result"}, {"$ref": "#/$defs/capture_result"}],
+  "$defs": {
+    "preflight_request": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "provider", "url"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "provider": {"enum": ["github", "google_docs"]}, "url": {"type": "string", "format": "uri"}}},
+    "preflight_result": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "provider", "read_capability", "feedback_capability"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "provider": {"enum": ["github", "google_docs"]}, "artifact_reference_id": {"type": ["string", "null"], "format": "uuid"}, "read_capability": {"enum": ["available", "requires_action", "unavailable"]}, "feedback_capability": {"enum": ["available", "not_supported", "requires_action"]}, "error": {"type": ["object", "null"]}}},
+    "capture_result": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "artifact_reference_id", "provider_version", "content_digest", "media_type", "byte_size"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "artifact_reference_id": {"type": "string", "format": "uuid"}, "provider_version": {"type": "string", "minLength": 1}, "content_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "media_type": {"type": "string"}, "byte_size": {"type": "integer", "minimum": 1}}}
+  }
+}

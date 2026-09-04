@@ -1,0 +1,18 @@
+{
+  "contractSetVersion": "1.0.0",
+  "status": "frozen",
+  "frozenAt": "2026-09-04T15:10:31+03:00",
+  "sourceAuthority": "specs/001-backend-core/contracts",
+  "changePolicy": "After freeze, any semantic change requires a new contract set version, compatibility notes, and regenerated hashes.",
+  "files": [
+    {"path": "ai-review.schema.json", "sha256": "f03ec4cec0b5dbfc7e4e250d891ec754a8473ae5f6a97dc50753a7118eb69d4d"},
+    {"path": "artifact-provider.schema.json", "sha256": "d7e978cd2a0587dd760418b53a6459e2d73f4b0b4941ee8cacb190916a53a458"},
+    {"path": "artifact.schema.json", "sha256": "69af2810eda0e95ed0061b1eed5c953a4baa2347f610e0dab94d5d089f650e07"},
+    {"path": "command.schema.json", "sha256": "63fff972f1f1e3eaae447ff15f01bf31e34c9bd337b43b4602f5fc316f86bc0d"},
+    {"path": "course-import.schema.json", "sha256": "25cb10865277599997fa00cf173bb7086f6ec2c75382259d97afe4a05ebfa111"},
+    {"path": "delivery.schema.json", "sha256": "8f6cb75be95e443e3dfc0d60eda3c25e8eca3b4125d9493878ca43cff17f0de9"},
+    {"path": "email.schema.json", "sha256": "3ffc34ba86f1cfe8e2b98eba70c8b2f944f7710904ab8bf9359c95c6160b492a"},
+    {"path": "mcp-tools.json", "sha256": "20392e80fc65f829d247bf389fb9ddfcc07d61ecdffaa1575d422805b047ef9d"},
+    {"path": "openapi.yaml", "sha256": "e3bb33392a50ac9bd9436b784b54dcd676785c35c59423851f21405da44c8d6c"}
+  ]
+}

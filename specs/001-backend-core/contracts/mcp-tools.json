@@ -1,0 +1,133 @@
+{
+  "contractVersion": "1.0.0",
+  "contractStatus": "frozen",
+  "protocolVersion": "2026-07-28",
+  "transport": {
+    "kind": "stateless-http",
+    "path": "/mcp",
+    "requiredHeaders": ["MCP-Protocol-Version", "Mcp-Method", "Mcp-Name"],
+    "authorization": "bearer"
+  },
+  "rules": {
+    "actorFromAuthorization": true,
+    "organizationFromAuthorization": true,
+    "wireCommandSchema": "command.schema.json#/$defs/wire",
+    "sameApplicationCommandsAsRest": true,
+    "directPublicationAllowed": false,
+    "unknownScopesRejected": true
+  },
+  "tools": [
+    {
+      "name": "list_courses",
+      "mode": "read",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["courses:read"],
+      "restOperationId": "listCourses",
+      "inputSchema": {"type": "object", "additionalProperties": false, "properties": {}},
+      "outputSchema": {"$ref": "#/$defs/courseList"}
+    },
+    {
+      "name": "select_reviewer_courses",
+      "mode": "write",
+      "requiredRoles": ["reviewer"],
+      "requiredScopes": ["review_preferences:write"],
+      "restOperationId": "setReviewerCourseSelection",
+      "inputSchema": {"$ref": "command.schema.json#/$defs/set_reviewer_course_selection"},
+      "outputSchema": {"$ref": "#/$defs/ack"}
+    },
+    {
+      "name": "set_availability",
+      "mode": "write",
+      "requiredRoles": ["reviewer"],
+      "requiredScopes": ["review_preferences:write"],
+      "restOperationId": "setReviewerAvailability",
+      "inputSchema": {"$ref": "command.schema.json#/$defs/set_reviewer_availability"},
+      "outputSchema": {"$ref": "#/$defs/ack"}
+    },
+    {
+      "name": "recommend_next_review",
+      "mode": "read",
+      "requiredRoles": ["reviewer"],
+      "requiredScopes": ["review_queue:read"],
+      "restOperationId": "recommendNextReview",
+      "inputSchema": {"type": "object", "additionalProperties": false, "required": ["course_run_id"], "properties": {"course_run_id": {"type": "string", "format": "uuid"}}},
+      "outputSchema": {"$ref": "#/$defs/recommendation"}
+    },
+    {
+      "name": "get_review_iteration",
+      "mode": "read",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["reviews:read"],
+      "restOperationId": "getReviewIteration",
+      "inputSchema": {"type": "object", "additionalProperties": false, "required": ["review_iteration_id"], "properties": {"review_iteration_id": {"type": "string", "format": "uuid"}}},
+      "outputSchema": {"$ref": "#/$defs/review"}
+    },
+    {
+      "name": "record_review_responsibility",
+      "mode": "write",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["reviews:write"],
+      "restOperationId": "recordReviewResponsibility",
+      "inputSchema": {"$ref": "command.schema.json#/$defs/record_review_responsibility"},
+      "outputSchema": {"$ref": "#/$defs/ack"}
+    },
+    {
+      "name": "save_review_revision",
+      "mode": "write",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["reviews:write"],
+      "restOperationId": "saveReviewRevision",
+      "inputSchema": {"$ref": "command.schema.json#/$defs/save_review_revision"},
+      "outputSchema": {"$ref": "#/$defs/ack"}
+    },
+    {
+      "name": "start_ai_review",
+      "mode": "write",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["ai_reviews:start"],
+      "restOperationId": "startAIReview",
+      "inputSchema": {"$ref": "command.schema.json#/$defs/start_ai_review"},
+      "outputSchema": {"$ref": "#/$defs/operation"}
+    },
+    {
+      "name": "get_operation",
+      "mode": "read",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["operations:read"],
+      "restOperationId": "getOperation",
+      "inputSchema": {"type": "object", "additionalProperties": false, "required": ["operation_id"], "properties": {"operation_id": {"type": "string", "format": "uuid"}}},
+      "outputSchema": {"$ref": "#/$defs/operation"}
+    },
+    {
+      "name": "request_review_publication",
+      "mode": "write",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["publication_requests:write"],
+      "restOperationId": "requestReviewPublication",
+      "inputSchema": {"$ref": "command.schema.json#/$defs/request_review_publication"},
+      "outputSchema": {"$ref": "#/$defs/publicationRequest"}
+    },
+    {
+      "name": "get_homework_history",
+      "mode": "read",
+      "requiredRoles": ["reviewer", "methodologist"],
+      "requiredScopes": ["courses:read"],
+      "restOperationId": "getHomeworkHistory",
+      "inputSchema": {"type": "object", "additionalProperties": false, "required": ["homework_id"], "properties": {"homework_id": {"type": "string", "format": "uuid"}}},
+      "outputSchema": {"$ref": "#/$defs/homeworkHistory"}
+    }
+  ],
+  "audit": {
+    "required": ["request_id", "trace_id", "tool_name", "actor_user_id", "agent_id", "agent_authorization_id", "outcome", "duration_ms", "idempotency_disposition"]
+  },
+  "$defs": {
+    "ack": {"type": "object", "additionalProperties": false, "required": ["ok", "entity_id", "revision"], "properties": {"ok": {"const": true}, "entity_id": {"type": "string", "format": "uuid"}, "revision": {"type": "integer", "minimum": 0}}},
+    "operation": {"type": "object", "additionalProperties": false, "required": ["ok", "operation_id", "state", "attempts", "updated_at"], "properties": {"ok": {"const": true}, "operation_id": {"type": "string", "format": "uuid"}, "state": {"type": "string"}, "attempts": {"type": "integer", "minimum": 0}, "updated_at": {"type": "string", "format": "date-time"}, "error": {"type": ["object", "null"]}}},
+    "courseList": {"type": "object", "additionalProperties": false, "required": ["ok", "courses"], "properties": {"ok": {"const": true}, "courses": {"type": "array", "items": {"type": "object", "required": ["id", "title", "status"], "properties": {"id": {"type": "string", "format": "uuid"}, "title": {"type": "string"}, "status": {"enum": ["active", "archived"]}}}}}},
+    "recommendation": {"type": "object", "additionalProperties": false, "required": ["ok", "review_case_id", "submission_version_id", "reason"], "properties": {"ok": {"const": true}, "review_case_id": {"type": ["string", "null"], "format": "uuid"}, "submission_version_id": {"type": ["string", "null"], "format": "uuid"}, "reason": {"type": "array", "items": {"type": "string"}}}},
+    "review": {"type": "object", "additionalProperties": false, "required": ["ok", "review_iteration_id", "revision", "status", "criterion_decisions", "review_notes", "ai_suggestions", "responsibility_events", "deliveries"], "properties": {"ok": {"const": true}, "review_iteration_id": {"type": "string", "format": "uuid"}, "revision": {"type": "integer", "minimum": 0}, "status": {"type": "string"}, "criterion_decisions": {"type": "array", "items": {"type": "object"}}, "review_notes": {"type": "array", "items": {"type": "object"}}, "ai_suggestions": {"type": "array", "items": {"type": "object"}}, "responsibility_events": {"type": "array", "items": {"type": "object"}}, "publication_request": {"type": ["object", "null"]}, "deliveries": {"type": "array", "items": {"type": "object"}}}},
+    "publicationRequest": {"type": "object", "additionalProperties": false, "required": ["ok", "publication_request_id", "review_revision_id", "status", "expires_at", "revision"], "properties": {"ok": {"const": true}, "publication_request_id": {"type": "string", "format": "uuid"}, "review_revision_id": {"type": "string", "format": "uuid"}, "status": {"enum": ["pending", "confirmed", "rejected", "expired", "superseded"]}, "expires_at": {"type": "string", "format": "date-time"}, "revision": {"type": "integer", "minimum": 0}}},
+    "homeworkHistory": {"type": "object", "additionalProperties": false, "required": ["ok", "homework_id", "current_version_id", "versions"], "properties": {"ok": {"const": true}, "homework_id": {"type": "string", "format": "uuid"}, "current_version_id": {"type": "string", "format": "uuid"}, "versions": {"type": "array", "items": {"type": "object"}}}},
+    "deliveries": {"type": "object", "additionalProperties": false, "required": ["ok", "items"], "properties": {"ok": {"const": true}, "items": {"type": "array", "items": {"type": "object", "required": ["id", "destination", "state", "attempts"], "properties": {"id": {"type": "string", "format": "uuid"}, "destination": {"type": "string"}, "state": {"type": "string"}, "attempts": {"type": "integer", "minimum": 0}, "error": {"type": ["object", "null"]}}}}}}
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:review-platform:course-import:1.0.0",
+  "x-contract-status": "frozen",
+  "title": "CourseImportProviderContract",
+  "oneOf": [{"$ref": "#/$defs/request"}, {"$ref": "#/$defs/result"}],
+  "$defs": {
+    "request": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "operation_id", "provider", "external_url"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "operation_id": {"type": "string", "format": "uuid"}, "provider": {"type": "string"}, "external_url": {"type": "string", "format": "uri"}}},
+    "result": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "operation_id", "provider_version", "course", "memberships"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "operation_id": {"type": "string", "format": "uuid"}, "provider_version": {"type": "string", "minLength": 1}, "course": {"type": "object"}, "memberships": {"type": "array", "items": {"type": "object"}}, "error": {"type": ["object", "null"]}}}
+  }
+}

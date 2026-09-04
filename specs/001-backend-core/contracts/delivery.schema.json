@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:review-platform:delivery:1.0.0",
+  "x-contract-status": "frozen",
+  "title": "ExternalDeliveryProviderContract",
+  "oneOf": [{"$ref": "#/$defs/deliver_request"}, {"$ref": "#/$defs/reconcile_request"}, {"$ref": "#/$defs/result"}],
+  "$defs": {
+    "deliver_request": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "delivery_id", "delivery_key", "publication_fingerprint", "payload_digest", "payload"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "delivery_id": {"type": "string", "format": "uuid"}, "delivery_key": {"type": "string", "minLength": 1}, "publication_fingerprint": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "payload_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "payload": {"type": "object"}}},
+    "reconcile_request": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "delivery_id", "delivery_key", "payload_digest"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "delivery_id": {"type": "string", "format": "uuid"}, "delivery_key": {"type": "string", "minLength": 1}, "payload_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}},
+    "result": {"type": "object", "additionalProperties": false, "required": ["contract_version", "organization_id", "delivery_id", "outcome"], "properties": {"contract_version": {"const": "1.0.0"}, "organization_id": {"type": "string", "format": "uuid"}, "delivery_id": {"type": "string", "format": "uuid"}, "outcome": {"enum": ["succeeded", "retryable_failed", "unknown_outcome", "action_required", "not_found"]}, "external_id": {"type": ["string", "null"]}, "external_url": {"type": ["string", "null"], "format": "uri"}, "error": {"type": ["object", "null"]}}}
+  }
+}
