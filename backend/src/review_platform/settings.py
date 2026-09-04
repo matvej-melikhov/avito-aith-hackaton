@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     redis_url: str | None = None
     s3_endpoint_url: str | None = None
     s3_bucket: str = "review-platform-offline"
+    s3_region: str = "us-east-1"
+    s3_access_key_id: SecretStr | None = None
+    s3_secret_access_key: SecretStr | None = None
     credential_encryption_key_ref: str | None = None
     provider_timeout_seconds: int = Field(default=15, ge=1, le=60)
     provider_max_attempts: int = Field(default=5, ge=1, le=10)

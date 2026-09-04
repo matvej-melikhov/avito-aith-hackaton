@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import UUID
 
 import pytest
 
 from review_platform.application.foundation_runtime import (
     BoundaryViolation,
-    build_foundation_runtime,
+    FoundationRuntime,
 )
+from review_platform.application.request_context import RequestActor
 
-pytestmark = pytest.mark.behavioral
+pytestmark = [pytest.mark.behavioral, pytest.mark.anyio]
 
 ORGANIZATION_ID = "00000000-0000-7000-8000-000000000001"
 COURSE_ID = "00000000-0000-7000-8000-000000000002"
@@ -29,16 +32,23 @@ def _archive_course_command() -> dict[str, Any]:
     }
 
 
-def _user_authorization() -> dict[str, Any]:
-    return {
-        "organization_id": ORGANIZATION_ID,
-        "actor": {"type": "user", "user_id": USER_ID, "membership_revision": 3, "auth_epoch": 2},
-        "transport": "rest",
-    }
+TRACE_ID = UUID("00000000-0000-7000-8000-000000000009")
 
 
-def test_foundation_runtime_is_composed_only_from_planned_production_modules() -> None:
-    runtime = build_foundation_runtime()
+def _user_actor() -> RequestActor:
+    return RequestActor.user(
+        organization_id=UUID(ORGANIZATION_ID),
+        user_id=UUID(USER_ID),
+        roles={"reviewer"},
+        membership_revision=3,
+        auth_epoch=2,
+    )
+
+
+async def test_foundation_runtime_is_composed_only_from_planned_production_modules(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    runtime = foundation_runtime
     components = runtime.components()
     expected_modules = {
         "command_bus": "review_platform.application.command_bus",
@@ -51,65 +61,77 @@ def test_foundation_runtime_is_composed_only_from_planned_production_modules() -
     assert set(components) == set(expected_modules)
     for name, expected_module in expected_modules.items():
         assert type(components[name]).__module__ == expected_module
+        assert "probe" not in type(components[name]).__name__.casefold()
+        assert not any(key.startswith("_foundation_") for key in vars(components[name]))
 
 
-def test_rest_dispatch_binds_the_exact_route_command() -> None:
-    runtime = build_foundation_runtime()
-    receipt = runtime.dispatch_rest(
+async def test_rest_dispatch_binds_the_exact_route_command(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    receipt = foundation_runtime.bind_rest_command(
         route_command="archive_course",
         path_target_id=COURSE_ID,
         wire_command=_archive_course_command(),
-        authorization=_user_authorization(),
+        actor=_user_actor(),
+        trace_id=TRACE_ID,
     )
 
-    assert receipt["command_name"] == "archive_course"
-    assert receipt["target_id"] == COURSE_ID
+    assert receipt.command_name == "archive_course"
+    assert str(receipt.target_id) == COURSE_ID
 
 
-def test_route_rejects_a_different_valid_command_variant() -> None:
-    runtime = build_foundation_runtime()
+async def test_route_rejects_a_different_valid_command_variant(
+    foundation_runtime: FoundationRuntime,
+) -> None:
     command = _archive_course_command()
     command.update({"command_name": "restore_course", "payload": {}})
 
     with pytest.raises(BoundaryViolation, match="route command"):
-        runtime.dispatch_rest(
+        foundation_runtime.bind_rest_command(
             route_command="archive_course",
             path_target_id=COURSE_ID,
             wire_command=command,
-            authorization=_user_authorization(),
+            actor=_user_actor(),
+            trace_id=TRACE_ID,
         )
 
 
-def test_path_identifier_must_equal_command_target_identifier() -> None:
-    runtime = build_foundation_runtime()
-
+async def test_path_identifier_must_equal_command_target_identifier(
+    foundation_runtime: FoundationRuntime,
+) -> None:
     with pytest.raises(BoundaryViolation, match="target"):
-        runtime.dispatch_rest(
+        foundation_runtime.bind_rest_command(
             route_command="archive_course",
             path_target_id="00000000-0000-7000-8000-000000000099",
             wire_command=_archive_course_command(),
-            authorization=_user_authorization(),
+            actor=_user_actor(),
+            trace_id=TRACE_ID,
         )
 
 
-def test_client_cannot_supply_server_owned_actor_or_organization() -> None:
-    runtime = build_foundation_runtime()
+async def test_client_cannot_supply_server_owned_actor_or_organization(
+    foundation_runtime: FoundationRuntime,
+) -> None:
     command = deepcopy(_archive_course_command())
     command.update({"organization_id": ORGANIZATION_ID, "actor": {"type": "user"}})
 
     with pytest.raises(BoundaryViolation, match="server-owned"):
-        runtime.dispatch_rest(
+        foundation_runtime.bind_rest_command(
             route_command="archive_course",
             path_target_id=COURSE_ID,
             wire_command=command,
-            authorization=_user_authorization(),
+            actor=_user_actor(),
+            trace_id=TRACE_ID,
         )
 
 
-def test_bootstrap_and_recovery_are_local_operator_commands() -> None:
-    runtime = build_foundation_runtime()
+async def test_bootstrap_and_recovery_are_local_operator_commands(
+    foundation_runtime: FoundationRuntime,
+) -> None:
     command = {
         "command_name": "recover_methodologist",
+        "request_id": "00000000-0000-7000-8000-000000000004",
+        "idempotency_key": "recovery-fixture-0001",
         "revision_target": "organization",
         "target_id": ORGANIZATION_ID,
         "expected_revision": 1,
@@ -122,14 +144,19 @@ def test_bootstrap_and_recovery_are_local_operator_commands() -> None:
         },
     }
 
-    result = runtime.dispatch_operator(
-        command=command, operator_id="local-operator", reason="authorized recovery"
+    result = foundation_runtime.bind_operator_command(
+        command=command,
+        organization_id=UUID(ORGANIZATION_ID),
+        operator_id="local-operator",
+        reason="authorized recovery",
+        trace_id=TRACE_ID,
     )
-    assert result["actor"]["type"] == "installation_operator"
+    assert result.actor.type == "installation_operator"
 
 
-def test_human_publish_cannot_use_agent_authorization() -> None:
-    runtime = build_foundation_runtime()
+async def test_human_publish_cannot_use_agent_authorization(
+    foundation_runtime: FoundationRuntime,
+) -> None:
     command = _archive_course_command()
     command.update(
         {
@@ -138,21 +165,24 @@ def test_human_publish_cannot_use_agent_authorization() -> None:
             "payload": {"review_revision_id": COURSE_ID},
         }
     )
-    agent_authorization = {
-        "organization_id": ORGANIZATION_ID,
-        "transport": "mcp",
-        "actor": {
-            "type": "agent",
-            "user_id": USER_ID,
-            "agent_id": COURSE_ID,
-            "agent_authorization_id": COURSE_ID,
-        },
-    }
+    agent_authorization = RequestActor.agent(
+        organization_id=UUID(ORGANIZATION_ID),
+        user_id=UUID(USER_ID),
+        roles={"reviewer"},
+        membership_revision=3,
+        auth_epoch=2,
+        agent_id=UUID(COURSE_ID),
+        agent_authorization_id=UUID(COURSE_ID),
+        agent_authorization_revision=1,
+        scopes={"reviews:write"},
+        expires_at=datetime.now(UTC) + timedelta(hours=1),
+    )
 
     with pytest.raises(BoundaryViolation, match="interactive.*REST"):
-        runtime.dispatch_rest(
+        foundation_runtime.bind_rest_command(
             route_command="publish_review",
             path_target_id=COURSE_ID,
             wire_command=command,
-            authorization=agent_authorization,
+            actor=agent_authorization,
+            trace_id=TRACE_ID,
         )

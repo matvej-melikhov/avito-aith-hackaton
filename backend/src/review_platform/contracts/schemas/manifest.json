@@ -1,0 +1,32 @@
+{
+  "contractSetVersion": "1.1.0",
+  "status": "frozen",
+  "preparedAt": "2026-09-04T17:31:21+03:00",
+  "sourceAuthority": "specs/001-backend-core/contracts",
+  "previousVersion": "1.0.0",
+  "compatibilityNotes": "../contract-compatibility.md",
+  "authoritativeConstitutionPath": ".specify/memory/constitution.md",
+  "authoritativeConstitutionSha256": "5f827afbaf8b724ffc354075ad0db2634f124948a58d6f4facceae62d5a38e17",
+  "freezePolicy": "After READY adversarial review, status may change to frozen with no semantic file edits; later semantic changes require a new version.",
+  "files": [
+    {"path": "ai-review.schema.json", "sha256": "b727c94037b6bdaa9d57034ccf36cb9e23fb4d1867747676f6e6ebad5364e0a8"},
+    {"path": "artifact-provider.schema.json", "sha256": "e9274909d11ca83d6951354cbd66d64750c3fdc732728735890af0983f02ab89"},
+    {"path": "artifact.schema.json", "sha256": "654c1325dd198445270131c85ae877b832487c7c8cbff4d2aa13bc9658562aa6"},
+    {"path": "command.schema.json", "sha256": "7b6b473a141f87c0431e74385bc906bec2196e8d8fc4f1a0159f9e9e0d6b0e2d"},
+    {"path": "course-import.schema.json", "sha256": "e5ffa1e0862d68eba7ade82706e95d01b76379c0a7583ec057337cfdcc5cc44a"},
+    {"path": "delivery.schema.json", "sha256": "8eaf85b342e721dcff40ff5cb1c0cbb40caaabbc52459e06d5402bc126bd3f3d"},
+    {"path": "email.schema.json", "sha256": "f4d2a5b7ffc44740e5311c943ddaf9be6239b9364a8399243949a7155b25e615"},
+    {"path": "identity-provider.schema.json", "sha256": "c903afb377e834c4ca1adb7f59f4f96eab851e9a3c174d0ecc01003c80a6b7e2"},
+    {"path": "mcp-tools.json", "sha256": "0b3886970f4cd02d98b24b25e1bd345874f38d56f3bae3eecb26ccb747c5b3a7"},
+    {"path": "openapi.yaml", "sha256": "4e69a3908b8f022d2a37ef213998f48d6bbfc0dd13a6ac6f0dafd2a61f135c70"},
+    {"path": "../contract-fixtures/ai-events-v1.1.0.json", "sha256": "25f03be6e1b93784ff5b8b30d9fda241d6527b3ffe5a9cc57bd6883ecf08ed18"},
+    {"path": "../contract-fixtures/ai-fingerprint-v1.1.0.json", "sha256": "6e51624186804f79635f95aa215f66fc8912359fcc6645cdab6564764191760e"},
+    {"path": "../contract-fixtures/artifact-provider-v1.1.0.json", "sha256": "d019e71b8479b3e789d0ba75d939ae748b40c1c7c5b45ab0524a2d817ecace8f"},
+    {"path": "../contract-fixtures/course-import-v1.1.0.json", "sha256": "7405c26972d05c235d297eb10203d3505c573597e5437e85aa93636b78613464"},
+    {"path": "../contract-fixtures/delivery-v1.1.0.json", "sha256": "c6ccf95402c7d36a30411229b1cc828220e80b75e5d9ebc6dceb50986bb1a637"},
+    {"path": "../contract-fixtures/email-v1.1.0.json", "sha256": "97f95202f9f6b59c15b6615e7caa50334d45c12c27c1ef051cc80199abb0826d"},
+    {"path": "../contract-fixtures/identity-provider-v1.1.0.json", "sha256": "5fa59e8b03a9f7b6bbfcaec2f8ac69af56a47c1fd7d62345c174b213d18ec906"},
+    {"path": "../contract-compatibility.md", "sha256": "1c9e607ac48e383968d4807c969aba88c338161bb4beeda93f81552de12c7edf"},
+    {"path": "../constitution-snapshot.md", "sha256": "5f827afbaf8b724ffc354075ad0db2634f124948a58d6f4facceae62d5a38e17"}
+  ]
+}

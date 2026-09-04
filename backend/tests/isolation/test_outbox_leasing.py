@@ -8,7 +8,6 @@ import pytest
 from review_platform.application.foundation_runtime import (
     BoundaryViolation,
     FoundationRuntime,
-    build_foundation_runtime,
 )
 
 pytestmark = [pytest.mark.behavioral, pytest.mark.anyio]
@@ -27,8 +26,10 @@ async def _enqueue(runtime: FoundationRuntime) -> None:
         )
 
 
-async def test_two_relays_claim_disjoint_batches_with_skip_locked() -> None:
-    runtime = build_foundation_runtime()
+async def test_two_relays_claim_disjoint_batches_with_skip_locked(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    runtime = foundation_runtime
     await _enqueue(runtime)
     claims: dict[str, set[str]] = {}
 
@@ -44,8 +45,10 @@ async def test_two_relays_claim_disjoint_batches_with_skip_locked() -> None:
     assert claims["relay-a"].isdisjoint(claims["relay-b"])
 
 
-async def test_expired_lease_is_recoverable_with_a_new_token() -> None:
-    runtime = build_foundation_runtime()
+async def test_expired_lease_is_recoverable_with_a_new_token(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    runtime = foundation_runtime
     await _enqueue(runtime)
     first = (await runtime.lease_outbox(owner="relay-a", now=NOW, limit=1, lease_seconds=30))[0]
     recovered = (
@@ -59,8 +62,10 @@ async def test_expired_lease_is_recoverable_with_a_new_token() -> None:
     assert recovered.token != first.token
 
 
-async def test_stale_or_duplicate_lease_completion_is_rejected() -> None:
-    runtime = build_foundation_runtime()
+async def test_stale_or_duplicate_lease_completion_is_rejected(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    runtime = foundation_runtime
     await _enqueue(runtime)
     lease = (await runtime.lease_outbox(owner="relay-a", now=NOW, limit=1, lease_seconds=30))[0]
     await runtime.complete_outbox(lease=lease)
@@ -69,9 +74,16 @@ async def test_stale_or_duplicate_lease_completion_is_rejected() -> None:
         await runtime.complete_outbox(lease=lease)
 
 
-async def test_exhausted_message_remains_actionable_instead_of_succeeding_silently() -> None:
-    runtime = build_foundation_runtime()
-    await _enqueue(runtime)
+async def test_exhausted_message_remains_actionable_instead_of_succeeding_silently(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    runtime = foundation_runtime
+    await runtime.enqueue_outbox(
+        organization_id=ORG,
+        message_id="00000000-0000-7000-8000-000000000001",
+        payload={"number": 1},
+        max_attempts=2,
+    )
     view = None
     for attempt in range(2):
         lease = (

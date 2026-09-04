@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:review-platform:identity-provider:1.1.0",
+  "x-contract-status": "frozen",
+  "title": "IdentityProviderBoundary",
+  "oneOf": [{"$ref": "#/$defs/verification_request"}, {"$ref": "#/$defs/identity_assertion"}, {"$ref": "#/$defs/failure"}],
+  "$defs": {
+    "error": {"type": "object", "additionalProperties": false, "required": ["code", "message", "retryable"], "properties": {"code": {"type": "string", "minLength": 1, "maxLength": 128}, "message": {"type": "string", "maxLength": 2048}, "retryable": {"type": "boolean"}, "action": {"type": ["string", "null"], "maxLength": 512}}},
+    "verification_request": {"type": "object", "additionalProperties": false, "required": ["contract_version", "provider", "state_id", "credential_binding_id", "credential_binding_version", "authorization_response"], "properties": {"contract_version": {"const": "1.1.0"}, "provider": {"enum": ["stepik", "email_magic_link"]}, "state_id": {"type": "string", "format": "uuid"}, "credential_binding_id": {"type": "string", "format": "uuid"}, "credential_binding_version": {"type": "integer", "minimum": 1}, "authorization_response": {"type": "string", "minLength": 1, "maxLength": 4096}}},
+    "identity_assertion": {"type": "object", "additionalProperties": false, "required": ["contract_version", "provider", "issuer", "subject", "verified_email", "issued_at", "expires_at", "state_id"], "properties": {"contract_version": {"const": "1.1.0"}, "provider": {"enum": ["stepik", "email_magic_link"]}, "issuer": {"type": "string", "minLength": 1, "maxLength": 512}, "subject": {"type": "string", "minLength": 1, "maxLength": 512}, "verified_email": {"type": ["string", "null"], "format": "email", "maxLength": 320}, "issued_at": {"type": "string", "format": "date-time"}, "expires_at": {"type": "string", "format": "date-time"}, "state_id": {"type": "string", "format": "uuid"}}},
+    "failure": {"type": "object", "additionalProperties": false, "required": ["contract_version", "provider", "state_id", "error"], "properties": {"contract_version": {"const": "1.1.0"}, "provider": {"enum": ["stepik", "email_magic_link"]}, "state_id": {"type": "string", "format": "uuid"}, "error": {"$ref": "#/$defs/error"}}}
+  }
+}

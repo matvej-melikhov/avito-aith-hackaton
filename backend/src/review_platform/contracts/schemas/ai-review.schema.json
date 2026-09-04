@@ -1,0 +1,557 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:review-platform:ai-review:1.1.0",
+  "x-contract-status": "frozen",
+  "title": "AIReviewContract",
+  "$defs": {
+    "criterion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "title",
+        "description",
+        "max_points"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "max_points": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Inclusive nonnegative upper bound for the matching AI suggestion and human decision."
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "locator",
+        "quote",
+        "verified"
+      ],
+      "properties": {
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quote": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "suggestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "criterion_id",
+        "status",
+        "proposed_points",
+        "reason",
+        "evidence",
+        "confidence",
+        "reviewer_note",
+        "student_feedback",
+        "flags"
+      ],
+      "properties": {
+        "criterion_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "enum": [
+            "suggested",
+            "needs_human",
+            "not_checked"
+          ]
+        },
+        "proposed_points": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "When numeric, MUST NOT exceed max_points of the matching criterion from this request."
+        },
+        "reason": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "reviewer_note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "student_feedback": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "not_checked"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "proposed_points": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "run_id",
+        "input_fingerprint",
+        "fingerprint_algorithm",
+        "organization_id",
+        "course_run_id",
+        "submission_version_id",
+        "review_iteration_id",
+        "credential_binding_id",
+        "credential_binding_version",
+        "artifact",
+        "artifact_download",
+        "homework",
+        "criteria"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "1.1.0"
+        },
+        "run_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "input_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "fingerprint_algorithm": {
+          "const": "jcs-sha256-v1"
+        },
+        "organization_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "course_run_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "submission_version_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "review_iteration_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "credential_binding_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Opaque identifier of the component credential used for this provider attempt."
+        },
+        "credential_binding_version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Exact credential generation used for this provider attempt."
+        },
+        "artifact": {
+          "$ref": "artifact.schema.json"
+        },
+        "artifact_download": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "expires_at"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "expires_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "homework": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "version_id",
+            "title",
+            "student_text",
+            "digest"
+          ],
+          "properties": {
+            "version_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "student_text": {
+              "type": "string"
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          }
+        },
+        "criteria": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "set_id",
+            "digest",
+            "items"
+          ],
+          "properties": {
+            "set_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/criterion"
+              }
+            }
+          }
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version",
+        "run_id",
+        "attempt_id",
+        "attempt_number",
+        "event_id",
+        "sequence",
+        "input_fingerprint",
+        "status",
+        "is_final",
+        "suggestions",
+        "criterion_coverage",
+        "ai_signal",
+        "error"
+      ],
+      "properties": {
+        "contract_version": {
+          "const": "1.1.0"
+        },
+        "run_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "attempt_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "attempt_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "input_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "status": {
+          "enum": [
+            "running",
+            "partial",
+            "succeeded",
+            "retryable_failed",
+            "action_required"
+          ]
+        },
+        "is_final": {
+          "type": "boolean"
+        },
+        "suggestions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/suggestion"
+          }
+        },
+        "criterion_coverage": {
+          "$ref": "#/$defs/criterionCoverage"
+        },
+        "ai_signal": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/aiSignal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/error"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "succeeded"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "is_final": {
+                "const": true
+              },
+              "error": {
+                "type": "null"
+              },
+              "ai_signal": {
+                "$ref": "#/$defs/aiSignal"
+              },
+              "suggestions": {
+                "minItems": 1
+              },
+              "criterion_coverage": {
+                "properties": {
+                  "complete": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "running",
+                  "partial"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "is_final": {
+                "const": false
+              },
+              "error": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "retryable_failed",
+                  "action_required"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "is_final": {
+                "const": true
+              },
+              "error": {
+                "$ref": "#/$defs/error"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "aiSignal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "evidence",
+        "limitations",
+        "questions"
+      ],
+      "properties": {
+        "level": {
+          "enum": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "insufficient_data"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "criterionCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_criterion_ids",
+        "reported_criterion_ids",
+        "complete"
+      ],
+      "properties": {
+        "expected_criterion_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "reported_criterion_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "complete": {
+          "type": "boolean"
+        }
+      },
+      "description": "Backend validates both ID arrays against the request and verifies one suggestion per reported criterion ID."
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/event"
+    }
+  ]
+}

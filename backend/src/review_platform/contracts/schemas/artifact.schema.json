@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:review-platform:artifact:1.1.0",
+  "x-contract-status": "frozen",
+  "title": "ArtifactVersionEnvelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "organization_id", "artifact_reference_id", "artifact_version_id", "provider", "provider_version", "content_digest", "captured_at", "object"],
+  "properties": {
+    "contract_version": {"const": "1.1.0"},
+    "organization_id": {"type": "string", "format": "uuid"},
+    "artifact_reference_id": {"type": "string", "format": "uuid"},
+    "artifact_version_id": {"type": "string", "format": "uuid"},
+    "provider": {"enum": ["github", "google_docs"]},
+    "provider_version": {"type": "string", "minLength": 1},
+    "content_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "media_type", "byte_size"],
+      "properties": {
+        "key": {"type": "string", "minLength": 1},
+        "media_type": {"type": "string", "minLength": 1},
+        "byte_size": {"type": "integer", "minimum": 1}
+      }
+    },
+    "metadata": {"type": "object"}
+  }
+}

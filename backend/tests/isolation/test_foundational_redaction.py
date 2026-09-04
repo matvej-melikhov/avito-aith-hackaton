@@ -4,9 +4,9 @@ import json
 
 import pytest
 
-from review_platform.application.foundation_runtime import build_foundation_runtime
+from review_platform.application.foundation_runtime import FoundationRuntime
 
-pytestmark = pytest.mark.behavioral
+pytestmark = [pytest.mark.behavioral, pytest.mark.anyio]
 
 ORG = "00000000-0000-7000-8000-000000000001"
 SECRET = "live-secret-token-value"
@@ -17,9 +17,11 @@ MAGIC_LINK = "https://review.example.test/invite/private-magic-token"
     "sink",
     ["log", "api_error", "operation_attempt", "outbox_message", "audit_event"],
 )
-def test_every_shared_sink_redacts_tokens_links_and_nested_provider_bodies(sink: str) -> None:
-    runtime = build_foundation_runtime()
-    stored = runtime.write_shared_sink(
+async def test_every_shared_sink_redacts_tokens_links_and_nested_provider_bodies(
+    sink: str,
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    stored = foundation_runtime.write_shared_sink(
         sink=sink,
         organization_id=ORG,
         details={
@@ -37,9 +39,10 @@ def test_every_shared_sink_redacts_tokens_links_and_nested_provider_bodies(sink:
     assert "reconnect_provider" in rendered
 
 
-def test_sanitized_error_is_bounded_and_preserves_actionable_fields() -> None:
-    runtime = build_foundation_runtime()
-    stored = runtime.write_shared_sink(
+async def test_sanitized_error_is_bounded_and_preserves_actionable_fields(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    stored = foundation_runtime.write_shared_sink(
         sink="operation_attempt",
         organization_id=ORG,
         details={

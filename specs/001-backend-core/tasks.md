@@ -53,29 +53,29 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 ### Shared implementation
 
 - [X] T022 After an Analyze READY verdict, verify candidate 1.1.0 plus fixtures, mechanically set status to frozen, and regenerate hashes without semantic edits in `scripts/sync_backend_contracts.py`
-- [ ] T023 Package manifest-verified schemas as runtime resources in `backend/src/review_platform/contracts/schemas/`
-- [ ] T024 Implement schema loading, reference resolution, version selection, and generated-schema conformance in `backend/src/review_platform/contracts/registry.py`
-- [ ] T025 Implement strict Pydantic wire/application commands and the user/agent/installation-operator RequestActor variants in `backend/src/review_platform/contracts/commands.py`
-- [ ] T026 Implement UUIDv7, UTC clock, digest, revision, and sanitized-error primitives in `backend/src/review_platform/domain/primitives.py`
-- [ ] T027 Configure asyncmy SQLAlchemy engine, sessions, naming conventions, and test transactions in `backend/src/review_platform/infrastructure/db/session.py`
-- [ ] T028 Implement tenant-key mixins and composite tenant foreign-key helpers in `backend/src/review_platform/infrastructure/db/base.py`
-- [ ] T029 Implement the minimal single-installation Organization tenant anchor in `backend/src/review_platform/infrastructure/db/models/organization.py`
-- [ ] T030 Implement CommandReceipt, AuditEvent, OutboxMessage, Operation, and OperationAttempt tables referencing Organization in `backend/src/review_platform/infrastructure/db/models/operations.py`
-- [ ] T031 Configure async Alembic metadata/discovery/single-head checks and create Organization plus foundational operations in `backend/alembic.ini`, `backend/migrations/env.py`, `backend/migrations/script.py.mako`, and `backend/migrations/versions/0001_foundation.py`
-- [ ] T032 Implement tenant-scoped operation, receipt, audit, and outbox repositories in `backend/src/review_platform/infrastructure/db/repositories/operations.py`
-- [ ] T033 Define authenticated RequestActor context and the transport-independent auth-version guard protocol without concrete OrganizationMembership or AgentAuthorization access in `backend/src/review_platform/application/request_context.py`
-- [ ] T034 Implement role/scope authorization, closed-scope validation, and fail-closed tenant checks against the guard protocol in `backend/src/review_platform/application/authorization.py`
-- [ ] T035 Implement shared validation, transaction, expected-revision CAS, and transport-independent dispatch in `backend/src/review_platform/application/command_bus.py`
-- [ ] T036 Implement idempotency reservation, replay, payload-conflict rejection, and stable result references in `backend/src/review_platform/application/idempotency.py`
-- [ ] T037 Implement append-only audit creation, shared-sink sanitization, and atomic rollback semantics in `backend/src/review_platform/application/audit.py`
-- [ ] T038 Implement stable outbox creation, leasing, max-attempt visibility, and operator-visible recovery state in `backend/src/review_platform/infrastructure/db/outbox.py`
-- [ ] T039 Implement `FOR UPDATE SKIP LOCKED` relay, compare-and-set lease completion, Redis publication, and crash recovery in `backend/src/review_platform/infrastructure/tasks/outbox_relay.py`
-- [ ] T040 Configure Taskiq routing, bounded retry/backoff, tenant correlation, concurrency-limit hooks, and worker auth revalidation hooks in `backend/src/review_platform/infrastructure/tasks/broker.py`
-- [ ] T041 Implement only tenant-scoped S3 key construction, bounded upload/download, digest verification, signed reads, and low-level deletion primitives in `backend/src/review_platform/infrastructure/object_storage/s3.py`
-- [ ] T042 Implement schema-backed provider ports and mocks loaded from frozen shared fixtures in `backend/src/review_platform/application/ports/providers.py` and `backend/src/review_platform/infrastructure/providers/mocks.py`
-- [ ] T043 Compose FoundationRuntime only from the real command bus, SQLAlchemy repositories, outbox, S3, and middleware components, then implement sanitized FastAPI middleware, router registry, operation history, and health probes in `backend/src/review_platform/application/foundation_runtime.py`, `backend/src/review_platform/api/middleware.py`, `backend/src/review_platform/api/routes/__init__.py`, `backend/src/review_platform/api/routes/operations.py`, and `backend/src/review_platform/main.py`
-- [ ] T044 Implement explicit Taskiq handler registry and executable worker, relay, and email-worker entrypoints in `backend/src/review_platform/infrastructure/tasks/registry.py`, `backend/src/review_platform/infrastructure/tasks/__main__.py`, `backend/src/review_platform/infrastructure/tasks/relay_main.py`, and `backend/src/review_platform/infrastructure/tasks/email_main.py`
-- [ ] T045 Run T011-T021 against the T009 MySQL/Redis/MinIO fixtures, assert FoundationRuntime exposes no test or in-memory adapters, run the migration single-head check, and record the Foundation GREEN evidence in `backend/tests/evidence/foundation.md`
+- [X] T023 Package manifest-verified schemas as runtime resources in `backend/src/review_platform/contracts/schemas/`
+- [X] T024 Implement schema loading, reference resolution, version selection, and generated-schema conformance in `backend/src/review_platform/contracts/registry.py`
+- [X] T025 Implement strict Pydantic wire/application commands and the user/agent/installation-operator RequestActor variants in `backend/src/review_platform/contracts/commands.py`
+- [X] T026 Implement UUIDv7, UTC clock, digest, revision, and sanitized-error primitives in `backend/src/review_platform/domain/primitives.py`
+- [X] T027 Configure asyncmy SQLAlchemy engine, sessions, naming conventions, and test transactions in `backend/src/review_platform/infrastructure/db/session.py`
+- [X] T028 Implement tenant-key mixins and composite tenant foreign-key helpers in `backend/src/review_platform/infrastructure/db/base.py`
+- [X] T029 Implement the minimal single-installation Organization tenant anchor in `backend/src/review_platform/infrastructure/db/models/organization.py`
+- [X] T030 Implement CommandReceipt, AuditEvent, OutboxMessage, Operation, and OperationAttempt tables referencing Organization in `backend/src/review_platform/infrastructure/db/models/operations.py`
+- [X] T031 Configure async Alembic metadata/discovery/single-head checks and create Organization plus foundational operations in `backend/alembic.ini`, `backend/migrations/env.py`, `backend/migrations/script.py.mako`, and `backend/migrations/versions/0001_foundation.py`
+- [X] T032 Implement tenant-scoped operation, receipt, audit, and outbox repositories in `backend/src/review_platform/infrastructure/db/repositories/operations.py`
+- [X] T033 Define authenticated RequestActor context and the transport-independent auth-version guard protocol without concrete OrganizationMembership or AgentAuthorization access in `backend/src/review_platform/application/request_context.py`
+- [X] T034 Implement role/scope authorization, closed-scope validation, and fail-closed tenant checks against the guard protocol in `backend/src/review_platform/application/authorization.py`
+- [X] T035 Implement shared validation, transaction, expected-revision CAS, and transport-independent dispatch in `backend/src/review_platform/application/command_bus.py`
+- [X] T036 Implement idempotency reservation, replay, payload-conflict rejection, and stable result references in `backend/src/review_platform/application/idempotency.py`
+- [X] T037 Implement append-only audit creation, shared-sink sanitization, and atomic rollback semantics in `backend/src/review_platform/application/audit.py`
+- [X] T038 Implement stable outbox creation, leasing, max-attempt visibility, and operator-visible recovery state in `backend/src/review_platform/infrastructure/db/outbox.py`
+- [X] T039 Implement `FOR UPDATE SKIP LOCKED` relay, compare-and-set lease completion, Redis publication, and crash recovery in `backend/src/review_platform/infrastructure/tasks/outbox_relay.py`
+- [X] T040 Configure Taskiq routing, bounded retry/backoff, tenant correlation, concurrency-limit hooks, and worker auth revalidation hooks in `backend/src/review_platform/infrastructure/tasks/broker.py`
+- [X] T041 Implement only tenant-scoped S3 key construction, bounded upload/download, digest verification, signed reads, and low-level deletion primitives in `backend/src/review_platform/infrastructure/object_storage/s3.py`
+- [X] T042 Implement schema-backed provider ports and mocks loaded from frozen shared fixtures in `backend/src/review_platform/application/ports/providers.py` and `backend/src/review_platform/infrastructure/providers/mocks.py`
+- [X] T043 Compose FoundationRuntime only from the real command bus, SQLAlchemy repositories, outbox, S3, and middleware components, then implement sanitized FastAPI middleware, router registry, operation history, and health probes in `backend/src/review_platform/application/foundation_runtime.py`, `backend/src/review_platform/api/middleware.py`, `backend/src/review_platform/api/routes/__init__.py`, `backend/src/review_platform/api/routes/operations.py`, and `backend/src/review_platform/main.py`
+- [X] T044 Implement explicit Taskiq handler registry and executable worker, relay, and email-worker entrypoints in `backend/src/review_platform/infrastructure/tasks/registry.py`, `backend/src/review_platform/infrastructure/tasks/__main__.py`, `backend/src/review_platform/infrastructure/tasks/relay_main.py`, and `backend/src/review_platform/infrastructure/tasks/email_main.py`
+- [X] T045 Run T011-T021 against the T009 MySQL/Redis/MinIO fixtures, assert FoundationRuntime exposes no test or in-memory adapters, run the migration single-head check, and record the Foundation GREEN evidence in `backend/tests/evidence/foundation.md`
 
 **Checkpoint**: T011-T021 are GREEN. No concrete identity, artifact promotion, external delivery, AgentAuthorization, MCP invocation, or full-system tenant matrix is required yet.
 

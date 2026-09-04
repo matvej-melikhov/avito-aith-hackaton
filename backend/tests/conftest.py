@@ -10,7 +10,7 @@ from uuid import UUID
 
 import pytest
 
-pytest_plugins = ("tests.fixtures.containers",)
+pytest_plugins = ("tests.fixtures.containers", "tests.fixtures.foundation")
 
 FIXED_NOW = datetime(2026, 9, 4, 12, 0, tzinfo=UTC)
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
