@@ -809,7 +809,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С2">
   <div class="screen__head"><span class="screen__id">С2</span><h2>Та же страница после ИИ-ревью</h2></div>
   <p class="screen__note">Проверки копятся в табе ИИ-ревью раскрывающимися блоками с датой и временем, открыт только последний. Вывод абстрактный: сдавать или нет и на что смотреть, без разбора по критериям. Таб Ревью пустует до отправки работы.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> У вывода ИИ нет баллов и шкал: они живут только у ревьюера, студенту они не помогут, только научат подгонять работу под разбор. Непрочитанные критерии не называются, только места для внимания обычным языком.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> У вывода ИИ нет баллов и шкал: они живут только у ревьюера, студенту они не помогут, только научат подгонять работу под разбор. Вердикт первой строкой жирным: готова работа или нет. Критерии не называются, только места для внимания обычным языком. У блоков проверок нет маркеров: исход читается из вердикта, а не из значка.</p>
   <div class="shot" style="height:894px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
@@ -856,11 +856,11 @@ a:hover { border-bottom-color: var(--ink); }
                   <span class="tab">Ревью</span>
                 </div>
                 <div class="card__body">
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Проверка от 16.02, 18:02</span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="acc__t">Проверка от 16.02, 18:02</span><span class="acc__chev">▼</span></div></div>
                   <div class="acc">
-                    <div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Проверка от 17.02, 14:20</span><span class="pill">последняя</span><span class="acc__chev">▲</span></div>
-                    <div class="acc__b">
-                      <p class="small" style="margin:0 0 var(--s-3)">К отправке не готово: два места стоит поправить до отправки.</p>
+                    <div class="acc__h"><span class="acc__t">Проверка от 17.02, 14:20</span><span class="pill">последняя</span><span class="acc__chev">▲</span></div>
+                    <div class="acc__b" style="padding-left:0">
+                      <p class="small" style="margin:0 0 var(--s-3)"><b>К отправке не готово.</b> Два места стоит поправить до отправки.</p>
                       <ul class="small" style="margin:0 0 var(--s-4);padding-left:1.1em;color:var(--ink-2);line-height:1.6">
                         <li>договорённости между внутренними сервисами описаны слабее внешнего интерфейса: добавьте входы и выходы для внутренних вызовов,</li>
                         <li>разбора связности компонентов в работе нет, а задание его требует.</li>
@@ -927,7 +927,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="С3">
   <div class="screen__head"><span class="screen__id">С3</span><h2>Та же страница в статусе «Нужны правки»</h2></div>
   <p class="screen__note">Ревьюер вернул работу. Разбор и комментарий лежат в табе Ревью блоком попытки, прошлые проверки в табе ИИ-ревью. Новая версия уходит формой ниже.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал. Баллы по критериям и комментарий внутри блока попытки, а не отдельными карточками.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Статус «Нужны правки» оранжевый, потому что это про время: у студента есть срок. Красным помечены только конкретные невыполненные требования, а не вся страница, поэтому возврат не читается как провал. В блоке попытки только невыполненные требования, дальше строка «Другие», итог с чертой и вердикт строкой. Форма та же, что при первой сдаче.</p>
   <div class="shot" style="height:858px"><div class="vp">
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
@@ -975,13 +975,17 @@ a:hover { border-bottom-color: var(--ink); }
                 </div>
                 <div class="card__body">
                   <div class="acc">
-                    <div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Попытка 1, 20.02, 15:10</span><span class="pill pill--mono">3,0 из 6</span><span class="acc__chev">▲</span></div>
-                    <div class="acc__b">
+                    <div class="acc__h"><span class="acc__t">Попытка 1, 20.02, 15:10</span><span class="acc__chev">▲</span></div>
+                    <div class="acc__b" style="padding-left:0">
                       <div class="kv"><span style="color:var(--ink)">Контракты: формат, входы, выходы, ошибки</span><span class="neg">0 из 1</span></div>
                       <div class="kv"><span style="color:var(--ink)">Анализ связности компонентов</span><span class="neg">0 из 0,5</span></div>
                       <div class="kv"><span style="color:var(--ink)">Обоснование выбора границ компонентов</span><span class="neg">0 из 0,5</span></div>
-                      <div class="kv" style="border-bottom:0"><span style="color:var(--ink)">Остальные 6 требований зачтены</span><span style="color:var(--ink)">3 из 4</span></div>
-                      <div class="label" style="margin:var(--s-4) 0 var(--s-2)">Комментарий ревьюера, rev-2214</div>
+                      <div class="kv"><span style="color:var(--ink)">Другие</span><span style="color:var(--ink)">3 из 4</span></div>
+                      <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:var(--s-2);padding-top:var(--s-4)">
+                        <span style="color:var(--ink);font-weight:var(--w-medium)">Итого</span><span style="color:var(--ink);font-weight:var(--w-semi)">3,0 из 6</span>
+                      </div>
+                      <div class="small" style="margin-top:var(--s-3)">Вердикт: <b style="color:var(--bad)">не прошла проверку</b></div>
+                      <div class="label" style="margin:var(--s-5) 0 var(--s-2)">Комментарий ревьюера, rev-2214</div>
                       <div class="small" style="color:var(--ink-2);line-height:1.65">Привет! Структура хорошая, диаграммы читаются. Три вещи мешают зачёту: внутренние вызовы описаны без входов и выходов, нет анализа связности, по границам компонентов не хватает обоснования. Остальное принято. Пришлите правки до 23 февраля.</div>
                     </div>
                   </div>
@@ -989,7 +993,7 @@ a:hover { border-bottom-color: var(--ink); }
               </div>
 
               <div class="card card--hard">
-                <div class="card__head"><h4>Исправленная версия</h4><div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div></div>
+                <div class="card__head"><h4>Ваша работа</h4><div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div></div>
                 <div class="card__body">
                   <label class="field">
                     <span class="field__lbl">Ссылка на репозиторий</span>
@@ -999,7 +1003,7 @@ a:hover { border-bottom-color: var(--ink); }
                 </div>
                 <div class="card__foot">
                   <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
-                    <span class="btn btn--pri" style="flex:none">Отправить исправленную версию</span>
+                    <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
                     <span class="btn" style="flex:none">ИИ-ревью</span>
                     <span class="caption">ИИ-ревью по новой версии ещё не запускали</span>
                   </span>
