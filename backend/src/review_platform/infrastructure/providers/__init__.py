@@ -1,5 +1,7 @@
 """External provider adapters."""
 
+from .github_artifacts import GitHubArtifactProvider
+from .google_docs_artifacts import GoogleDocsArtifactProvider
 from .mocks import (
     FixtureAIEventSource,
     FixtureArtifactProvider,
@@ -16,4 +18,6 @@ __all__ = [
     "FixtureDeliveryProvider",
     "FixtureEmailProvider",
     "FixtureIdentityProvider",
+    "GitHubArtifactProvider",
+    "GoogleDocsArtifactProvider",
 ]
