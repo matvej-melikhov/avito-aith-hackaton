@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
 
 <section class="screen" id="Р1">
   <div class="screen-head"><span class="screen-num">Р1</span><h3>Вход</h3></div>
-  <p class="screen-note">Один способ входа — Avito ID. Аккаунт создаётся при первом входе, никаких анкет и одобрений. Внешних экспертов пока не рассматриваем вообще, для них здесь ничего нет. Квота и курсы задаются после входа в настройках <a href="#Р3">Р3</a>, а не на этом экране.</p>
+  <p class="screen-note">Один способ входа — Avito ID. Аккаунт создаётся при первом входе, никаких анкет и одобрений. Внешних экспертов пока не рассматриваем вообще, для них здесь ничего нет. После входа ревьюер задаёт курсы в настройках <a href="#Р3">Р3</a>. Квоты нет: сколько работ брать, ревьюер решает каждый раз сам.</p>
   <div class="flows"><b>Переходы</b> первый вход ведёт на <a href="#Р3">Р3</a>, повторный сразу на <a href="#Р2">Р2</a></div>
   <div class="shot"><div class="vp" style="background:var(--app-2)">
     <div class="body" style="align-items:center; justify-content:center">
@@ -934,9 +934,10 @@ document.addEventListener('DOMContentLoaded', fitShots);
         <div class="card">
           <div class="cb" style="padding:32px">
             <h1 class="pt" style="font-size:24px; margin-bottom:10px">Проверка домашних заданий</h1>
-            <p style="margin:0 0 22px; color:var(--ink-2); font-size:14.5px; line-height:1.6">Вы берёте работы из общего пула сами, столько, сколько готовы проверить в спринте. Модель заранее разбирает работу по требованиям задания и готовит черновик, вы соглашаетесь или правите.</p>
+            <p style="margin:0 0 22px; color:var(--ink-2); font-size:14.5px; line-height:1.6">Вы берёте работы из общего пула сами, столько, сколько считаете нужным. Модель заранее разбирает работу по требованиям задания и готовит черновик, вы соглашаетесь или правите.</p>
             <ul class="bullets" style="margin-bottom:26px">
               <li>работы не назначаются сверху, вы выбираете их из пула,</li>
+              <li>квот и лимитов нет, взяли работу — она закрепилась за вами,</li>
               <li>по каждому требованию видно, что модель нашла в работе и где,</li>
               <li>итоговый балл ставите вы, не система.</li>
             </ul>
@@ -951,8 +952,8 @@ document.addEventListener('DOMContentLoaded', fitShots);
 
 <section class="screen" id="Р2">
   <div class="screen-head"><span class="screen-num">Р2</span><h3>Мои работы и пул</h3></div>
-  <p class="screen-note">Главный экран ревьюера. Сверху то, что горит и просрочено, затем работы в процессе, закрытые уходят вниз и гаснут. «Нужны правки» означает, что мяч у студента и делать ничего не надо, «На повторном ревью» — правки пришли и работу снова ждут. Пул внизу: сколько работ доступно и сколько ещё можно взять по квоте.</p>
-  <div class="flows"><b>Переходы</b> строка работы открывает <a href="#Р5">Р5</a>, «Взять из пула» добавляет работу в верхнюю таблицу, шестерёнка ведёт в <a href="#Р3">Р3</a>, вкладка статистики в <a href="#Р4">Р4</a></div>
+  <p class="screen-note">Главный экран ревьюера. Сверху «Мои активные» — то, что уже закреплено за ним: горящее и просроченное первым, закрытые уходят вниз и гаснут. «Нужны правки» означает, что мяч у студента и делать ничего не надо, «На повторном ревью» — правки пришли и работу снова ждут. Внизу общий пул: все свободные работы потока, ранние по дате сдачи выше. Квот и лимита активных нет, ревьюер берёт столько, сколько считает нужным.</p>
+  <div class="flows"><b>Переходы</b> строка работы открывает <a href="#Р5">Р5</a>. «Взять» в строке пула забирает работу в «Мои активные» атомарно и закрепляет за ревьюером, если её долю секунды назад взял другой, кнопка отвечает «уже взята» и строка исчезает из пула. «Вернуть в пул» снимает закрепление и возвращает работу в общий пул. Настройки ведут в <a href="#Р3">Р3</a>, статистика в <a href="#Р4">Р4</a></div>
   <div class="shot"><div class="vp">
     <div class="side">
       <div class="brand"><span class="mark">A</span>Обучение</div>
@@ -973,17 +974,16 @@ document.addEventListener('DOMContentLoaded', fitShots);
       <div class="top">
         <div>
           <h1 class="pt">Мои работы</h1>
-          <div class="hint" style="margin-top:2px">Спринт до 21 февраля</div>
+          <div class="hint" style="margin-top:2px">Системный дизайн и Go</div>
         </div>
         <div class="top-actions">
-          <span class="tag">Взято 5 из 6 по квоте</span>
-          <span class="btn sm">Настройки квоты</span>
-          <span class="btn pri sm">Взять из пула</span>
+          <span class="tag">Активных 5</span>
+          <span class="btn sm">Настройки</span>
         </div>
       </div>
       <div class="content">
         <div class="card" style="margin-bottom:20px">
-          <div class="ch"><div><h4>В работе</h4><div class="sub">Сначала те, у кого срок ближе</div></div><span class="hint">Срок проверки 2 рабочих дня с момента, когда взяли</span></div>
+          <div class="ch"><div><h4>Мои активные</h4><div class="sub">Работы, закреплённые за вами. Сначала те, у кого срок ближе</div></div><span class="hint">Срок проверки 2 рабочих дня с момента, когда взяли</span></div>
           <div class="cb tight">
             <table class="tbl">
               <thead><tr><th>Студент</th><th>Задание</th><th>Статус</th><th class="num">Взята</th><th class="num">Проверить до</th><th class="right"></th></tr></thead>
@@ -993,21 +993,21 @@ document.addEventListener('DOMContentLoaded', fitShots);
                   <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 1</div></td>
                   <td><span class="st review">На ревью</span></td>
                   <td class="num">17 фев</td><td class="num">19 фев, просрочено на 1 день</td>
-                  <td class="right"><span class="btn sm pri">Открыть</span></td>
+                  <td class="right"><span class="btn sm pri">Открыть</span> <span class="btn sm">Вернуть в пул</span></td>
                 </tr>
                 <tr>
                   <td class="num">4821</td>
                   <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 2, правки пришли</div></td>
                   <td><span class="st re">На повторном ревью</span></td>
                   <td class="num">21 фев</td><td class="num">23 фев</td>
-                  <td class="right"><span class="btn sm pri">Открыть</span></td>
+                  <td class="right"><span class="btn sm pri">Открыть</span> <span class="btn sm">Вернуть в пул</span></td>
                 </tr>
                 <tr>
                   <td class="num">4833</td>
                   <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 1</div></td>
                   <td><span class="st review">На ревью</span></td>
                   <td class="num">20 фев</td><td class="num">22 фев</td>
-                  <td class="right"><span class="btn sm">Открыть</span></td>
+                  <td class="right"><span class="btn sm">Открыть</span> <span class="btn sm">Вернуть в пул</span></td>
                 </tr>
                 <tr>
                   <td class="num">4805</td>
@@ -1030,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
 
         <div class="card">
           <div class="ch">
-            <div><h4>Пул по вашим курсам</h4><div class="sub">12 работ ждут ревьюера, из них 3 просрочены</div></div>
+            <div><h4>Общий пул</h4><div class="sub">12 свободных работ по вашим курсам, ранние по дате сдачи выше</div></div>
             <span class="btn sm">Показать все</span>
           </div>
           <div class="cb tight">
@@ -1039,7 +1039,12 @@ document.addEventListener('DOMContentLoaded', fitShots);
               <tbody>
                 <tr class="hot">
                   <td class="num">4902</td><td>Лабораторная 1. Декомпозиция</td><td>Системный дизайн</td>
-                  <td class="num">14 фев</td><td class="num">4 дня</td>
+                  <td class="num">14 фев</td><td class="num">5 дней</td>
+                  <td class="right"><span class="btn sm pri">Взять</span></td>
+                </tr>
+                <tr class="hot">
+                  <td class="num">4933</td><td>Лабораторная 1. Декомпозиция</td><td>Системный дизайн</td>
+                  <td class="num">15 фев</td><td class="num">4 дня</td>
                   <td class="right"><span class="btn sm pri">Взять</span></td>
                 </tr>
                 <tr>
@@ -1055,7 +1060,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
               </tbody>
             </table>
           </div>
-          <div class="cf"><span class="hint">По квоте можно взять ещё 1 работу. Изменить квоту можно в настройках.</span><span class="btn link">Открыть пул целиком</span></div>
+          <div class="cf"><span class="hint">Брать можно сколько угодно, лимита активных работ нет. Взятая работа сразу уходит из пула и закрепляется за вами.</span><span class="btn link">Открыть пул целиком</span></div>
         </div>
       </div>
     </div>
@@ -1064,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
 
 <section class="screen" id="Р3">
   <div class="screen-head"><span class="screen-num">Р3</span><h3>Настройки ревьюера</h3></div>
-  <p class="screen-note">Квота на спринт — главное поле экрана. Значение от минимального до 100, по умолчанию подставлено рекомендованное, посчитанное от объёма потока и числа активных ревьюеров. Ниже минимума поставить нельзя, это условие участия в курсе. Здесь же курсы и отпуск. Настройки и статистика — вкладки одного кабинета, отдельными разделами меню они не являются.</p>
+  <p class="screen-note">Настроек всего две: какие курсы ревьюер готов проверять и когда он отсутствует. Квоты нет вообще — сколько работ брать, ревьюер решает каждый раз в пуле на <a href="#Р2">Р2</a>. Курсы определяют только то, какие работы он видит в общем пуле. Настройки и статистика — вкладки одного кабинета, отдельными разделами меню они не являются.</p>
   <div class="flows"><b>Переходы</b> вкладка «Статистика» ведёт на <a href="#Р4">Р4</a>, сохранение возвращает на <a href="#Р2">Р2</a></div>
   <div class="shot"><div class="vp">
     <div class="side">
@@ -1093,26 +1098,8 @@ document.addEventListener('DOMContentLoaded', fitShots);
         </div>
         <div class="grid g-side">
           <div>
-            <div class="card" style="margin-bottom:20px">
-              <div class="ch"><div><h4>Сколько работ беру в спринт</h4><div class="sub">Спринт 10 рабочих дней, текущий заканчивается 21 февраля</div></div></div>
-              <div class="cb">
-                <div style="display:flex; align-items:center; gap:20px">
-                  <div class="seg" style="font-size:18px">
-                    <span>−</span>
-                    <span class="on" style="min-width:80px; justify-content:center; text-align:center; font-size:20px; font-weight:650">6</span>
-                    <span>+</span>
-                  </div>
-                  <div style="flex:1">
-                    <div class="meter"><i style="width:6%; background:var(--brand)"></i></div>
-                    <div style="display:flex; justify-content:space-between; margin-top:8px" class="hint"><span>минимум 3</span><span>рекомендуем 6</span><span>максимум 100</span></div>
-                  </div>
-                </div>
-                <div class="note" style="margin-top:18px">Рекомендованное значение посчитано так: в потоке 96 студентов, срок проверки 2 дня, активных ревьюеров по курсу 14. Меньше трёх работ поставить нельзя, это минимум участия в курсе.</div>
-              </div>
-            </div>
-
             <div class="card">
-              <div class="ch"><h4>Курсы, которые готов проверять</h4></div>
+              <div class="ch"><div><h4>Курсы, которые готов проверять</h4><div class="sub">Определяют, какие работы вы видите в общем пуле</div></div></div>
               <div class="cb">
                 <div class="check"><span class="box on">✓</span><span>Системный дизайн</span><span class="hint" style="margin-left:auto">в пуле 9 работ</span></div>
                 <div class="check"><span class="box on">✓</span><span>Go</span><span class="hint" style="margin-left:auto">в пуле 3 работы</span></div>
@@ -1133,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
                 <div class="field" style="margin-top:16px">
                   <span class="lbl">Отпуск или отсутствие</span>
                   <div class="inp ro">не задано</div>
-                  <span class="hint">На это время квота обнуляется, уже взятые работы остаются за вами.</span>
+                  <span class="hint">На это время новые работы не берём, уже взятые остаются за вами.</span>
                 </div>
               </div>
             </div>
@@ -1552,7 +1539,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
             <div class="ch"><h4>Требует внимания</h4></div>
             <div class="cb tight">
               <div class="sumline"><span>9 работ в пуле дольше 3 дней, курс «Системный дизайн»</span><span class="btn link">Открыть пул</span></div>
-              <div class="sumline"><span>4 ревьюера не набрали минимальную квоту на спринт</span><span class="btn link">Посмотреть</span></div>
+              <div class="sumline"><span>5 ревьюеров за неделю не взяли ни одной работы</span><span class="btn link">Посмотреть</span></div>
               <div class="sumline"><span>Задание «Лабораторная 2» опубликовано без эталонного решения</span><span class="btn link">Дополнить</span></div>
             </div>
           </div>
@@ -1931,7 +1918,7 @@ document.addEventListener('DOMContentLoaded', fitShots);
 
 <section class="screen" id="К6">
   <div class="screen-head"><span class="screen-num">К6</span><h3>Пул проверок</h3></div>
-  <p class="screen-note">Что сдано и до сих пор не взято ревьюером. Принудительного назначения здесь нет: координатор видит проблему и может напомнить ревьюерам или расширить круг, но не раздаёт работы руками. Ниже по тому же потоку типичные ошибки — требования, на которых валится больше всего студентов. Их можно добавить в описание курса, чтобы следующий поток обратил внимание.</p>
+  <p class="screen-note">Что сдано и до сих пор не взято ревьюером. Назначения нет ни в каком виде: зависшие работы никому не раздаются, они просто лежат в общем пуле и подсвечиваются как горящие после трёх дней. Единственный рычаг координатора — «Напомнить ревьюерам». Ниже по тому же потоку типичные ошибки — требования, на которых валится больше всего студентов. Их можно добавить в описание курса, чтобы следующий поток обратил внимание.</p>
   <div class="flows"><b>Переходы</b> строка работы открывает <a href="#К8">К8</a>, «Добавить в описание курса» ведёт в карточку курса, «Напомнить» отправляет уведомление ревьюерам курса</div>
   <div class="shot"><div class="vp">
     <div class="side">
@@ -1967,12 +1954,12 @@ document.addEventListener('DOMContentLoaded', fitShots);
         <div class="tiles" style="margin-bottom:22px">
           <div class="tile"><div class="n">9</div><div class="l">работ ждут ревьюера</div><div class="d">из 88 сданных в потоке</div></div>
           <div class="tile alert"><div class="n">3</div><div class="l">лежат дольше 3 дней</div><div class="d">все по лабораторной 1</div></div>
-          <div class="tile"><div class="n">14</div><div class="l">активных ревьюеров на курсе</div><div class="d">суммарная квота 78 работ</div></div>
+          <div class="tile"><div class="n">9 из 14</div><div class="l">ревьюеров взяли работы</div><div class="d">пятеро за неделю не взяли ни одной</div></div>
           <div class="tile"><div class="n">1.8 дня</div><div class="l">среднее время до взятия</div><div class="d">неделей раньше 1.2 дня</div></div>
         </div>
 
         <div class="card" style="margin-bottom:20px">
-          <div class="ch"><div><h4>Работы без ревьюера</h4><div class="sub">Сверху те, что лежат дольше всех</div></div><span class="btn sm">Расширить круг ревьюеров</span></div>
+          <div class="ch"><div><h4>Работы без ревьюера</h4><div class="sub">Сверху те, что лежат дольше всех. Дольше 3 дней подсвечены как горящие</div></div></div>
           <div class="cb tight">
             <table class="tbl">
               <thead><tr><th>Студент</th><th>Задание</th><th>Статус</th><th class="num">Сдана</th><th class="num">В пуле</th><th class="num">Попытка</th></tr></thead>
