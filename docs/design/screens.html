@@ -1044,73 +1044,65 @@ a:hover { border-bottom-color: var(--ink); }
 </section>
 <section class="screen" id="С4">
   <div class="screen__head"><span class="screen__id">С4</span><h2>Мои домашки</h2></div>
-  <p class="screen__note">Личный кабинет появляется у студента после первой сдачи. Здесь все домашки по всем курсам с текущим статусом. Сдать что-то новое отсюда нельзя, сдача идёт только по ссылке из Stepik.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Единственный экран студента с полосой цифр: она отвечает на вопрос «что от меня сейчас требуется». Первая плитка про его действия, дальше про чужие. Закрытые домашки гаснут до серого и не спорят за внимание.</p>
+  <p class="screen__note">Список всех домашек студента. Открывается кнопкой «Мои домашки» в шапке страницы сдачи. Сдать что-то новое отсюда нельзя, сдача идёт только по ссылке из Stepik.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Единственный экран студента с полосой цифр: она отвечает на вопрос «что от меня сейчас требуется». Первая плитка про его действия, дальше про чужие. Закрытые домашки гаснут до серого и не спорят за внимание. Сайдбара у студента нет: курсы и профиль не показываем, это слой проверки, а не LMS.</p>
   <div class="shot" style="height:562px"><div class="vp">
-    <div class="app">
-      <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Обучение</div>
-        <nav class="menu">
-          <a class="is-on" href="#">Мои домашки<span class="c">6</span></a>
-          <a href="#">Мои курсы<span class="c">2</span></a>
-          <a href="#">Профиль</a>
-        </nav>
-        <div class="aside__foot"><span class="ava">4821</span><div><div class="small" style="font-weight:500">Студент 4821</div><div class="caption">вход по Stepik ID</div></div></div>
-      </aside>
-      <div>
-        <div class="topbar" style="align-items:center">
+    <div style="background:var(--surface);min-height:670px">
+      <div class="topbar" style="align-items:center">
+        <div style="display:flex;align-items:center;gap:var(--s-4)">
+          <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Обучение</span>
+        </div>
+        <div class="btn-row"><span class="ava">4821</span></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>2</b><span>ждут вашего действия</span></div>
+        <div class="stat"><b>2</b><span>у ревьюера</span></div>
+        <div class="stat"><b>2</b><span>завершены, обе зачтены</span></div>
+        <div class="stat"><b>9,5</b><span>баллов из 12 возможных</span></div>
+      </div>
+      <div class="main">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);margin-bottom:var(--s-5)">
           <h1>Мои домашки</h1>
-          <div class="btn-row">
-            <div class="seg"><span class="is-on">Все</span><span>В работе</span><span>Завершённые</span></div>
-            <span class="btn btn--s btn--quiet">Курс: все</span>
-          </div>
+          <div class="seg"><span class="is-on">Все</span><span>В работе</span><span>Завершённые</span></div>
         </div>
-        <div class="stats">
-          <div class="stat"><b>2</b><span>ждут вашего действия</span></div>
-          <div class="stat"><b>2</b><span>у ревьюера</span></div>
-          <div class="stat"><b>2</b><span>завершены, обе зачтены</span></div>
-          <div class="stat"><b>9,5</b><span>баллов за курс из 12 возможных</span></div>
-        </div>
-        <div class="main">
-          <div class="card">
-            <div class="card__head"><h4>Все домашки</h4><span class="caption">Обновлено только что</span></div>
-            <div class="card__body card__body--flush">
-              <table class="tbl">
-                <thead><tr><th>Задание</th><th>Курс</th><th class="n">Срок</th><th>Статус</th><th class="n">Попытка</th><th class="n r">Балл</th></tr></thead>
-                <tbody>
-                  <tr class="is-hot">
-                    <td><div class="who">Лабораторная 1. Декомпозиция сервиса</div><div class="sub">ревьюер вернул 21 февраля</div></td>
-                    <td>Системный дизайн</td><td class="n">23 фев</td>
-                    <td><span class="st st--fix">Нужны правки</span></td><td class="n">2</td><td class="n r">3.0</td>
-                  </tr>
-                  <tr>
-                    <td><div class="who">Лабораторная 2. Хранилище и кэш</div><div class="sub">не отправлена</div></td>
-                    <td>Системный дизайн</td><td class="n">28 фев</td>
-                    <td><span class="st st--draft">Черновик</span></td><td class="n">1</td><td class="n r">—</td>
-                  </tr>
-                  <tr>
-                    <td><div class="who">Домашнее задание 3. Тест-дизайн</div><div class="sub">взята ревьюером 20 февраля</div></td>
-                    <td>Tech QA</td><td class="n">19 фев</td>
-                    <td><span class="st st--review">На ревью</span></td><td class="n">1</td><td class="n r">—</td>
-                  </tr>
-                  <tr>
-                    <td><div class="who">Домашнее задание 2. Чек-листы</div><div class="sub">правки отправлены 18 февраля</div></td>
-                    <td>Tech QA</td><td class="n">18 фев</td>
-                    <td><span class="st st--rereview">На повторном ревью</span></td><td class="n">2</td><td class="n r">—</td>
-                  </tr>
-                  <tr class="is-done">
-                    <td><div class="who">Домашнее задание 1. Введение</div></td>
-                    <td>Tech QA</td><td class="n">10 фев</td>
-                    <td><span class="st st--pass">Зачтена</span></td><td class="n">1</td><td class="n r">5.0</td>
-                  </tr>
-                  <tr class="is-done">
-                    <td><div class="who">Вводное задание. Выбор проекта</div></td>
-                    <td>Системный дизайн</td><td class="n">5 фев</td>
-                    <td><span class="st st--pass">Зачтена</span></td><td class="n">1</td><td class="n r">4.5</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <div class="card">
+          <div class="card__head"><h4>Все домашки</h4><span class="caption">Обновлено только что</span></div>
+          <div class="card__body card__body--flush">
+            <table class="tbl">
+              <thead><tr><th>Задание</th><th class="n">Срок</th><th>Статус</th><th class="n">Попытка</th><th class="n r">Балл</th></tr></thead>
+              <tbody>
+                <tr class="is-hot">
+                  <td><div class="who">Лабораторная 1. Декомпозиция сервиса</div><div class="sub">ревьюер вернул 21 февраля</div></td>
+                  <td class="n">23 фев</td>
+                  <td><span class="st st--fix">Нужны правки</span></td><td class="n">2</td><td class="n r">3.0</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Лабораторная 2. Хранилище и кэш</div><div class="sub">не отправлена</div></td>
+                  <td class="n">28 фев</td>
+                  <td><span class="st st--draft">Черновик</span></td><td class="n">1</td><td class="n r">—</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Домашнее задание 3. Тест-дизайн</div><div class="sub">взята ревьюером 20 февраля</div></td>
+                  <td class="n">19 фев</td>
+                  <td><span class="st st--review">На ревью</span></td><td class="n">1</td><td class="n r">—</td>
+                </tr>
+                <tr>
+                  <td><div class="who">Домашнее задание 2. Чек-листы</div><div class="sub">правки отправлены 18 февраля</div></td>
+                  <td class="n">18 фев</td>
+                  <td><span class="st st--rereview">На повторном ревью</span></td><td class="n">2</td><td class="n r">—</td>
+                </tr>
+                <tr class="is-done">
+                  <td><div class="who">Домашнее задание 1. Введение</div></td>
+                  <td class="n">10 фев</td>
+                  <td><span class="st st--pass">Зачтена</span></td><td class="n">1</td><td class="n r">5.0</td>
+                </tr>
+                <tr class="is-done">
+                  <td><div class="who">Вводное задание. Выбор проекта</div></td>
+                  <td class="n">5 фев</td>
+                  <td><span class="st st--pass">Зачтена</span></td><td class="n">1</td><td class="n r">4.5</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1119,28 +1111,24 @@ a:hover { border-bottom-color: var(--ink); }
 </section>
 <section class="screen" id="С5">
   <div class="screen__head"><span class="screen__id">С5</span><h2>Домашка в кабинете, результат ревью</h2></div>
-  <p class="screen__note">Тот же разбор, что студент видит на странице сдачи, но из кабинета и после закрытия задания. Отдельного экрана «финальная обратная связь» нет: итог — это статус на карточке. Вкладки сверху — попытки, справа история событий.</p>
+  <p class="screen__note">Тот же разбор, что студент видит на странице сдачи, но из списка «Мои домашки» и после закрытия задания. Отдельного экрана «финальная обратная связь» нет: итог — это статус на карточке. Вкладки сверху — попытки, справа история событий.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Итог вынесен крупной цифрой Unbounded в шапку карточки. Требования различаются формой маркера, а не только галочкой: квадрат — код или модель нашли, круг — добавил человек.</p>
   <div class="shot" style="height:771px"><div class="vp">
-    <div class="app">
-      <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Обучение</div>
-        <nav class="menu">
-          <a class="is-on" href="#">Мои домашки<span class="c">6</span></a>
-          <a href="#">Мои курсы<span class="c">2</span></a>
-          <a href="#">Профиль</a>
-        </nav>
-        <div class="aside__foot"><span class="ava">4821</span><div><div class="small" style="font-weight:500">Студент 4821</div><div class="caption">вход по Stepik ID</div></div></div>
-      </aside>
-      <div>
-        <div class="topbar">
+    <div style="background:var(--surface);min-height:1130px">
+      <div class="topbar" style="align-items:center">
+        <div style="display:flex;align-items:center;gap:var(--s-4)">
+          <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Обучение</span>
+        </div>
+        <div class="btn-row"><span class="ava">4821</span></div>
+      </div>
+      <div class="main">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-6);margin-bottom:var(--s-5)">
           <div>
             <div class="crumbs"><a href="#">Мои домашки</a><span>/</span><span class="cur">Домашнее задание 1. Введение</span></div>
             <h1 style="margin-top:var(--s-2)">Домашнее задание 1. Введение</h1>
           </div>
-          <div class="btn-row"><span class="st st--pass">Зачтена</span><span class="btn btn--s">Открыть страницу сдачи</span></div>
+          <div class="btn-row" style="flex:none"><span class="st st--pass">Зачтена</span><span class="btn btn--s">Открыть страницу сдачи</span></div>
         </div>
-        <div class="main">
           <div class="tabs" style="margin-bottom:var(--s-5)">
             <span class="tab is-on">Попытка 1<span class="c">итоговая</span></span>
             <span class="tab">Работа</span>
@@ -1211,7 +1199,6 @@ a:hover { border-bottom-color: var(--ink); }
             </div>
           </div>
         </div>
-      </div>
     </div>
   </div></div>
 </section>
