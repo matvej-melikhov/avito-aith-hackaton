@@ -122,7 +122,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T067 [P] [US2] Write failing two-CourseRun history tests where different versions are current simultaneously plus durable requirements-change event acceptance tests in `backend/tests/integration/test_homework_publication.py`
 - [X] T068 [US2] Implement Homework, HomeworkVersion, CourseRunHomework, append-only CourseRunHomeworkPublication, CriterionSet, and Criterion tables in `backend/src/review_platform/infrastructure/db/models/homework.py`
 - [X] T069 [US2] Create the reversible homework migration with `down_revision=0002_identity_and_courses` in `backend/migrations/versions/0003_homework_versions.py`
-- [ ] T070 [US2] Implement immutable requirement digest and criterion-set validation in `backend/src/review_platform/domain/homework.py`
+- [X] T070 [US2] Implement immutable requirement digest and criterion-set validation in `backend/src/review_platform/domain/homework.py`
 - [ ] T071 [US2] Implement create/version, append-only per-CourseRun publication/current selection, full history, and transactional HomeworkRequirementsChanged outbox events without requiring later ReviewIteration tables in `backend/src/review_platform/application/services/homeworks.py`
 - [ ] T072 [US2] Implement tenant-scoped homework repositories and history projections with no global current version in `backend/src/review_platform/infrastructure/db/repositories/homeworks.py`
 - [ ] T073 [US2] Implement and register homework mutation, published-list, and history routes from frozen OpenAPI in `backend/src/review_platform/api/routes/homeworks.py` and `backend/src/review_platform/api/routes/__init__.py`
