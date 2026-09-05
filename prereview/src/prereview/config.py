@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -59,6 +59,14 @@ class Settings(BaseSettings):
 
     # Курс для «₽ за работу». Допущение, уточнить на дату защиты.
     usd_rub: float = 80.0
+
+    @field_validator("token", "deepseek_api_key", mode="before")
+    @classmethod
+    def empty_is_none(cls, value: object) -> object:
+        """Пустая переменная окружения (например, из compose) значит «не задано»."""
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
     @property
     def api_key(self) -> str:

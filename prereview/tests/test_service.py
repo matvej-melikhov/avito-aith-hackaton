@@ -110,3 +110,14 @@ def test_bearer_required_when_configured(settings, md_artifact, monkeypatch):
     assert client.post(f"/v2/review-assists/{req['run_id']}", json=req).status_code == 401
     ok = client.post(f"/v2/review-assists/{req['run_id']}", json=req, headers={"Authorization": "Bearer secret-token"})
     assert ok.status_code == 200
+
+
+def test_empty_token_means_no_auth(settings, md_artifact, monkeypatch):
+    from prereview.config import get_settings
+
+    monkeypatch.setenv("PREREVIEW_TOKEN", "")
+    get_settings.cache_clear()
+    assert get_settings().token is None
+    client = make_client()
+    req = assist_request(md_artifact)
+    assert client.post(f"/v2/review-assists/{req['run_id']}", json=req).status_code == 200
