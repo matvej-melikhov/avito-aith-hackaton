@@ -1,0 +1,86 @@
+"""Признаки генерации в коде: заглушки, «остальной код», комментарий над каждой функцией."""
+
+from __future__ import annotations
+
+import re
+
+from prereview.artifact.model import Work
+from prereview.signal.base import Ground
+
+STUBS = [
+    r"(?i)TODO:?\s*implement", r"(?i)//\s*\.\.\.\s*(?:rest|остальн)", r"(?i)#\s*\.\.\.\s*(?:rest|остальн)",
+    r"(?i)rest of (?:the )?code", r"(?i)остальной код", r"panic\(\"not implemented\"\)", r"raise NotImplementedError",
+    r"(?i)//\s*your code here", r"(?i)#\s*your code here", r"(?i)\.\.\. existing code \.\.\.",
+]
+FUNC = {
+    "go": re.compile(r"^func\s"),
+    "python": re.compile(r"^\s*def\s"),
+    "typescript": re.compile(r"^\s*(?:export\s+)?(?:async\s+)?function\s|^\s*(?:public|private)\s+\w+\("),
+    "javascript": re.compile(r"^\s*(?:export\s+)?(?:async\s+)?function\s"),
+    "java": re.compile(r"^\s*(?:public|private|protected)\s+[\w<>\[\]]+\s+\w+\("),
+}
+COMMENT = re.compile(r"^\s*(?://|#|/\*|\*|\"\"\")")
+
+
+def stub_markers(work: Work, meta: dict) -> Ground | None:
+    ev = []
+    for f in work.files:
+        if not f.language or f.language in {"markdown", "text"}:
+            continue
+        for i, line in enumerate(f.lines, 1):
+            if any(re.search(p, line) for p in STUBS):
+                ev.append((f.path, i, line.strip()[:120]))
+                if len(ev) >= 6:
+                    break
+    if not ev:
+        return None
+    return Ground("stub_markers", "artifacts", "strong" if len(ev) >= 2 else "weak",
+                  f"Заглушки и пометки «остальной код»: {len(ev)} мест.",
+                  "Заглушки оставляют и вручную при незавершённой работе.", ev)
+
+
+def comment_every_function(work: Work, meta: dict) -> Ground | None:
+    total = commented = 0
+    ev = []
+    for f in work.files:
+        rx = FUNC.get(f.language or "")
+        if not rx:
+            continue
+        for i, line in enumerate(f.lines):
+            if rx.match(line):
+                total += 1
+                if i > 0 and COMMENT.match(f.lines[i - 1]):
+                    commented += 1
+                    if len(ev) < 3:
+                        ev.append((f.path, i, f.lines[i - 1].strip()[:100]))
+    if total >= 8 and commented / total >= 0.9:
+        return Ground("comment_every_function", "style", "weak",
+                      f"Комментарий над каждой функцией: {commented} из {total}.",
+                      "Линтеры и стайлгайды Go требуют комментарии к экспортируемым функциям.", ev)
+    return None
+
+
+def english_prose_comments(work: Work, meta: dict) -> Ground | None:
+    """Длинные литературные комментарии на английском в русскоязычном курсе."""
+    long_en = 0
+    ev = []
+    for f in work.files:
+        if not f.language or f.language in {"markdown", "text"}:
+            continue
+        for i, line in enumerate(f.lines, 1):
+            m = re.match(r"^\s*(?://|#)\s*(.+)$", line)
+            if not m:
+                continue
+            body = m.group(1)
+            if len(body.split()) >= 9 and re.search(r"[A-Za-z]", body) and not re.search(r"[А-Яа-я]", body):
+                long_en += 1
+                if len(ev) < 3:
+                    ev.append((f.path, i, body[:110]))
+    if long_en >= 10:
+        return Ground("english_prose_comments", "style", "weak",
+                      f"Длинные пояснительные комментарии на английском: {long_en}.",
+                      "Комментарии на английском это норма во многих командах.", ev)
+    return None
+
+
+CODE_SIGNALS = [stub_markers, comment_every_function, english_prose_comments]

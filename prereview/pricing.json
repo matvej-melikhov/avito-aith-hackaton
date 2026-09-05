@@ -1,0 +1,22 @@
+{
+  "note": "Тарифы DeepSeek за 1 млн токенов в долларах. Источник: api-docs.deepseek.com, Models & Pricing, по данным поиска 5 сентября 2026. Источники расходятся по V4 Pro (пиковые и непиковые часы), уточнить перед защитой.",
+  "captured_at": "2026-09-05",
+  "source": "https://api-docs.deepseek.com/quick_start/pricing",
+  "models": {
+    "deepseek-v4-flash": {
+      "input_cache_miss_per_m": 0.14,
+      "input_cache_hit_per_m": 0.0028,
+      "output_per_m": 0.28
+    },
+    "deepseek-v4-pro": {
+      "input_cache_miss_per_m": 0.435,
+      "input_cache_hit_per_m": 0.003625,
+      "output_per_m": 0.87
+    },
+    "deepseek-v4-flash-vision-exp": {
+      "input_cache_miss_per_m": 0.14,
+      "input_cache_hit_per_m": 0.0028,
+      "output_per_m": 0.28
+    }
+  }
+}
