@@ -262,7 +262,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T152 [US7] Implement interactive grant returning the bearer secret exactly once, digest-only storage, revoke, scope intersection, TTL, and pending-command invalidation in `backend/src/review_platform/application/services/agent_authorizations.py`
 - [X] T153 [US7] Implement the concrete combined OrganizationMembership/AgentAuthorization fixed-order guard with final pre-commit revalidation in `backend/src/review_platform/application/auth_guards/agent.py`
 - [X] T154 [US7] Implement MCP bearer resolution to current AgentAuthorization, represented user, membership, organization, and auth epochs in `backend/src/review_platform/mcp/authentication.py`
-- [ ] T155 [US7] Implement the stateless MCP server, protocol/version headers, bearer context, size limits, and sanitized errors in `backend/src/review_platform/mcp/server.py`
+- [X] T155 [US7] Implement the stateless MCP server, protocol/version headers, bearer context, size limits, and sanitized errors in `backend/src/review_platform/mcp/server.py`
 - [ ] T156 [US7] Bind the frozen read/discovery MCP tools to existing handlers with typed results and audit in `backend/src/review_platform/mcp/tools/read.py`
 - [ ] T157 [US7] Bind the frozen review/recommendation/responsibility mutation MCP tools to existing handlers with exact scopes, CAS, and idempotency in `backend/src/review_platform/mcp/tools/review.py`
 - [ ] T158 [US7] Bind AI start and PublicationRequest MCP tools without any direct publication handler in `backend/src/review_platform/mcp/tools/ai_publication.py`

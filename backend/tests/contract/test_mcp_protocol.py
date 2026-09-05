@@ -15,7 +15,8 @@ from sqlalchemy import select
 from tests.support.contracts import load_openapi, validator_for
 
 from review_platform.application.foundation_runtime import FoundationRuntime
-from review_platform.domain.primitives import sha256_digest, utc_now
+from review_platform.domain.primitives import utc_now
+from review_platform.infrastructure.auth.agent_tokens import issue_agent_token
 from review_platform.infrastructure.db.models.identity import (
     AgentAuthorization,
     OrganizationMembership,
@@ -37,7 +38,8 @@ MEMBERSHIP = UUID("00000000-0000-7000-8000-000000181003")
 AGENT = UUID("00000000-0000-7000-8000-000000181004")
 AUTHORIZATION = UUID("00000000-0000-7000-8000-000000181005")
 COURSE = UUID("00000000-0000-7000-8000-000000181006")
-TOKEN = "mcp_offline_bearer_secret_abcdefghijklmnopqrstuvwxyz012345"
+_ISSUED_TOKEN = issue_agent_token(random_bytes=lambda size: b"m" * size)
+TOKEN = _ISSUED_TOKEN.access_token.reveal()
 
 
 @pytest.fixture
@@ -85,7 +87,7 @@ async def mcp_client(
                 scopes=["courses:read"],
                 membership_revision=3,
                 auth_epoch=2,
-                token_digest=sha256_digest(TOKEN),
+                token_digest=_ISSUED_TOKEN.token_digest,
                 status="active",
                 expires_at=utc_now() + timedelta(hours=1),
                 revoked_at=None,
