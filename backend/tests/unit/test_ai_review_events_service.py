@@ -314,7 +314,7 @@ async def test_event_id_collision_old_attempt_and_stale_inputs_never_replace_cur
 
 @pytest.mark.anyio
 async def test_out_of_order_unsupported_version_and_fingerprint_mismatch_are_rejected() -> None:
-    context = AIEventContext(_run(), _attempt(), _request(), True)
+    context = AIEventContext(_run(), _attempt(sequence=2), _request(), True)
     service, repository, _, _, _ = _service(context)
     out_of_order = _events()["retryable_failed"]
     with pytest.raises(AIEventSequenceConflict):

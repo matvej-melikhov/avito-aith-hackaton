@@ -221,7 +221,7 @@ class AIReviewEventService:
                 "replay",
                 context.run.status,
             )
-        if event.sequence != context.attempt.last_sequence + 1:
+        if event.sequence <= context.attempt.last_sequence:
             raise AIEventSequenceConflict("event sequence is duplicate or out of order")
         suggestions, signal = self._outputs(event, organization_id=organization_id)
         await self._repository.append_outputs(suggestions, signal)

@@ -218,7 +218,7 @@ async def test_mysql_unique_race_event_collision_old_attempt_and_terminal_cas(
                 expected_status="running",
                 expected_last_sequence=0,
                 new_status="partial",
-                new_sequence=2,
+                new_sequence=0,
             )
         assert await repository.transition_attempt(
             ORG,
@@ -226,7 +226,7 @@ async def test_mysql_unique_race_event_collision_old_attempt_and_terminal_cas(
             expected_status="running",
             expected_last_sequence=0,
             new_status="retryable_failed",
-            new_sequence=1,
+            new_sequence=2,
             error={"code": "provider_failed", "message": "Bearer secret", "action": "retry"},
         )
         await repository.add_attempt(

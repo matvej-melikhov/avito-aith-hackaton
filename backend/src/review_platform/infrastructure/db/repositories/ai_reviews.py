@@ -195,8 +195,8 @@ class AIReviewRepository:
         self._require_transition(
             expected_status, new_status, ATTEMPT_TRANSITIONS, terminal=ATTEMPT_TERMINAL
         )
-        if new_sequence != expected_last_sequence + 1:
-            raise AIReviewStateConflict("attempt event sequence must increment by one")
+        if new_sequence <= expected_last_sequence:
+            raise AIReviewStateConflict("attempt event sequence must increase monotonically")
         sanitized = sanitize_error(error) if error is not None else None
         result = await self._session.execute(
             update(AIReviewAttempt)
