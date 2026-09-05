@@ -50,6 +50,7 @@ from review_platform.infrastructure.db.models.submission import (
     Submission,
     SubmissionVersion,
 )
+from review_platform.infrastructure.db.repositories.deliveries import SqlDeliveryRepository
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 from review_platform.infrastructure.providers.mocks import (
     FixtureDeliveryProvider,
@@ -62,6 +63,7 @@ from review_platform.infrastructure.tasks.deliveries import (
     DeliveryTaskError,
     DeliveryTaskHandler,
     DeliveryTaskRuntime,
+    SqlManualDeliveryScheduler,
     SqlReviewDeliveryScheduler,
 )
 
@@ -456,6 +458,116 @@ async def test_scheduler_materializes_two_independent_intents_and_replays_exactl
         assert {row.operation_id for row in rows} == {OPERATION_A, OPERATION_B}
         assert {row.destination_kind for row in rows} == {"stepik", "github"}
         assert all(row.payload["contract_version"] == "1.1.0" for row in rows)
+
+
+async def test_manual_scheduler_is_reconciliation_first_and_replays_exactly(
+    foundation_session_factory: AsyncSessionFactory,
+) -> None:
+    await _seed_parents(foundation_session_factory)
+    ids = IDs(20500)
+    await _schedule(foundation_session_factory, ids)
+    async with session_scope(foundation_session_factory) as session:
+        row = await session.get(ExternalDelivery, DELIVERY_A)
+        assert row is not None
+        row.state = "action_required"
+        await session.flush([row])
+
+    repository = SqlDeliveryRepository(
+        id_factory=ids,
+        clock=lambda: NOW,
+        max_attempts=3,
+    )
+    scheduler = SqlManualDeliveryScheduler(
+        id_factory=ids,
+        clock=lambda: NOW,
+        max_attempts=3,
+    )
+    async with session_scope(foundation_session_factory) as session:
+        delivery = await repository.lock(ORG, DELIVERY_A, transaction=session)
+        assert delivery is not None
+        await scheduler.schedule(delivery, transaction=session)
+        await scheduler.schedule(delivery, transaction=session)
+
+    async with foundation_session_factory() as session:
+        messages = (
+            await session.scalars(
+                select(OutboxMessage).where(
+                    OutboxMessage.organization_id == ORG,
+                    OutboxMessage.aggregate_id == DELIVERY_A,
+                    OutboxMessage.event_type == RECONCILIATION_EVENT,
+                )
+            )
+        ).all()
+        assert len(messages) == 1
+        assert messages[0].payload["trigger"] == "manual_recovery"
+        assert messages[0].payload["delivery_revision"] == 0
+        assert messages[0].payload["request"] == _request()
+
+
+async def test_manual_scheduler_retries_delivery_only_after_not_found_observation(
+    foundation_session_factory: AsyncSessionFactory,
+) -> None:
+    await _seed_parents(foundation_session_factory)
+    ids = IDs(20700)
+    message_id = await _schedule(foundation_session_factory, ids)
+    provider = FixtureDeliveryProvider(
+        deliver_outcome="unknown_result",
+        reconcile_outcome="reconcile_not_found_result",
+    )
+    runtime = _runtime(foundation_session_factory, provider, ids)
+    await DeliveryTaskHandler(runtime, worker_identity="delivery-worker")(
+        organization_id=str(ORG),
+        message_id=str(message_id),
+    )
+    async with foundation_session_factory() as session:
+        reconciliation_id = await session.scalar(
+            select(OutboxMessage.message_id).where(
+                OutboxMessage.event_type == RECONCILIATION_EVENT
+            )
+        )
+        assert reconciliation_id is not None
+    await DeliveryReconciliationTaskHandler(
+        runtime,
+        worker_identity="delivery-worker",
+    )(
+        organization_id=str(ORG),
+        message_id=str(reconciliation_id),
+    )
+
+    repository = SqlDeliveryRepository(
+        id_factory=ids,
+        clock=lambda: NOW,
+        max_attempts=3,
+    )
+    scheduler = SqlManualDeliveryScheduler(
+        id_factory=ids,
+        clock=lambda: NOW,
+        max_attempts=3,
+    )
+    async with session_scope(foundation_session_factory) as session:
+        delivery = await repository.lock(ORG, DELIVERY_A, transaction=session)
+        assert delivery is not None and delivery.state == "retryable_failed"
+        expected_revision = delivery.revision
+        await scheduler.schedule(delivery, transaction=session)
+        await scheduler.schedule(delivery, transaction=session)
+
+    async with foundation_session_factory() as session:
+        manual_messages = (
+            await session.scalars(
+                select(OutboxMessage).where(
+                    OutboxMessage.organization_id == ORG,
+                    OutboxMessage.aggregate_id == DELIVERY_A,
+                    OutboxMessage.event_type == DELIVERY_EVENT,
+                )
+            )
+        ).all()
+        retries = [
+            message
+            for message in manual_messages
+            if message.payload.get("trigger") == "manual_recovery"
+        ]
+        assert len(retries) == 1
+        assert retries[0].payload["delivery_revision"] == expected_revision
 
 
 async def test_unknown_delivery_reconciles_found_with_exact_attempt_history(

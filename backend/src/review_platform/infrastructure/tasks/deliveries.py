@@ -14,6 +14,10 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from review_platform.application.ports.providers import DeliveryProvider, JsonValue
+from review_platform.application.services.deliveries import (
+    DeliveryRecord,
+    DeliveryScheduler,
+)
 from review_platform.application.services.review_publication import (
     ExternalDeliveryIntent,
     ReviewDeliveryScheduler,
@@ -38,6 +42,7 @@ from review_platform.domain.primitives import (
 )
 from review_platform.infrastructure.db.models.delivery import (
     DeliveryAttempt,
+    DeliveryReconciliationObservation,
 )
 from review_platform.infrastructure.db.models.identity import ExternalCredential
 from review_platform.infrastructure.db.models.learning import DestinationBinding
@@ -198,6 +203,119 @@ class SqlReviewDeliveryScheduler(ReviewDeliveryScheduler):
             id_factory=self._id_factory,
             clock=self._clock,
         )
+
+
+class SqlManualDeliveryScheduler(DeliveryScheduler):
+    """Create one durable manual recovery message without calling a provider."""
+
+    def __init__(
+        self,
+        *,
+        id_factory: Callable[[], UUID] = uuid7,
+        clock: Callable[[], datetime] = utc_now,
+        max_attempts: int = 5,
+    ) -> None:
+        if not 1 <= max_attempts <= 10:
+            raise ValueError("manual delivery outbox attempts must be between 1 and 10")
+        self._id_factory = id_factory
+        self._clock = clock
+        self._max_attempts = max_attempts
+
+    async def schedule(
+        self,
+        delivery: DeliveryRecord,
+        *,
+        transaction: object,
+    ) -> None:
+        session = _session(transaction)
+        row = await session.scalar(
+            select(ExternalDelivery)
+            .where(
+                ExternalDelivery.organization_id == delivery.organization_id,
+                ExternalDelivery.id == delivery.delivery_id,
+            )
+            .with_for_update()
+        )
+        if row is None:
+            raise DeliveryTaskError("tenant delivery was not found for manual recovery")
+        if (
+            row.state != delivery.state
+            or row.revision != delivery.revision
+            or row.attempt_count != delivery.attempt_count
+            or row.course_run_id != delivery.provenance.course_run_id
+            or row.review_iteration_id != delivery.provenance.review_iteration_id
+            or row.review_revision_id != delivery.provenance.review_revision_id
+        ):
+            raise DeliveryTaskError("manual delivery snapshot provenance mismatched")
+        if row.state in {"succeeded", "superseded", "processing", "reconciling"}:
+            raise DeliveryTaskError(
+                f"delivery state {row.state!r} cannot schedule manual recovery"
+            )
+        event_type = await _manual_recovery_event(session, row)
+        payload: dict[str, Any] = {
+            "request": render_deliver_request(parse_deliver_request(row.payload)),
+            "trigger": "manual_recovery",
+            "delivery_revision": row.revision,
+        }
+        messages = (
+            await session.scalars(
+                select(OutboxMessage).where(
+                    OutboxMessage.organization_id == row.organization_id,
+                    OutboxMessage.aggregate_type == "external_delivery",
+                    OutboxMessage.aggregate_id == row.id,
+                    OutboxMessage.event_type == event_type,
+                )
+            )
+        ).all()
+        if any(message.payload == payload for message in messages):
+            return
+        await _append_outbox(
+            session,
+            organization_id=row.organization_id,
+            message_id=self._id_factory(),
+            delivery_id=row.id,
+            event_type=event_type,
+            payload=payload,
+            available_at=require_utc(self._clock()),
+            max_attempts=self._max_attempts,
+            id_factory=self._id_factory,
+            clock=self._clock,
+        )
+
+
+async def _manual_recovery_event(
+    session: AsyncSession,
+    delivery: ExternalDelivery,
+) -> str:
+    if delivery.state in {"unknown_outcome", "action_required"}:
+        return RECONCILIATION_EVENT
+    if delivery.state == "pending":
+        return DELIVERY_EVENT
+    if delivery.state != "retryable_failed":
+        raise DeliveryTaskError(f"delivery state {delivery.state!r} is not recoverable")
+    attempt = await session.scalar(
+        select(DeliveryAttempt)
+        .where(
+            DeliveryAttempt.organization_id == delivery.organization_id,
+            DeliveryAttempt.delivery_id == delivery.id,
+            DeliveryAttempt.attempt_number == delivery.attempt_count,
+        )
+        .order_by(DeliveryAttempt.id.desc())
+    )
+    if attempt is None:
+        return RECONCILIATION_EVENT
+    observed_not_found = await session.scalar(
+        select(DeliveryReconciliationObservation.id)
+        .where(
+            DeliveryReconciliationObservation.organization_id
+            == delivery.organization_id,
+            DeliveryReconciliationObservation.delivery_id == delivery.id,
+            DeliveryReconciliationObservation.delivery_attempt_id == attempt.id,
+            DeliveryReconciliationObservation.outcome == "not_found",
+        )
+        .limit(1)
+    )
+    return DELIVERY_EVENT if observed_not_found is not None else RECONCILIATION_EVENT
 
 
 @dataclass(frozen=True, slots=True)
@@ -1225,6 +1343,7 @@ async def handle_external_delivery_reconciliation(
 
 
 _scheduler_protocol: ReviewDeliveryScheduler = SqlReviewDeliveryScheduler()
+_manual_scheduler_protocol: DeliveryScheduler = SqlManualDeliveryScheduler()
 
 
 __all__ = [
@@ -1235,6 +1354,7 @@ __all__ = [
     "DeliveryTaskError",
     "DeliveryTaskHandler",
     "DeliveryTaskRuntime",
+    "SqlManualDeliveryScheduler",
     "SqlReviewDeliveryScheduler",
     "StaleDeliveryClaim",
     "handle_external_delivery",

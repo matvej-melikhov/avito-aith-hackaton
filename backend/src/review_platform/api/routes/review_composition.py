@@ -93,6 +93,7 @@ from review_platform.infrastructure.db.repositories.review_work import (
     ReviewWorkRepositoryError,
     SqlReviewWorkRepository,
 )
+from review_platform.infrastructure.tasks.deliveries import SqlReviewDeliveryScheduler
 
 
 class ReviewCompositionError(RuntimeError):
@@ -368,7 +369,11 @@ async def _dispatch_review_mutation(
         publication_payload = cast(PublishReviewPayload, command.payload)
         publication_result = await ReviewPublicationService(
             repository=publications,
-            scheduler=_UnavailableDeliveryScheduler(),
+            scheduler=SqlReviewDeliveryScheduler(
+                id_factory=runtime.id_factory,
+                clock=runtime.clock,
+                max_attempts=runtime.settings.provider_max_attempts,
+            ),
             authorizer=authorizer,
             audit=audit,
             id_factory=runtime.id_factory,

@@ -239,7 +239,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T140 [US6] Implement tenant-scoped attempt/observation repositories and stale-publication guards in `backend/src/review_platform/infrastructure/db/repositories/deliveries.py`
 - [X] T141 [US6] Implement schema-backed delivery and reconciliation workers with stable logical keys, exact credential binding provenance, and Operation attempts in `backend/src/review_platform/infrastructure/tasks/deliveries.py`
 - [X] T142 [US6] Register delivery/reconciliation handlers and concurrency limits in `backend/src/review_platform/infrastructure/tasks/registry.py`
-- [ ] T143 [US6] Implement and register delivery list and exact-command human-only retry routes in `backend/src/review_platform/api/routes/deliveries.py` and `backend/src/review_platform/api/routes/__init__.py`
+- [X] T143 [US6] Implement and register delivery list and exact-command human-only retry routes in `backend/src/review_platform/api/routes/deliveries.py` and `backend/src/review_platform/api/routes/__init__.py`
 - [ ] T144 [US6] Add typed delivery attempt history, error/action, reconciliation observations, provenance, and independent destination states to `backend/src/review_platform/application/projections/review_detail.py`
 
 **Checkpoint**: US6 is GREEN; unknown outcomes never use blind retry, every delivery is observable, and old results cannot overwrite new ones.

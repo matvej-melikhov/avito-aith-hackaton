@@ -16,17 +16,34 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Table, func, select, text
 
 from review_platform.application.foundation_runtime import FoundationRuntime
-from review_platform.application.ports.providers import ProviderPayload
+from review_platform.application.ports.providers import DeliveryProvider, ProviderPayload
 from review_platform.application.request_context import RequestActor
 from review_platform.contracts.commands import WireCommand
+from review_platform.domain.delivery_payload import (
+    parse_deliver_request,
+    parse_reconcile_request,
+    render_delivery_result,
+)
 from review_platform.infrastructure.db.base import Base
-from review_platform.infrastructure.db.models.identity import OrganizationMembership, User
+from review_platform.infrastructure.db.models.identity import (
+    ExternalCredential,
+    OrganizationMembership,
+    User,
+)
+from review_platform.infrastructure.db.models.learning import DestinationBinding
 from review_platform.infrastructure.db.models.operations import Operation, OutboxMessage
-from review_platform.infrastructure.db.models.publication import ExternalDelivery
+from review_platform.infrastructure.db.models.publication import (
+    ExternalDelivery,
+    ReviewPublication,
+)
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 from review_platform.infrastructure.providers.mocks import (
     FixtureDeliveryProvider,
     FrozenFixtureStore,
+)
+from review_platform.infrastructure.tasks.deliveries import (
+    DELIVERY_TASK_RUNTIME_FACTORY_ENV,
+    DeliveryTaskRuntime,
 )
 from review_platform.infrastructure.tasks.registry import REGISTRY, load_handler_modules
 from review_platform.main import create_app
@@ -55,15 +72,103 @@ class DeliveryHarness:
     app: FastAPI
     client: AsyncClient
     session_factory: AsyncSessionFactory
+    provider: ScenarioDeliveryProvider
+
+
+class ScenarioDeliveryProvider:
+    """Frozen-schema offline provider with per-delivery deterministic outcomes."""
+
+    contract_version = "1.1.0"
+    schema_name = "delivery.schema.json"
+
+    def __init__(self) -> None:
+        self._fixture = FrozenFixtureStore().load("delivery-v1.1.0.json")
+        self._delivery_outcomes: dict[UUID, list[str]] = {}
+        self._reconciliation_outcomes: dict[UUID, list[str]] = {}
+
+    def delivery_outcomes(self, delivery_id: UUID, *outcomes: str) -> None:
+        self._delivery_outcomes[delivery_id] = list(outcomes)
+
+    def reconciliation_outcomes(self, delivery_id: UUID, *outcomes: str) -> None:
+        self._reconciliation_outcomes[delivery_id] = list(outcomes)
+
+    async def deliver(self, request: ProviderPayload) -> ProviderPayload:
+        parsed = parse_deliver_request(request)
+        outcome = self._next(
+            self._delivery_outcomes,
+            parsed.delivery_id,
+            "success_result",
+        )
+        return self._result(outcome, parsed.organization_id, parsed.delivery_id)
+
+    async def reconcile(self, request: ProviderPayload) -> ProviderPayload:
+        parsed = parse_reconcile_request(request)
+        outcome = self._next(
+            self._reconciliation_outcomes,
+            parsed.delivery_id,
+            "reconcile_found_result",
+        )
+        return self._result(outcome, parsed.organization_id, parsed.delivery_id)
+
+    @staticmethod
+    def _next(
+        configured: dict[UUID, list[str]],
+        delivery_id: UUID,
+        default: str,
+    ) -> str:
+        outcomes = configured.get(delivery_id)
+        if not outcomes:
+            return default
+        return outcomes.pop(0) if len(outcomes) > 1 else outcomes[0]
+
+    def _result(
+        self,
+        outcome: str,
+        organization_id: UUID,
+        delivery_id: UUID,
+    ) -> ProviderPayload:
+        value = deepcopy(cast(dict[str, Any], self._fixture[outcome]))
+        value["organization_id"] = str(organization_id)
+        value["delivery_id"] = str(delivery_id)
+        return cast(ProviderPayload, render_delivery_result(value))
+
+
+_TASK_SESSION_FACTORY: AsyncSessionFactory | None = None
+_TASK_PROVIDER: ScenarioDeliveryProvider | None = None
+
+
+def build_delivery_task_runtime() -> DeliveryTaskRuntime:
+    """Explicit test-only runtime factory resolved by the registered workers."""
+
+    if _TASK_SESSION_FACTORY is None or _TASK_PROVIDER is None:
+        raise RuntimeError("delivery test runtime fixture is not installed")
+    provider: DeliveryProvider = _TASK_PROVIDER
+    return DeliveryTaskRuntime(
+        session_factory=_TASK_SESSION_FACTORY,
+        providers={"stepik": provider, "github": provider},
+        clock=lambda: NOW,
+        max_attempts=5,
+        lease_seconds=60,
+        retry_seconds=30,
+    )
 
 
 @pytest.fixture
 async def delivery_harness(
     foundation_runtime: FoundationRuntime,
     foundation_session_factory: AsyncSessionFactory,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncIterator[DeliveryHarness]:
+    global _TASK_PROVIDER, _TASK_SESSION_FACTORY
+
+    provider = ScenarioDeliveryProvider()
+    _TASK_SESSION_FACTORY = foundation_session_factory
+    _TASK_PROVIDER = provider
+    monkeypatch.setenv(
+        DELIVERY_TASK_RUNTIME_FACTORY_ENV,
+        f"{__name__}:build_delivery_task_runtime",
+    )
     app = create_app(runtime=foundation_runtime)
-    app.state.delivery_provider = FixtureDeliveryProvider()
     actor = RequestActor.user(
         organization_id=ORG,
         user_id=METHOD,
@@ -84,7 +189,9 @@ async def delivery_harness(
         transport=ASGITransport(app=app),
         base_url="https://review-platform.test",
     ) as client:
-        yield DeliveryHarness(app, client, foundation_session_factory)
+        yield DeliveryHarness(app, client, foundation_session_factory, provider)
+    _TASK_SESSION_FACTORY = None
+    _TASK_PROVIDER = None
 
 
 async def _mysql_ready(factory: AsyncSessionFactory) -> None:
@@ -161,6 +268,11 @@ async def test_timeout_enters_unknown_then_reconciles_found_before_any_retry(
     assert unknown["outcome"] == "unknown_outcome"
     assert found["outcome"] == "succeeded"
     tables = _recovery_tables()
+    delivery_harness.provider.delivery_outcomes(DELIVERY_A, "unknown_result")
+    delivery_harness.provider.reconciliation_outcomes(
+        DELIVERY_A,
+        "reconcile_found_result",
+    )
     await _seed_delivery(delivery_harness.session_factory, request=_fixture_request())
     deliver, reconcile = _require_handlers()
 
@@ -199,6 +311,15 @@ async def test_reconcile_not_found_schedules_delivery_retry_only_after_observati
     assert not_found["outcome"] == "not_found"
     deliver, reconcile = _require_handlers()
     tables = _recovery_tables()
+    delivery_harness.provider.delivery_outcomes(
+        DELIVERY_A,
+        "unknown_result",
+        "success_result",
+    )
+    delivery_harness.provider.reconciliation_outcomes(
+        DELIVERY_A,
+        "reconcile_not_found_result",
+    )
     await _seed_delivery(delivery_harness.session_factory, request=_fixture_request())
 
     await _invoke(deliver, MESSAGE_A)
@@ -282,6 +403,12 @@ async def test_two_required_destinations_recover_independently(
     )["outcome"] == "unknown_outcome"
     deliver, reconcile = _require_handlers()
     _recovery_tables()
+    delivery_harness.provider.delivery_outcomes(DELIVERY_A, "success_result")
+    delivery_harness.provider.delivery_outcomes(DELIVERY_B, "unknown_result")
+    delivery_harness.provider.reconciliation_outcomes(
+        DELIVERY_B,
+        "reconcile_found_result",
+    )
     await _seed_delivery(delivery_harness.session_factory, request=_fixture_request())
     await _seed_delivery(
         delivery_harness.session_factory,
@@ -351,17 +478,65 @@ async def _seed_delivery(
         session.add(operation)
         destination = cast(Mapping[str, Any], request["destination"])
         provenance = cast(Mapping[str, Any], request["provenance"])
+        credential_id = UUID(str(destination["credential_binding_id"]))
+        credential_version = int(destination["credential_binding_version"])
+        binding_id = UUID(str(destination["binding_id"]))
+        binding_version = int(destination["binding_version"])
+        review_iteration_id = UUID(str(provenance["review_iteration_id"]))
+        review_revision_id = UUID(str(provenance["review_revision_id"]))
+        publication_id = UUID("00000000-0000-7000-8000-000000017030")
+        session.add(
+            ExternalCredential(
+                id=credential_id,
+                organization_id=ORG,
+                provider=str(destination["kind"]),
+                binding_version=credential_version,
+                ciphertext="fixture-only-ciphertext",
+                key_id="fixture-only-key",
+                status="active",
+            )
+        )
+        session.add(
+            DestinationBinding(
+                id=binding_id,
+                organization_id=ORG,
+                course_run_id=UUID(str(provenance["course_run_id"])),
+                kind=str(destination["kind"]),
+                binding_version=binding_version,
+                recipient_ref=str(destination["recipient_ref"]),
+                credential_id=credential_id,
+                credential_binding_version=credential_version,
+                required=True,
+                status="active",
+                revision=0,
+            )
+        )
+        if await session.get(ReviewPublication, publication_id) is None:
+            session.add(
+                ReviewPublication(
+                    id=publication_id,
+                    organization_id=ORG,
+                    review_iteration_id=review_iteration_id,
+                    review_revision_id=review_revision_id,
+                    publication_request_id=None,
+                    publication_version=1,
+                    published_by=METHOD,
+                    published_at=NOW,
+                    status="published",
+                    revision=0,
+                )
+            )
         session.add(
             ExternalDelivery(
                 id=delivery_id,
                 organization_id=ORG,
-                publication_id=UUID("00000000-0000-7000-8000-000000017030"),
+                publication_id=publication_id,
                 operation_id=operation_id,
                 delivery_key=str(request["delivery_key"]),
-                destination_binding_id=UUID(str(destination["binding_id"])),
-                binding_version=int(destination["binding_version"]),
-                credential_binding_id=UUID(str(destination["credential_binding_id"])),
-                credential_binding_version=int(destination["credential_binding_version"]),
+                destination_binding_id=binding_id,
+                binding_version=binding_version,
+                credential_binding_id=credential_id,
+                credential_binding_version=credential_version,
                 destination_kind=str(destination["kind"]),
                 recipient_ref=str(destination["recipient_ref"]),
                 course_run_id=UUID(str(provenance["course_run_id"])),
@@ -370,13 +545,13 @@ async def _seed_delivery(
                 submission_version_id=UUID(str(provenance["submission_version_id"])),
                 artifact_version_id=UUID(str(provenance["artifact_version_id"])),
                 artifact_content_digest=str(provenance["artifact_content_digest"]),
-                review_iteration_id=UUID(str(provenance["review_iteration_id"])),
-                review_revision_id=UUID(str(provenance["review_revision_id"])),
+                review_iteration_id=review_iteration_id,
+                review_revision_id=review_revision_id,
                 contract_version="1.1.0",
                 publication_fingerprint=str(request["publication_fingerprint"]),
                 payload_version="1.1.0",
                 payload_digest=str(request["payload_digest"]),
-                payload=dict(cast(Mapping[str, Any], request["payload"])),
+                payload=dict(request),
                 state=state,
                 attempt_count=0,
                 revision=0,
