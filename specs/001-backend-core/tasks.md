@@ -267,7 +267,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T157 [US7] Bind the frozen review/recommendation/responsibility mutation MCP tools to existing handlers with exact scopes, CAS, and idempotency in `backend/src/review_platform/mcp/tools/review.py`
 - [X] T158 [US7] Bind AI start and PublicationRequest MCP tools without any direct publication handler in `backend/src/review_platform/mcp/tools/ai_publication.py`
 - [X] T159 [US7] Assemble and assert exactly 12 tools in the MCP registry in `backend/src/review_platform/mcp/tools/__init__.py`
-- [ ] T160 [US7] Implement and register session-only grant/revoke routes with one-time token response plus MCP entrypoint in `backend/src/review_platform/api/routes/agents.py`, `backend/src/review_platform/api/routes/__init__.py`, and `backend/src/review_platform/mcp/__main__.py`
+- [X] T160 [US7] Implement and register session-only grant/revoke routes with one-time token response plus MCP entrypoint in `backend/src/review_platform/api/routes/agents.py`, `backend/src/review_platform/api/routes/__init__.py`, and `backend/src/review_platform/mcp/__main__.py`
 - [ ] T161 [US7] Run the complete revocation and REST/MCP parity suites and record the US7 GREEN evidence in `backend/tests/evidence/us7.md`
 
 **Checkpoint**: US7 is GREEN; revocation blocks all subsequent authority and uncommitted concurrent work, while MCP can request but cannot perform final publication.

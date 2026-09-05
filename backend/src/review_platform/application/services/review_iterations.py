@@ -245,7 +245,7 @@ class ReviewIterationService:
             criterion_set_id=criterion_set.id,
             effective_deadline=selected.effective_deadline,
             responsible_reviewer_id=actor.user_id,
-            status="queued",
+            status="in_review",
             current_revision_id=None,
             predecessor_iteration_id=current_id,
             origin="initial" if not iterations else "resubmission",

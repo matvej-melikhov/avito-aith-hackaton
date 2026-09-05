@@ -476,8 +476,9 @@ class FoundationRuntime:
         organization_id: str,
         artifact_version_id: str,
         requested_by_organization_id: str,
+        object_key: str | None = None,
     ) -> str:
-        key = self.s3_key(
+        key = object_key or self.s3_key(
             organization_id=organization_id,
             artifact_version_id=artifact_version_id,
         )

@@ -18,6 +18,13 @@ from review_platform.application.foundation_runtime import (
     RuntimeConfigurationError,
     build_foundation_runtime,
 )
+from review_platform.infrastructure.composition.ai_review import (
+    build_sql_ai_review_start_service_factory,
+)
+from review_platform.mcp.__main__ import (
+    build_embedded_mcp_app,
+    configured_ai_binding_from_environment,
+)
 from review_platform.settings import Settings, get_settings
 
 
@@ -54,6 +61,16 @@ def create_app(
         runtime.worker_auth_revalidator if runtime is not None else None
     )
     app.state.configuration_error = configuration_error
+    if runtime is not None:
+        app.state.ai_review_start_service_factory = build_sql_ai_review_start_service_factory(
+            runtime
+        )
+        configured_ai = configured_ai_binding_from_environment(required=False)
+        if configured_ai is not None:
+            app.state.ai_review_credential_binding_id = configured_ai.credential_binding_id
+            app.state.ai_review_credential_binding_version = (
+                configured_ai.credential_binding_version
+            )
     app.add_middleware(SanitizedExceptionMiddleware)
     app.add_middleware(RequestBodyLimitMiddleware, max_bytes=selected.command_body_limit_bytes)
     app.include_router(build_api_router())
@@ -67,6 +84,9 @@ def create_app(
     async def ready() -> dict[str, str]:
         status = "ready" if runtime is not None else "configuration_required"
         return {"status": status, "contract_version": selected.contract_version}
+
+    if runtime is not None:
+        app.mount("", build_embedded_mcp_app(runtime, state=app.state))
 
     return app
 
