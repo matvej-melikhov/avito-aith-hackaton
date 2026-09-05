@@ -1,6 +1,6 @@
 # Quickstart validation: backend core
 
-Этот guide станет исполнимым после bootstrap backend из tasks.md. До появления кода команды задают обязательный контракт локального окружения.
+Этот guide фиксирует исполнимые команды локальной проверки backend core и наблюдённые release-gate результаты.
 
 ## Prerequisites
 
@@ -89,3 +89,52 @@ Required gates:
     docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic upgrade head
 
 Expected: all offline tests pass, migration round-trip succeeds, no unhandled delivery remains, and no secret appears in captured logs.
+
+## Observed local validation — 2026-09-05
+
+Проверка выполнялась на `HEAD aefdec6` в Lima VM `avito-aith-hackaton` с Docker context `lima-avito-aith-hackaton`. Live providers не запускались.
+
+Полная offline-проверка, переданная из общего T170 run:
+
+    uv sync --locked
+    # 92 packages resolved; 90 packages checked
+
+    uv run --directory backend pytest -m "not live" -q
+    # 851 passed, 8 deselected in 410.37s
+
+Compose-конфигурация валидна и раскрывает девять ожидаемых сервисов (`mysql`, `redis`, `minio`, `mailpit`, `api`, `worker`, `outbox-relay`, `email-worker`, `mcp`):
+
+    docker compose --env-file deploy/env.example -f deploy/compose.yaml config -q
+    # PASS, exit 0
+
+    docker compose --env-file deploy/env.example -f deploy/compose.yaml config --services
+    # redis, mailpit, minio, mysql, email-worker, mcp, outbox-relay, worker, api
+
+Первый application image build выявил два packaging-дефекта: для сборки
+`asyncmy==0.2.10` из sdist не хватало `gcc`, а production-модуль
+`domain.primitives` импортировал `rfc8785`, который был объявлен только в dev
+group. Compiler toolchain перенесён в отдельный builder stage, `rfc8785`
+перенесён в project dependencies, runtime image остался без `gcc`.
+
+Повторная native arm64 сборка прошла:
+
+    docker compose --env-file deploy/env.example -f deploy/compose.yaml build api worker outbox-relay email-worker mcp
+    # PASS: review-platform-api, worker, outbox-relay, email-worker, mcp built
+
+Проверенные image IDs:
+
+    review-platform-api:latest sha256:bf9d7302c13bf61e7fe288d9e06ea006b4fdab66da6685e6d44c3c521969bc01 arm64
+    review-platform-worker:latest sha256:02e170ec5b4cb3a018fdfbf9dfe662fa3f4177fe4ac700ae6e871d903f215031 arm64
+    review-platform-outbox-relay:latest sha256:094cf96155c6e38e37872dd2f3bbf16f9c457e0ae3d65f0d06ed9a01da288b99 arm64
+    review-platform-email-worker:latest sha256:3282a6df70588aa1565dbc272ec5d898918ce0cbd8d705cb9d5fe0b84ac2d800 arm64
+    review-platform-mcp:latest sha256:a9770664c78b741b3faa858a63bc758355e4e4b2e1301a047149f01bd17279cd arm64
+
+Внутри `review-platform-api:latest` `gcc` отсутствует, а импорт всех девяти
+process entrypoints возвращает `IMAGE_IMPORT_OK 9`.
+
+Импорт всех process entrypoints выполнен одной offline-командой:
+
+    uv run --directory backend python -c 'import importlib; modules=("review_platform.main","review_platform.infrastructure.tasks.__main__","review_platform.infrastructure.tasks.relay_main","review_platform.infrastructure.tasks.email_main","review_platform.bootstrap","review_platform.operator","review_platform.mcp.__main__","review_platform.infrastructure.tasks.retention","review_platform.infrastructure.tasks.deliveries"); [importlib.import_module(name) for name in modules]; print("IMPORT_OK", len(modules))'
+    # IMPORT_OK 9
+
+Дополнительно `build_parser().format_help()` подтверждён для `review_platform.bootstrap` и recovery CLI `review_platform.operator`; обязательные параметры `--organization-id` и `--authority-key` присутствуют. Импорт не выполнял bootstrap, recovery, workers, relay, MCP server или provider calls.

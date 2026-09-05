@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 FROM ghcr.io/astral-sh/uv:0.11.20 AS uv
 
-FROM python:3.13.7-slim-bookworm AS runtime
+FROM python:3.13.7-slim-bookworm AS builder
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
@@ -9,10 +9,21 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH=/app/.venv/bin:$PATH
 WORKDIR /app
 COPY --from=uv /uv /uvx /bin/
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
 COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY backend/src ./src
 RUN uv sync --frozen --no-dev
+
+FROM python:3.13.7-slim-bookworm AS runtime
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/app/.venv/bin:$PATH
+WORKDIR /app
+COPY --from=builder /app/.venv ./.venv
+COPY --from=builder /app/src ./src
 
 FROM runtime AS api
 CMD ["python", "-m", "review_platform.main"]
