@@ -46,6 +46,11 @@ from review_platform.infrastructure.db.models.review_revision import (
     ReviewNote,
     ReviewRevision,
 )
+from review_platform.infrastructure.db.models.review_work import (
+    AvailabilityPlan,
+    ReviewerCourseSelection,
+    ReviewResponsibility,
+)
 from review_platform.infrastructure.db.models.submission import (
     ArtifactPromotion,
     ArtifactReference,
@@ -65,6 +70,7 @@ __all__ = [
     "ArtifactReference",
     "ArtifactVersion",
     "AuditEvent",
+    "AvailabilityPlan",
     "CommandReceipt",
     "Course",
     "CourseMembership",
@@ -90,7 +96,9 @@ __all__ = [
     "ReviewCriterionDecision",
     "ReviewIteration",
     "ReviewNote",
+    "ReviewResponsibility",
     "ReviewRevision",
+    "ReviewerCourseSelection",
     "Session",
     "Submission",
     "SubmissionVersion",

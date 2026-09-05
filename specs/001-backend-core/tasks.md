@@ -201,7 +201,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T113 [P] [US5] Write failing agent PublicationRequest versus interactive-human publication boundary tests in `backend/tests/isolation/test_publication_authority.py`
 - [X] T114 [P] [US5] Write failing review-detail tests for immutable inputs, current feedback/score, decisions, notes, AI run/signal, delivery provenance, and revisions in `backend/tests/contract/test_review_detail.py`
 - [X] T115 [P] [US5] Write failing acceptance test proving a human can edit and publish while the AI component is unavailable in `backend/tests/integration/test_human_review_without_ai.py`
-- [ ] T116 [US5] Implement AvailabilityPlan, ReviewerCourseSelection, and append-only ReviewResponsibility tables in `backend/src/review_platform/infrastructure/db/models/review_work.py`
+- [X] T116 [US5] Implement AvailabilityPlan, ReviewerCourseSelection, and append-only ReviewResponsibility tables in `backend/src/review_platform/infrastructure/db/models/review_work.py`
 - [ ] T117 [US5] Implement ReviewIterationRelation, append-only ReviewImpactEvent, ReviewPublication, PublicationRequest, ExternalDelivery intent, and destination snapshot tables in `backend/src/review_platform/infrastructure/db/models/publication.py`
 - [ ] T118 [US5] Create the reversible human-review migration for preferences, selections, responsibility, impacts, successors, and publication with `down_revision=0006_ai_review` in `backend/migrations/versions/0007_human_review.py`
 - [ ] T119 [US5] Implement deadline-first, same-reviewer-continuation, age, planned-hours, and workload recommendation ordering in `backend/src/review_platform/domain/recommendation.py`
