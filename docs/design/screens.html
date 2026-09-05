@@ -632,7 +632,10 @@ a:hover { border-bottom-color: var(--ink); }
                     text-transform: uppercase; color: var(--ink-3); font-weight: 400; margin-right: var(--s-2); }
   /* Кадр: макет верстается в реальных 1600px и уменьшается до ширины документа.
      Высота кадра подгоняется под содержимое скриптом внизу файла.            */
-  .shot { margin-top: var(--s-5); border: var(--bw-hair) solid var(--ink); overflow: hidden; }
+  /* overflow-x: auto, а не hidden: если скрипт не отработал и масштаб остался
+     базовым, правый край макета можно доскроллить, а не потерять молча.     */
+  .shot { margin-top: var(--s-5); border: var(--bw-hair) solid var(--ink);
+          overflow-x: auto; overflow-y: hidden; }
   .vp { width: 1600px; transform: scale(.68); transform-origin: top left; display: block;
         background: var(--surface); }
   .toc { display: flex; gap: var(--s-2); flex-wrap: wrap; margin-top: var(--s-5); align-items: center; }
@@ -1217,7 +1220,7 @@ a:hover { border-bottom-color: var(--ink); }
       <div>
         <div class="topbar" style="align-items:center">
           <div><h1>Мои работы</h1><div class="caption" style="margin-top:2px">Системный дизайн и Go</div></div>
-          <div class="btn-row"><span class="pill pill--solid">Активных 5</span><span class="btn btn--s">Настройки</span></div>
+          <div class="btn-row"><span class="btn btn--s">Настройки</span></div>
         </div>
         <div class="stats">
           <div class="stat"><b>5</b><span>закреплено за вами</span></div>
@@ -1449,7 +1452,7 @@ a:hover { border-bottom-color: var(--ink); }
                   <div class="kv"><span>Строже коллег</span><span>«Обоснование границ компонентов»</span></div>
                   <div class="kv"><span>Мягче коллег</span><span>«Оформление документа»</span></div>
                   <div class="kv"><span>Совпадение полное</span><span>4 требования из 7</span></div>
-                  <div class="note" style="margin-top:var(--s-4)">Расхождение само по себе не ошибка. Оно показывает требования, которые сформулированы так, что их можно понять по-разному.</div>
+                  <div class="callout" style="margin-top:var(--s-4)"><span class="callout__mark">i</span><p>Расхождение само по себе не ошибка. Оно показывает требования, которые сформулированы так, что их можно понять по-разному.</p></div>
                 </div>
               </div>
             </div>
@@ -1462,7 +1465,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="Р5">
   <div class="screen__head"><span class="screen__id">Р5</span><h2>Карточка работы</h2></div>
   <p class="screen__note">Экран, ради которого всё остальное существует. Справа разбор от модели по требованиям задания: шкала из конфигурации, выбранное значение, обоснование с цитатой. Слева работа, признаки ИИ, итог и черновик ответа студенту.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Три класса требований различаются формой маркера: зелёный квадрат — выполнено, белый квадрат с красным крестом — нет, фиолетовый круг — решает человек. Цитата с подсветкой строки лежит внутри требования, а не отдельным блоком. Итог ниже порога подсвечен красной рамкой карточки, а не всплывающим предупреждением.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Три класса требований различаются маркером: квадрат в зелёном контуре — выполнено, квадрат в красном контуре — нет, круг в фиолетовом — решает человек. Цитата с подсветкой строки лежит внутри требования, а не отдельным блоком. Итог ниже порога показан красной суммой и строкой с выбором, что делать дальше, без всплывающих предупреждений.</p>
   <div class="shot" style="height:1355px"><div class="vp">
     <div class="app">
       <aside class="aside">
@@ -1483,10 +1486,12 @@ a:hover { border-bottom-color: var(--ink); }
         <div class="topbar">
           <div>
             <div class="crumbs"><a href="#">Мои работы</a><span>/</span><span class="cur">Студент 4790</span></div>
-            <h1 style="margin-top:var(--s-2)">Лабораторная 1. Декомпозиция сервиса</h1>
+            <div style="display:flex;align-items:center;gap:var(--s-3);margin-top:var(--s-2)">
+              <h1>Лабораторная 1. Декомпозиция сервиса</h1>
+              <span class="st st--review">На ревью</span>
+            </div>
           </div>
           <div class="btn-row">
-            <span class="st st--review">На ревью</span>
             <span class="btn btn--s btn--quiet">Вернуть в пул</span>
             <span class="btn btn--s">Сохранить черновик</span>
           </div>
@@ -1495,9 +1500,10 @@ a:hover { border-bottom-color: var(--ink); }
           <div class="row-rev">
             <div class="stack">
               <div class="card">
-                <div class="card__head"><h4>Работа</h4><span class="pill">попытка 1</span></div>
+                <div class="card__head"><h4>Работа</h4></div>
                 <div class="card__body card__body--tight">
                   <div class="kv"><span class="mono" style="color:var(--ink)">github.com/s4790/wardrobe</span><span class="btn btn--s btn--quiet">Открыть ↗</span></div>
+                  <div class="kv"><span>Попытка</span><span>1</span></div>
                   <div class="kv"><span>Сдана</span><span>18 февраля, 21:40</span></div>
                   <div class="kv"><span>Срок сдачи был</span><span style="color:var(--late);font-weight:600">17 февраля, 23:59</span></div>
                   <div class="kv"><span>ИИ-ревью до сдачи</span><span>3 запуска</span></div>
@@ -1527,12 +1533,12 @@ a:hover { border-bottom-color: var(--ink); }
               <div class="card">
                 <div class="card__head">
                   <h4>Итог</h4>
-                  <div class="sum"><b style="color:var(--bad)">3.5</b><span>из 6</span></div>
+                  <div class="sum"><b style="color:var(--bad)">3,5</b><span>из 6</span></div>
                 </div>
                 <div class="card__body card__body--tight">
-                  <div class="kv"><span>По требованиям задания</span><span>4.5</span></div>
+                  <div class="kv"><span>По требованиям задания</span><span>4,5</span></div>
                   <div class="kv"><span>Просрочка 1 день</span><span class="neg">−1</span></div>
-                  <div class="kv"><span style="color:var(--ink);font-weight:500">Итого</span><span><b>3.5</b>, порог 4</span></div>
+                  <div class="kv"><span style="color:var(--ink);font-weight:500">Итого</span><span><b>3,5</b>, порог 4</span></div>
                 </div>
                 <div class="card__foot" style="display:block">
                   <div style="color:var(--bad);margin-bottom:var(--s-3)">Ниже порога зачёта. Выберите, что делать дальше.</div>
@@ -1556,8 +1562,8 @@ a:hover { border-bottom-color: var(--ink); }
                     <div class="acc__b"><div class="acc__empty">Нарушений не найдено</div></div>
                   </div>
                   <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0.5</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0.5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc">
                     <div class="acc__h">
@@ -1565,7 +1571,7 @@ a:hover { border-bottom-color: var(--ink); }
                       <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
                       <span class="pill pill--mono">2 места</span>
                       <span class="label">шкала</span>
-                      <span class="scale scale--zero"><span class="is-on">0</span><span>0.5</span><span>1</span></span>
+                      <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
                       <span class="acc__chev">▲</span>
                     </div>
                     <div class="acc__b">
@@ -1594,24 +1600,24 @@ a:hover { border-bottom-color: var(--ink); }
                     </div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Анализ связности компонентов</span><span class="pill pill--mono">1 место</span><span class="label">шкала</span><span class="scale scale--zero"><span class="is-on">0</span><span>0.5</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0.5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Анализ связности компонентов</span><span class="pill pill--mono">1 место</span><span class="label">шкала</span><span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc">
                     <div class="acc__h">
                       <span class="ck ck--h">?</span><span class="acc__t">Обосновано соблюдение SRP</span>
                       <span class="pill pill--human">оценочное</span>
-                      <span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0.5</span></span><span class="acc__chev">▲</span>
+                      <span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▲</span>
                     </div>
-                    <div class="acc__b"><div class="quote quote--human">Модель рекомендует 0.5: принцип назван и применён к двум компонентам из четырёх. Оценочное требование, решение принимает ревьюер.</div></div>
+                    <div class="acc__b"><div class="quote quote--human">Модель рекомендует 0,5: принцип назван и применён к двум компонентам из четырёх. Оценочное требование, решение принимает ревьюер.</div></div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0.5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="label">шкала</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc" style="background:var(--surface-2);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
                     <div class="acc__h">
                       <span class="ck ck--q">＋</span><span class="acc__t">Требование, добавленное вами</span>
-                      <span class="label">шкала</span><span class="scale"><span class="is-on">0</span><span>0.5</span><span>1</span></span>
+                      <span class="label">шкала</span><span class="scale"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
                     </div>
                     <div class="acc__b" style="padding-left:0;padding-bottom:var(--s-4)">
                       <input class="inp" value="Читаемость диаграмм без пояснений в тексте">
@@ -1624,7 +1630,7 @@ a:hover { border-bottom-color: var(--ink); }
                 </div>
                 <div class="card__foot">
                   <span>Своё требование видит студент и координатор, оно попадает в разбор наравне с требованиями задания</span>
-                  <span>Сумма по требованиям <b style="color:var(--ink)">4.5 из 6</b></span>
+                  <span>Сумма по требованиям <b style="color:var(--ink)">4,5 из 6</b></span>
                 </div>
               </div>
 
