@@ -1,5 +1,12 @@
 import { registerDirtyEditor } from "./navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Card,
   Resource,
@@ -45,6 +52,10 @@ export function Modal({
     </dialog>
   );
 }
+export const HeaderProfileContext = createContext<ReactNode>(null);
+export function HeaderProfile() {
+  return useContext(HeaderProfileContext);
+}
 export function ScreenTitle({
   code,
   title,
@@ -58,11 +69,14 @@ export function ScreenTitle({
 }) {
   return (
     <div className="page-heading" data-screen={code}>
-      <div className="row">
+      <div className="page-heading-main">
         <h1>{title}</h1>
         {leading}
       </div>
-      {children}
+      <div className="actions page-heading-actions">
+        {children}
+        <HeaderProfile />
+      </div>
     </div>
   );
 }

@@ -96,7 +96,10 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
                                 })}
                           </td>
                           <td className="r">
-                            <Status value={item.status} />
+                            <Status
+                              value={item.status}
+                              attempt={item.attempt}
+                            />
                           </td>
                         </tr>
                       );

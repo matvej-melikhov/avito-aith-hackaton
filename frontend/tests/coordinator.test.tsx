@@ -1,3 +1,4 @@
+import { WorkspaceWorks } from "../src/pages/WorkspaceLists";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
@@ -185,4 +186,54 @@ it("criterion settings autosave, derive total and reopen a single expanded form"
   expect(screen.getAllByLabelText("Название критерия")).toHaveLength(1);
   expect(screen.getByLabelText("Шаг")).toHaveValue(0.25);
   expect(screen.getByLabelText("Ещё и оценить качество")).toBeChecked();
+});
+
+it("coordinator pool requests unfinished scope and registry exposes completed results and export", async () => {
+  const api = new ApiClient(createDemoTransport());
+  const ws = new WorkspaceClient(api);
+  const base = (await ws.works()).items[0];
+  const calls: string[] = [];
+  ws.works = async (params = {}) => {
+    calls.push(String(params.view));
+    const pending = {
+      ...base,
+      title: "Ожидающая работа",
+      status: "pending_review",
+      score: null,
+    };
+    const completed = {
+      ...base,
+      submission_id: "00000000-0000-4000-8000-000000999999",
+      title: "Завершённая работа",
+      status: "passed",
+      score: 8.5,
+    };
+    const items = params.view === "pool" ? [pending] : [pending, completed];
+    return { items, total: items.length, limit: 20, offset: 0 };
+  };
+  const view = render(
+    <WorkspaceWorks ws={ws} role="methodologist" coordinatorPool />,
+  );
+  await screen.findByText("Ожидающая работа");
+  expect(calls).toContain("pool");
+  expect(screen.queryByText("Завершённая работа")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Выгрузить" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Напомнить ревьюерам" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("columnheader", { name: "Участие ревьюеров" }),
+  ).toBeInTheDocument();
+  view.rerender(<WorkspaceWorks ws={ws} role="methodologist" />);
+  await screen.findByText("Завершённая работа");
+  expect(calls).toContain("all");
+  expect(screen.getByRole("button", { name: "Выгрузить" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("columnheader", { name: "Опубликованный балл" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getAllByRole("link", { name: "История и результат" }),
+  ).toHaveLength(2);
 });

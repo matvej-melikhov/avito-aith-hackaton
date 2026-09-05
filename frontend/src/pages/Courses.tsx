@@ -1,3 +1,4 @@
+import { HeaderProfile } from "../workspace-ui";
 import { WorkspaceClient } from "../api/workspace";
 import { WorkspaceRunSettings } from "./WorkspaceCatalog";
 import { useState } from "react";
@@ -130,7 +131,10 @@ export function CoursePage({
               </a>
               <h1>{state.data.run?.title ?? "Поток"}</h1>
             </div>
-            {state.data.run && <Status value={state.data.run.status} />}
+            <div className="actions">
+              {state.data.run && <Status value={state.data.run.status} />}
+              <HeaderProfile />
+            </div>
           </div>
           {action.feedback}
           <Card title="Задания">

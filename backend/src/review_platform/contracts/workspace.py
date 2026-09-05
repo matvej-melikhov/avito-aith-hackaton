@@ -314,6 +314,7 @@ class CourseView(StrictModel):
 
 
 class CourseRunView(StrictModel):
+    reviewer_count: Nonnegative = 0
     id: UUID
     priority: Literal["assigned", "deadline"]
     priority_revision: Nonnegative

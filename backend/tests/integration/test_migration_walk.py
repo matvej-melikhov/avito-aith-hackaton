@@ -41,6 +41,7 @@ WORKSPACE_REVISIONS = (
     "0011_workspace_version_fields",
     "0012_workspace_durable",
     "0013_review_signal_choices",
+    "0014_homework_check_settings",
 )
 
 ORG = UUID("00000000-0000-7000-8000-000000169001")

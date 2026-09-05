@@ -988,6 +988,11 @@ export interface components {
             priority: "assigned" | "deadline";
             /** Priority Revision */
             priority_revision: number;
+            /**
+             * Reviewer Count
+             * @default 0
+             */
+            reviewer_count: number;
             /** Revision */
             revision: number;
             /** Starts At */

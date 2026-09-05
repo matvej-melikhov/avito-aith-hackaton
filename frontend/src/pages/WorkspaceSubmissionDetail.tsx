@@ -28,7 +28,8 @@ export function PublishedStudentReview({
             <summary className="rubric-row">
               <span>{c.title}</span>
               <span className="points" style={{ color: "var(--bad)" }}>
-                {c.points} из {c.max_points}
+                {c.points.toLocaleString("ru-RU")} из{" "}
+                {c.max_points.toLocaleString("ru-RU")}
               </span>
             </summary>
             {c.reason && <p className="preserve small">{c.reason}</p>}
@@ -47,7 +48,8 @@ export function PublishedStudentReview({
               <div className="rubric-row">
                 <span>{c.title}</span>
                 <span className="points">
-                  {c.points} из {c.max_points}
+                  {c.points.toLocaleString("ru-RU")} из{" "}
+                  {c.max_points.toLocaleString("ru-RU")}
                 </span>
               </div>
               {c.reason && <p className="preserve small">{c.reason}</p>}
@@ -122,6 +124,11 @@ export function WorkspaceSubmissionDetail({
   const current = r.data?.reviews.find(
     (v) => v.id === r.data?.current_publication_id,
   );
+  const latestAttempt = r.data?.attempts.at(-1);
+  const currentStatus =
+    current?.submission_version_id === latestAttempt?.id
+      ? (current?.decision ?? "published")
+      : "pending_review";
   const events = [
     ...(r.data?.attempts.map((a) => ({
       id: a.id,
@@ -155,10 +162,7 @@ export function WorkspaceSubmissionDetail({
           </div>
           <ScreenTitle code="С5" title={r.data.title}>
             <div className="actions">
-              {current?.decision && <Status value={current.decision} />}
-              <a className="button" href={`#/prepare/${r.data.publication_id}`}>
-                Открыть страницу сдачи
-              </a>
+              <Status value={currentStatus} attempt={latestAttempt?.sequence} />
             </div>
           </ScreenTitle>
           <div className="student-grid">

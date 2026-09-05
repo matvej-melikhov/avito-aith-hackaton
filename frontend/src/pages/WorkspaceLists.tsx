@@ -1,6 +1,6 @@
 import { StudentWorks } from "./StudentWorks";
 import { ReviewerQueue } from "./ReviewerQueue";
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useState } from "react";
 import type { Role } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import {
@@ -18,387 +18,364 @@ export function WorkspaceWorks(props: {
   ws: WorkspaceClient;
   role: Role;
   coordinatorPool?: boolean;
+  reviewerMode?: "active" | "pool";
 }) {
   return props.role === "student" ? (
     <StudentWorks ws={props.ws} />
   ) : props.role === "reviewer" ? (
-    <ReviewerQueue ws={props.ws} />
+    <ReviewerQueue ws={props.ws} mode={props.reviewerMode} />
   ) : (
-    <WorksList {...props} />
+    <WorksList
+      key={`${props.coordinatorPool ? "pool" : "registry"}:${window.location.hash}`}
+      {...props}
+    />
   );
 }
 function WorksList({
   ws,
-  role,
   coordinatorPool = false,
 }: {
   ws: WorkspaceClient;
   role: Role;
   coordinatorPool?: boolean;
 }) {
-  const [query, setQuery] = useState(
-    new URLSearchParams(window.location.hash.split("?")[1]).get("q") ?? "",
-  );
-  const [search, setSearch] = useState("");
-  const [run, setRun] = useState(
-    new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("run") ??
-      "",
-  );
-  const [state, setState] = useState(
-    new URLSearchParams(window.location.hash.split("?")[1] ?? "").get(
-      "state",
-    ) ?? "",
-  );
-  const [view, setView] = useState("all");
-  const [priority, setPriority] = useState("assigned");
+  const initial = new URLSearchParams(window.location.hash.split("?")[1] ?? "");
+  const [query, setQuery] = useState(initial.get("q") ?? "");
+  const [search, setSearch] = useState(initial.get("q") ?? "");
+  const [run, setRun] = useState(initial.get("run") ?? "");
+  const [state, setState] = useState(initial.get("state") ?? "");
   const [offset, setOffset] = useState(0);
   const [exporting, setExporting] = useState(false);
+  const [reminding, setReminding] = useState(false);
   const params = {
     q: search,
     course_run_id: run || undefined,
-    state,
-    view,
-    priority,
+    state:
+      coordinatorPool &&
+      !["pending_review", "in_review", "ready_to_publish"].includes(state)
+        ? ""
+        : state,
+    view: coordinatorPool ? "pool" : "all",
     offset,
     limit: 20,
   };
   const r = useResource(() => ws.works(params), JSON.stringify(params));
   const catalog = useResource(() => ws.catalog(), "catalog");
   const action = useAction();
-  const close = useCallback(() => setExporting(false), []);
-  const code =
-    role === "student"
-      ? "С4"
-      : role === "reviewer"
-        ? "Р2"
-        : coordinatorPool
-          ? "К6"
-          : "К7";
-  const title =
-    role === "student"
-      ? "Мои домашки"
-      : role === "reviewer"
-        ? "Мои работы и общий пул"
-        : coordinatorPool
-          ? "Пул проверок"
-          : "Реестр домашних работ";
+  const close = useCallback(() => {
+    setExporting(false);
+    setReminding(false);
+  }, []);
+  async function open(work: W<"WorkItem">) {
+    if (
+      work.review_iteration_id &&
+      work.review_submission_version_id === work.submission_version_id
+    ) {
+      go(`/reviews/${work.review_iteration_id}`);
+      return;
+    }
+    if (!work.submission_version_id) {
+      go(`/submissions/${work.submission_id}`);
+      return;
+    }
+    const result = await ws.command(
+      "open_work",
+      work.submission_id,
+      work.submission_revision,
+      { submission_version_id: work.submission_version_id },
+    );
+    go(`/reviews/${result.id}`);
+  }
   return (
     <>
-      <ScreenTitle code={code} title={title}>
-        {role === "methodologist" && (
+      <ScreenTitle
+        code={coordinatorPool ? "К7" : "К8"}
+        title={coordinatorPool ? "Пул проверок" : "Домашки"}
+      >
+        {coordinatorPool ? (
+          <button disabled={!run} onClick={() => setReminding(true)}>
+            Напомнить ревьюерам
+          </button>
+        ) : (
           <button disabled={!run} onClick={() => setExporting(true)}>
             Выгрузить
           </button>
         )}
       </ScreenTitle>
+      <p className="muted">
+        {coordinatorPool
+          ? "Работы, ожидающие проверки и находящиеся на ревью. Здесь можно открыть проверку и напомнить ревьюерам."
+          : "Все домашние работы: от черновика до опубликованного результата, с баллами, историей и выгрузкой."}
+      </p>
       {action.feedback}
-      {role === "student" && (
-        <div className="tabs">
-          {[
-            ["", "Все"],
-            ["in_progress", "В работе"],
-            ["completed", "Завершённые"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              aria-pressed={state === value}
-              onClick={() => {
-                setState(value);
-                setOffset(0);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-      {role === "reviewer" && (
-        <div className="tabs">
-          {[
-            ["assigned", "Мои студенты"],
-            ["active", "В работе"],
-            ["all", "Все работы"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              aria-pressed={view === value}
-              onClick={() => {
-                setView(value);
-                setOffset(0);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-      {role !== "student" && (
-        <form
-          className="filters"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSearch(query);
-            setOffset(0);
-          }}
-        >
-          <label>
-            Поиск
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Студент или задание"
-            />
-          </label>
-          <label>
-            Поток
-            <select
-              value={run}
-              onChange={(e) => {
-                setRun(e.target.value);
-                setOffset(0);
-              }}
-            >
-              <option value="">Все потоки</option>
-              {catalog.data?.course_runs.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Статус
-            <select
-              value={state}
-              onChange={(e) => {
-                setState(e.target.value);
-                setOffset(0);
-              }}
-            >
-              <option value="">Все статусы</option>
-              {[
-                "draft",
-                "pending_review",
-                "in_review",
-                "ready_to_publish",
-                "needs_changes",
-                "passed",
-                "failed",
-                "published",
-              ].map((s) => (
-                <option key={s} value={s}>
+      <form
+        className="filters"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setSearch(query);
+          setOffset(0);
+        }}
+      >
+        <label>
+          Поиск
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ID студента или задание"
+          />
+        </label>
+        <label>
+          Поток
+          <select
+            value={run}
+            onChange={(e) => {
+              setRun(e.target.value);
+              setOffset(0);
+            }}
+          >
+            <option value="">Все потоки</option>
+            {catalog.data?.course_runs.map((run) => (
+              <option key={run.id} value={run.id}>
+                {run.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Статус
+          <select
+            value={params.state}
+            onChange={(e) => {
+              setState(e.target.value);
+              setOffset(0);
+            }}
+          >
+            <option value="">
+              {coordinatorPool ? "Все незавершённые" : "Все статусы"}
+            </option>
+            {(coordinatorPool
+              ? ["pending_review", "in_review", "ready_to_publish"]
+              : [
+                  "draft",
+                  "pending_review",
+                  "in_review",
+                  "ready_to_publish",
+                  "needs_changes",
+                  "passed",
+                  "failed",
+                  "published",
+                ]
+            ).map((value) => (
+              <option key={value} value={value}>
+                {
                   {
-                    {
-                      draft: "Черновик",
-                      pending_review: "Ожидает проверки",
-                      in_review: "На ревью",
-                      ready_to_publish: "Готово к публикации",
-                      needs_changes: "Нужны правки",
-                      passed: "Зачтена",
-                      failed: "Не зачтена",
-                      published: "Опубликована",
-                    }[s]
-                  }
-                </option>
-              ))}
-            </select>
-          </label>
-          {
-            <label>
-              Приоритет
-              <select
-                value={priority}
-                onChange={(e) => {
-                  setPriority(e.target.value);
-                  setOffset(0);
-                }}
-              >
-                <option value="assigned">Свои студенты сначала</option>
-                <option value="deadline">Дедлайн сначала</option>
-              </select>
-            </label>
-          }
-          <button>Найти</button>
-        </form>
-      )}
+                    draft: "Черновик",
+                    pending_review: "Ожидает проверки",
+                    in_review: "На ревью",
+                    ready_to_publish: "Готово к публикации",
+                    needs_changes: "Нужны правки",
+                    passed: "Зачтена",
+                    failed: "Не зачтена",
+                    published: "Опубликована",
+                  }[value]
+                }
+              </option>
+            ))}
+          </select>
+        </label>
+        <button>Найти</button>
+      </form>
       <Resource value={r}>
         {r.data && (
-          <ListFrame
-            student={role === "student"}
-            title={
-              role === "student"
-                ? "Домашние работы"
-                : `Работы · ${r.data.total}`
-            }
+          <Card
+            title={`${coordinatorPool ? "Незавершённые проверки" : "Домашние работы"} · ${r.data.total}`}
           >
             <div className="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    {role !== "student" && <th>Студент</th>}
+                    <th>Студент</th>
                     <th>Задание</th>
-                    {role === "student" ? (
-                      <>
-                        <th>Курс</th>
-                        <th>Дедлайн</th>
-                        <th>Попытка</th>
-                        <th>Балл</th>
-                        <th>Статус</th>
-                      </>
-                    ) : (
-                      <>
-                        <th>Статус</th>
-                        <th>Срок проверки</th>
-                        <th>Оценка</th>
-                      </>
-                    )}
-                    {role !== "student" && <th></th>}
+                    <th>Статус</th>
+                    <th>Срок проверки</th>
+                    <th>
+                      {coordinatorPool
+                        ? "Участие ревьюеров"
+                        : "Опубликованный балл"}
+                    </th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {r.data.items.map((w) => (
-                    <tr key={w.submission_id}>
-                      {role !== "student" && (
-                        <td>
-                          <strong>{w.student_name}</strong>
-                        </td>
-                      )}
+                  {r.data.items.map((work) => (
+                    <tr key={work.submission_id}>
+                      <td>{work.student_name}</td>
                       <td>
-                        {role === "student" ? (
-                          <a href={`#/submissions/${w.submission_id}`}>
-                            <strong>{w.title}</strong>
-                          </a>
-                        ) : (
-                          <strong>{w.title}</strong>
-                        )}
-                        {role !== "student" && (
-                          <small>
-                            {w.course_run_title} · Попытка {w.attempt}
-                          </small>
-                        )}
+                        <strong>{work.title}</strong>
+                        <small>
+                          {work.course_run_title} · Попытка {work.attempt}
+                        </small>
                       </td>
-                      {role === "student" ? (
-                        <>
-                          <td>{w.course_title}</td>
-                          <td>
-                            {w.submission_deadline
-                              ? date(w.submission_deadline)
-                              : "—"}
-                          </td>
-                          <td>{w.attempt}</td>
-                          <td>{w.score?.toLocaleString("ru-RU") ?? "—"}</td>
-                          <td>
-                            <Status value={w.status} />
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td>
-                            <Status value={w.status} />
-                            {w.responsible_reviewer_id && (
-                              <small>Есть ответственный</small>
-                            )}
-                          </td>
-                          <td>
-                            {w.review_deadline ? date(w.review_deadline) : "—"}
-                          </td>
-                          <td>{w.score ?? "—"}</td>
-                        </>
-                      )}
-                      {role !== "student" && (
-                        <td>
+                      <td>
+                        <Status value={work.status} attempt={work.attempt} />
+                      </td>
+                      <td>
+                        {work.review_deadline
+                          ? date(work.review_deadline)
+                          : "—"}
+                      </td>
+                      <td>
+                        {coordinatorPool
+                          ? work.participant_ids?.length
+                            ? work.participant_ids.length === 1
+                              ? "1 участник"
+                              : work.participant_ids.length < 5
+                                ? `${work.participant_ids.length} участника`
+                                : `${work.participant_ids.length} участников`
+                            : "Пока нет участников"
+                          : (work.score?.toLocaleString("ru-RU") ?? "—")}
+                      </td>
+                      <td>
+                        <div className="actions">
                           <button
-                            disabled={action.busy || !w.submission_version_id}
-                            onClick={() =>
-                              void action.run(async () => {
-                                if (
-                                  w.review_iteration_id &&
-                                  w.review_submission_version_id ===
-                                    w.submission_version_id
-                                ) {
-                                  go(`/reviews/${w.review_iteration_id}`);
-                                  return;
-                                }
-                                const history = await ws.core.submission(
-                                  w.submission_id,
-                                );
-                                const current = history.versions.find(
-                                  (v) => v.id === w.submission_version_id,
-                                );
-                                if (!current)
-                                  throw new Error("Версия недоступна.");
-                                const result = await ws.command(
-                                  "open_work",
-                                  w.submission_id,
-                                  w.submission_revision,
-                                  { submission_version_id: current.id },
-                                );
-                                go(`/reviews/${result.id}`);
-                              })
-                            }
+                            disabled={action.busy}
+                            onClick={() => void action.run(() => open(work))}
                           >
-                            Открыть проверку
+                            {coordinatorPool
+                              ? "Открыть проверку"
+                              : "Открыть работу"}
                           </button>
-                        </td>
-                      )}
+                          {!coordinatorPool && (
+                            <a href={`#/submissions/${work.submission_id}`}>
+                              История и результат
+                            </a>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {r.data.items.length === 0 && (
-              <Empty>По этим условиям работ нет.</Empty>
+            {!r.data.items.length && (
+              <Empty>
+                {coordinatorPool
+                  ? "Незавершённых проверок по этим условиям нет."
+                  : "Домашних работ по этим условиям нет."}
+              </Empty>
             )}
-            {(role !== "student" || r.data.total > 20) && (
-              <div className="pagination">
-                <button
-                  disabled={offset === 0}
-                  onClick={() => setOffset(Math.max(0, offset - 20))}
-                >
-                  Назад
-                </button>
-                <span>
-                  {r.data.total ? offset + 1 : 0}–
-                  {Math.min(offset + 20, r.data.total)} из {r.data.total}
-                </span>
-                <button
-                  disabled={offset + 20 >= r.data.total}
-                  onClick={() => setOffset(offset + 20)}
-                >
-                  Дальше
-                </button>
-              </div>
-            )}
-          </ListFrame>
+            <div className="pagination">
+              <button
+                disabled={!offset}
+                onClick={() => setOffset(Math.max(0, offset - 20))}
+              >
+                Назад
+              </button>
+              <span>
+                {r.data.total ? offset + 1 : 0}–
+                {Math.min(offset + 20, r.data.total)} из {r.data.total}
+              </span>
+              <button
+                disabled={offset + 20 >= r.data.total}
+                onClick={() => setOffset(offset + 20)}
+              >
+                Дальше
+              </button>
+            </div>
+          </Card>
         )}
       </Resource>
-      {role === "student" && <DraftLinks ws={ws} />}{" "}
-      {exporting && run && (
-        <Modal title="К9 · Выгрузка" close={close}>
+      {exporting && !coordinatorPool && run && catalog.data && (
+        <Modal title="К10 · Выгрузка" close={close}>
           <ExportForm
             ws={ws}
-            run={catalog.data!.course_runs.find((r) => r.id === run)!}
+            run={catalog.data.course_runs.find((value) => value.id === run)!}
           />
+        </Modal>
+      )}
+      {reminding && coordinatorPool && run && (
+        <Modal title="Напомнить ревьюерам" close={close}>
+          <PoolReminder ws={ws} runId={run} done={close} />
         </Modal>
       )}
     </>
   );
 }
-function DraftLinks({ ws }: { ws: WorkspaceClient }) {
-  const r = useResource(() => ws.drafts(), "drafts");
+function PoolReminder({
+  ws,
+  runId,
+  done,
+}: {
+  ws: WorkspaceClient;
+  runId: string;
+  done: () => void;
+}) {
+  const r = useResource(async () => {
+    const [members, people] = await Promise.all([
+      ws.core.courseMembers(runId),
+      ws.directory(),
+    ]);
+    return people.items.filter((person) =>
+      members.items.some(
+        (member) =>
+          member.user_id === person.id &&
+          member.kind === "reviewer" &&
+          member.status === "active",
+      ),
+    );
+  }, runId);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [text, setText] = useState("В потоке есть работы, ожидающие проверки.");
+  const action = useAction();
   return (
-    <Resource value={r}>
-      {!!r.data?.items.length && (
-        <Card title="Сохранённые черновики">
-          {r.data.items.map((d) => (
-            <p key={d.id}>
-              <a href={`#/prepare/${d.publication_id}`}>Продолжить работу →</a>
-              <small>{d.comment || d.artifact_url || "Загруженный файл"}</small>
-            </p>
-          ))}
-        </Card>
-      )}
-    </Resource>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        void action.run(async () => {
+          const run = (await ws.catalog()).course_runs.find(
+            (value) => value.id === runId,
+          );
+          if (!run) throw new Error("Поток недоступен.");
+          await ws.command("remind_reviewers", runId, run.revision, {
+            reviewer_ids: selected,
+            text,
+          });
+          done();
+        });
+      }}
+    >
+      {action.feedback}
+      <Resource value={r}>
+        {r.data?.map((person) => (
+          <label key={person.id} className="check">
+            <input
+              type="checkbox"
+              checked={selected.includes(person.id)}
+              onChange={(event) =>
+                setSelected(
+                  event.target.checked
+                    ? [...selected, person.id]
+                    : selected.filter((id) => id !== person.id),
+                )
+              }
+            />
+            {person.display_name}
+          </label>
+        ))}
+        {r.data?.length === 0 && <Empty>В потоке пока нет ревьюеров.</Empty>}
+      </Resource>
+      <label>
+        Сообщение
+        <textarea
+          required
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+        />
+      </label>
+      <button className="primary" disabled={action.busy || !selected.length}>
+        Отправить напоминание
+      </button>
+    </form>
   );
 }
 function ExportForm({
@@ -708,23 +685,5 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
         )}
       </Resource>
     </>
-  );
-}
-
-function ListFrame({
-  student,
-  title,
-  children,
-}: {
-  student: boolean;
-  title: string;
-  children: ReactNode;
-}) {
-  return student ? (
-    <section className="card">
-      <div className="card-body">{children}</div>
-    </section>
-  ) : (
-    <Card title={title}>{children}</Card>
   );
 }

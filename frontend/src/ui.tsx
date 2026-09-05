@@ -156,7 +156,18 @@ const statuses: Record<string, string> = {
   unavailable: "Недоступно",
   not_supported: "Не поддерживается",
 };
-export function Status({ value }: { value: string }) {
+export function Status({
+  value,
+  attempt = 1,
+}: {
+  value: string;
+  attempt?: number;
+}) {
+  if (
+    attempt > 1 &&
+    ["pending_review", "in_review", "ready_to_publish"].includes(value)
+  )
+    value = "resubmitted";
   return (
     <span
       className={`status ${["passed", "succeeded", "published", "active", "ready", "available"].includes(value) ? "ok" : /failed|error/.test(value) ? "bad" : ["in_review", "pending_review", "resubmitted"].includes(value) ? "human" : value === "needs_changes" || /action|unknown/.test(value) ? "warn" : value === "submitted" ? "info" : ""}`}

@@ -96,6 +96,7 @@ async def test_identifiers_replace_names_and_search_stays_in_organization(
         found = await workspace_search(runtime, session, coordinator, "987654321")
         assert len(found.students) == 1
         tasks = await workspace_search(runtime, session, coordinator, "Task")
+        assert not tasks.students
         assert {homework.id for homework in tasks.homeworks} == {IDS["homework"]}
         foreign = await workspace_search(
             runtime, session, replace(coordinator, organization_id=other_org), "987654321"

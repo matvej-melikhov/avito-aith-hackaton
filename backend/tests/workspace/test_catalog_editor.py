@@ -61,3 +61,32 @@ async def test_editor_catalog_keeps_unpublished_homework_and_enforces_role(works
         with pytest.raises(WorkspaceFailure) as missing:
             await course_homeworks(session, actors["methodologist"], uuid4())
         assert missing.value.status == 404
+
+
+@pytest.mark.anyio
+@pytest.mark.infrastructure
+async def test_catalog_counts_only_active_reviewers_on_the_run(workspace_runtime):
+    from sqlalchemy import select
+
+    from review_platform.application.workspace.catalog import CatalogService
+    from review_platform.infrastructure.db.models import CourseMembership
+
+    actor = RequestActor(
+        organization_id=IDS["org"],
+        actor_type="user",
+        user_id=IDS["methodologist"],
+        roles=frozenset({"methodologist"}),
+        membership_revision=0,
+        auth_epoch=0,
+    )
+    async with workspace_runtime.transaction() as session:
+        catalog = await CatalogService(workspace_runtime, session).catalog(actor)
+        assert catalog.course_runs[0].reviewer_count == 1
+        member = await session.scalar(
+            select(CourseMembership).where(CourseMembership.user_id == IDS["reviewer"])
+        )
+        assert member is not None
+        member.status = "removed"
+    async with workspace_runtime.transaction() as session:
+        catalog = await CatalogService(workspace_runtime, session).catalog(actor)
+        assert catalog.course_runs[0].reviewer_count == 0

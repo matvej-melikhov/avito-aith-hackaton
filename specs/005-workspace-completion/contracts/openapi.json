@@ -445,6 +445,12 @@
             "title": "Priority Revision",
             "type": "integer"
           },
+          "reviewer_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Reviewer Count",
+            "type": "integer"
+          },
           "revision": {
             "minimum": 0.0,
             "title": "Revision",

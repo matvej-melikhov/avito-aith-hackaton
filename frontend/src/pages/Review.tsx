@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ApiClient, Model } from "../api/client";
 import {
   Card,
@@ -11,7 +11,7 @@ import {
   useResource,
 } from "../ui";
 import { WorkspaceClient, type W } from "../api/workspace";
-import { Modal, useDirtyGuard } from "../workspace-ui";
+import { HeaderProfile, Modal, useDirtyGuard } from "../workspace-ui";
 export async function loadReview(api: ApiClient, id: string) {
   const detail = await api.review(id);
   const published = await api.homeworks(detail.immutable_inputs.course_run_id);
@@ -39,6 +39,7 @@ export function ReviewPage({
   ws?: WorkspaceClient;
 }) {
   const [editing, setEditing] = useState(!readOnly);
+  useEffect(() => setEditing(!readOnly), [id, readOnly]);
   const resource = useResource(async () => {
     if (!ws) return loadReview(api, id);
     const [detail, context] = await Promise.all([
@@ -58,13 +59,6 @@ export function ReviewPage({
   }, id);
   return (
     <>
-      <div data-screen={readOnly ? "К8" : "Р5"}>
-        {readOnly && !editing && (
-          <button onClick={() => setEditing(true)}>
-            Перейти к редактированию
-          </button>
-        )}
-      </div>
       <Resource value={resource}>
         {resource.data && (
           <ReviewEditor
@@ -73,6 +67,7 @@ export function ReviewPage({
             {...resource.data}
             session={session}
             readOnly={!editing}
+            onEdit={readOnly && !editing ? () => setEditing(true) : undefined}
             ws={ws}
             refresh={resource.refresh}
           />
@@ -90,6 +85,7 @@ export function ReviewEditor({
   readOnly = false,
   ws,
   context,
+  onEdit,
 }: {
   api: ApiClient;
   detail: Model<"ReviewDetail">;
@@ -102,8 +98,12 @@ export function ReviewEditor({
   readOnly?: boolean;
   ws?: WorkspaceClient;
   context?: W<"ReviewContext">;
+  onEdit?: () => void;
 }) {
   const action = useAction();
+  const [correcting, setCorrecting] = useState(false);
+  const [correctionReason, setCorrectionReason] = useState("");
+  const closeCorrection = useCallback(() => setCorrecting(false), []);
   const history = useResource(
     () =>
       ws && context?.submission_id
@@ -271,17 +271,29 @@ export function ReviewEditor({
   const participants = [...activePeople.values()].filter(
     (v) => v === "joined" || v === "started",
   ).length;
+  const joined = ["started", "joined"].includes(
+    activePeople.get(session.user_id) ?? "",
+  );
+  const canCorrect =
+    session.actor_type === "user" &&
+    session.roles.some(
+      (role) => role === "reviewer" || role === "methodologist",
+    ) &&
+    detail.status === "published";
   return (
     <>
       <div className="page-heading">
         <div>
           <p className="eyebrow">
-            <a href="#/works">← Мои работы</a>
+            <a href={readOnly ? "#/registry" : "#/works"}>
+              ← {readOnly ? "Домашки" : "Мои работы"}
+            </a>
             {context?.student_name && <> / {context.student_name}</>}
           </p>
           <div className="row">
             <h1>{context?.title || "Проверка работы"}</h1>
             <Status
+              attempt={context?.attempt}
               value={
                 detail.status === "published"
                   ? (context?.outcome?.decision ?? detail.status)
@@ -290,34 +302,49 @@ export function ReviewEditor({
             />
           </div>
         </div>
-        {editable && (
-          <div className="actions">
-            <button
-              disabled={action.busy || dirty}
-              onClick={() =>
-                void action.run(async () => {
-                  await api.command(
-                    "record_review_responsibility",
-                    detail.review_iteration_id,
-                    detail.revision,
-                    { action: "released" },
-                  );
-                  refresh();
-                })
-              }
-            >
-              Вернуть в пул
-            </button>
-            <button
-              disabled={action.busy || !canSave}
-              onClick={() => void action.run(save, "Черновик сохранён.")}
-            >
-              Сохранить черновик
-            </button>
-          </div>
-        )}
+        <div className="actions">
+          {onEdit && !["published", "canceled"].includes(detail.status) && (
+            <div className="actions">
+              <button onClick={onEdit}>Редактировать проверку</button>
+            </div>
+          )}
+          {canCorrect && (
+            <div className="actions">
+              <button onClick={() => setCorrecting(true)}>
+                Создать исправление
+              </button>
+            </div>
+          )}
+          {editable && (
+            <div className="actions">
+              <button
+                disabled={action.busy || dirty}
+                onClick={() =>
+                  void action.run(async () => {
+                    await api.command(
+                      "record_review_responsibility",
+                      detail.review_iteration_id,
+                      detail.revision,
+                      { action: "released" },
+                    );
+                    refresh();
+                  })
+                }
+              >
+                Вернуть в пул
+              </button>
+              <button
+                disabled={action.busy || !canSave}
+                onClick={() => void action.run(save, "Черновик сохранён.")}
+              >
+                Сохранить черновик
+              </button>
+            </div>
+          )}
+          <HeaderProfile />
+        </div>
       </div>
-      {!outcome && action.feedback}
+      {!outcome && !correcting && action.feedback}
       {(history.data?.attempts.length ?? 0) > 1 && (
         <nav className="tabs" aria-label="Попытки сдачи">
           {[...history.data!.attempts]
@@ -379,12 +406,21 @@ export function ReviewEditor({
               <dt>Срок сдачи был</dt>
               <dd>{date(detail.immutable_inputs.effective_deadline)}</dd>
               <dt>ИИ-ревью до сдачи</dt>
-              <dd>{context?.self_reviews.length ?? 0} запусков</dd>
+              <dd>
+                {context?.self_reviews.length ?? 0}{" "}
+                {(context?.self_reviews.length ?? 0) === 1
+                  ? "запуск"
+                  : (context?.self_reviews.length ?? 0) < 5
+                    ? "запуска"
+                    : "запусков"}
+              </dd>
             </dl>
-            <p className="muted">
-              Участников проверки: {participants}. Коллеги могут подключаться.
-            </p>
-            {editable && (
+            {participants - (joined ? 1 : 0) > 0 && (
+              <p className="muted">
+                Других участников: {participants - (joined ? 1 : 0)}
+              </p>
+            )}
+            {editable && !joined && (
               <button
                 disabled={action.busy || dirty}
                 onClick={() =>
@@ -447,10 +483,18 @@ export function ReviewEditor({
             ) : (
               <p>Нет данных о признаках генерации.</p>
             )}
+            {assist.data?.status === "failed" && (
+              <p role="alert">
+                Не удалось завершить AI-проверку. Повторите запуск.
+              </p>
+            )}
             {!!assist.error && (
               <ErrorBox error={assist.error} retry={assist.refresh} />
             )}{" "}
-            {assist.data && <Status value={assist.data.status} />}{" "}
+            {assist.data &&
+              ["queued", "running", "unknown_outcome", "failed"].includes(
+                assist.data.status,
+              ) && <Status value={assist.data.status} />}{" "}
             {editable && ws && (
               <button
                 disabled={
@@ -611,10 +655,23 @@ export function ReviewEditor({
                 const suggestion = suggestions.find(
                   (s) => s.criterion_id === c.id,
                 );
-                const needsHuman = suggestion?.status === "needs_human" || context?.private_details?.criterion_classes?.[c.key] === "judgement";
-                const hasEvidence = !!(suggestion?.sources?.length || suggestion?.evidence?.length);
-                const met = suggestion?.requirement_met ?? ((suggestion?.proposed_points ?? 0) > 0);
-                const marker = needsHuman ? "h" : !hasEvidence ? "q" : met ? "y" : "n";
+                const needsHuman =
+                  suggestion?.status === "needs_human" ||
+                  context?.private_details?.criterion_classes?.[c.key] ===
+                    "judgement";
+                const hasEvidence = !!(
+                  suggestion?.sources?.length || suggestion?.evidence?.length
+                );
+                const met =
+                  suggestion?.requirement_met ??
+                  (suggestion?.proposed_points ?? 0) > 0;
+                const marker = needsHuman
+                  ? "h"
+                  : !hasEvidence
+                    ? "q"
+                    : met
+                      ? "y"
+                      : "n";
                 return (
                   <details
                     className="criterion"
@@ -626,7 +683,9 @@ export function ReviewEditor({
                     }
                   >
                     <summary className="row">
-                      <span className={`ck ck--${marker}`} aria-hidden="true">{marker === "y" ? "✓" : marker === "n" ? "✕" : "?"}</span>
+                      <span className={`ck ck--${marker}`} aria-hidden="true">
+                        {marker === "y" ? "✓" : marker === "n" ? "✕" : "?"}
+                      </span>
                       <strong>{c.title}</strong>
                       <label className="score">
                         <span className="sr-only">Баллы</span>
@@ -774,6 +833,49 @@ export function ReviewEditor({
           </Card>
         </div>
       </div>
+      {correcting && (
+        <Modal title="Создать исправление" close={closeCorrection}>
+          {action.feedback}
+          <p>
+            Откроется новая версия проверки. Студент продолжит видеть прежний
+            результат до публикации исправления.
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void action.run(async () => {
+                const result = await api.command(
+                  "create_review_correction",
+                  detail.review_iteration_id,
+                  detail.revision,
+                  {
+                    published_review_revision_id:
+                      detail.current_review_revision_id!,
+                    reason: correctionReason,
+                  },
+                );
+                closeCorrection();
+                window.location.hash = `/reviews/${result.review_iteration_id}`;
+              });
+            }}
+          >
+            <label>
+              Причина исправления
+              <textarea
+                required
+                value={correctionReason}
+                onChange={(e) => setCorrectionReason(e.target.value)}
+              />
+            </label>
+            <button
+              className="primary"
+              disabled={action.busy || !correctionReason.trim()}
+            >
+              Открыть новую версию
+            </button>
+          </form>
+        </Modal>
+      )}
       {outcome && (
         <Modal
           title={

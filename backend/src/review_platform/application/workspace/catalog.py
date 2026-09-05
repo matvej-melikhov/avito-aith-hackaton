@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Literal, cast
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from review_platform.application.foundation_runtime import FoundationRuntime
@@ -118,6 +118,32 @@ class CatalogService:
             )
         ).all()
         priorities = {d.id: d for d in run_settings}
+        reviewer_count_rows = (
+            await self.session.execute(
+                select(
+                    CourseMembership.course_run_id,
+                    func.count(func.distinct(CourseMembership.user_id)),
+                )
+                .join(
+                    OrganizationMembership,
+                    and_(
+                        OrganizationMembership.organization_id == CourseMembership.organization_id,
+                        OrganizationMembership.user_id == CourseMembership.user_id,
+                    ),
+                )
+                .where(
+                    CourseMembership.organization_id == actor.organization_id,
+                    CourseMembership.kind == "reviewer",
+                    CourseMembership.status == "active",
+                    OrganizationMembership.status == "active",
+                    func.json_contains(OrganizationMembership.roles, '"reviewer"') == 1,
+                )
+                .group_by(CourseMembership.course_run_id)
+            )
+        ).all()
+        reviewer_counts: dict[UUID, int] = {
+            course_run_id: count for course_run_id, count in reviewer_count_rows
+        }
         return CatalogView(
             courses=[
                 CourseView(
@@ -134,6 +160,7 @@ class CatalogService:
             course_runs=[
                 CourseRunView(
                     id=r.id,
+                    reviewer_count=reviewer_counts.get(r.id, 0),
                     priority=cast(Literal["assigned", "deadline"], priorities[r.id].priority)
                     if r.id in priorities
                     else "assigned",

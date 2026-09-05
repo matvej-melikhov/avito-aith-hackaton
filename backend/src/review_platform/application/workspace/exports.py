@@ -151,12 +151,14 @@ async def export_view(
     if job.artifact_id:
         artifact = await row(session, WorkspaceArtifact, actor.organization_id, job.artifact_id)
         download = DownloadView(
+            filename=artifact.filename,
             url=runtime.object_storage.sign_read(
                 key=artifact.object_key,
                 organization_id=str(actor.organization_id),
                 requested_by_organization_id=str(actor.organization_id),
                 artifact_version_id=str(artifact.id),
                 expires_in_seconds=900,
+                download_filename=artifact.filename,
             ),
             expires_at=runtime.clock() + timedelta(minutes=15),
         )

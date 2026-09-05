@@ -21,7 +21,9 @@ async def workspace_search(
     query = query.strip()
     if not query:
         return WorkspaceSearchView(students=[], homeworks=[])
-    works = await WorkspaceQueries(runtime, session).works(actor, search=query, limit=20)
+    works = await WorkspaceQueries(runtime, session).works(
+        actor, search=query, search_student_only=True, limit=20
+    )
     escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     homeworks = (
         await session.execute(

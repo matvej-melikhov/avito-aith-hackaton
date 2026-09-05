@@ -96,11 +96,14 @@ def require_tenant_object_key(
     organization_id: str,
     artifact_version_id: str,
 ) -> None:
-    prefix = build_object_key(
-        organization_id=organization_id,
-        artifact_version_id=artifact_version_id,
-        filename="placeholder",
-    ).rsplit("/", 1)[0] + "/"
+    prefix = (
+        build_object_key(
+            organization_id=organization_id,
+            artifact_version_id=artifact_version_id,
+            filename="placeholder",
+        ).rsplit("/", 1)[0]
+        + "/"
+    )
     if not key.startswith(prefix):
         raise TenantObjectBoundaryError(
             "object key does not belong to the requested organization/artifact version"
@@ -296,6 +299,7 @@ class S3ObjectStorage:
         requested_by_organization_id: str,
         key: str,
         expires_in_seconds: int,
+        download_filename: str | None = None,
     ) -> str:
         if requested_by_organization_id != organization_id:
             raise TenantObjectBoundaryError("requesting organization does not own the artifact")
@@ -306,9 +310,16 @@ class S3ObjectStorage:
         )
         if not 1 <= expires_in_seconds <= 3600:
             raise ValueError("signed read TTL must be between 1 and 3600 seconds")
+        parameters = {"Bucket": self._bucket, "Key": key}
+        if download_filename is not None:
+            from urllib.parse import quote
+
+            parameters["ResponseContentDisposition"] = "attachment; filename*=UTF-8''" + quote(
+                download_filename, safe=""
+            )
         return self._signing_client.generate_presigned_url(
             "get_object",
-            Params={"Bucket": self._bucket, "Key": key},
+            Params=parameters,
             ExpiresIn=expires_in_seconds,
         )
 

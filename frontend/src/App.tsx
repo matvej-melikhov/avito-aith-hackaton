@@ -1,3 +1,4 @@
+import { HeaderProfileContext } from "./workspace-ui";
 import { confirmNavigation, consumeProgrammaticNavigation } from "./navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WorkspaceNotifications } from "./WorkspaceNotifications";
@@ -66,15 +67,6 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
     window.addEventListener("hashchange", update);
     return () => window.removeEventListener("hashchange", update);
   }, []);
-  useEffect(() => {
-    if (route.split("?")[0] !== "/pool") return;
-    const timer = setTimeout(
-      () =>
-        document.getElementById("pool")?.scrollIntoView?.({ block: "start" }),
-      0,
-    );
-    return () => clearTimeout(timer);
-  }, [route]);
   const action = useAction();
   const session = s.data;
   const activeRole =
@@ -126,6 +118,7 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         ws={ws}
         role={activeRole}
         coordinatorPool={section === "coord-pool"}
+        reviewerMode={section === "pool" ? "pool" : "active"}
       />
     );
   else if (section === "dashboard" && activeRole === "methodologist")
@@ -250,6 +243,25 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
       </button>
     </>
   );
+  const profileMenu = (
+    <details className="profile-menu">
+      <summary
+        className="avatar"
+        aria-label="Ваш профиль"
+        title={roleNames[activeRole]}
+      >
+        {activeRole === "student"
+          ? session.user_id.slice(0, 4)
+          : activeRole === "reviewer"
+            ? "РВ"
+            : "КО"}
+      </summary>
+      <div className="account-controls">
+        <span className="small">{roleNames[activeRole]}</span>
+        {accountControls}
+      </div>
+    </details>
+  );
   return (
     <div
       className={`app-shell ${activeRole === "student" ? "student-shell" : ""}`}
@@ -290,24 +302,6 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
               </a>
             ))}
           </nav>
-          <details className="sidebar-account">
-            <summary className="sidebar-footer">
-              <span className="avatar">
-                {activeRole === "reviewer" ? "РВ" : "КО"}
-              </span>
-              <span>
-                <span className="small">
-                  {activeRole === "reviewer"
-                    ? `rev-${session.user_id.slice(0, 4)}`
-                    : "Координатор"}
-                </span>
-                <small>
-                  {activeRole === "reviewer" ? "ревьюер" : "методист"}
-                </small>
-              </span>
-            </summary>
-            <div className="account-controls">{accountControls}</div>
-          </details>
         </aside>
       )}
       <div className="main-area">
@@ -338,21 +332,20 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
                       Мои домашки
                     </a>
                   )}
-                  <details className="student-account">
-                    <summary className="avatar" aria-label="Ваш профиль">
-                      {session.user_id.slice(0, 4)}
-                    </summary>
-                    <div className="account-controls">{accountControls}</div>
-                  </details>
+                  {profileMenu}
                 </>
               )}
             </div>
           </header>
         )}
-        <main id="main" tabIndex={-1} key={`${activeRole}:${route}`}>
-          {action.feedback}
-          {page}
-        </main>
+        <HeaderProfileContext.Provider
+          value={activeRole === "student" ? null : profileMenu}
+        >
+          <main id="main" tabIndex={-1} key={`${activeRole}:${route}`}>
+            {action.feedback}
+            {page}
+          </main>
+        </HeaderProfileContext.Provider>
         {activeRole !== "student" && <WorkspaceNotifications ws={ws} />}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { WorkspaceClient, type W } from "../api/workspace";
 import {
   Card,
   Empty,
+  ErrorBox,
   Resource,
   Status,
   date,
@@ -12,51 +13,63 @@ import {
 } from "../ui";
 import { ScreenTitle } from "../workspace-ui";
 
-export function ReviewerQueue({ ws }: { ws: WorkspaceClient }) {
+export function ReviewerQueue({
+  ws,
+  mode = "active",
+}: {
+  ws: WorkspaceClient;
+  mode?: "active" | "pool";
+}) {
   const [query, setQuery] = useState("");
   const [run, setRun] = useState("");
   const catalog = useResource(() => ws.catalog(), "reviewer-catalog");
   return (
     <>
-      <ScreenTitle code="Р2" title="Мои работы">
+      <ScreenTitle code="Р2" title={mode === "active" ? "Мои работы" : "Пул"}>
         <a className="button" href="#/preferences">
           Настройки
         </a>
       </ScreenTitle>
       <div className="stack">
-        <QueueSection ws={ws} view="active" title="Активные" />
-        <section id="pool">
-          <QueueSection
-            ws={ws}
-            view="all"
-            title="Пул"
-            filters={
-              <div className="filters">
-                <label>
-                  Поиск
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Студент или задание"
-                  />
-                </label>
-                <label>
-                  Поток
-                  <select value={run} onChange={(e) => setRun(e.target.value)}>
-                    <option value="">Все потоки</option>
-                    {catalog.data?.course_runs.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            }
-            query={query}
-            run={run}
-          />
-        </section>
+        {mode === "active" ? (
+          <QueueSection ws={ws} view="active" title="Мои работы" />
+        ) : (
+          <section id="pool">
+            <QueueSection
+              ws={ws}
+              view="pool"
+              title="Пул"
+              filters={
+                <div className="filters">
+                  <label>
+                    Поиск
+                    <input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Студент или задание"
+                    />
+                  </label>
+                  <label>
+                    Поток
+                    <select
+                      value={run}
+                      onChange={(e) => setRun(e.target.value)}
+                    >
+                      <option value="">Все потоки</option>
+                      {catalog.data?.course_runs.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              }
+              query={query}
+              run={run}
+            />
+          </section>
+        )}
       </div>
     </>
   );
@@ -87,44 +100,48 @@ function QueueSection({
   };
   const r = useResource(() => ws.works(params), JSON.stringify(params));
   const action = useAction();
+  const session = useResource(() => ws.core.session(), "reviewer-actor");
   async function open(w: W<"WorkItem">) {
+    const closed = ["published", "passed", "failed", "needs_changes"].includes(
+      w.status,
+    );
+    let reviewId = w.review_iteration_id;
     if (
-      w.review_iteration_id &&
-      w.review_submission_version_id === w.submission_version_id
+      !reviewId ||
+      w.review_submission_version_id !== w.submission_version_id
     ) {
-      if (
-        view !== "active" &&
-        !["published", "passed", "failed", "needs_changes"].includes(w.status)
-      )
+      const result = await ws.command(
+        "open_work",
+        w.submission_id,
+        w.submission_revision,
+        { submission_version_id: w.submission_version_id! },
+      );
+      reviewId = result.id;
+    }
+    if (!closed) {
+      const detail = await ws.core.review(reviewId);
+      const events = detail.responsibility_events.filter(
+        (e) => e.reviewer_id === session.data?.user_id,
+      );
+      const latest = events.at(-1);
+      if (!latest || !["started", "joined"].includes(latest.action))
         await ws.core.command(
           "record_review_responsibility",
-          w.review_iteration_id,
-          w.review_revision,
-          { action: "joined" },
+          reviewId,
+          detail.revision,
+          {
+            action: detail.responsibility_events.length ? "joined" : "started",
+          },
         );
-      go(`/reviews/${w.review_iteration_id}`);
-      return;
     }
-    const result = await ws.command(
-      "open_work",
-      w.submission_id,
-      w.submission_revision,
-      { submission_version_id: w.submission_version_id! },
-    );
-    if (view !== "active") {
-      const opened = await ws.core.review(result.id);
-      await ws.core.command(
-        "record_review_responsibility",
-        result.id,
-        opened.revision,
-        { action: "started" },
-      );
-    }
-    go(`/reviews/${result.id}`);
+    go(`/reviews/${reviewId}`);
   }
   return (
     <Card title={title} actions={filters}>
       {action.feedback}
+      {!!session.error && (
+        <ErrorBox error={session.error} retry={session.refresh} />
+      )}
       <Resource value={r}>
         {r.data && (
           <>
@@ -151,7 +168,7 @@ function QueueSection({
                         </small>
                         {view !== "active" && (
                           <small>
-                            <Status value={w.status} />
+                            <Status value={w.status} attempt={w.attempt} />
                             {w.participant_ids?.length
                               ? ` · участников: ${w.participant_ids.length}`
                               : ""}
@@ -161,7 +178,7 @@ function QueueSection({
                       {view === "active" ? (
                         <>
                           <td>
-                            <Status value={w.status} />
+                            <Status value={w.status} attempt={w.attempt} />
                             {!!w.participant_ids?.length && (
                               <small>
                                 Участников: {w.participant_ids.length}
@@ -186,20 +203,26 @@ function QueueSection({
                       <td>
                         <div className="actions">
                           <button
-                            disabled={action.busy || !w.submission_version_id}
+                            disabled={
+                              action.busy ||
+                              session.loading ||
+                              !session.data ||
+                              !w.submission_version_id
+                            }
                             onClick={() => void action.run(() => open(w))}
                           >
-                            {view === "active" ||
-                            [
+                            {[
                               "published",
                               "passed",
                               "failed",
                               "needs_changes",
                             ].includes(w.status)
-                              ? "Открыть"
-                              : w.status === "pending_review"
-                                ? "Взять"
-                                : "Подключиться"}
+                              ? "Посмотреть"
+                              : w.participant_ids?.includes(
+                                    session.data?.user_id ?? "",
+                                  )
+                                ? "Продолжить"
+                                : "Начать проверку"}
                           </button>
                           {view === "active" &&
                             w.review_iteration_id &&
@@ -239,11 +262,6 @@ function QueueSection({
                   ? "У вас пока нет активных проверок."
                   : "По этим условиям работ нет."}
               </Empty>
-            )}
-            {view === "all" && (
-              <p className="muted">
-                Можно открыть любую доступную работу и подключиться к коллегам.
-              </p>
             )}
             {r.data.total > 20 && (
               <div className="pagination">

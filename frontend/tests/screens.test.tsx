@@ -186,7 +186,7 @@ it("expires a resource session once without an automatic authentication retry lo
   await screen.findByRole("heading", { name: "Войти в рабочее пространство" });
   expect(
     transport.mock.calls.filter(([url]) => String(url).includes("/v2/works")),
-  ).toHaveLength(2);
+  ).toHaveLength(1);
 });
 
 it("prepares the first URL draft before self-review and updates server quota without submitting", async () => {

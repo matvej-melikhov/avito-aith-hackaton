@@ -41,11 +41,11 @@ export function WorkspaceCatalog({
         title={mode === "overview" ? "Обзор" : "Курсы"}
         leading={mode === "overview" ? <WorkspaceSearch ws={ws} /> : undefined}
       >
-        <button className="primary" onClick={() => setModal("course")}>
+        <button className="btn" onClick={() => setModal("course")}>
           Создать курс
         </button>
         {mode === "overview" && (
-          <button className="primary" onClick={() => setModal("run")}>
+          <button className="btn btn--dark" onClick={() => setModal("run")}>
             Создать поток
           </button>
         )}
@@ -85,6 +85,7 @@ export function WorkspaceCatalog({
                   <tr>
                     <th>Курс / поток</th>
                     <th>Студенты</th>
+                    <th>Ревьюеры</th>
                     <th>Ближайший срок</th>
                     <th>Все работы</th>
                     <th>В пуле</th>
@@ -367,12 +368,15 @@ function RunSummary({
     <tr>
       <td>
         <small>{course}</small>
-        <a href={`#/courses/${run.id}`}>{run.title}</a>
-        <Status value={run.status} />
+        <div className="flow-heading">
+          <a href={`#/courses/${run.id}`}>{run.title}</a>
+          <Status value={run.status} />
+        </div>
       </td>
       {r.data ? (
         <>
           <td>{r.data.students}</td>
+          <td>{run.reviewer_count}</td>
           <td>{r.data.deadline ? date(r.data.deadline) : "Нет предстоящих"}</td>
           <td>{link(r.data.all)}</td>
           <td>{link(r.data.pool, "pending_review")}</td>
@@ -380,7 +384,7 @@ function RunSummary({
           <td>{link(r.data.accepted, "passed")}</td>
         </>
       ) : (
-        <td colSpan={6}>
+        <td colSpan={7}>
           <Resource value={r}>{null}</Resource>
         </td>
       )}
@@ -406,12 +410,13 @@ export function RunCard({
   const catalog = useResource(() => ws.catalog(), run.id);
   return (
     <article className="list-item">
-      <div className="row">
+      <div className="flow-heading">
         <a href={`#/courses/${run.id}`}>
           <strong>{run.title}</strong>
         </a>
         <Status value={run.status} />
       </div>
+      <p className="muted">Ревьюеров в потоке: {run.reviewer_count}</p>
       <p className="muted">
         {run.starts_at ? date(run.starts_at) : "Начало не указано"} —{" "}
         {run.ends_at ? date(run.ends_at) : "Окончание не указано"}

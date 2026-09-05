@@ -66,6 +66,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
   }));
   const runs: W<"CourseRunView">[] = cores.map((c) => ({
     ...c.run,
+    reviewer_count: 1,
     starts_at: "2026-09-01T09:00:00Z",
     ends_at: "2026-12-01T18:00:00Z",
     priority: "assigned",
@@ -796,6 +797,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
           const id = crypto.randomUUID();
           runs.push({
             id,
+            reviewer_count: 0,
             course_id: cmd.target_id,
             title: cmd.payload.title,
             starts_at: cmd.payload.starts_at,

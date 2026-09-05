@@ -124,7 +124,7 @@ function HomeworkWizard({
   const [draft, setDraft] = useState<W<"EditorDraftInput">>({
     ...initial,
     max_score: (initial.criteria ?? []).reduce(
-      (sum, c) => sum + (c.max_points ?? 0),
+      (sum, c) => sum + (Number.isFinite(c.max_points) ? c.max_points : 0),
       0,
     ),
     criteria: initial.criteria?.map((c) => ({
@@ -204,7 +204,8 @@ function HomeworkWizard({
       ...(patch.criteria
         ? {
             max_score: patch.criteria.reduce(
-              (sum, c) => sum + (c.max_points ?? 0),
+              (sum, c) =>
+                sum + (Number.isFinite(c.max_points) ? c.max_points : 0),
               0,
             ),
           }
@@ -411,10 +412,10 @@ function HomeworkWizard({
         >
           ←
         </a>
-        <a href="#/catalog">Курсы</a> /{" "}
+        <a href="#/courses">Курсы</a> /{" "}
         <a href={`#/courses/${run}`}>Задания потока</a> / Настройка задания
       </p>
-      <ScreenTitle code={step === 0 ? "К4" : "К5"} title="Настройка задания" />
+      <ScreenTitle code={step === 0 ? "К5" : "К6"} title="Настройка задания" />
       {action.feedback}
       {autoStatus && <small role="status">{autoStatus}</small>}
       <div className="steps">
@@ -735,7 +736,9 @@ function HomeworkWizard({
                             required
                             min={0}
                             step="any"
-                            value={c.max_points}
+                            value={
+                              Number.isFinite(c.max_points) ? c.max_points : ""
+                            }
                             onChange={(e) =>
                               edit({ max_points: e.target.valueAsNumber })
                             }
@@ -748,7 +751,9 @@ function HomeworkWizard({
                             required
                             min={0.000001}
                             step="any"
-                            value={c.score_step ?? 0.5}
+                            value={
+                              Number.isFinite(c.score_step) ? c.score_step : ""
+                            }
                             onChange={(e) =>
                               edit({ score_step: e.target.valueAsNumber })
                             }
@@ -857,7 +862,11 @@ function HomeworkWizard({
                     type="number"
                     required
                     min={0}
-                    max={draft.max_score}
+                    max={
+                      Number.isFinite(draft.max_score)
+                        ? draft.max_score
+                        : undefined
+                    }
                     step="any"
                     value={draft.policy?.pass_score ?? 0}
                     onChange={(e) =>

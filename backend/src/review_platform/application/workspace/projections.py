@@ -189,6 +189,7 @@ class WorkspaceQueries:
         run_id: UUID | None = None,
         homework_id: UUID | None = None,
         search: str = "",
+        search_student_only: bool = False,
         state: str = "",
         view: str = "all",
         priority: str | None = None,
@@ -396,10 +397,15 @@ class WorkspaceQueries:
         if search:
             escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
             uuid_query = escaped.replace("-", "")
+            student_match = student_identifier(Submission.student_id).ilike(
+                f"%{escaped}%", escape="\\"
+            ) | sql_cast(Submission.student_id, String).ilike(
+                f"%{uuid_query}%", escape="\\"
+            )
             query = query.where(
-                (Homework.title.ilike(f"%{escaped}%", escape="\\"))
-                | (student_identifier(Submission.student_id).ilike(f"%{escaped}%", escape="\\"))
-                | (sql_cast(Submission.student_id, String).ilike(f"%{uuid_query}%", escape="\\"))
+                student_match
+                if search_student_only
+                else Homework.title.ilike(f"%{escaped}%", escape="\\") | student_match
             )
         if state == "in_progress":
             query = query.where(status.not_in(["passed", "failed", "published"]))
