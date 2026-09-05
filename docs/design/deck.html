@@ -940,6 +940,119 @@ a.step { border: 0; }
 .s-meter i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--ok-fill); }
 .s-meter i.is-late { background: var(--late-fill); }
 .s-meter i.is-bad { background: var(--bad-fill); }
+
+/* ===========================================================================
+   Смелые кадры и инфографика
+   Всё рисуется разметкой и инлайновым SVG: внешних картинок нет, поэтому
+   графика живёт в токенах и меняет цвет вместе с системой.
+   Углы поворота и перспектива — единственное, чего нет в токенах:
+   в словаре системы такой величины не заведено.
+   =========================================================================== */
+
+/* --- Гигантское число ------------------------------------------------------
+   Один аргумент во весь кадр. Больше на слайде не должно быть ничего.       */
+.s-hero { display: flex; align-items: center; gap: var(--s-14); }
+.s-hero__n { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 420px; line-height: .78; letter-spacing: -.06em;
+             font-variant-numeric: tabular-nums; }
+.s-hero__u { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 88px; line-height: 1; letter-spacing: var(--d1-ls); }
+.s-hero__side { display: flex; flex-direction: column; gap: var(--s-6); max-width: 30ch; }
+
+/* --- Точечная матрица ------------------------------------------------------
+   Сто точек это сто студентов. Доля показывается заливкой, а не процентом:
+   глаз считает точки быстрее, чем читает число.                            */
+.s-dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: var(--s-3); }
+.s-dots i { display: block; aspect-ratio: 1; border-radius: var(--r-circle);
+            background: var(--surface-3); }
+.s-dots i.is-on { background: var(--ok-fill); }
+.s-dots i.is-late { background: var(--late-fill); }
+.s-dots i.is-bad { background: var(--bad-fill); }
+.s-dots--sm { grid-template-columns: repeat(10, 1fr); gap: var(--s-2); }
+
+/* --- Изометрический стек ---------------------------------------------------
+   Слои платформы в перспективе. Каждый слой это обычный блок, объём даёт
+   один поворот на родителе.                                                 */
+/* Повёрнутый блок занимает больше места, чем его бокс, поэтому стек живёт
+   в окне фиксированного размера и ужимается целиком.                       */
+.s-iso { perspective: 2400px; height: 620px; display: flex;
+         align-items: center; justify-content: center; overflow: hidden; }
+.s-iso__st { transform: rotateX(56deg) rotateZ(-42deg) scale(.62); transform-style: preserve-3d;
+             display: flex; flex-direction: column-reverse; gap: var(--s-10); }
+.s-iso__l { width: 620px; height: 170px; background: var(--surface-2);
+            border: var(--bw-struct) solid var(--ink); display: flex; align-items: center;
+            padding: 0 var(--s-8); position: relative; }
+.s-iso__l--on { background: var(--brand-green); }
+.s-iso__l--ink { background: var(--surface-inv); border-color: var(--ink); }
+.s-iso__t { font-family: var(--font-display); font-weight: var(--w-semi); font-size: 34px;
+            letter-spacing: var(--d2-ls); color: var(--ink); white-space: nowrap; }
+.s-iso__l--on .s-iso__t { color: var(--brand-ink); }
+.s-iso__l--ink .s-iso__t { color: var(--ink-inv); }
+/* Подписи к слоям стоят ровно, без наклона: наклонный текст не читается.   */
+.s-iso__legend { display: flex; flex-direction: column-reverse; gap: var(--s-6); }
+.s-iso__cap { display: flex; align-items: baseline; gap: var(--s-4); }
+.s-iso__cap b { font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+
+/* --- Водопад ---------------------------------------------------------------
+   Из чего складывается час и что от него остаётся.                          */
+.s-fall { display: flex; align-items: flex-end; gap: var(--s-4); height: 340px; }
+.s-fall__c { display: flex; flex-direction: column; justify-content: flex-end;
+             align-items: center; gap: var(--s-4); flex: 1; height: 100%; }
+.s-fall__b { width: 100%; background: var(--surface-3); }
+.s-fall__b--on { background: var(--ok-fill); }
+.s-fall__b--bad { background: var(--bad-fill); }
+.s-fall__b--late { background: var(--late-fill); }
+.s-fall__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 40px;
+             letter-spacing: var(--d2-ls); font-variant-numeric: tabular-nums; }
+.s-fall__k { font-size: 22px; color: var(--ink-3); text-align: center; line-height: 1.3; }
+
+/* --- Наклонённый интерфейс -------------------------------------------------
+   Продуктовый кадр: экран уходит в перспективу, поверх него всплывает
+   вырезанный кусок с главным.                                               */
+.s-tilt { perspective: 2000px; position: relative; }
+.s-tilt__s { transform: rotateY(-18deg) rotateX(6deg) rotateZ(1deg);
+             transform-origin: right center; box-shadow: var(--shadow-overlay); }
+.s-tilt__pop { position: absolute; background: var(--surface); border: var(--bw-struct) solid var(--ink);
+               box-shadow: var(--shadow-overlay); padding: var(--s-6) var(--s-8); }
+
+/* --- Диагональный раскол ---------------------------------------------------
+   Было и стало без стрелки: граница между ними и есть стрелка.             */
+/* Половины лежат друг на друге во весь кадр, а не в сетке: тогда отступ
+   текста считается от края слайда и его не режет линия раскола.           */
+.s-diag { position: absolute; inset: 0; }
+.s-diag__a, .s-diag__b { position: absolute; inset: 0;
+                         display: flex; flex-direction: column; justify-content: center; }
+/* Обе половины во весь кадр: проценты в clip-path считаются от ширины
+   самого блока, поэтому сузить его нельзя, иначе линия уедет.             */
+.s-diag__a { background: var(--surface-2); clip-path: polygon(0 0, 46% 0, 34% 100%, 0 100%);
+             padding: 120px 62% 120px 96px; }
+.s-diag__b { background: var(--surface-inv); color: var(--ink-inv);
+             clip-path: polygon(46% 0, 100% 0, 100% 100%, 34% 100%);
+             padding: 120px 96px 120px 52%; }
+
+/* --- Тепловая карта --------------------------------------------------------
+   Где спотыкается поток: строка это требование, клетка это студент.        */
+.s-heat { display: grid; gap: var(--s-2); }
+.s-heat__r { display: grid; grid-template-columns: 30ch 1fr auto; gap: var(--s-6); align-items: center; }
+.s-heat__cells { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; }
+.s-heat__cells span { display: block; aspect-ratio: 1; background: var(--ok-bg); }
+.s-heat__cells span.is-miss { background: var(--bad-fill); }
+.s-heat__cells span.is-part { background: var(--late-fill); }
+
+/* --- Кольцевая метрика (SVG) ----------------------------------------------- */
+.s-ring { display: flex; align-items: center; gap: var(--s-10); }
+.s-ring svg { display: block; }
+.s-ring__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 72px;
+             letter-spacing: var(--d1-ls); font-variant-numeric: tabular-nums; }
+
+/* --- Типографический манифест ----------------------------------------------
+   Слова разного веса и заливки, поставленные стопкой.                      */
+.s-manifest { font-family: var(--font-display); font-weight: var(--w-bold);
+              font-size: 132px; line-height: .92; letter-spacing: -.05em; }
+.s-manifest span { display: block; }
+.s-manifest .is-out { color: transparent; -webkit-text-stroke: 2px var(--ink); }
+.s-manifest .is-fill { background: var(--brand-green); color: var(--brand-ink);
+                       display: inline-block; padding: 0 var(--s-4); }
 </style>
 <!-- css:end -->
 <style>
@@ -991,6 +1104,7 @@ a.step { border: 0; }
     <a href="#chain">Цепочка и было-стало</a>
     <a href="#more">Цитата, таблица, скриншот</a>
     <a href="#presets">Пресеты страниц</a>
+    <a href="#bold">Смелые кадры</a>
   </nav>
 </header>
 
@@ -1423,6 +1537,255 @@ a.step { border: 0; }
   </div>
 </section>
 
+<section class="sec" id="bold">
+  <div class="sec__n">08</div>
+  <h2>Смелые кадры</h2>
+  <p class="sec__lead">Спокойные пресеты выше держат основную часть питча. Эти работают иначе: один кадр — один удар. Ставим их туда, где нужно, чтобы зал поднял голову от телефона: открытие, переход к демо, финал. Подряд две таких страницы не идут, эффект съедается.</p>
+  <p class="sec__lead">Вся графика нарисована разметкой и инлайновым SVG. Внешних картинок нет ни одной: это значит, что иллюстрации меняют цвет вместе с токенами, не размываются на проекторе и не тянут за собой файлы.</p>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С1. Гигантское число</span><span class="item__code">.s-hero</span><span class="item__d">открытие или переход к ценности</span></div>
+    <div class="deck-frame"><div class="slide inv" style="justify-content:center">
+      <div class="slide__kicker">Сколько мы возвращаем</div>
+      <div class="s-hero">
+        <div>
+          <div class="s-hero__n" style="color:var(--brand-green)">45</div>
+          <div class="s-hero__u">минут на каждой работе</div>
+        </div>
+        <div class="s-hero__side">
+          <p class="s-body">Ручная проверка занимает около часа. С разбором по требованиям ревьюер закрывает работу за 10–15 минут.</p>
+          <div class="s-pills">
+            <span class="s-src s-src--fact">замер, интервью</span>
+          </div>
+          <p class="s-small">При 20 работах на ревьюера это пятнадцать часов за поток. У одного человека.</p>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Одно число, один вывод, больше на кадре ничего</span><span>С1</span></div>
+    </div></div>
+    <div class="rule">Кадр держится на контрасте размеров: число 420 пикселей против текста 30. Если рядом поставить второе число такого же веса, слайд рассыплется.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С2. Точечная матрица</span><span class="item__code">.s-dots</span><span class="item__d">масштаб проблемы, который видно, а не читается</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">С2</div>
+      <div class="slide__kicker">Один поток</div>
+      <h2 class="s-d2">Сто студентов. Восемьдесят сдают.<br>Девять работ зависают без ревьюера</h2>
+      <div class="s-grid s-split-w s-push" style="align-items:center">
+        <div class="s-dots"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div>
+          <ul class="s-list" style="margin-top:0">
+            <li><b>71 работа</b> уходит ревьюеру и закрывается в срок</li>
+            <li><b>9 работ</b> лежат в пуле дольше трёх дней и горят</li>
+            <li><b>20 человек</b> не сдают вовсе, это отдельная история курса</li>
+          </ul>
+          <div class="s-pills" style="margin-top:32px">
+            <span class="s-src s-src--fact">замер, интервью</span>
+            <span class="s-src s-src--guess">раскладка внутри потока — допущение</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Точку глаз считает быстрее, чем читает процент</span><span>С2</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С3. Изометрический стек</span><span class="item__code">.s-iso</span><span class="item__d">архитектура без коробочек со стрелками</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Как устроена платформа</div>
+      <h2 class="s-d2">Ядро одно. Меняются<br>только адаптеры и свод требований</h2>
+      <div class="s-grid s-split" style="margin-top:40px; align-items:center">
+        <div class="s-iso">
+          <div class="s-iso__st">
+            <div class="s-iso__l"><span class="s-iso__t">Профиль курса</span></div>
+            <div class="s-iso__l"><span class="s-iso__t">Адаптеры сдачи</span></div>
+            <div class="s-iso__l s-iso__l--on"><span class="s-iso__t">Ядро: проверка по требованиям</span></div>
+            <div class="s-iso__l s-iso__l--ink"><span class="s-iso__t">Валидация цитат кодом</span></div>
+            <div class="s-iso__l"><span class="s-iso__t">Человек и журнал решений</span></div>
+          </div>
+        </div>
+        <div class="s-iso__legend">
+          <div class="s-iso__cap"><b>05</b><span class="s-body">Решение принимает человек, всё записывается</span></div>
+          <div class="s-iso__cap"><b>04</b><span class="s-body">Нет цитаты в работе — вердикт отклонён</span></div>
+          <div class="s-iso__cap"><b>03</b><span class="s-body">Отдельный вызов на каждое требование</span></div>
+          <div class="s-iso__cap"><b>02</b><span class="s-body">GitHub забираем сами, Stepik принимаем у себя</span></div>
+          <div class="s-iso__cap"><b>01</b><span class="s-body">Курс, критерии, шкалы. Файл настроек, не код</span></div>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Зелёный слой не меняется никогда, остальные — конфигурация</span><span>С3</span></div>
+    </div></div>
+    <div class="rule">Объём даёт один поворот на родителе, сами слои остаются обычными блоками. Подписи стоят ровно и не наклоняются: наклонный текст со сцены не читается.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С4. Водопад времени</span><span class="item__code">.s-fall</span><span class="item__d">из чего складывается час и что от него остаётся</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">С4</div>
+      <div class="slide__kicker">Куда уходит час ревьюера</div>
+      <h2 class="s-d2">Мы забираем сопоставление,<br>а не суждение</h2>
+      <div class="s-fall s-push">
+        <div class="s-fall__c"><div class="s-fall__v">18</div><div class="s-fall__b s-fall__b--bad" style="height:48%"></div><div class="s-fall__k">прочитать работу</div></div>
+        <div class="s-fall__c"><div class="s-fall__v">22</div><div class="s-fall__b s-fall__b--bad" style="height:58%"></div><div class="s-fall__k">сверить с критериями<br>пункт за пунктом</div></div>
+        <div class="s-fall__c"><div class="s-fall__v">12</div><div class="s-fall__b s-fall__b--bad" style="height:32%"></div><div class="s-fall__k">написать<br>обратную связь</div></div>
+        <div class="s-fall__c"><div class="s-fall__v">8</div><div class="s-fall__b s-fall__b--late" style="height:22%"></div><div class="s-fall__k">оформить<br>и отправить</div></div>
+        <div class="s-arrow" style="align-self:center">→</div>
+        <div class="s-fall__c"><div class="s-fall__v" style="color:var(--ok)">12</div><div class="s-fall__b s-fall__b--on" style="height:32%"></div><div class="s-fall__k">остаётся: проверить<br>вердикты и решить</div></div>
+      </div>
+      <div class="s-pills" style="margin-top:36px">
+        <span class="s-src s-src--fact">час и 10–15 минут — замер с курса</span>
+        <span class="s-src s-src--guess">разбивка часа по шагам — допущение, проверяем секундомером</span>
+      </div>
+      <div class="slide__foot"><span>Красное забирает система, зелёное остаётся человеку</span><span>С4</span></div>
+    </div></div>
+    <div class="rule rule--no">Здесь легко соврать: разбивка часа по шагам у нас не измерена. Поэтому на кадре стоит вторая метка «допущение», а не одна общая на весь слайд.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С5. Интерфейс в перспективе</span><span class="item__code">.s-tilt</span><span class="item__d">продуктовый кадр перед демо</span></div>
+    <div class="deck-frame"><div class="slide inv">
+      <div class="slide__kicker">Продукт</div>
+      <h2 class="s-d2">Ревьюер видит место в файле,<br>а не пересказ работы</h2>
+      <div class="s-tilt s-push" style="height:560px">
+        <div class="s-tilt__s" style="width:1120px; margin-left:auto">
+          <div class="s-shot" style="border-color:var(--line-2)">
+            <div class="s-shot__bar"><span>reviewer / работа 4790 / лабораторная 1</span></div>
+            <div class="s-shot__body">
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0; border-bottom:1px solid var(--line)">
+                <span class="s-pill s-pill--fill" style="font-size:20px">выполнено</span>
+                <span style="flex:1; font-size:26px">Декомпозиция по двум признакам</span><span class="s-mono s-small">1 из 1</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0; border-bottom:1px solid var(--line)">
+                <span class="s-pill s-pill--fill" style="font-size:20px">выполнено</span>
+                <span style="flex:1; font-size:26px">Диаграмма C4, контекст и компоненты</span><span class="s-mono s-small">1 из 1</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0; border-bottom:1px solid var(--line)">
+                <span class="s-pill" style="font-size:20px; background:var(--bad-bg); color:var(--bad)">не найдено</span>
+                <span style="flex:1; font-size:26px">Контракты: входы, выходы, ошибки</span><span class="s-mono s-small">0 из 1</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0">
+                <span class="s-pill" style="font-size:20px; background:var(--bad-bg); color:var(--bad)">не найдено</span>
+                <span style="flex:1; font-size:26px">Анализ связности компонентов</span><span class="s-mono s-small">0 из 0.5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="s-tilt__pop" style="left:0; bottom:24px; width:660px">
+          <div class="s-card__label" style="color:var(--info)">docs/architecture.md, строки 78–79</div>
+          <div class="s-mono" style="font-size:24px; line-height:1.75; margin-top:14px">
+            <div style="background:var(--bad-bg); padding:2px 10px">78 I2: Outfits обращается к Wardrobe</div>
+            <div style="background:var(--bad-bg); padding:2px 10px">79 I3: Wardrobe обращается к Catalog</div>
+          </div>
+          <p class="s-body" style="margin-top:16px; font-size:26px">Вызовы названы, контракт не описан. Цитату проверил код: фрагмент в работе есть.</p>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Экран обрезан до важного места, поверх вынесено главное</span><span>С5</span></div>
+    </div></div>
+    <div class="rule">Поворот сам по себе ничего не сообщает. Он нужен, чтобы увести полотно интерфейса на второй план и освободить передний для одной вырезанной детали.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С6. Диагональный раскол</span><span class="item__code">.s-diag</span><span class="item__d">было и стало без стрелки</span></div>
+    <div class="deck-frame"><div class="slide slide--pad-0">
+      <div class="s-diag">
+        <div class="s-diag__a">
+          <div class="s-card__label">как сейчас</div>
+          <h2 class="s-d2" style="margin-top:24px; font-size:60px">Координатор<br>раскладывает<br>работы руками</h2>
+          <ul class="s-list" style="margin-top:32px">
+            <li>делит поток на ревьюеров в таблице</li>
+            <li>ловит «не успеваю» в чате</li>
+            <li>разбирает хвосты сам за день до отчёта</li>
+          </ul>
+        </div>
+        <div class="s-diag__b">
+          <div class="s-card__label" style="color:var(--brand-green)">как у нас</div>
+          <h2 class="s-d2" style="margin-top:24px; font-size:60px">Работы<br>разбирают<br><span class="s-mark--slot">сами</span></h2>
+          <ul class="s-list" style="margin-top:32px">
+            <li>общий пул, ранние по дате сдачи выше</li>
+            <li>ревьюер берёт любую одной кнопкой</li>
+            <li>координатор появляется, только если работа зависла</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Граница между половинами и есть стрелка</span><span>С6</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С7. Тепловая карта требований</span><span class="item__code">.s-heat</span><span class="item__d">данные, которых у курса сегодня нет</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">С7</div>
+      <div class="slide__kicker">Побочный эффект, который важнее основного</div>
+      <h2 class="s-d2">Видно не только кто ошибся,<br>а на каком требовании спотыкается поток</h2>
+      <div class="s-heat s-push">
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Контракты: входы, выходы, ошибки</span>
+          <div class="s-heat__cells"><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body" style="color:var(--bad)">71%</span></div>
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Анализ связности компонентов</span>
+          <div class="s-heat__cells"><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body" style="color:var(--bad)">54%</span></div>
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Диаграмма последовательностей</span>
+          <div class="s-heat__cells"><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body" style="color:var(--late)">29%</span></div>
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Диаграмма C4</span>
+          <div class="s-heat__cells"><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body">10%</span></div>
+      </div>
+      <div class="s-card s-card--ink" style="margin-top:40px; flex-direction:row; align-items:center; gap:28px">
+        <span class="s-pill s-pill--fill">вывод</span>
+        <p class="s-body" style="font-size:28px">Первые две строки — это не оценка студентам. Это сигнал переписать формулировку требования или разобрать тему на занятии.</p>
+      </div>
+      <div class="slide__foot"><span>Клетка — студент, строка — требование</span><span>С7</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С8. Кольцевая метрика</span><span class="item__code">.s-ring</span><span class="item__d">одна метрика крупно, рядом порог</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Качество проверки</div>
+      <h2 class="s-d2">Точность выше общего промпта,<br>и порог был объявлен заранее</h2>
+      <div class="s-grid s-g3 s-push" style="align-items:center">
+        <div class="s-ring">
+          <svg width="260" height="260" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-3)" stroke-width="14"/>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--brand-green)" stroke-width="14"
+                    stroke-dasharray="264 327" stroke-linecap="butt" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div><div class="s-ring__v">81%</div><div class="s-num__cap">наш пайплайн</div></div>
+        </div>
+        <div class="s-ring">
+          <svg width="260" height="260" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-3)" stroke-width="14"/>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--ink-3)" stroke-width="14"
+                    stroke-dasharray="225 327" stroke-linecap="butt" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div><div class="s-ring__v" style="color:var(--ink-3)">69%</div><div class="s-num__cap">один общий промпт, контроль</div></div>
+        </div>
+        <div class="s-card s-card--line">
+          <div class="s-card__label">порог приёмки</div>
+          <div class="s-num s-num--sm">75%</div>
+          <p class="s-body">Объявлен до первого прогона. Ниже — считаем гипотезу непройденной и переходим к отходному варианту</p>
+          <div><span class="s-src s-src--goal">цель</span></div>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Числа демонстрационные, заменить результатами прогона</span><span>С8</span></div>
+    </div></div>
+    <div class="rule">Разница с контрольным вариантом — это и есть ответ на вопрос «почему не просто ChatGPT», выраженный числом. Поэтому оба кольца стоят рядом и в одном масштабе.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С9. Типографический манифест</span><span class="item__code">.s-manifest</span><span class="item__d">финал или переход, вместо картинки</span></div>
+    <div class="deck-frame"><div class="slide" style="justify-content:center">
+      <div class="s-manifest">
+        <span>Модель</span>
+        <span class="is-out">предлагает.</span>
+        <span>Человек <span class="is-fill">решает.</span></span>
+      </div>
+      <p class="s-lead" style="margin-top:56px; max-width:56ch">Записать балл без подтверждения человеком в платформе нельзя. Это не обещание в презентации, а проверяемое свойство: тест пытается провести работу до финального статуса без участия человека и падает.</p>
+      <div class="slide__foot"><span>Avito AI Reviewer</span><span>С9</span></div>
+    </div></div>
+  </div>
+</section>
+
 <footer class="sec" style="border-top:var(--bw-struct) solid var(--ink); padding-top:var(--s-8)">
   <p class="sec__lead">Компоненты живут в <span class="item__code">deck.css</span>, значения — в <span class="item__code">tokens.css</span>. После правки CSS нужно вклеить стили заново: <span class="item__code">python3 docs/design/build.py</span>. Внутри блока между маркерами руками ничего не правим, затрётся.</p>
 </footer>
@@ -1440,6 +1803,10 @@ a.step { border: 0; }
       var k = Math.min(0.6, frame.clientWidth / 1920);
       slide.style.transform = 'scale(' + k + ')';
       frame.style.height = Math.ceil(1080 * k) + 'px';
+      // Ширина в разметке остаётся 1920, масштаб даёт только transform,
+      // поэтому без этого под каждым кадром висела бы полоса прокрутки.
+      // В CSS остаётся auto: если скрипт не отработал, край можно доскроллить.
+      frame.style.overflowX = 'hidden';
     });
   }
   fitSlides();
