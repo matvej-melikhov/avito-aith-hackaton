@@ -1,0 +1,13 @@
+{
+  "_note": "Ручная разметка по таблице критериев из условия лабы 1, 6 сентября 2026, автор: stn + Claude, один проход по полному тексту каждой работы. Не оценки Авито. Спорные строки в _disputed.",
+  "_disputed": {
+    "srp@среднее": "есть список «почему соответствует SRP» с одной фразой на компонент, без разбора причин изменения; снисходительно 0.5, строго 0",
+    "coupling_reduction@среднее": "предложены два вынесения в микросервисы без объяснения, почему это снизит связность; строго 0, снисходительно 0.5",
+    "documentation@среднее": "нет описания системы и вводной, разделы есть; 0.5 или 0",
+    "слабое_1": "метка корпуса «слабое» расходится с содержанием: полная декомпозиция по доменам и ролям, таблица SRP с причинами изменения, контракты I1–I5 с ошибками, C4 context/container/component с верной семантикой, sequence, анализ связности по парам с рисками, решения и trade-offs"
+  },
+  "хорошее": {"decomposition": 1, "srp": 0.5, "interfaces": 0.5, "contracts": 1, "c4": 1, "sequence": 0.5, "coupling_analysis": 0.5, "coupling_reduction": 0.5, "documentation": 0.5},
+  "среднее": {"decomposition": 1, "srp": 0.5, "interfaces": 0.5, "contracts": 1, "c4": 1, "sequence": 0.5, "coupling_analysis": 0.5, "coupling_reduction": 0, "documentation": 0.5},
+  "слабое_1": {"decomposition": 1, "srp": 0.5, "interfaces": 0.5, "contracts": 1, "c4": 1, "sequence": 0.5, "coupling_analysis": 0.5, "coupling_reduction": 0.5, "documentation": 0.5},
+  "слабое_2": {"decomposition": 0, "srp": 0, "interfaces": 0, "contracts": 0, "c4": 1, "sequence": 0, "coupling_analysis": 0, "coupling_reduction": 0, "documentation": 0}
+}
