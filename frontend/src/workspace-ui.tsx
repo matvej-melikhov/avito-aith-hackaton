@@ -31,13 +31,22 @@ export function Quota({ value }: { value: W<"QuotaView"> | null }) {
 
 /** Вывод ИИ-ревью: вердикт строкой, места для внимания, замечание. */
 export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
-  const findings = value.result?.findings ?? [];
+  const raw = value.result?.findings ?? [];
+  /* Итог самопроверки приходит в первой строке результата с префиксом:
+     сервис не раздаёт студенту цитаты и адреса, только грубые статусы и итог. */
+  const SUMMARY = "Итог самопроверки: ";
+  const summary = raw[0]?.feedback.startsWith(SUMMARY)
+    ? raw[0].feedback.split("\n")[0].slice(SUMMARY.length)
+    : null;
+  const findings = raw.map((f, index) =>
+    index === 0 && summary
+      ? { ...f, feedback: f.feedback.split("\n").slice(1).join("\n") }
+      : f,
+  );
   const attention = findings.filter((f) => f.status === "needs_attention");
   const unchecked = findings.filter((f) => f.status === "not_checked");
-  const checked = findings.some(
-    (f) => f.status !== "not_checked" && f.evidence,
-  );
-  const places = attention.length ? attention : unchecked;
+  const checked = findings.some((f) => f.status !== "not_checked");
+  const places = attention.length ? attention : [];
   return (
     <div className="self-review">
       {findings.length > 0 && (
@@ -56,6 +65,7 @@ export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
                 ? "Можно отправлять работу на ревью."
                 : "Проверьте доступ к работе и повторите."}
           </p>
+          {summary && <p className="small">{summary}</p>}
           {places.length > 0 && (
             <ul className="small list--plain">
               {places.map((f, index) => (

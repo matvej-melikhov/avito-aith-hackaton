@@ -41,7 +41,7 @@ from prereview.feedback import draft_feedback, results_text, reviewer_summary
 from prereview.judge.context import JudgeContext
 from prereview.judge.criterion import CriterionResult, judge, judge_formal, judge_model, observe
 from prereview.judge.explore import EvidencePack, HarnessExplorer
-from prereview.judge.self_review import SelfResult, self_check
+from prereview.judge.self_review import SelfResult, self_check, summarize
 from prereview.llm.client import LLMClient, make_client
 from prereview.llm.ledger import Ledger, Pricing
 from prereview.llm.prompts import PromptStore
@@ -340,14 +340,24 @@ def run_self_review(request: SelfReviewRequest, settings: Settings, *, client: L
     ctx = JudgeContext(settings, client, prompts, prep.clean, (request.student_text or "")[:12000], "")
     with ThreadPoolExecutor(max_workers=4) as pool:
         results: list[SelfResult] = list(pool.map(lambda c: self_check(ctx, c), prep.rubric))
-    findings = [SelfReviewFinding(criterion_id=r.criterion.id, status=r.status,  # type: ignore[arg-type]
-                                  feedback=r.feedback[:10000], evidence=r.evidence_text[:4000]) for r in results]
+    # Студент получает итог и грубые статусы без цитат и адресов: самопроверка это
+    # проверка полноты, а не оракул оценки. Итог едет в первой строке результата.
+    summary = summarize(ctx, results) if any(r.status != "not_checked" for r in results) else ""
+    findings = []
+    for i, r in enumerate(results):
+        feedback = r.feedback[:1000]
+        if i == 0 and summary:
+            feedback = summary + "\n" + feedback
+        findings.append(SelfReviewFinding(criterion_id=r.criterion.id, status=r.status,  # type: ignore[arg-type]
+                                          feedback=feedback[:10000], evidence=""))
     result = SelfReviewResult(findings=findings)
     problems = validate_self_review_result(result, request.criteria)
     if any("не совпадает" in p or "дубликат" in p for p in problems):
         raise PipelineError("invalid_result", "; ".join(problems))
     record.errors += problems
-    record.criteria = [{"key": r.criterion.key, "status": r.status, "verified": len(r.verified)} for r in results]
+    record.criteria = [{"key": r.criterion.key, "status": r.status, "verified": len(r.verified),
+                        "class": r.criterion.check_class} for r in results]
+    record.flags.append("self_review_summary" if summary else "self_review_no_summary")
     record.ledger = ledger.summary()
     record.elapsed_seconds = round(time.time() - started, 1)
     record.finished_at = _now()

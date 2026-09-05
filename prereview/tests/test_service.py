@@ -121,3 +121,25 @@ def test_empty_token_means_no_auth(settings, md_artifact, monkeypatch):
     client = make_client()
     req = assist_request(md_artifact)
     assert client.post(f"/v2/review-assists/{req['run_id']}", json=req).status_code == 200
+
+
+def test_self_review_is_coarse(settings, md_artifact):
+    """Студенту не уходят цитаты, адреса и вердикты по оценочным критериям; итог в первой строке."""
+    from prereview.judge.self_review import sanitize
+
+    assert "строки" not in sanitize("Раздел есть, см. work.md: строки 12–14, но нет ошибок")
+    assert sanitize("Первая фраза. Вторая фраза с деталями.") == "Первая фраза."
+    client = make_client()
+    data = md_artifact.read_bytes()
+    crit = criteria_payload(3, private=False)
+    req = {
+        "contract_version": "2.0.0", "purpose": "student_self_review", "run_id": str(uuid.uuid4()), "attempt": 1,
+        "input_fingerprint": "sha256:" + "e" * 64, "artifact_id": str(uuid.uuid4()),
+        "artifact_url": f"file://{md_artifact}", "artifact_digest": digest_of(data), "media_type": "text/markdown",
+        "student_text": "Сделайте лабу", "criteria": crit,
+    }
+    client.post(f"/v2/self-reviews/{req['run_id']}", json=req)
+    ev = client.get(f"/v2/self-reviews/{req['run_id']}", params={"attempt": 1}).json()
+    findings = ev["result"]["findings"]
+    assert all(f["evidence"] == "" for f in findings)
+    assert findings[0]["feedback"].startswith("Итог самопроверки: ")

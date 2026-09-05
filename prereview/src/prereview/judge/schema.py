@@ -70,6 +70,14 @@ class SelfFinding(BaseModel):
         return {"status": "needs_attention", "feedback": "Заглушка: проверьте раздел.", "evidence": []}
 
 
+class SelfSummary(BaseModel):
+    summary: str = Field(description="Три-четыре предложения итога для студента")
+
+    @classmethod
+    def fake_example(cls) -> dict:
+        return {"summary": "Работа в целом собрана. Перепроверь требования по условию. Решение принимает ревьюер."}
+
+
 class QAQuestions(BaseModel):
     questions: list[str] = Field(description="2–3 вопроса студенту для проверки понимания")
 
