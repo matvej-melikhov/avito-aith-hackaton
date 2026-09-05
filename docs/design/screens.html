@@ -585,6 +585,12 @@ a:hover { border-bottom-color: var(--ink); }
 .menu a:hover { background: var(--surface-2); color: var(--ink); }
 .menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
 .menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+/* Второй список в панели — не раздел, а контекст: внутри какого потока или
+   задания сейчас работаем. Раздел в системе выбран ровно один, поэтому
+   зелёная засечка здесь не повторяется, выбранное помечено серой подложкой.  */
+.menu--sub a { padding-left: var(--s-6); color: var(--ink-3); }
+.menu--sub a.is-on { color: var(--ink); font-weight: var(--w-medium);
+                     border-left-color: transparent; background: var(--surface-2); }
 .menu__sep { padding: var(--s-5) var(--s-5) var(--s-2); font-family: var(--font-mono);
              font-size: var(--label-size); letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); }
 .aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
@@ -1262,7 +1268,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Настройки</a>
         </nav>
         <div class="menu__sep">Курсы</div>
-        <nav class="menu">
+        <nav class="menu menu--sub">
           <a href="#">Системный дизайн<span class="c">9</span></a>
           <a href="#">Go<span class="c">3</span></a>
         </nav>
@@ -1375,7 +1381,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a class="is-on" href="#">Кабинет</a>
         </nav>
         <div class="menu__sep">Курсы</div>
-        <nav class="menu"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
+        <nav class="menu menu--sub"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
       <div>
@@ -1446,7 +1452,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a class="is-on" href="#">Кабинет</a>
         </nav>
         <div class="menu__sep">Курсы</div>
-        <nav class="menu"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
+        <nav class="menu menu--sub"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
       <div>
@@ -1694,7 +1700,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Кабинет</a>
         </nav>
         <div class="menu__sep">Курсы</div>
-        <nav class="menu"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
+        <nav class="menu menu--sub"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
       <div>
@@ -1845,7 +1851,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Домашки<span class="c">284</span></a>
         </nav>
         <div class="menu__sep">Активные потоки</div>
-        <nav class="menu">
+        <nav class="menu menu--sub">
           <a href="#">Системный дизайн, фев</a>
           <a href="#">Tech QA, фев</a>
           <a href="#">Go, янв</a>
@@ -2021,7 +2027,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Домашки<span class="c">284</span></a>
         </nav>
         <div class="menu__sep">Активные потоки</div>
-        <nav class="menu">
+        <nav class="menu menu--sub">
           <a href="#">Системный дизайн, фев</a>
           <a href="#">Tech QA, фев</a>
           <a href="#">Go, янв</a>
@@ -2168,8 +2174,8 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="К5">
   <div class="screen__head"><span class="screen__id">К5</span><h2>Задание, шаг 1: что видит студент</h2></div>
   <p class="screen__note">Задание принадлежит курсу и заполняется по шагам. Сначала то, что увидит студент: название, условие, формат сдачи, срок и правило штрафа. Критерии на следующем шаге, чтобы не смешивать текст для студента с конфигурацией проверки.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Шаги мастера — круги с номерами, пройденный заливается зелёным. Это единственное место, где заливка вернулась: шагов всего три, и они не повторяются списком.</p>
-  <div class="shot" style="height:588px"><div class="vp">
+  <p class="screen__what"><b>Что даёт стиль</b> Шаги мастера — круги с номерами, пройденный заливается зелёным. Это единственное место, где заливка вернулась: шагов всего три, и они не повторяются списком. «Дальше» стоит внизу, под формой: сначала заполняем, потом идём дальше, а не наоборот. Штраф и попытки ИИ-ревью выбираются сегментами, а не полем с цифрой: значений мало, они заранее известны, а единица измерения ушла в подпись и не висит текстом рядом с полем. В боковой панели зелёная засечка одна и стоит у раздела, выбранное задание помечено серой подложкой: это не второй раздел, а контекст внутри первого.</p>
+  <div class="shot" style="height:632px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2179,7 +2185,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Пул проверок<span class="c">12</span></a><a href="#">Домашки<span class="c">284</span></a>
         </nav>
         <div class="menu__sep">Курс «Системный дизайн»</div>
-        <nav class="menu">
+        <nav class="menu menu--sub">
           <a href="#">Вводное задание</a><a class="is-on" href="#">Лабораторная 1</a>
           <a href="#">Лабораторная 2</a><a href="#">Лабораторная 3</a>
         </nav>
@@ -2193,10 +2199,6 @@ a:hover { border-bottom-color: var(--ink); }
               <h1>Лабораторная 1. Декомпозиция сервиса</h1>
               <span class="st st--draft">Черновик</span>
             </div>
-          </div>
-          <div class="btn-row">
-            <span class="btn btn--s btn--quiet">Сохранить черновик</span>
-            <span class="btn btn--s btn--dark">Дальше: критерии</span>
           </div>
         </div>
         <div class="main">
@@ -2235,23 +2237,23 @@ a:hover { border-bottom-color: var(--ink); }
                     <span class="field__hint">Для каждого потока срок задаётся отдельно на шаге 3.</span>
                   </label>
                   <div class="field">
-                    <span class="field__lbl">Штраф за просрочку</span>
-                    <div style="display:flex;gap:var(--s-3);align-items:center">
-                      <input class="inp" value="1" style="width:80px">
-                      <span class="caption">балл за каждый день после срока</span>
-                    </div>
+                    <span class="field__lbl">Штраф за просрочку, баллов в день</span>
+                    <div class="seg"><span>Нет</span><span>0,5</span><span class="is-on">1</span></div>
+                    <span class="field__hint">Считается кодом и вычитается из итога. Ревьюер видит его отдельной строкой и не может обойти.</span>
                   </div>
                   <div class="field">
-                    <span class="field__lbl">ИИ-ревью до сдачи</span>
-                    <div style="display:flex;gap:var(--s-3);align-items:center">
-                      <input class="inp" value="3" style="width:80px">
-                      <span class="caption">попытки на студента</span>
-                    </div>
+                    <span class="field__lbl">Попыток ИИ-ревью до сдачи</span>
+                    <div class="seg"><span>Нет</span><span>1</span><span class="is-on">3</span><span>5</span></div>
+                    <span class="field__hint">ИИ-ревью баллов не ставит, оно показывает студенту, чего ещё не хватает.</span>
                   </div>
                 </div>
               </div>
               <div class="callout callout--info"><span class="callout__mark">i</span><p>Задание привязано к курсу «Системный дизайн» и переиспользуется в его потоках. Срок и ссылку для сдачи каждый поток получает свои.</p></div>
             </div>
+          </div>
+          <div class="btn-row" style="margin-top:var(--s-6);justify-content:space-between">
+            <span class="btn btn--quiet">Сохранить черновик</span>
+            <span class="btn btn--dark">Дальше: критерии</span>
           </div>
         </div>
       </div>
@@ -2261,8 +2263,8 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="К6">
   <div class="screen__head"><span class="screen__id">К6</span><h2>Задание, шаг 2: конфигурация ревью</h2></div>
   <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У каждого критерия своя формулировка, шкала, описание «что считается выполненным» и класс проверки. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Правила этого шага: порядок критериев меняется перетаскиванием и он же определяет порядок в разборе у ревьюера и студента. Рекомендации видят только ревьюеры. Описания «что считается выполненным» студент видит после проверки, до сдачи ему видны только названия критериев и баллы. Уже проверенные работы остаются на своей версии критериев.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг: настройка и результат выглядят как одно и то же решение.</p>
-  <div class="shot" style="height:898px"><div class="vp">
+  <p class="screen__what"><b>Что даёт стиль</b> «Дальше» и «Назад к шагу 1» стоят внизу, под формой, как на шаге 1. Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг: настройка и результат выглядят как одно и то же решение.</p>
+  <div class="shot" style="height:941px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2272,7 +2274,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Пул проверок<span class="c">12</span></a><a href="#">Домашки<span class="c">284</span></a>
         </nav>
         <div class="menu__sep">Курс «Системный дизайн»</div>
-        <nav class="menu">
+        <nav class="menu menu--sub">
           <a href="#">Вводное задание</a><a class="is-on" href="#">Лабораторная 1</a>
           <a href="#">Лабораторная 2</a><a href="#">Лабораторная 3</a>
         </nav>
@@ -2286,10 +2288,6 @@ a:hover { border-bottom-color: var(--ink); }
               <h1>Лабораторная 1. Декомпозиция сервиса</h1>
               <span class="st st--draft">Версия 2, черновик</span>
             </div>
-          </div>
-          <div class="btn-row">
-            <span class="btn btn--s btn--quiet">Назад к шагу 1</span>
-            <span class="btn btn--s btn--dark">Дальше: публикация</span>
           </div>
         </div>
         <div class="main">
@@ -2392,6 +2390,10 @@ a:hover { border-bottom-color: var(--ink); }
               
             </div>
           </div>
+          <div class="btn-row" style="margin-top:var(--s-6);justify-content:space-between">
+            <span class="btn btn--quiet">Назад к шагу 1</span>
+            <span class="btn btn--dark">Дальше: публикация</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2410,7 +2412,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a class="is-on" href="#">Пул проверок<span class="c">12</span></a><a href="#">Домашки<span class="c">284</span></a>
         </nav>
         <div class="menu__sep">Активные потоки</div>
-        <nav class="menu">
+        <nav class="menu menu--sub">
           <a class="is-on" href="#">Системный дизайн, фев<span class="c">9</span></a>
           <a href="#">Tech QA, фев<span class="c">3</span></a><a href="#">Go, янв<span class="c">0</span></a>
         </nav>
@@ -2484,7 +2486,7 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Пул проверок<span class="c">12</span></a><a class="is-on" href="#">Домашки<span class="c">284</span></a>
         </nav>
         <div class="menu__sep">Активные потоки</div>
-        <nav class="menu">
+        <nav class="menu menu--sub">
           <a class="is-on" href="#">Системный дизайн, фев</a><a href="#">Tech QA, фев</a><a href="#">Go, янв</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
@@ -2549,6 +2551,10 @@ a:hover { border-bottom-color: var(--ink); }
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a><a class="is-on" href="#">Домашки<span class="c">284</span></a>
+        </nav>
+        <div class="menu__sep">Активные потоки</div>
+        <nav class="menu menu--sub">
+          <a class="is-on" href="#">Системный дизайн, фев</a><a href="#">Tech QA, фев</a><a href="#">Go, янв</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>

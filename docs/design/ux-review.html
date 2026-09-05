@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Авито Ревью — UX/UI-аудит и улучшенные экраны</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#04e061;--green-dark:#027a36;--green-wash:#effdf3;
+  --red:#ff4053;--red-dark:#b91f31;--red-wash:#fdedef;
+  --orange:#ff891d;--orange-dark:#9d4b00;--orange-wash:#fff2e4;
+  --violet:#965eeb;--violet-dark:#6730ba;--violet-wash:#f3ecfc;
+  --blue:#00aaff;--blue-dark:#006ba9;--blue-wash:#eaf5fe;
+  --ink:#191919;--ink-2:#505050;--ink-3:#777;--line:#e7e8e8;--line-2:#c8caca;
+  --page:#f7f7f7;--surface:#fff;--soft:#f2f3f3;
+  --sans:'Onest',system-ui,sans-serif;--display:'Unbounded',var(--sans);--mono:'JetBrains Mono',monospace;
+  --r:12px;--pill:999px;--shadow:0 18px 55px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--page);color:var(--ink);font:15px/1.48 var(--sans)}
+button,input,textarea{font:inherit}button{cursor:pointer}a{color:inherit}.audit-head{padding:42px clamp(20px,4vw,64px) 34px;background:#111;color:#fff}
+.audit-head__in{max-width:1480px;margin:auto}.eyebrow{font:11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#a9aaa9}
+.audit-head h1{max-width:920px;margin:14px 0 12px;font:600 clamp(28px,4vw,52px)/1.04 var(--display);letter-spacing:-.045em}.audit-head p{max-width:880px;margin:0;color:#c8caca;font-size:17px}
+.audit-nav{position:sticky;top:0;z-index:20;display:flex;gap:8px;overflow:auto;padding:12px clamp(20px,4vw,64px);background:rgba(247,247,247,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}
+.audit-nav button{flex:none;height:38px;padding:0 16px;border:1px solid var(--line-2);border-radius:var(--pill);background:#fff;font-weight:500}.audit-nav button.active{background:#111;color:#fff;border-color:#111}
+.audit{max-width:1480px;margin:0 auto;padding:32px clamp(16px,3vw,40px) 80px}.view{display:none}.view.active{display:block}
+.decision{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(0,2.2fr);gap:20px;margin-bottom:18px}.decision h2{margin:0 0 8px;font:600 25px/1.15 var(--display);letter-spacing:-.035em}.decision p{margin:0;color:var(--ink-2)}
+.delta{display:grid;grid-template-columns:1fr 1fr;gap:12px}.delta article{background:#fff;border:1px solid var(--line);padding:16px 18px}.delta h3{margin:0 0 7px;font-size:13px}.delta p{font-size:13px}.delta .before{border-top:3px solid var(--red)}.delta .after{border-top:3px solid var(--green)}
+.mock{min-height:760px;background:#fff;border:1px solid #1a1a1a;box-shadow:var(--shadow);overflow:hidden}.app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:760px}.side{display:flex;flex-direction:column;border-right:1px solid var(--line);background:#fff;padding:22px 14px}.brand{display:flex;align-items:center;gap:9px;padding:0 8px 24px;font-weight:700}.dots{display:flex;align-items:center;gap:3px}.dots i{display:block;border-radius:50%}.dots i:nth-child(1){width:10px;height:10px;background:var(--green)}.dots i:nth-child(2){width:8px;height:8px;background:var(--blue)}.dots i:nth-child(3){width:6px;height:6px;background:var(--red)}
+.nav-label{margin:18px 10px 7px;font:10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}.side a{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--ink-2)}.side a.on{background:#111;color:#fff}.count{min-width:24px;padding:2px 7px;border-radius:var(--pill);background:var(--soft);color:var(--ink);font-size:12px;text-align:center}.side a.on .count{background:#333;color:#fff}.profile{margin-top:auto;padding:16px 8px 0;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}.avatar{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#111;color:#fff;font:11px var(--mono)}
+.workspace{min-width:0;background:var(--page)}.top{position:sticky;top:63px;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:80px;padding:16px 26px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.top h2{margin:4px 0 0;font-size:23px;line-height:1.15;font-weight:600}.crumb{color:var(--ink-3);font-size:12px}.actions{display:flex;gap:8px;align-items:center}.button{min-height:38px;padding:0 17px;border:1px solid var(--line-2);border-radius:var(--pill);background:#fff;color:#111;font-weight:500}.button.primary{background:var(--green);border-color:var(--green);font-weight:600}.button.dark{background:#111;border-color:#111;color:#fff}.button.quiet{color:var(--ink-2)}.button.link{border:0;background:none;padding:0;min-height:32px;text-decoration:underline;text-underline-offset:3px}.button.icon{width:38px;padding:0;font-size:20px}.button.danger{color:var(--red-dark);border-color:#e8a8af}.saved{font-size:12px;color:var(--green-dark)}
+.main{padding:24px 26px 40px}.grid{display:grid;gap:16px}.cols{grid-template-columns:minmax(0,1fr) 330px}.cols-review{grid-template-columns:minmax(0,1fr) 360px}.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}.card-head{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 18px;border-bottom:1px solid var(--line)}.card-head h3{margin:0;font-size:15px}.sub{color:var(--ink-3);font-size:12px}.card-body{padding:18px}.card-body.flush{padding:0}.stack{display:grid;gap:16px}
+.hero{position:relative;overflow:hidden;background:#c9ffbf;padding:28px clamp(22px,8vw,110px)}.hero h2{max-width:800px;margin:8px 0 14px;font:700 clamp(30px,4vw,49px)/1 var(--display);letter-spacing:-.05em}.hero-meta{display:flex;gap:32px}.hero-meta span{display:block;color:var(--ink-2);font-size:12px}.hero-meta b{display:block;margin-top:2px;color:#111;font-size:15px}.hero:after{content:"";position:absolute;width:180px;height:180px;right:50px;top:-38px;border-radius:50%;background:var(--green);box-shadow:-110px 120px 0 -45px #58cce6,-160px 30px 0 -70px #ff7775}
+.student-top{display:flex;justify-content:space-between;align-items:center;height:58px;padding:0 clamp(20px,5vw,70px);background:#fff;border-bottom:1px solid var(--line)}.student-main{max-width:1160px;margin:auto;padding:22px 20px 44px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}.summary div{background:#fff;padding:13px 15px}.summary b,.summary span{display:block}.summary span{font-size:12px;color:var(--ink-3)}
+.field{display:grid;gap:7px;margin-bottom:16px}.field label,.label{font-size:12px;font-weight:600}.input,.textarea{width:100%;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:11px 13px;color:#111}.textarea{min-height:110px;resize:vertical}.hint{font-size:12px;color:var(--ink-3)}.choice{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:var(--pill);background:var(--soft)}.choice button{height:32px;padding:0 13px;border:0;border-radius:var(--pill);background:transparent}.choice button.on{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.submit-foot{display:flex;justify-content:space-between;align-items:center;gap:15px;padding-top:16px;border-top:1px solid var(--line)}.precheck{display:flex;align-items:center;gap:12px}.precheck b,.precheck span{display:block}.precheck span{font-size:12px;color:var(--ink-3)}
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line)}.tabs button{position:relative;padding:0 0 11px;border:0;background:none;color:var(--ink-3);font-weight:500}.tabs button.on{color:#111}.tabs button.on:after{content:"";position:absolute;height:3px;left:0;right:0;bottom:-1px;background:#111}
+.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:17px 0}.filters{display:flex;gap:7px;flex-wrap:wrap}.filter{height:34px;padding:0 13px;border:1px solid var(--line-2);border-radius:var(--pill);background:#fff;color:var(--ink-2)}
+table{width:100%;border-collapse:collapse}th{padding:11px 14px;border-bottom:1px solid var(--line-2);text-align:left;font-size:11px;color:var(--ink-3);font-weight:500}td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:middle}tbody tr:hover{background:#fafafa}.row-title{font-weight:500}.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}.late{color:var(--orange-dark);font-weight:600}.overdue{color:var(--red-dark);font-weight:600}.status{display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:var(--pill);font-size:12px;font-weight:500}.status:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}.status.review{color:var(--violet-dark);background:var(--violet-wash)}.status.fix{color:var(--orange-dark);background:var(--orange-wash)}.status.pass{color:var(--green-dark);background:var(--green-wash)}
+.review-layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:16px;align-items:start}.criteria{display:grid;gap:10px}.criterion{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}.criterion-head{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:11px;align-items:center;padding:14px}.mark{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--green-wash);color:var(--green-dark);font-weight:700}.mark.bad{background:var(--red-wash);color:var(--red-dark)}.mark.human{border-radius:50%;background:var(--violet-wash);color:var(--violet-dark)}.criterion-title{font-weight:500}.criterion-meta{color:var(--ink-3);font-size:12px}.score{display:flex;gap:4px}.score button{min-width:38px;height:32px;padding:0 10px;border:1px solid var(--line-2);border-radius:7px;background:#fff}.score button.on{background:#111;border-color:#111;color:#fff}.finding{margin:0 14px 14px 53px;padding:13px 14px;border-left:3px solid var(--red);background:var(--red-wash);font-size:13px}.finding b{display:block;margin-bottom:4px}.source{margin-top:8px;color:var(--ink-2);font-family:var(--mono);font-size:11px}.collapsed{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.decision-panel{position:sticky;top:161px}.decision-panel .card-body{display:grid;gap:16px}.total{display:flex;justify-content:space-between;align-items:end;padding-bottom:14px;border-bottom:1px solid var(--line)}.total strong{font:600 30px var(--display);letter-spacing:-.04em}.evidence{padding:13px;border-radius:9px;background:var(--violet-wash)}.evidence h4{margin:0 0 5px}.evidence p{margin:0;color:var(--ink-2);font-size:12px}.radio-row{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.radio-row button{min-height:38px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-size:12px}.radio-row button.on{border-color:var(--violet);box-shadow:inset 0 0 0 1px var(--violet)}.final-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{padding:17px;background:#fff;border:1px solid var(--line);border-radius:var(--r)}.metric strong{display:block;font:600 27px var(--display);letter-spacing:-.04em}.metric span{display:block;margin-top:5px;color:var(--ink-2);font-size:13px}.metric small{display:block;margin-top:6px;color:var(--ink-3)}.metric.hot{border-color:#e69aa3}.metric.hot strong{color:var(--red-dark)}
+.attention{display:grid;gap:8px}.attention-row{display:grid;grid-template-columns:80px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.severity{font-size:11px;font-weight:600;text-transform:uppercase;color:var(--red-dark)}.severity.med{color:var(--orange-dark)}
+.criterion-edit{border:1px solid var(--line);border-radius:10px;background:#fff}.criterion-edit summary{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:14px;cursor:pointer;list-style:none}.drag{color:var(--ink-3);letter-spacing:-2px}.criterion-edit[open] summary{border-bottom:1px solid var(--line)}.criterion-form{display:grid;grid-template-columns:1fr 220px;gap:14px;padding:16px}.full{grid-column:1/-1}.select{width:100%;height:42px;padding:0 12px;border:1px solid var(--line-2);border-radius:8px;background:#fff}.validation{padding:13px 15px;border-radius:9px;background:var(--green-wash);color:var(--green-dark);font-size:13px}.validation.warn{background:var(--orange-wash);color:var(--orange-dark)}
+.overview{display:grid;grid-template-columns:1.4fr .9fr;gap:16px}.rules{margin:0;padding-left:20px;color:var(--ink-2)}.rules li{margin:6px 0}.rank{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#111;color:#fff;font-size:11px;margin-right:7px}
+@media(max-width:1100px){.decision{grid-template-columns:1fr}.app{grid-template-columns:76px 1fr}.side{padding-inline:8px}.brand{justify-content:center}.brand span:last-child,.side a span:first-child,.nav-label,.profile div{display:none}.side a{justify-content:center}.profile{justify-content:center}.cols,.cols-review,.overview{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.review-layout{grid-template-columns:1fr}.decision-panel{position:static}.top{top:63px}}
+@media(max-width:720px){.audit-nav{top:0}.delta{grid-template-columns:1fr}.mock{min-height:0}.app{display:block}.side{display:none}.top{top:63px;align-items:flex-start;padding:14px 16px}.top .actions .quiet,.saved{display:none}.main{padding:16px}.hero:after{display:none}.hero-meta{flex-wrap:wrap}.student-main{padding-inline:14px}.cols,.summary,.metrics{grid-template-columns:1fr}.submit-foot,.toolbar{align-items:stretch;flex-direction:column}.precheck{order:2}.button{min-height:42px}.review-layout{display:block}.decision-panel{margin-top:14px}.criterion-head{grid-template-columns:28px 1fr}.score{grid-column:2}.criterion-form{grid-template-columns:1fr}.full{grid-column:auto}.attention-row{grid-template-columns:1fr}.final-actions{position:sticky;bottom:0;padding-top:8px;background:#fff}}
+</style>
+</head>
+<body>
+<header class="audit-head">
+  <div class="audit-head__in"><div class="eyebrow">UX/UI-аудит · ветка matvej · screens.html</div><h1>Пять улучшенных экранов вместо пяти системных проблем</h1><p>Не редизайн ради стиля: изменения сокращают риск ошибки, убирают дублирование, делают приоритеты очевидными и задают компоненты, которые можно переиспользовать во всех 20 состояниях.</p></div>
+</header>
+<nav class="audit-nav" aria-label="Экраны аудита">
+  <button class="active" data-view="overview">Выводы</button><button data-view="s1">С1 · Сдача</button><button data-view="r2">Р2 · Работы</button><button data-view="r5">Р5 · Ревью</button><button data-view="k1">К1 · Обзор</button><button data-view="k5">К5 · Критерии</button>
+</nav>
+<main class="audit">
+<section class="view active" id="overview">
+  <div class="decision"><div><div class="eyebrow">Главный вывод</div><h2>Визуальный язык уже сильный. Улучшать нужно модель взаимодействия.</h2><p>Брендовые цвета, спокойная плотность и единый набор карточек работают. Основные риски — в информационной архитектуре, необратимых действиях и представлении AI как слишком уверенного участника.</p></div><div class="delta"><article class="before"><h3>Было</h3><p>Навигация и контент иногда дублируют друг друга; одинаково оформленные кнопки имеют разный риск; AI-проценты выглядят как точный диагноз; основные действия разбросаны по длинным экранам.</p></article><article class="after"><h3>Стало</h3><p>Один путь к каждой сущности; опасное спрятано в меню; решение всегда рядом с итогом; AI показывает основания, а не псевдоточность; ошибки и спорные критерии идут первыми.</p></article></div></div>
+  <div class="mock" style="min-height:0;padding:28px">
+    <div class="overview">
+      <div class="card"><div class="card-head"><h3>Приоритеты изменений</h3><span class="sub">Сначала риск и скорость, затем полировка</span></div><div class="card-body stack">
+        <div><span class="rank">1</span><b>Р5: отделить предложение модели от решения человека</b><p class="sub">Убрать «Принять все», закрепить итог и финальные действия, показывать сначала спорное.</p></div>
+        <div><span class="rank">2</span><b>Р2: устранить двойную навигацию «Мои работы / Пул»</b><p class="sub">Один экран «Работы» с табами и общими фильтрами.</p></div>
+        <div><span class="rank">3</span><b>К1: превратить метрики в очередь действий</b><p class="sub">На первом экране — нарушения SLA и ближайшие решения, а не общий объём базы.</p></div>
+        <div><span class="rank">4</span><b>К5: сделать критерий самостоятельным объектом</b><p class="sub">Сворачиваемые карточки, явная сумма, ошибки конфигурации до публикации.</p></div>
+        <div><span class="rank">5</span><b>С1: развести проверку и отправку</b><p class="sub">Понятный необязательный предчек и отдельное финальное действие с подтверждением.</p></div>
+      </div></div>
+      <div class="stack">
+        <div class="card"><div class="card-head"><h3>Системные правила</h3></div><div class="card-body"><ul class="rules"><li>Один главный action на экран.</li><li>Не использовать цвет как единственный сигнал.</li><li>Кнопки — только <span class="mono">button</span>, навигация — <span class="mono">a</span>.</li><li>Минимальная цель клика 40×40 px.</li><li>Автосохранение вместо ручного «Сохранить черновик».</li><li>Пустые, loading, error и permission-state для каждого списка.</li><li>Desktop ≥1280; отдельная композиция ≤1100.</li></ul></div></div>
+        <div class="card"><div class="card-head"><h3>Поддерживаемость</h3></div><div class="card-body"><p style="margin-top:0">Состояния С1–С3, Р5–Р6 и К8 должны собираться из одних компонентов, а не копироваться целыми страницами.</p><div class="validation warn">Сейчас в исходнике 431 inline-style и десятки повторов shell/card/table. Это главный долг дизайн-макета.</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="s1">
+  <div class="decision"><div><div class="eyebrow">С1 · Студент</div><h2>Два разных решения не должны выглядеть соседними равными кнопками</h2></div><div class="delta"><article class="before"><h3>Было</h3><p>«Отправить на ревью» и «ИИ-ревью» стоят рядом; лимит попыток спрятан в длинной подписи; рубрика занимает постоянную правую колонку.</p></article><article class="after"><h3>Стало</h3><p>Предварительная проверка оформлена как отдельный необязательный шаг, отправка — единственное финальное действие. Важные ограничения собраны в краткой сводке.</p></article></div></div>
+  <div class="mock">
+    <div class="student-top"><div class="brand" style="padding:0"><span class="dots"><i></i><i></i><i></i></span><span>Авито Ревью</span></div><button class="button quiet">Мои домашки</button></div>
+    <div class="hero"><div class="eyebrow" style="color:#31523c">Системный дизайн · Лабораторная 1</div><h2>Декомпозиция сервиса</h2><div class="hero-meta"><div><span>Сдать до</span><b>19 февраля, 23:59</b></div><div><span>Порог зачёта</span><b>4 из 6 баллов</b></div><div><span>Формат</span><b>GitHub или файлы</b></div></div></div>
+    <div class="student-main stack">
+      <div class="summary"><div><span>До дедлайна</span><b>2 дня 8 часов</b></div><div><span>Предварительные проверки</span><b>3 попытки осталось</b></div><div><span>После дедлайна</span><b>−1 балл в день</b></div></div>
+      <div class="grid cols">
+        <div class="card"><div class="card-head"><div><h3>Ваша работа</h3><span class="sub">Можно сохранить и вернуться позже</span></div><div class="choice"><button class="on">Репозиторий</button><button>Файлы</button></div></div><div class="card-body">
+          <div class="field"><label for="repo">Ссылка на репозиторий</label><input id="repo" class="input mono" value="github.com/student/wardrobe-service"><span class="hint">Проверим ветку main. Для приватного репозитория нужен доступ avito-edu-bot.</span></div>
+          <div class="field"><label for="comment">Как использовали ИИ <span class="sub">· необязательно</span></label><textarea id="comment" class="textarea" placeholder="Опишите, что генерировали и что проверили сами"></textarea></div>
+          <div class="submit-foot"><div class="precheck"><button class="button">Проверить перед отправкой</button><div><b>Необязательно</b><span>Покажем только места, которые стоит проверить</span></div></div><button class="button primary">Отправить работу →</button></div>
+        </div></div>
+        <div class="stack"><div class="card"><div class="card-head"><h3>Что нужно сделать</h3><button class="button link">Показать всё</button></div><div class="card-body"><ol class="rules"><li>Декомпозировать систему по двум признакам.</li><li>Добавить C4 и sequence-диаграмму.</li><li>Описать интерфейсы и ошибки.</li><li>Разобрать связность компонентов.</li></ol></div></div><div class="validation warn">Перед финальной отправкой покажем подтверждение: после неё работа станет доступна ревьюерам.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="r2">
+  <div class="decision"><div><div class="eyebrow">Р2 · Ревьюер</div><h2>Одна сущность «Работы» вместо меню и двух повторяющихся списков</h2></div><div class="delta"><article class="before"><h3>Было</h3><p>В меню отдельно «Мои работы» и «Пул», но на главной странице показаны оба блока. В каждой строке повторяется «Открыть», рядом находится рискованное «Вернуть в пул».</p></article><article class="after"><h3>Стало</h3><p>Один раздел с табами, вся строка открывает работу, срок считывается раньше статуса. Возврат в пул перенесён в меню строки.</p></article></div></div>
+  <div class="mock"><div class="app">
+    <aside class="side"><div class="brand"><span class="dots"><i></i><i></i><i></i></span><span>Авито Ревью</span></div><a class="on" href="#"><span>Работы</span><span class="count">17</span></a><a href="#"><span>Кабинет</span></a><div class="nav-label">Курсы</div><a href="#"><span>Системный дизайн</span><span class="count">9</span></a><a href="#"><span>Go</span><span class="count">3</span></a><div class="profile"><span class="avatar">РВ</span><div><b>rev-2214</b><div class="sub">ревьюер</div></div></div></aside>
+    <div class="workspace"><header class="top"><div><div class="crumb">Рабочая очередь</div><h2>Работы</h2></div><div class="actions"><span class="saved">Обновлено только что</span><button class="button quiet">Настроить курсы</button></div></header><main class="main">
+      <div class="tabs"><button class="on">Мои работы · 5</button><button>Доступные · 12</button><button>Завершённые</button></div>
+      <div class="toolbar"><div class="filters"><button class="filter">Все курсы</button><button class="filter">Сначала срочные</button></div><div class="sub">На проверку — 2 рабочих дня с момента взятия</div></div>
+      <div class="card"><div class="card-body flush"><table><thead><tr><th>Работа</th><th>Статус</th><th>Срок проверки</th><th>Прогресс</th><th aria-label="Действия"></th></tr></thead><tbody>
+        <tr><td><div class="row-title">Лабораторная 1 · Студент 4790</div><div class="sub">Системный дизайн · попытка 1</div></td><td><span class="status review">На ревью</span></td><td><div class="overdue">Сегодня, 18:00</div><div class="sub">осталось 4 часа</div></td><td>6 из 9 критериев</td><td><button class="button icon" aria-label="Меню работы">⋯</button></td></tr>
+        <tr><td><div class="row-title">Домашнее задание 3 · Студент 5084</div><div class="sub">Go · попытка 2</div></td><td><span class="status fix">Повторное ревью</span></td><td><div class="late">Завтра, 12:30</div><div class="sub">остался 1 день</div></td><td>Черновик не начат</td><td><button class="button icon" aria-label="Меню работы">⋯</button></td></tr>
+        <tr><td><div class="row-title">Лабораторная 2 · Студент 4821</div><div class="sub">Системный дизайн · попытка 1</div></td><td><span class="status review">На ревью</span></td><td>24 февраля</td><td>Черновик сохранён</td><td><button class="button icon" aria-label="Меню работы">⋯</button></td></tr>
+      </tbody></table></div></div>
+      <div class="validation" style="margin-top:16px">После переключения на «Доступные» таблица сохраняет те же колонки и фильтры; появляется один action «Взять работу».</div>
+    </main></div>
+  </div></div>
+</section>
+
+<section class="view" id="r5">
+  <div class="decision"><div><div class="eyebrow">Р5 · Основной сценарий</div><h2>Ревьюер разбирает исключения, а не подтверждает модель оптом</h2></div><div class="delta"><article class="before"><h3>Было</h3><p>«Принять все» поощряет автоматическое согласие. Итог и ответ находятся слева, требования справа. AI-сигнал выражен точным процентом и требует бинарного решения.</p></article><article class="after"><h3>Стало</h3><p>Сначала спорные и невыполненные критерии; выполненные свернуты. Справа закреплены итог, ответ и решение. AI — это список оснований с вариантом «Недостаточно данных».</p></article></div></div>
+  <div class="mock"><div class="app">
+    <aside class="side"><div class="brand"><span class="dots"><i></i><i></i><i></i></span><span>Авито Ревью</span></div><a class="on" href="#"><span>Работы</span><span class="count">5</span></a><a href="#"><span>Кабинет</span></a><div class="profile"><span class="avatar">РВ</span><div><b>rev-2214</b><div class="sub">ревьюер</div></div></div></aside>
+    <div class="workspace"><header class="top"><div><div class="crumb">← Работы / Студент 4790</div><h2>Лабораторная 1 · Декомпозиция сервиса</h2></div><div class="actions"><span class="saved">✓ Черновик сохранён</span><button class="button">Открыть работу ↗</button><button class="button icon" aria-label="Другие действия">⋯</button></div></header><main class="main">
+      <div class="review-layout"><div class="stack">
+        <div class="card"><div class="card-head"><div><h3>Разбор по требованиям</h3><div class="sub">Предложение модели уже заполнено. Проверьте 3 места, требующие решения.</div></div><span class="status review">3 требуют внимания</span></div><div class="card-body criteria">
+          <div class="criterion"><div class="criterion-head"><span class="mark bad">!</span><div><div class="criterion-title">Контракты: входы, выходы и ошибки</div><div class="criterion-meta">Модель предлагает 0,5 из 1 · содержательный критерий</div></div><div class="score" aria-label="Итоговый балл"><button>0</button><button class="on">0,5</button><button>1</button></div></div><div class="finding"><b>Не описаны входы и выходы интерфейса I3</b>Ошибки перечислены, но контракт нельзя реализовать по этому описанию.<div class="source">docs/architecture.md · строки 84–89 · открыть ↗</div></div></div>
+          <div class="criterion"><div class="criterion-head"><span class="mark bad">!</span><div><div class="criterion-title">Анализ связности компонентов</div><div class="criterion-meta">Модель предлагает 0 из 0,5 · цитаты нет</div></div><div class="score"><button class="on">0</button><button>0,5</button></div></div><div class="finding"><b>Раздел не найден</b>Проверьте, мог ли анализ находиться под другим заголовком.</div></div>
+          <div class="criterion"><div class="criterion-head"><span class="mark human">?</span><div><div class="criterion-title">Обосновано соблюдение SRP</div><div class="criterion-meta">Оценочный критерий · решение ревьюера</div></div><div class="score"><button>0</button><button class="on">0,5</button></div></div></div>
+          <div class="collapsed"><div><b>6 требований без замечаний</b><div class="sub">4 балла · предложения модели не изменены</div></div><button class="button link">Проверить</button></div>
+          <button class="button" style="justify-self:start">+ Добавить замечание без баллов</button>
+        </div></div>
+      </div>
+      <aside class="decision-panel stack"><div class="card"><div class="card-head"><h3>Решение</h3><span class="sub">Порог: 4 из 6</span></div><div class="card-body">
+        <div class="total"><div><div class="sub">Итоговый балл</div><strong>4,5 <small style="font:12px var(--sans);color:var(--ink-3)">из 6</small></strong></div><span class="status pass">Порог пройден</span></div>
+        <div class="evidence"><h4>Использование ИИ: есть 3 косвенных признака</h4><p>Это не доказательство и не влияет на балл. Сверьте с декларацией студента.</p></div><div class="radio-row" role="group" aria-label="Решение по признакам ИИ"><button>Есть основания</button><button>Нет оснований</button><button class="on">Недостаточно данных</button></div>
+        <div class="field" style="margin:0"><label for="reply">Ответ студенту</label><textarea id="reply" class="textarea">Добавьте входы и выходы для интерфейса I3. В работе также не нашёл анализа связности компонентов — раскройте конкретные зависимости между ними.</textarea><span class="hint">Ответ уйдёт вместе с решением.</span></div>
+        <div class="final-actions"><button class="button dark">Вернуть на доработку</button><button class="button primary">Зачесть</button></div>
+      </div></div></aside>
+      </div>
+    </main></div>
+  </div></div>
+</section>
+
+<section class="view" id="k1">
+  <div class="decision"><div><div class="eyebrow">К1 · Координатор</div><h2>Первый экран должен отвечать «где вмешаться сегодня»</h2></div><div class="delta"><article class="before"><h3>Было</h3><p>Крупнейшая метрика — 284 домашки, а действия создания курса и потока конкурируют с ежедневным контролем. Завершённые потоки смешаны с активными.</p></article><article class="after"><h3>Стало</h3><p>Первый ряд показывает SLA и динамику. Проблемы — приоритизированная очередь с конкретным действием. Потоки разделены на активные и завершённые.</p></article></div></div>
+  <div class="mock"><div class="app">
+    <aside class="side"><div class="brand"><span class="dots"><i></i><i></i><i></i></span><span>Авито Ревью</span></div><a class="on" href="#"><span>Обзор</span></a><a href="#"><span>Пул проверок</span><span class="count">12</span></a><a href="#"><span>Домашки</span></a><div class="nav-label">Настройка</div><a href="#"><span>Курсы и потоки</span></a><a href="#"><span>Задания</span><span class="count">17</span></a><div class="profile"><span class="avatar">КО</span><div><b>Координатор</b><div class="sub">методист</div></div></div></aside>
+    <div class="workspace"><header class="top"><div><div class="crumb">Активные потоки · 4</div><h2>Что требует внимания</h2></div><div class="actions"><button class="button">Поиск</button><button class="button dark">Создать…</button></div></header><main class="main stack">
+      <div class="metrics"><div class="metric hot"><strong>3</strong><span>работы нарушили SLA ожидания</span><small>+2 со вчера</small></div><div class="metric"><strong>12</strong><span>работ ждут ревьюера</span><small>9 — меньше суток</small></div><div class="metric"><strong>1,8 дня</strong><span>среднее время проверки</span><small>−0,3 дня за неделю</small></div><div class="metric"><strong>94%</strong><span>проверено в срок</span><small>цель потока — 95%</small></div></div>
+      <div class="grid cols"><div class="card"><div class="card-head"><div><h3>Очередь действий</h3><span class="sub">Сначала то, что влияет на срок ответа студенту</span></div></div><div class="card-body attention">
+        <div class="attention-row"><span class="severity">Критично</span><div><b>3 работы ждут ревьюера 4–6 дней</b><div class="sub">Системный дизайн · лабораторная 1</div></div><button class="button">Открыть пул</button></div>
+        <div class="attention-row"><span class="severity med">Сегодня</span><div><b>5 ревьюеров не брали работы 7 дней</b><div class="sub">Доступны для двух активных курсов</div></div><button class="button">Напомнить</button></div>
+        <div class="attention-row"><span class="severity med">До публикации</span><div><b>У лабораторной 2 нет эталонного решения</b><div class="sub">Публикация запланирована на завтра</div></div><button class="button">Дополнить</button></div>
+      </div></div>
+      <div class="card"><div class="card-head"><div><h3>Потоки</h3><span class="sub">4 активных</span></div><div class="tabs" style="border:0"><button class="on">Активные</button><button>Завершённые</button></div></div><div class="card-body flush"><table><thead><tr><th>Поток</th><th>Следующий дедлайн</th><th>Ожидают</th><th>На проверке</th><th>Закрыто</th></tr></thead><tbody><tr><td><b>Системный дизайн · февраль</b><div class="sub">96 студентов · 4 задания</div></td><td class="late">Сегодня, 23:59</td><td class="overdue">9 · 3 просрочено</td><td>21</td><td>58</td></tr><tr><td><b>Tech QA · февраль</b><div class="sub">120 студентов · 6 заданий</div></td><td>21 февраля</td><td>3</td><td>18</td><td>93</td></tr></tbody></table></div></div>
+      </div></div>
+    </main></div>
+  </div></div>
+</section>
+
+<section class="view" id="k5">
+  <div class="decision"><div><div class="eyebrow">К5 · Координатор</div><h2>Конфигурация критериев должна предотвращать ошибку на весь поток</h2></div><div class="delta"><article class="before"><h3>Было</h3><p>Три плотные строки на каждый критерий, шкалы выражены разными сегментами, часть критериев скрыта за «Ещё 6». Сумма и ошибки видны только внизу.</p></article><article class="after"><h3>Стало</h3><p>Каждый критерий — сворачиваемая карточка с номером и баллом. Справа постоянно видны сумма, порог, полнота настройки и блокирующие ошибки.</p></article></div></div>
+  <div class="mock"><div class="app">
+    <aside class="side"><div class="brand"><span class="dots"><i></i><i></i><i></i></span><span>Авито Ревью</span></div><a href="#"><span>Обзор</span></a><a href="#"><span>Пул проверок</span><span class="count">12</span></a><div class="nav-label">Настройка</div><a href="#"><span>Курсы и потоки</span></a><a class="on" href="#"><span>Задания</span><span class="count">17</span></a><div class="profile"><span class="avatar">КО</span><div><b>Координатор</b><div class="sub">методист</div></div></div></aside>
+    <div class="workspace"><header class="top"><div><div class="crumb">← Лабораторная 1 / Шаг 2 из 3</div><h2>Критерии ревью</h2></div><div class="actions"><span class="saved">✓ Сохранено</span><button class="button primary">Дальше: публикация →</button></div></header><main class="main">
+      <div class="grid cols"><div class="stack">
+        <div class="card"><div class="card-head"><div><h3>9 критериев</h3><span class="sub">Порядок будет таким же у ревьюера и студента</span></div><button class="button dark">+ Добавить критерий</button></div><div class="card-body stack">
+          <details class="criterion-edit" open><summary><span class="drag">⠿</span><b>1. Декомпозиция по двум признакам</b><span class="status pass">Настроен</span><span class="mono">1 балл</span></summary><div class="criterion-form"><div class="field"><label>Название критерия</label><input class="input" value="Выполнена декомпозиция по двум и более признакам"></div><div class="field"><label>Максимальный балл</label><select class="select"><option>1 балл</option><option>0,5 балла</option></select></div><div class="field full"><label>Что считается выполненным</label><textarea class="textarea">Есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они.</textarea><span class="hint">Формулируйте наблюдаемое условие, а не «хорошо раскрыто».</span></div><div class="field"><label>Кто принимает решение</label><select class="select"><option>Модель предлагает, обязательна цитата</option><option>Проверяется формально</option><option>Только ревьюер</option></select></div><div class="field"><label>Допустимые баллы</label><select class="select"><option>0 или 1</option><option>0 / 0,5 / 1</option></select></div></div></details>
+          <details class="criterion-edit"><summary><span class="drag">⠿</span><b>2. Диаграмма C4: контекст и компоненты</b><span class="status pass">Настроен</span><span class="mono">1 балл</span></summary></details>
+          <details class="criterion-edit"><summary><span class="drag">⠿</span><b>3. Анализ связности компонентов</b><span class="status fix">Нужна правка</span><span class="mono">0,5 балла</span></summary></details>
+          <div class="collapsed"><span>Ещё 6 критериев</span><button class="button link">Показать</button></div>
+        </div></div>
+        <div class="card"><div class="card-head"><h3>Рекомендации ревьюерам</h3><span class="sub">Не видны студентам</span></div><div class="card-body"><textarea class="textarea">Диаграммы принимаем в любой нотации, если они читаются. Не снижайте оценку за инструмент рисования.</textarea></div></div>
+      </div><aside class="stack decision-panel">
+        <div class="card"><div class="card-head"><h3>Проверка конфигурации</h3></div><div class="card-body stack"><div class="total"><div><div class="sub">Сумма баллов</div><strong>6</strong></div><div><div class="sub">Порог зачёта</div><b>4 балла</b></div></div><div class="validation">8 из 9 критериев настроены полностью</div><div class="validation warn"><b>Критерий 3 слишком субъективен.</b><br>Добавьте наблюдаемые признаки или оставьте решение только ревьюеру.</div><button class="button">Предпросмотр глазами ревьюера</button></div></div>
+        <div class="card"><div class="card-head"><h3>Версия</h3></div><div class="card-body"><b>Версия 2 · черновик</b><p class="sub">Изменения не затронут уже начатые проверки. Новая версия вступит в силу после публикации.</p></div></div>
+      </aside></div>
+    </main></div>
+  </div></div>
+</section>
+</main>
+<script>
+const buttons=[...document.querySelectorAll('.audit-nav button')];
+const views=[...document.querySelectorAll('.view')];
+function showView(id,scroll=false){
+  const next=buttons.find(item=>item.dataset.view===id)||buttons[0];
+  buttons.forEach(item=>item.classList.toggle('active',item===next));
+  views.forEach(view=>view.classList.toggle('active',view.id===next.dataset.view));
+  if(scroll) window.scrollTo({top:document.querySelector('.audit-nav').offsetTop,behavior:'smooth'});
+}
+buttons.forEach(button=>button.addEventListener('click',()=>{
+  history.replaceState(null,'',`#${button.dataset.view}`);
+  showView(button.dataset.view,true);
+}));
+showView(location.hash.slice(1));
+</script>
+</body>
+</html>
