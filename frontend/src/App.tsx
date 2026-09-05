@@ -1,5 +1,14 @@
 import { confirmNavigation, consumeProgrammaticNavigation } from "./navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { WorkspaceNotifications } from "./WorkspaceNotifications";
 import { WorkspaceClient } from "./api/workspace";
 import { WorkspaceHomework } from "./pages/WorkspaceHomework";
@@ -13,22 +22,43 @@ import {
   WorkspaceAssignments,
 } from "./pages/WorkspaceCatalog";
 import { ApiClient, ApiError, type Model, type Role } from "./api/client";
-import {
-  Card,
-  Empty,
-  ErrorBox,
-  Resource,
-  go,
-  roleNames,
-  useAction,
-  useResource,
-} from "./ui";
+import { Empty, ErrorBox, go, roleNames, useAction, useResource } from "./ui";
 import { CoursePage, CoursesPage, QueuePage } from "./pages/Courses";
 import { ReviewPage } from "./pages/Review";
-import { SubmitPage, SubmissionPage } from "./pages/Submission";
 import { HomeworkPage } from "./pages/Homework";
-import { PeoplePage, PreferencesPage } from "./pages/People";
-import { DeliveriesPage, OperationPanel } from "./pages/Operations";
+import { OperationPage } from "./pages/Operations";
+import { CoordinatorCabinet, StudentCabinet } from "./pages/Cabinet";
+import {
+  Ava,
+  Band,
+  Brand,
+  Btn,
+  Callout,
+  Pill,
+  Sel,
+  Shell,
+  StudentTopbar,
+  cx,
+  short,
+  type MenuItem,
+} from "./ds";
+
+/* Счётчики пунктов меню: страницы сообщают их из тех же выборок, что рисуют
+   в таблицах; оболочка сама ничего не запрашивает.                          */
+export type MenuCounts = Partial<
+  Record<
+    "works" | "pool" | "courses" | "homeworks" | "coordPool" | "registry",
+    number
+  >
+>;
+const CountsContext = createContext<{
+  counts: MenuCounts;
+  setCounts: (next: MenuCounts) => void;
+}>({ counts: {}, setCounts: () => {} });
+export function useMenuCounts() {
+  return useContext(CountsContext);
+}
+
 export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
   const ws = useMemo(() => new WorkspaceClient(api), [api]);
   const s = useResource(() => api.session(), "session");
@@ -39,8 +69,28 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
       api.onUnauthorized = undefined;
     };
   }, [api]);
-  const [role, setRole] = useState<Role>();
+  const [role, setRoleState] = useState<Role | undefined>(() => {
+    try {
+      return (sessionStorage.getItem("role") as Role) || undefined;
+    } catch {
+      return undefined;
+    }
+  });
+  const setRole = useCallback((next: Role | undefined) => {
+    setRoleState(next);
+    try {
+      if (next) sessionStorage.setItem("role", next);
+      else sessionStorage.removeItem("role");
+    } catch {
+      /* хранилище недоступно: роль живёт только в памяти вкладки */
+    }
+  }, []);
   const [route, setRoute] = useState(window.location.hash.slice(1) || "/home");
+  const [counts, setCountsState] = useState<MenuCounts>({});
+  const setCounts = useCallback(
+    (next: MenuCounts) => setCountsState((prev) => ({ ...prev, ...next })),
+    [],
+  );
   const previousRoute = useRef(route);
   useEffect(() => {
     const update = () => {
@@ -83,8 +133,10 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
       : (session?.roles.find((r) => r === "reviewer") ?? session?.roles[0]);
   if (s.loading)
     return (
-      <div className="login" data-screen="Р1">
-        <p role="status">Проверяем сессию…</p>
+      <div className="login login--wait" data-screen="Р1">
+        <p role="status" className="caption">
+          Проверяем сессию…
+        </p>
       </div>
     );
   if (!session || expired)
@@ -114,6 +166,26 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
   const canReview = session.roles.some(
     (r) => r === "reviewer" || r === "methodologist",
   );
+  const logout = () =>
+    void action.run(async () => {
+      await api.request("/v1/session", { method: "DELETE" });
+      api.clearPending();
+      setRole(undefined);
+      go("/home");
+      s.refresh();
+    });
+  const accountProps = {
+    session,
+    role: activeRole,
+    demo,
+    busy: action.busy,
+    onRole: (next: Role) => {
+      if (!confirmNavigation()) return;
+      setRole(next);
+      go("/home");
+    },
+    onLogout: logout,
+  };
   let page;
   if (
     section === "works" ||
@@ -180,184 +252,275 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         role={activeRole}
       />
     );
-  else if (section === "people" && session.roles.includes("methodologist"))
-    page = <PeoplePage api={api} />;
+  else if (section === "cabinet" && activeRole === "student")
+    page = <StudentCabinet ws={ws} account={accountProps} />;
+  else if (
+    (section === "cabinet" ||
+      section === "people" ||
+      section === "deliveries") &&
+    activeRole === "methodologist"
+  )
+    page = (
+      <CoordinatorCabinet
+        api={api}
+        ws={ws}
+        tab={
+          section === "people"
+            ? "people"
+            : section === "deliveries"
+              ? "deliveries"
+              : "profile"
+        }
+        account={accountProps}
+      />
+    );
   else if (section === "preferences" && session.roles.includes("reviewer"))
     page = <WorkspacePreferences ws={ws} session={session} />;
-  else if (section === "deliveries" && session.roles.includes("methodologist"))
-    page = <DeliveriesPage api={api} />;
   else if (section === "operations" && id)
-    page = <OperationPanel api={api} id={id} />;
+    page = <OperationPage api={api} id={id} />;
   else
     page = (
-      <Empty>
-        Страница недоступна. <a href="#/courses">Вернуться к курсам</a>
-      </Empty>
-    );
-  const nav =
-    activeRole === "student"
-      ? [
-          ["works", "Мои домашки"],
-          ["courses", "Мои курсы"],
-        ]
-      : activeRole === "reviewer"
-        ? [
-            ["works", "Мои работы"],
-            ["pool", "Пул"],
-            ["preferences", "Кабинет"],
-          ]
-        : [
-            ["dashboard", "Обзор"],
-            ["courses", "Курсы"],
-            ["homeworks", "Задания"],
-            ["coord-pool", "Пул проверок"],
-            ["registry", "Домашки"],
-          ];
-  const accountControls = (
-    <>
-      {" "}
-      {demo && <span className="demo-tag">Демо · локальные данные</span>}
-      {session.roles.length > 1 && (
-        <select
-          aria-label="Роль"
-          value={activeRole}
-          onChange={(e) => {
-            if (!confirmNavigation()) return;
-            setRole(e.target.value as Role);
-            go("/home");
-          }}
-        >
-          {session.roles.map((r) => (
-            <option key={r} value={r}>
-              {roleNames[r]}
-            </option>
-          ))}
-        </select>
-      )}
-      <button
-        disabled={action.busy}
-        onClick={() =>
-          void action.run(async () => {
-            await api.request("/v1/session", { method: "DELETE" });
-            api.clearPending();
-            setRole(undefined);
-            go("/home");
-            s.refresh();
-          })
-        }
-      >
-        Выйти
-      </button>
-    </>
-  );
-  return (
-    <div
-      className={`app-shell ${activeRole === "student" ? "student-shell" : ""}`}
-    >
-      <a
-        className="skip"
-        href="#main"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById("main")?.focus();
-        }}
-      >
-        Перейти к содержимому
-      </a>
-      {activeRole !== "student" && (
-        <aside className="sidebar">
-          <a className="brand" href="#/home">
-            <span className="brand-dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            Авито Ревью
-          </a>
-          <nav>
-            {nav.map(([link, label]) => (
-              <a
-                key={link}
-                href={`#/${link}`}
-                aria-current={
-                  section === link ||
-                  (link === "preferences" && section === "statistics")
-                    ? "page"
-                    : undefined
-                }
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
-          <details className="sidebar-account">
-            <summary className="sidebar-footer">
-              <span className="avatar">
-                {activeRole === "reviewer" ? "РВ" : "КО"}
-              </span>
-              <span>
-                <span className="small">
-                  {activeRole === "reviewer"
-                    ? `rev-${session.user_id.slice(0, 4)}`
-                    : "Координатор"}
-                </span>
-                <small>
-                  {activeRole === "reviewer" ? "ревьюер" : "методист"}
-                </small>
-              </span>
-            </summary>
-            <div className="account-controls">{accountControls}</div>
-          </details>
-        </aside>
-      )}
-      <div className="main-area">
-        {activeRole === "student" && (
-          <header>
-            <div>
-              {activeRole === "student" ? (
-                <a className="brand" href="#/home">
-                  <span className="brand-dots" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                  Авито Ревью
-                </a>
-              ) : (
-                <>
-                  <span className="muted">Авито Ревью / </span>
-                  {roleNames[activeRole]}
-                </>
-              )}
-            </div>
-            <div className="actions">
-              {activeRole === "student" && (
-                <>
-                  {["prepare", "submit"].includes(section) && (
-                    <a className="button" href="#/works">
-                      Мои домашки
-                    </a>
-                  )}
-                  <details className="student-account">
-                    <summary className="avatar" aria-label="Ваш профиль">
-                      {session.user_id.slice(0, 4)}
-                    </summary>
-                    <div className="account-controls">{accountControls}</div>
-                  </details>
-                </>
-              )}
-            </div>
-          </header>
-        )}
-        <main id="main" tabIndex={-1} key={`${activeRole}:${route}`}>
-          {action.feedback}
-          {page}
-        </main>
-        {activeRole !== "student" && <WorkspaceNotifications ws={ws} />}
+      <div className="main">
+        <Empty>
+          Страница недоступна. <a href="#/courses">Вернуться к курсам</a>
+        </Empty>
       </div>
+    );
+
+  const account = <AccountMenu {...accountProps} />;
+  const skip = (
+    <a
+      className="skip"
+      href="#main"
+      onClick={(e) => {
+        e.preventDefault();
+        document.getElementById("main")?.focus();
+      }}
+    >
+      Перейти к содержимому
+    </a>
+  );
+  const main = (
+    <main id="main" tabIndex={-1} key={`${activeRole}:${route}`}>
+      {!!action.error && (
+        <div className="main main--feedback">{action.feedback}</div>
+      )}
+      {page}
+    </main>
+  );
+  const provider = (children: ReactNode) => (
+    <CountsContext.Provider value={{ counts, setCounts }}>
+      {children}
+    </CountsContext.Provider>
+  );
+
+  if (activeRole === "student")
+    return provider(
+      <div className="student">
+        {skip}
+        <StudentTopbar
+          nav={[
+            {
+              href: "#/works",
+              label: "Мои домашки",
+              on: ["works", "submissions", "prepare", "submit"].includes(
+                section,
+              ),
+            },
+            {
+              href: "#/courses",
+              label: "Мои курсы",
+              on: section === "courses",
+            },
+            { href: "#/cabinet", label: "Кабинет", on: section === "cabinet" },
+          ]}
+          right={account}
+        />
+        {main}
+      </div>,
+    );
+
+  const menu: MenuItem[] =
+    activeRole === "reviewer"
+      ? [
+          {
+            href: "#/works",
+            label: "Мои работы",
+            count: counts.works,
+            on: section === "works",
+          },
+          {
+            href: "#/pool",
+            label: "Пул",
+            count: counts.pool,
+            on: section === "pool",
+          },
+          {
+            href: "#/preferences",
+            label: "Кабинет",
+            on: section === "preferences" || section === "statistics",
+          },
+        ]
+      : [
+          { href: "#/dashboard", label: "Обзор", on: section === "dashboard" },
+          {
+            href: "#/courses",
+            label: "Курсы",
+            count: counts.courses,
+            on: section === "courses",
+          },
+          {
+            href: "#/homeworks",
+            label: "Задания",
+            count: counts.homeworks,
+            on: section === "homeworks" || section === "homework",
+          },
+          {
+            href: "#/coord-pool",
+            label: "Пул проверок",
+            count: counts.coordPool,
+            on: section === "coord-pool",
+          },
+          {
+            href: "#/registry",
+            label: "Домашки",
+            count: counts.registry,
+            on: section === "registry",
+          },
+          {
+            href: "#/cabinet",
+            label: "Кабинет",
+            on: ["cabinet", "people", "deliveries"].includes(section),
+          },
+        ];
+  return provider(
+    <>
+      {skip}
+      <Shell menu={menu} foot={account}>
+        {main}
+        <WorkspaceNotifications ws={ws} />
+      </Shell>
+    </>,
+  );
+}
+
+/* Подвал панели и аватар студента: человек и роль как в макете, по клику
+   раскрывается смена роли и выход. В макете этих действий нет.             */
+function AccountMenu({
+  session,
+  role,
+  demo,
+  busy,
+  onRole,
+  onLogout,
+}: {
+  session: Model<"Session">;
+  role: Role;
+  demo: boolean;
+  busy: boolean;
+  onRole: (role: Role) => void;
+  onLogout: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const closeMenu = () => setOpen(false);
+    window.addEventListener("hashchange", closeMenu);
+    const away = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", away);
+    document.addEventListener("keydown", esc);
+    return () => {
+      window.removeEventListener("hashchange", closeMenu);
+      document.removeEventListener("mousedown", away);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+  const initials =
+    role === "reviewer"
+      ? "РВ"
+      : role === "methodologist"
+        ? "КО"
+        : short(session.user_id);
+  const name =
+    role === "reviewer"
+      ? `rev-${short(session.user_id)}`
+      : role === "methodologist"
+        ? "Координатор"
+        : `Студент ${short(session.user_id)}`;
+  const caption =
+    role === "reviewer"
+      ? "ревьюер"
+      : role === "methodologist"
+        ? "методист"
+        : "студент";
+  const student = role === "student";
+  return (
+    <div className={cx("acct", student && "acct--student")} ref={ref}>
+      <button
+        type="button"
+        className="acct__s"
+        aria-label={student ? "Ваш профиль" : `${name}, ${caption}`}
+        aria-expanded={open}
+        aria-haspopup="true"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <Ava>{initials}</Ava>
+        {!student && (
+          <span>
+            <span className="small aside__name">{name}</span>
+            <span className="caption">{caption}</span>
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="pop pop--acct">
+          <div className="pop__g">Учётная запись</div>
+          <div className="pop__row pop__row--static">
+            <div className="t">
+              <span>{name}</span>
+              <span className="s">{roleNames[role]}</span>
+            </div>
+            {demo && <Pill>Демо</Pill>}
+          </div>
+          {session.roles.length > 1 && (
+            <div className="pop__row pop__row--static">
+              <label className="field field--inline">
+                <span className="field__lbl">Роль</span>
+                <Sel
+                  small
+                  aria-label="Роль"
+                  value={role}
+                  onChange={(e) => onRole(e.target.value as Role)}
+                >
+                  {session.roles.map((r) => (
+                    <option key={r} value={r}>
+                      {roleNames[r]}
+                    </option>
+                  ))}
+                </Sel>
+              </label>
+            </div>
+          )}
+          <div className="pop__foot">
+            <span>
+              {demo ? "Данные живут в памяти вкладки" : "Сессия на сервере"}
+            </span>
+            <Btn size="s" variant="quiet" disabled={busy} onClick={onLogout}>
+              Выйти
+            </Btn>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 function Login({
   api,
   error,
@@ -411,52 +574,70 @@ function Login({
     }
   }, [callback, invitation]);
   return (
-    <div className="login-layout" data-screen="Р1">
-      <div className="login-intro band">
-        <div className="brand-circles" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </div>
-        <div className="band-content">
-          <a className="brand" href="#/home">
-            <span className="brand-dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            Авито Ревью
-          </a>
-          <h1 className="d2">Готовый разбор по каждой работе</h1>
-          <p>
-            Модель разбирает работу по требованиям задания и готовит черновик.
-            Ревьюер проверяет выводы и принимает решение.
-          </p>
-        </div>
-      </div>
-      <div className="login-form">
-        <div>
+    <div className="login" data-screen="Р1">
+      <Band art="login">
+        <Brand />
+        <h1 className="d2">Готовый разбор по каждой работе</h1>
+        <p>
+          Модель заранее разбирает работу по требованиям задания и готовит
+          черновик. Вы соглашаетесь или правите.
+        </p>
+      </Band>
+      <div className="login__side">
+        <div className="login__form">
           <h2>Войти в рабочее пространство</h2>
-          {demo && (
-            <p className="notice">
-              Демо-режим. Данные существуют в памяти этой вкладки.
-            </p>
-          )}
           {!!error &&
             (!(error instanceof ApiError) || error.status !== 401) && (
               <ErrorBox error={error} retry={refresh} />
             )}
           {action.feedback}
+          {action.busy ? (
+            <p role="status" className="caption">
+              Завершаем вход…
+            </p>
+          ) : callback || invitation ? (
+            <Btn
+              variant="pri"
+              size="l"
+              onClick={() => void action.run(complete)}
+            >
+              Повторить вход по ссылке
+            </Btn>
+          ) : demo ? (
+            <>
+              <Btn
+                variant="pri"
+                size="l"
+                onClick={() => window.location.reload()}
+              >
+                Начать демо заново
+              </Btn>
+              <span className="caption">
+                Демо-режим. Данные существуют в памяти этой вкладки.
+              </span>
+            </>
+          ) : (
+            <>
+              <Btn href="/api/v1/auth/stepik/start" variant="pri" size="l">
+                Войти через Stepik
+              </Btn>
+              <span className="caption">
+                Для студентов и координаторов. После входа откроется ваше
+                рабочее пространство.
+              </span>
+            </>
+          )}
           {local.data?.enabled && (
-            <div className="login-invitation">
-              <h3>Локальный стенд</h3>
-              <p className="muted">
+            <div className="login__local">
+              <span className="label">Локальный стенд</span>
+              <p className="small dim">
                 Вход создаёт серверную сессию выбранного участника.
               </p>
-              <div className="stack">
+              <div className="stack--login">
                 {local.data.items.map((identity) => (
-                  <button
+                  <Btn
                     key={identity.key}
+                    className="login__identity"
                     disabled={action.busy}
                     onClick={() =>
                       void action.run(async () => {
@@ -469,45 +650,19 @@ function Login({
                     }
                   >
                     {identity.label}
-                  </button>
+                  </Btn>
                 ))}
               </div>
             </div>
           )}
-          {action.busy ? (
-            <p role="status">Завершаем вход…</p>
-          ) : callback || invitation ? (
-            <button
-              className="primary"
-              onClick={() => void action.run(complete)}
-            >
-              Повторить вход по ссылке
-            </button>
-          ) : demo ? (
-            <button
-              className="primary"
-              onClick={() => window.location.reload()}
-            >
-              Начать демо заново
-            </button>
-          ) : (
-            <>
-              <a className="button primary" href="/api/v1/auth/stepik/start">
-                Войти через Stepik
-              </a>
-              <p className="muted">
-                Для студентов и координаторов. После входа откроется ваше
-                рабочее пространство.
+          {!demo && !callback && !invitation && (
+            <Callout tone="info">
+              <p>
+                <b>Вы ревьюер?</b> Откройте ссылку в письме с приглашением, она
+                выполнит вход автоматически. Если приглашения нет, обратитесь к
+                координатору курса.
               </p>
-              <div className="login-invitation">
-                <h3>Вы ревьюер?</h3>
-                <p>
-                  Откройте ссылку в письме с приглашением. Она выполнит вход
-                  автоматически. Если приглашения нет, обратитесь к координатору
-                  курса.
-                </p>
-              </div>
-            </>
+            </Callout>
           )}
         </div>
       </div>

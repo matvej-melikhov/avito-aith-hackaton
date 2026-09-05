@@ -1,41 +1,66 @@
 import { useState } from "react";
 import { WorkspaceClient } from "../api/workspace";
-import { Empty, Resource, Status, useResource } from "../ui";
-import { ScreenTitle } from "../workspace-ui";
+import { useMenuCounts } from "../App";
+import {
+  Btn,
+  BtnRow,
+  Card,
+  CardBody,
+  CardFoot,
+  Empty,
+  Main,
+  Seg,
+  St,
+  cx,
+  dayNum,
+  isClosed,
+} from "../ds";
+import { Resource, go, useResource } from "../ui";
+import { useEffect } from "react";
+
+const LIMIT = 20;
+
+function score(value: number | null) {
+  return value === null
+    ? "—"
+    : value.toLocaleString("ru-RU", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 2,
+      });
+}
 
 export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
   const [state, setState] = useState("");
   const [offset, setOffset] = useState(0);
-  const params = { state, offset, limit: 20 };
+  const params = { state, offset, limit: LIMIT };
   const r = useResource(() => ws.studentWorks(params), JSON.stringify(params));
+  const { setCounts } = useMenuCounts();
+  useEffect(() => {
+    if (r.data && !state) setCounts({ works: r.data.total });
+  }, [r.data, state, setCounts]);
   return (
-    <>
-      <ScreenTitle code="С4" title="Мои домашки">
-        <div className="seg" aria-label="Статус домашних работ">
-          {[
-            ["", "Все"],
-            ["in_progress", "В работе"],
-            ["completed", "Завершённые"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              className={state === value ? "is-on" : undefined}
-              aria-pressed={state === value}
-              onClick={() => {
-                setState(value);
-                setOffset(0);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </ScreenTitle>
-      <Resource value={r}>
-        {r.data && (
-          <>
-            <div className="card">
-              <div className="card__body card__body--flush">
+    <Main page data-screen="С4">
+      <div className="page-head">
+        <h1>Мои домашки</h1>
+        <Seg
+          label="Статус домашних работ"
+          value={state}
+          onChange={(value) => {
+            setState(value);
+            setOffset(0);
+          }}
+          options={[
+            { value: "", label: "Все" },
+            { value: "in_progress", label: "В работе" },
+            { value: "completed", label: "Завершённые" },
+          ]}
+        />
+      </div>
+      <Card>
+        <Resource value={r}>
+          {r.data && (
+            <>
+              <CardBody flush>
                 <table className="tbl">
                   <thead>
                     <tr>
@@ -57,46 +82,30 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
                       return (
                         <tr
                           key={item.publication_id}
-                          className={
-                            ["passed", "failed", "published"].includes(
-                              item.status,
-                            )
-                              ? "is-done"
-                              : undefined
-                          }
+                          className={cx(
+                            "is-link",
+                            (isClosed(item.status) ||
+                              item.status === "published") &&
+                              "is-done",
+                          )}
+                          onClick={(e) => {
+                            if ((e.target as HTMLElement).closest("a")) return;
+                            go(href.slice(1));
+                          }}
                         >
                           <td>
-                            <a
-                              className="who"
-                              href={href}
-                              style={{ color: "inherit", border: 0 }}
-                            >
-                              {item.title}
-                            </a>
+                            <div className="who">
+                              <a href={href}>{item.title}</a>
+                            </div>
                           </td>
                           <td>{item.course_title}</td>
                           <td className="n">
-                            {new Date(item.submission_deadline).toLocaleString(
-                              "ru-RU",
-                              {
-                                day: "2-digit",
-                                month: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
+                            {dayNum(item.submission_deadline)}
                           </td>
                           <td className="n">{item.attempt}</td>
-                          <td className="n r">
-                            {item.score === null
-                              ? "—"
-                              : item.score.toLocaleString("ru-RU", {
-                                  minimumFractionDigits: 1,
-                                  maximumFractionDigits: 2,
-                                })}
-                          </td>
+                          <td className="n r">{score(item.score)}</td>
                           <td className="r">
-                            <Status value={item.status} />
+                            <St status={item.status} attempt={item.attempt} />
                           </td>
                         </tr>
                       );
@@ -104,33 +113,47 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
                   </tbody>
                 </table>
                 {r.data.items.length === 0 && (
-                  <Empty>Домашних работ с таким статусом пока нет.</Empty>
+                  <Empty title="Здесь пока пусто">
+                    {state
+                      ? "Домашних работ с таким статусом пока нет."
+                      : "Домашка появится, когда вы откроете её по ссылке из курса."}
+                  </Empty>
                 )}
-              </div>
-            </div>
-            {r.data.total > r.data.limit && (
-              <div className="pagination">
-                <button
-                  disabled={offset === 0}
-                  onClick={() => setOffset(Math.max(0, offset - r.data!.limit))}
-                >
-                  Назад
-                </button>
-                <span>
-                  {r.data.offset + 1}–{r.data.offset + r.data.items.length} из{" "}
-                  {r.data.total}
-                </span>
-                <button
-                  disabled={r.data.offset + r.data.items.length >= r.data.total}
-                  onClick={() => setOffset(offset + r.data!.limit)}
-                >
-                  Далее
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </Resource>
-    </>
+              </CardBody>
+              {r.data.total > r.data.limit && (
+                <CardFoot>
+                  <span>
+                    Показаны {r.data.offset + 1}–
+                    {r.data.offset + r.data.items.length} из {r.data.total}
+                  </span>
+                  <BtnRow>
+                    <Btn
+                      size="s"
+                      variant="quiet"
+                      disabled={offset === 0}
+                      onClick={() =>
+                        setOffset(Math.max(0, offset - r.data!.limit))
+                      }
+                    >
+                      Назад
+                    </Btn>
+                    <Btn
+                      size="s"
+                      variant="link"
+                      disabled={
+                        r.data.offset + r.data.items.length >= r.data.total
+                      }
+                      onClick={() => setOffset(offset + r.data!.limit)}
+                    >
+                      Показать ещё
+                    </Btn>
+                  </BtnRow>
+                </CardFoot>
+              )}
+            </>
+          )}
+        </Resource>
+      </Card>
+    </Main>
   );
 }

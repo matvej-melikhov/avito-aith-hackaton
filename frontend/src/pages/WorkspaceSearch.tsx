@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { WorkspaceClient, type W } from "../api/workspace";
-import { Status } from "../ui";
+import { Btn, Inp, Pop, Srch, St, cx, plural } from "../ds";
 
+/** К1а: поиск по ID студента и названию задания, список якорится к полю. */
 export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -9,7 +10,7 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState(0);
-  const root = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLSpanElement>(null);
   const popupId = useId();
   const students = result?.students ?? [];
   const homeworks = result?.homeworks ?? [];
@@ -66,27 +67,17 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
       window.clearTimeout(timer);
     };
   }, [query, ws]);
+  const shown = open && !!query.trim();
   return (
-    <div className="srch" ref={root} data-screen="К1а">
-      <svg
-        className="srch__i"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        aria-hidden="true"
-      >
-        <circle cx="6.8" cy="6.8" r="4.6" />
-        <path d="M10.2 10.2 L14 14" strokeLinecap="round" />
-      </svg>
-      <input
-        className="inp inp--s"
-        style={{ width: 280, maxWidth: "100%" }}
+    <Srch wide className="srch--pop" ref={root} data-screen="К1а">
+      <Inp
+        small
         aria-label="ID студента или название задания"
         placeholder="ID студента или название задания"
         value={query}
-        aria-expanded={open && !!query.trim()}
+        aria-expanded={shown}
         aria-controls={popupId}
+        autoComplete="off"
         onFocus={() => setOpen(true)}
         onChange={(event) => {
           setQuery(event.target.value);
@@ -112,24 +103,21 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
           }
         }}
       />
-      {open && !!query.trim() && (
-        <div
+      {shown && (
+        <Pop
           id={popupId}
-          className="pop"
-          style={{
-            top: "100%",
-            left: 0,
-            marginTop: 4,
-            width: "min(560px, calc(100vw - 40px))",
-          }}
+          className="pop--anchor"
           aria-label="Результаты поиска"
         >
           <div className="pop__g">
-            Студенты{students.length ? ` · ${students.length} работ` : ""}
+            Студенты
+            {students.length
+              ? ` · ${students.length} ${plural(students.length, "работа", "работы", "работ")}`
+              : ""}
           </div>
           {students.map((work, index) => (
             <a
-              className={`pop__row ${selected === index ? "is-on" : ""}`}
+              className={cx("pop__row", selected === index && "is-on")}
               href={destinations[index]}
               key={work.submission_id}
               onMouseEnter={() => setSelected(index)}
@@ -141,7 +129,7 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
                   {work.student_id} · {work.course_run_title}
                 </span>
               </span>
-              <Status value={work.status} />
+              <St status={work.status} />
             </a>
           ))}
           {!students.length && (
@@ -156,7 +144,10 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
           <div className="pop__g">Задания</div>
           {homeworks.map((homework, index) => (
             <a
-              className={`pop__row ${selected === students.length + index ? "is-on" : ""}`}
+              className={cx(
+                "pop__row",
+                selected === students.length + index && "is-on",
+              )}
               key={`${homework.id}:${homework.course_run_id}`}
               href={destinations[students.length + index]}
               onMouseEnter={() => setSelected(students.length + index)}
@@ -179,16 +170,17 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
               Enter открывает выбранную строку, Escape закрывает поиск
             </span>
             {students.length > 0 && (
-              <a
+              <Btn
+                variant="link"
                 href={`#/registry?q=${encodeURIComponent(query.trim())}`}
                 onClick={() => setOpen(false)}
               >
                 Все работы студента
-              </a>
+              </Btn>
             )}
           </div>
-        </div>
+        </Pop>
       )}
-    </div>
+    </Srch>
   );
 }

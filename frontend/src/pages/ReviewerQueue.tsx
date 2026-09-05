@@ -1,80 +1,140 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { WorkspaceClient, type W } from "../api/workspace";
+import { useMenuCounts } from "../App";
 import {
+  Btn,
+  BtnRow,
   Card,
+  CardBody,
+  CardFoot,
+  CardHead,
   Empty,
-  Resource,
-  Status,
-  date,
-  go,
-  useAction,
-  useResource,
-} from "../ui";
-import { ScreenTitle } from "../workspace-ui";
+  Inp,
+  Main,
+  Pill,
+  Sel,
+  Srch,
+  St,
+  Topbar,
+  cx,
+  dayShort,
+  days,
+  daysSince,
+  isClosed,
+} from "../ds";
+import { Resource, go, useAction, useResource } from "../ui";
+import { enterReviewMode, exitReviewMode, nextFromPool } from "../reviewMode";
+
+const LIMIT = 20;
+const CLOSED = ["published", "passed", "failed", "needs_changes"];
+const HOT_POOL_DAYS = 3;
 
 export function ReviewerQueue({ ws }: { ws: WorkspaceClient }) {
   const [query, setQuery] = useState("");
   const [run, setRun] = useState("");
   const catalog = useResource(() => ws.catalog(), "reviewer-catalog");
+  const action = useAction();
+  const startMode = () =>
+    void action.run(async () => {
+      enterReviewMode();
+      const id = await nextFromPool(ws);
+      if (!id) {
+        exitReviewMode();
+        throw new Error("В пуле нет свободных работ по вашим курсам.");
+      }
+      go(`/reviews/${id}`);
+    });
   return (
     <>
-      <ScreenTitle code="Р2" title="Мои работы">
-        <a className="button" href="#/preferences">
-          Настройки
-        </a>
-      </ScreenTitle>
-      <div className="stack">
-        <QueueSection ws={ws} view="active" title="Активные" />
-        <section id="pool">
+      <Topbar
+        title="Мои работы"
+        actions={
+          <>
+            <Btn href="#/preferences" size="s" variant="quiet">
+              Настройки
+            </Btn>
+            <Btn
+              size="s"
+              variant="pri"
+              disabled={action.busy}
+              title="Работы из пула будут открываться одна за другой, ближайший дедлайн первым"
+              onClick={startMode}
+            >
+              Войти в режим проверки
+            </Btn>
+          </>
+        }
+      />
+      <Main data-screen="Р2">
+        {action.feedback}
+        <div className="stack">
           <QueueSection
             ws={ws}
+            view="active"
+            title="Активные"
+            onStartMode={startMode}
+            busy={action.busy}
+          />
+          <QueueSection
+            ws={ws}
+            id="pool"
             view="all"
             title="Пул"
             filters={
-              <div className="filters">
-                <label>
-                  Поиск
-                  <input
+              <BtnRow>
+                <Srch>
+                  <Inp
+                    small
+                    aria-label="Поиск"
+                    placeholder="Студент или задание"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Студент или задание"
                   />
-                </label>
-                <label>
-                  Поток
-                  <select value={run} onChange={(e) => setRun(e.target.value)}>
-                    <option value="">Все потоки</option>
-                    {catalog.data?.course_runs.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+                </Srch>
+                <Sel
+                  small
+                  aria-label="Поток"
+                  value={run}
+                  onChange={(e) => setRun(e.target.value)}
+                >
+                  <option value="">Поток: все</option>
+                  {catalog.data?.course_runs.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.title}
+                    </option>
+                  ))}
+                </Sel>
+              </BtnRow>
             }
             query={query}
             run={run}
           />
-        </section>
-      </div>
+        </div>
+      </Main>
     </>
   );
 }
+
 function QueueSection({
   ws,
+  id,
   view,
   title,
   query = "",
   run = "",
   filters,
+  onStartMode,
+  busy,
 }: {
   ws: WorkspaceClient;
-  view: string;
+  id?: string;
+  view: "active" | "all";
   title: string;
   query?: string;
   run?: string;
   filters?: ReactNode;
+  onStartMode?: () => void;
+  busy?: boolean;
 }) {
   const [offset, setOffset] = useState(0);
   useEffect(() => setOffset(0), [query, run]);
@@ -83,19 +143,24 @@ function QueueSection({
     q: query,
     course_run_id: run || undefined,
     offset,
-    limit: 20,
+    limit: LIMIT,
   };
   const r = useResource(() => ws.works(params), JSON.stringify(params));
   const action = useAction();
+  const { setCounts } = useMenuCounts();
+  useEffect(() => {
+    if (r.data && !query && !run)
+      setCounts(
+        view === "active" ? { works: r.data.total } : { pool: r.data.total },
+      );
+  }, [r.data, query, run, view, setCounts]);
+
   async function open(w: W<"WorkItem">) {
     if (
       w.review_iteration_id &&
       w.review_submission_version_id === w.submission_version_id
     ) {
-      if (
-        view !== "active" &&
-        !["published", "passed", "failed", "needs_changes"].includes(w.status)
-      )
+      if (view !== "active" && !CLOSED.includes(w.status))
         await ws.core.command(
           "record_review_responsibility",
           w.review_iteration_id,
@@ -122,94 +187,115 @@ function QueueSection({
     }
     go(`/reviews/${result.id}`);
   }
+
+  const active = view === "active";
+  const items = r.data?.items ?? [];
   return (
-    <Card title={title} actions={filters}>
-      {action.feedback}
+    <Card id={id}>
+      <CardHead title={title}>{filters}</CardHead>
+      {!!action.error && <CardBody>{action.feedback}</CardBody>}
       <Resource value={r}>
         {r.data && (
           <>
-            <div className="table-wrap">
-              <table>
+            <CardBody flush>
+              <table className="tbl">
                 <thead>
                   <tr>
                     <th>Студент</th>
                     <th>Задание</th>
-                    <th>{view === "active" ? "Статус" : "Курс"}</th>
-                    <th>{view === "active" ? "Взята" : "Сдана"}</th>
-                    <th>{view === "active" ? "Проверить до" : "В пуле"}</th>
-                    <th></th>
+                    <th>{active ? "Статус" : "Курс"}</th>
+                    <th className="n">{active ? "Взята" : "Сдана"}</th>
+                    <th className="n">{active ? "Проверить до" : "В пуле"}</th>
+                    <th className="r"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {r.data.items.map((w) => (
-                    <tr key={w.submission_id}>
-                      <td>{w.student_name}</td>
-                      <td>
-                        <strong>{w.title}</strong>
-                        <small>
-                          {w.course_run_title} · попытка {w.attempt}
-                        </small>
-                        {view !== "active" && (
-                          <small>
-                            <Status value={w.status} />
-                            {w.participant_ids?.length
-                              ? ` · участников: ${w.participant_ids.length}`
-                              : ""}
-                          </small>
+                  {items.map((w) => {
+                    const closed = isClosed(w.status);
+                    const waited = daysSince(w.submitted_at) ?? 0;
+                    const due = w.review_deadline
+                      ? Date.parse(w.review_deadline) - Date.now() < 86_400_000
+                      : false;
+                    const hot = active
+                      ? due && !closed
+                      : waited >= HOT_POOL_DAYS &&
+                        w.status === "pending_review";
+                    const canRelease =
+                      active &&
+                      !!w.review_iteration_id &&
+                      !CLOSED.includes(w.status);
+                    const label =
+                      active || CLOSED.includes(w.status)
+                        ? "Открыть"
+                        : w.status === "pending_review"
+                          ? "Взять"
+                          : "Подключиться";
+                    return (
+                      <tr
+                        key={w.submission_id}
+                        className={cx(
+                          "is-link",
+                          hot && "is-hot",
+                          closed && "is-done",
                         )}
-                      </td>
-                      {view === "active" ? (
-                        <>
-                          <td>
-                            <Status value={w.status} />
-                            {!!w.participant_ids?.length && (
-                              <small>
-                                Участников: {w.participant_ids.length}
-                              </small>
-                            )}
-                          </td>
-                          <td>{w.taken_at ? date(w.taken_at) : "—"}</td>
-                        </>
-                      ) : (
-                        <>
-                          <td>{w.course_title}</td>
-                          <td>{date(w.submitted_at)}</td>
-                        </>
-                      )}
-                      <td>
-                        {view === "active"
-                          ? w.review_deadline
-                            ? date(w.review_deadline)
-                            : "—"
-                          : `${Math.max(0, Math.floor((Date.now() - Date.parse(w.submitted_at)) / 86400000))} дн.`}
-                      </td>
-                      <td>
-                        <div className="actions">
-                          <button
-                            disabled={action.busy || !w.submission_version_id}
-                            onClick={() => void action.run(() => open(w))}
-                          >
-                            {view === "active" ||
-                            [
-                              "published",
-                              "passed",
-                              "failed",
-                              "needs_changes",
-                            ].includes(w.status)
-                              ? "Открыть"
-                              : w.status === "pending_review"
-                                ? "Взять"
-                                : "Подключиться"}
-                          </button>
-                          {view === "active" &&
-                            w.review_iteration_id &&
-                            ![
-                              "published",
-                              "passed",
-                              "failed",
-                              "needs_changes",
-                            ].includes(w.status) && (
-                              <button
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest("button, a"))
+                            return;
+                          if (!action.busy && w.submission_version_id)
+                            void action.run(() => open(w));
+                        }}
+                      >
+                        <td className="mono">{w.student_name}</td>
+                        <td>
+                          <div className="who">{w.title}</div>
+                          <div className="sub">
+                            {w.status === "needs_changes"
+                              ? "ждём студента"
+                              : w.attempt > 1 && !closed
+                                ? `попытка ${w.attempt}, правки пришли`
+                                : `попытка ${w.attempt}`}
+                            {w.participant_ids && w.participant_ids.length > 1
+                              ? ` · вместе с ${w.participant_ids.length - 1}`
+                              : ""}
+                          </div>
+                        </td>
+                        {active ? (
+                          <>
+                            <td>
+                              <St status={w.status} attempt={w.attempt} />
+                            </td>
+                            <td className="n">{dayShort(w.taken_at)}</td>
+                            <td className={cx("n", due && !closed && "late")}>
+                              {closed ? "—" : dayShort(w.review_deadline)}
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td>{w.course_title}</td>
+                            <td className="n">{dayShort(w.submitted_at)}</td>
+                            <td className="n">
+                              {hot ? (
+                                <Pill tone="late">{days(waited)}</Pill>
+                              ) : (
+                                days(waited)
+                              )}
+                            </td>
+                          </>
+                        )}
+                        <td className="r">
+                          <BtnRow end>
+                            <Btn
+                              size="s"
+                              variant={closed ? "quiet" : undefined}
+                              disabled={action.busy || !w.submission_version_id}
+                              onClick={() => void action.run(() => open(w))}
+                            >
+                              {label}
+                            </Btn>
+                            {canRelease && (
+                              <Btn
+                                size="s"
+                                variant="quiet"
                                 disabled={action.busy}
                                 onClick={() =>
                                   void action.run(async () => {
@@ -224,46 +310,63 @@ function QueueSection({
                                 }
                               >
                                 Вернуть в пул
-                              </button>
+                              </Btn>
                             )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          </BtnRow>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-            </div>
-            {!r.data.items.length && (
-              <Empty>
-                {view === "active"
-                  ? "У вас пока нет активных проверок."
-                  : "По этим условиям работ нет."}
-              </Empty>
-            )}
-            {view === "all" && (
-              <p className="muted">
-                Можно открыть любую доступную работу и подключиться к коллегам.
-              </p>
-            )}
-            {r.data.total > 20 && (
-              <div className="pagination">
-                <button
-                  disabled={offset === 0}
-                  onClick={() => setOffset(Math.max(0, offset - 20))}
+              {!items.length && (
+                <Empty
+                  title={active ? "Активных проверок нет" : "В пуле пусто"}
+                  action={
+                    active &&
+                    !query && (
+                      <Btn
+                        size="s"
+                        variant="dark"
+                        disabled={busy}
+                        onClick={onStartMode}
+                      >
+                        Войти в режим проверки
+                      </Btn>
+                    )
+                  }
                 >
-                  Назад
-                </button>
+                  {active
+                    ? "У вас пока нет активных проверок."
+                    : "По этим условиям работ нет."}
+                </Empty>
+              )}
+            </CardBody>
+            {r.data.total > LIMIT && (
+              <CardFoot>
                 <span>
-                  {offset + 1}–{Math.min(offset + 20, r.data.total)} из{" "}
-                  {r.data.total}
+                  Показаны {offset + 1}–{Math.min(offset + LIMIT, r.data.total)}{" "}
+                  из {r.data.total}
                 </span>
-                <button
-                  disabled={offset + 20 >= r.data.total}
-                  onClick={() => setOffset(offset + 20)}
-                >
-                  Дальше
-                </button>
-              </div>
+                <BtnRow>
+                  <Btn
+                    size="s"
+                    variant="quiet"
+                    disabled={offset === 0}
+                    onClick={() => setOffset(Math.max(0, offset - LIMIT))}
+                  >
+                    Назад
+                  </Btn>
+                  <Btn
+                    size="s"
+                    variant="link"
+                    disabled={offset + LIMIT >= r.data.total}
+                    onClick={() => setOffset(offset + LIMIT)}
+                  >
+                    Показать ещё
+                  </Btn>
+                </BtnRow>
+              </CardFoot>
             )}
           </>
         )}

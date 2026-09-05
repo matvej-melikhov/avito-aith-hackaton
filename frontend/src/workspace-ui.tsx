@@ -10,132 +10,98 @@ import {
   useResource,
 } from "./ui";
 import type { W, WorkspaceClient } from "./api/workspace";
-export function Modal({
-  title,
-  children,
-  close,
-}: {
-  title: string;
-  children: ReactNode;
-  close: () => void;
-}) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const dialog = ref.current!;
-    dialog.showModal();
-    const cancel = (e: Event) => {
-      e.preventDefault();
-      close();
-    };
-    dialog.addEventListener("cancel", cancel);
-    return () => {
-      dialog.removeEventListener("cancel", cancel);
-      dialog.close();
-    };
-  }, [close]);
-  return (
-    <dialog ref={ref} className="workspace-modal" aria-label={title}>
-      <div className="card-head">
-        <h2>{title}</h2>
-        <button type="button" aria-label="Закрыть" onClick={close}>
-          ×
-        </button>
-      </div>
-      <div className="card-body">{children}</div>
-    </dialog>
-  );
-}
-export function ScreenTitle({
-  code,
-  title,
-  children,
-  leading,
-}: {
-  code: string;
-  title: string;
-  leading?: ReactNode;
-  children?: ReactNode;
-}) {
-  return (
-    <div className="page-heading" data-screen={code}>
-      <div className="row">
-        <h1>{title}</h1>
-        {leading}
-      </div>
-      {children}
-    </div>
-  );
-}
+export { Modal } from "./ds";
+import { Btn, Callout, Kv, OpPill, Tab, Tabs, plural } from "./ds";
+/** Остаток попыток ИИ-ревью: подпись в подвале формы, не отдельный блок. */
 export function Quota({ value }: { value: W<"QuotaView"> | null }) {
   return value ? (
-    <div className="quota" role="status">
-      <strong>
-        Осталось {value.remaining} из {value.limit}
-      </strong>
+    <span className="quota">
+      <span>
+        Осталось {value.remaining} из {value.limit}.
+      </span>{" "}
       <span>
         Получено результатов: {value.used}
         {value.reserved > 0 ? ` · Выполняется: ${value.reserved}` : ""}
       </span>
-    </div>
+    </span>
   ) : (
-    <p className="notice warn">
-      Координатор ещё не настроил лимит самопроверок.
-    </p>
+    <span className="quota">Координатор ещё не настроил лимит ИИ-ревью.</span>
   );
 }
+
+/** Вывод ИИ-ревью: вердикт строкой, места для внимания, замечание. */
 export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
   const findings = value.result?.findings ?? [];
-  const attention = findings.some((f) => f.status === "needs_attention");
+  const attention = findings.filter((f) => f.status === "needs_attention");
+  const unchecked = findings.filter((f) => f.status === "not_checked");
   const checked = findings.some(
     (f) => f.status !== "not_checked" && f.evidence,
   );
+  const places = attention.length ? attention : unchecked;
   return (
-    <article className="self-review-result" data-screen="С2">
-      <div className="row">
-        <strong>Проверка от {date(value.created_at)}</strong>
-        <Status value={value.status} />
-      </div>
+    <div className="self-review">
       {findings.length > 0 && (
         <>
-          <p>
-            <strong>
-              {attention
-                ? "Перед отправкой стоит доработать работу."
+          <p className="small self-review__verdict">
+            <b>
+              {attention.length
+                ? "Есть замечания перед отправкой."
                 : checked
                   ? "По проверенным местам замечаний нет."
                   : "Работу не удалось проверить автоматически."}
-            </strong>
+            </b>{" "}
+            {attention.length
+              ? `${attention.length} ${plural(attention.length, "место стоит поправить", "места стоит поправить", "мест стоит поправить")} до отправки.`
+              : checked
+                ? "Можно отправлять работу на ревью."
+                : "Проверьте доступ к работе и повторите."}
           </p>
-          <ul>
-            {findings.map((f, index) => (
-              <li key={`${f.criterion_id}:${index}`}>
-                <p>{f.feedback}</p>
-                {f.evidence && <blockquote>{f.evidence}</blockquote>}
-              </li>
-            ))}
-          </ul>
-          <p className="notice">
-            ИИ-ревью не гарантирует, что работу примут. Замечания не означают,
-            что её отклонят. Итоговое решение принимает ревьюер.
-          </p>
+          {places.length > 0 && (
+            <ul className="small list--plain">
+              {places.map((f, index) => (
+                <li key={`${f.criterion_id}:${index}`}>{f.feedback}</li>
+              ))}
+            </ul>
+          )}
+          <Callout tone="human" mark="?">
+            <p>
+              ИИ-ревью не гарантирует, что работу примут. Верно и обратное:
+              замечания не означают, что работу отклонят. Итоговое решение
+              принимает ревьюер.
+            </p>
+          </Callout>
+          {attention.length > 0 && (
+            <div className="caption self-review__foot">
+              Доработайте работу и проверьте ссылку в форме ниже.
+            </div>
+          )}
         </>
       )}
       {value.error_code && (
-        <p className="notice warn">
-          Проверка не завершилась.{" "}
-          {value.disposition === "released"
-            ? "Попытка возвращена. Можно повторить проверку."
-            : "Ожидаем подтверждения результата."}
+        <Callout tone="warn">
+          <p>
+            Проверка не завершилась.{" "}
+            {value.disposition === "released"
+              ? "Попытка возвращена. Можно повторить проверку."
+              : "Ожидаем подтверждения результата."}
+          </p>
+        </Callout>
+      )}
+      {!findings.length && !value.error_code && (
+        <p className="small dim">
+          {value.disposition === "reserved"
+            ? "Модель разбирает работу. Со страницы можно уйти, результат сохранится."
+            : "Результат пока пуст."}
         </p>
       )}
-      <p className="muted">
+      <div className="caption self-review__foot">
         {value.disposition === "consumed"
           ? "За результат списана одна попытка."
           : value.disposition === "reserved"
-            ? "Проверка выполняется. Попытка зарезервирована до завершения."
+            ? "Попытка зарезервирована до завершения проверки."
             : "Попытка не потрачена."}
-      </p>
-    </article>
+      </div>
+    </div>
   );
 }
 export function SelfReviewMonitor({
@@ -185,22 +151,29 @@ export function ExportMonitor({ ws, id }: { ws: WorkspaceClient; id: string }) {
   return (
     <Resource value={r}>
       {r.data && (
-        <>
-          <Status value={r.data.status} />
-          <p>Строк: {r.data.rows}</p>
+        <div className="export">
+          <Kv label="Файл">
+            <OpPill status={r.data.status} />
+          </Kv>
+          <Kv label="Строк">{r.data.rows}</Kv>
           {r.data.error && (
-            <p role="alert">Не удалось подготовить файл: {r.data.error}</p>
+            <Callout tone="bad" role="alert">
+              <p>Не удалось подготовить файл: {r.data.error}</p>
+            </Callout>
           )}
           {r.data.download && (
-            <a
-              className="button primary"
-              href={safeUrl(r.data.download.url)}
-              download
-            >
-              Скачать файл
-            </a>
+            <div className="btn-row btn-row--after">
+              <Btn
+                variant="pri"
+                size="s"
+                href={safeUrl(r.data.download.url) ?? "#"}
+                download
+              >
+                Скачать файл
+              </Btn>
+            </div>
           )}
-        </>
+        </div>
       )}
     </Resource>
   );
@@ -219,6 +192,17 @@ export function useDirtyGuard(dirty: boolean) {
     };
   }, [dirty]);
 }
-export function EmptyTable({ children }: { children: ReactNode }) {
-  return <Empty>{children}</Empty>;
+
+/** Две вкладки одного кабинета ревьюера: настройки и статистика. */
+export function CabinetTabs({ on }: { on: "preferences" | "statistics" }) {
+  return (
+    <Tabs className="tabs--page" label="Кабинет">
+      <Tab href="#/preferences" on={on === "preferences"}>
+        Настройки
+      </Tab>
+      <Tab href="#/statistics" on={on === "statistics"}>
+        Статистика
+      </Tab>
+    </Tabs>
+  );
 }

@@ -1,17 +1,26 @@
 import { useState } from "react";
 import type { ApiClient, Model, Role } from "../api/client";
 import {
+  Btn,
   Card,
+  CardBody,
+  CardHead,
+  Chk,
   Empty,
-  Id,
-  Resource,
-  Status,
-  date,
-  roleNames,
-  useAction,
-  useResource,
-} from "../ui";
-export function PeoplePage({ api }: { api: ApiClient }) {
+  Field,
+  Inp,
+  Kv,
+  Main,
+  OpPill,
+  Sel,
+  Topbar,
+  dayLong,
+  short,
+} from "../ds";
+import { Resource, roleNames, useAction, useResource } from "../ui";
+
+/** Участники организации и приглашения. Экрана в паке нет. */
+export function PeopleBody({ api }: { api: ApiClient }) {
   const s = useResource(async () => {
     const [members, invitations, organization] = await Promise.all([
       api.memberships(),
@@ -26,20 +35,20 @@ export function PeoplePage({ api }: { api: ApiClient }) {
   const [expires, setExpires] = useState("");
   return (
     <>
-      <h1>Участники и приглашения</h1>
       {action.feedback}
       <Resource value={s}>
         {s.data && (
-          <>
-            <Card title="Участники организации">
-              <div className="table-wrap">
-                <table>
+          <div className="stack">
+            <Card>
+              <CardHead title="Участники организации" />
+              <CardBody flush>
+                <table className="tbl">
                   <thead>
                     <tr>
                       <th>Пользователь</th>
                       <th>Роли</th>
                       <th>Статус</th>
-                      <th></th>
+                      <th className="r"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -53,104 +62,133 @@ export function PeoplePage({ api }: { api: ApiClient }) {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </CardBody>
             </Card>
-            <div className="two-col">
-              <Card title="Пригласить участника">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void action.run(async () => {
-                      await api.command(
-                        "create_invitation",
-                        s.data!.organization.id,
-                        s.data!.organization.revision,
-                        {
-                          email,
-                          role,
-                          expires_at: new Date(expires).toISOString(),
-                        },
-                      );
-                      setEmail("");
-                      s.refresh();
-                    }, "Приглашение создано. Отправка письма выполняется сервером.");
-                  }}
-                >
-                  <label>
-                    Email
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </label>
-                  <label>
-                    Роль
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value as typeof role)}
-                    >
-                      <option value="reviewer">Ревьюер</option>
-                      <option value="methodologist">Координатор</option>
-                    </select>
-                  </label>
-                  <label>
-                    Действует до
-                    <input
-                      type="datetime-local"
-                      required
-                      value={expires}
-                      onChange={(e) => setExpires(e.target.value)}
-                    />
-                  </label>
-                  <button className="primary" disabled={action.busy}>
-                    Пригласить
-                  </button>
-                </form>
+            <div className="row-2">
+              <Card>
+                <CardHead title="Пригласить участника" />
+                <CardBody>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void action.run(async () => {
+                        await api.command(
+                          "create_invitation",
+                          s.data!.organization.id,
+                          s.data!.organization.revision,
+                          {
+                            email,
+                            role,
+                            expires_at: new Date(expires).toISOString(),
+                          },
+                        );
+                        setEmail("");
+                        s.refresh();
+                      }, "Приглашение создано. Отправка письма выполняется сервером.");
+                    }}
+                  >
+                    <Field label="Email">
+                      <Inp
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </Field>
+                    <Field label="Роль">
+                      <Sel
+                        value={role}
+                        onChange={(e) => setRole(e.target.value as typeof role)}
+                      >
+                        <option value="reviewer">Ревьюер</option>
+                        <option value="methodologist">Координатор</option>
+                      </Sel>
+                    </Field>
+                    <Field label="Действует до">
+                      <Inp
+                        type="datetime-local"
+                        required
+                        value={expires}
+                        onChange={(e) => setExpires(e.target.value)}
+                      />
+                    </Field>
+                    <div className="btn-row btn-row--after">
+                      <Btn variant="pri" type="submit" disabled={action.busy}>
+                        Пригласить
+                      </Btn>
+                    </div>
+                  </form>
+                </CardBody>
               </Card>
-              <Card title="Приглашения">
-                {s.data.invitations.items.map((i) => (
-                  <div key={i.id} className="list-item">
-                    <strong>{i.normalized_email}</strong>
-                    <p>
-                      {roleNames[i.role]} · <Status value={i.status} />
-                    </p>
-                    <small>До {date(i.expires_at)}</small>
-                    {i.status === "active" && (
-                      <button
-                        disabled={action.busy}
-                        onClick={() =>
-                          void action.run(async () => {
-                            await api.command(
-                              "revoke_invitation",
-                              i.id,
-                              i.revision,
-                              {
-                                reason:
-                                  "Отозвано координатором через интерфейс",
-                              },
-                            );
-                            s.refresh();
-                          })
+              <Card>
+                <CardHead title="Приглашения" />
+                {s.data.invitations.items.length === 0 ? (
+                  <Empty title="Приглашений пока нет">
+                    Пригласите ревьюера или координатора формой слева.
+                  </Empty>
+                ) : (
+                  <CardBody tight>
+                    {s.data.invitations.items.map((i) => (
+                      <Kv
+                        key={i.id}
+                        ink
+                        label={
+                          <>
+                            {i.normalized_email}
+                            <span className="caption kv__sub">
+                              {" "}
+                              {roleNames[i.role]} · до {dayLong(i.expires_at)}
+                            </span>
+                          </>
                         }
                       >
-                        Отозвать приглашение
-                      </button>
-                    )}
-                  </div>
-                ))}
-                {s.data.invitations.items.length === 0 && (
-                  <Empty>Приглашений пока нет.</Empty>
+                        <OpPill status={i.status} />{" "}
+                        {i.status === "active" && (
+                          <Btn
+                            size="s"
+                            variant="quiet"
+                            disabled={action.busy}
+                            onClick={() =>
+                              void action.run(async () => {
+                                await api.command(
+                                  "revoke_invitation",
+                                  i.id,
+                                  i.revision,
+                                  {
+                                    reason:
+                                      "Отозвано координатором через интерфейс",
+                                  },
+                                );
+                                s.refresh();
+                              })
+                            }
+                          >
+                            Отозвать
+                          </Btn>
+                        )}
+                      </Kv>
+                    ))}
+                  </CardBody>
                 )}
               </Card>
             </div>
-          </>
+          </div>
         )}
       </Resource>
     </>
   );
 }
+export function PeoplePage({ api }: { api: ApiClient }) {
+  return (
+    <>
+      <Topbar title="Участники" />
+      <Main>
+        <PeopleBody api={api} />
+      </Main>
+    </>
+  );
+}
+
 function MemberRow({
   api,
   member,
@@ -164,14 +202,14 @@ function MemberRow({
   const action = useAction();
   return (
     <tr>
-      <td>
-        <Id value={member.user_id} />
+      <td className="mono" title={member.user_id}>
+        {short(member.user_id, 8)}
       </td>
       <td>
-        {(Object.keys(roleNames) as Role[]).map((r) => (
-          <label className="check" key={r}>
-            <input
-              type="checkbox"
+        <div className="btn-row">
+          {(Object.keys(roleNames) as Role[]).map((r) => (
+            <Chk
+              key={r}
               checked={roles.includes(r)}
               disabled={action.busy}
               onChange={(e) =>
@@ -181,16 +219,18 @@ function MemberRow({
                     : roles.filter((v) => v !== r),
                 )
               }
-            />
-            {roleNames[r]}
-          </label>
-        ))}
+            >
+              {roleNames[r]}
+            </Chk>
+          ))}
+        </div>
       </td>
       <td>
-        <Status value={member.status} />
+        <OpPill status={member.status} />
       </td>
-      <td>
-        <button
+      <td className="r">
+        <Btn
+          size="s"
           disabled={action.busy}
           onClick={() =>
             void action.run(async () => {
@@ -205,123 +245,9 @@ function MemberRow({
           }
         >
           Сохранить роли
-        </button>
+        </Btn>
         {action.feedback}
       </td>
     </tr>
-  );
-}
-export function PreferencesPage({
-  api,
-  session,
-  onSessionChange,
-}: {
-  api: ApiClient;
-  session: Model<"Session">;
-  onSessionChange: () => Promise<void>;
-}) {
-  const s = useResource(() => api.courses(), "preferences");
-  const [selected, setSelected] = useState<string[]>([]);
-  const [minutes, setMinutes] = useState(120);
-  const [until, setUntil] = useState("");
-  const action = useAction();
-  return (
-    <>
-      <h1>Моя доступность</h1>
-      {action.feedback}
-      <div className="two-col">
-        <Card title="Готов проверять">
-          <p className="notice">
-            Выберите полный список потоков. Сохранение заменит предыдущий выбор.
-          </p>
-          <Resource value={s}>
-            {s.data?.course_runs
-              .filter((r) => r.status === "active")
-              .map((r) => (
-                <label className="check list-item" key={r.id}>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(r.id)}
-                    onChange={(e) =>
-                      setSelected(
-                        e.target.checked
-                          ? [...selected, r.id]
-                          : selected.filter((id) => id !== r.id),
-                      )
-                    }
-                  />
-                  {r.title}
-                </label>
-              ))}
-          </Resource>
-          <button
-            disabled={action.busy || s.loading || !!s.error}
-            onClick={() =>
-              void action.run(async () => {
-                const current = await api.session();
-                await api.command(
-                  "set_reviewer_course_selection",
-                  current.membership_id,
-                  current.membership_revision,
-                  { course_run_ids: selected },
-                );
-                await onSessionChange();
-              }, "Выбор потоков сохранён.")
-            }
-          >
-            Сохранить потоки
-          </button>
-        </Card>
-        <Card title="Плановое время">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void action.run(async () => {
-                const current = await api.session();
-                await api.command(
-                  "set_reviewer_availability",
-                  current.membership_id,
-                  current.membership_revision,
-                  {
-                    planned_minutes: minutes,
-                    until_at: new Date(until).toISOString(),
-                  },
-                );
-                await onSessionChange();
-              }, "Доступность сохранена.");
-            }}
-          >
-            <label>
-              Минут на проверку
-              <input
-                type="number"
-                min={0}
-                required
-                value={minutes}
-                onChange={(e) => setMinutes(e.target.valueAsNumber)}
-              />
-            </label>
-            <label>
-              До какого времени
-              <input
-                type="datetime-local"
-                required
-                value={until}
-                onChange={(e) => setUntil(e.target.value)}
-              />
-            </label>
-            <p className="muted">
-              Это новая настройка. Текущие значения сервер пока не возвращает.
-            </p>
-            <button
-              disabled={action.busy || !session.roles.includes("reviewer")}
-              className="primary"
-            >
-              Сохранить доступность
-            </button>
-          </form>
-        </Card>
-      </div>
-    </>
   );
 }

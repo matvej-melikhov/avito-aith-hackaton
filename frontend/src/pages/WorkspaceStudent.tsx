@@ -1,20 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
-import {
-  Card,
-  Resource,
-  Status,
-  date,
-  go,
-  useAction,
-  useResource,
-} from "../ui";
+import { ErrorBox, Resource, go, useAction, useResource } from "../ui";
 import { Quota, SelfReviewResult, useDirtyGuard } from "../workspace-ui";
 import { ArtifactLink } from "./WorkspaceReview";
 import { PublishedStudentReview } from "./WorkspaceSubmissionDetail";
+import {
+  Acc,
+  Band,
+  BandMeta,
+  BandVal,
+  Btn,
+  Callout,
+  Card,
+  CardBody,
+  CardFoot,
+  CardHead,
+  Field,
+  Inp,
+  Kv,
+  Main,
+  Pill,
+  Seg,
+  Skel,
+  Tab,
+  Tabs,
+  dayLong,
+  dayNum,
+  num,
+  outOf,
+  plural,
+  points,
+  workStatus,
+} from "../ds";
 
 type StudentContext = W<"StudentContext">;
+
 export function WorkspaceSubmit({
   ws,
   id,
@@ -25,14 +46,27 @@ export function WorkspaceSubmit({
   session: Model<"Session">;
 }) {
   const r = useResource(() => ws.studentContext(id), id);
-  return (
-    <Resource value={r}>
-      {r.data && (
-        <DraftForm key={id} ws={ws} initial={r.data} session={session} />
-      )}
-    </Resource>
-  );
+  if (r.loading || r.error)
+    return (
+      <>
+        <Band>
+          <span className="label">Домашка</span>
+          <h1 className="d2">
+            {r.error ? "Не удалось открыть" : "Загружаем…"}
+          </h1>
+        </Band>
+        <Main page>
+          {r.error ? (
+            <ErrorBox error={r.error} retry={r.refresh} />
+          ) : (
+            <Skel lines={5} label="Загружаем домашку…" />
+          )}
+        </Main>
+      </>
+    );
+  return <DraftForm key={id} ws={ws} initial={r.data!} session={session} />;
 }
+
 function DraftForm({
   ws,
   initial,
@@ -58,6 +92,7 @@ function DraftForm({
       !!initial.submission_id ||
       !!initial.quota?.active_run_id,
   );
+  const [rubricCollapsed, setRubricCollapsed] = useState(false);
   const [stage, setStage] = useState("");
   const [reviewTab, setReviewTab] = useState<"ai" | "human">(
     initial.submission_id ? "human" : "ai",
@@ -79,7 +114,20 @@ function DraftForm({
   );
   const revision = current?.decision === "needs_changes";
   const activeResult = result ?? data.self_reviews.at(-1);
+  const attempts = history.data?.attempts ?? [];
+  const lastAttempt = attempts.at(-1);
+  // Статус домашки живёт в списке домашек студента, у контекста сдачи его нет.
+  const listed = useResource(
+    async () =>
+      data.submission_id
+        ? ((await ws.studentWorks({ limit: 100 })).items.find(
+            (item) => item.submission_id === data.submission_id,
+          ) ?? null)
+        : null,
+    `listed:${data.submission_id ?? "none"}`,
+  );
   useDirtyGuard(dirty);
+
   async function save() {
     let uploadId = saved?.upload_id ?? null;
     if (source === "url") {
@@ -171,381 +219,443 @@ function DraftForm({
     );
     go(`/submissions/${submitted.id}`);
   }
+
+  const screen = revision ? "С3" : activeResult || run ? "С2" : "С1";
+  const bandStatus = revision
+    ? { label: "Нужны правки", late: true }
+    : lastAttempt
+      ? {
+          label:
+            workStatus(
+              current?.decision ?? listed.data?.status,
+              lastAttempt.sequence,
+            )?.label ?? "Сдана",
+          late: false,
+        }
+      : activeResult || run
+        ? { label: "Черновик", late: false }
+        : null;
+  const canSelfReview =
+    !action.busy &&
+    !run &&
+    (data.quota
+      ? data.quota.remaining > 0
+      : !!data.policy && data.policy.self_review_limit > 0);
+  const hasChecks = !!(run || activeResult || attempts.length);
+  const penalty = data.policy?.penalty_per_day ?? 0;
+
   return (
     <>
-      <section
-        className="student-band"
-        data-screen={revision ? "С3" : activeResult || run ? "С2" : "С1"}
-      >
-        <div className="brand-circles" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </div>
-        <div className="band-content">
-          {(data.course_title || data.run_title) && (
-            <span className="label">
-              {[data.course_title, data.run_title].filter(Boolean).join(" · ")}
-            </span>
-          )}
-          <h1 className="d2">{data.title}</h1>
-          <div className="actions">
-            <div>
-              <span className="caption">
-                {revision ? "Прислать исправления до" : "Сдать до"}
-              </span>
-              <span>
-                {date(current?.revision_deadline ?? data.submission_deadline)}
-              </span>
-            </div>
+      <Band
+        data-screen={screen}
+        aside={
+          <BandMeta>
+            <BandVal label={revision ? "Прислать исправления до" : "Сдать до"}>
+              {dayLong(current?.revision_deadline ?? data.submission_deadline)}
+            </BandVal>
             {data.max_score !== undefined && (
-              <div>
-                <span className="caption">
-                  {data.policy ? "Порог зачёта" : "Максимум"}
-                </span>
-                <span>
-                  {data.policy
-                    ? `${data.policy.pass_score} из ${data.max_score}`
-                    : `${data.max_score} баллов`}
-                </span>
-              </div>
+              <BandVal label={data.policy ? "Порог зачёта" : "Максимум"}>
+                {data.policy
+                  ? outOf(data.policy.pass_score, data.max_score)
+                  : `${num(data.max_score)} ${plural(data.max_score, "балл", "балла", "баллов")}`}
+              </BandVal>
             )}
-            {revision && <Status value="needs_changes" />}
-          </div>
-        </div>
-      </section>
-      {action.feedback}
-      {history.error && <Resource value={history}>{null}</Resource>}
-      <div className="student-grid">
-        <div className="stack">
-          <Card
-            title="Задание"
-            actions={
-              <button
-                aria-expanded={!collapsed}
-                onClick={() => setCollapsed((v) => !v)}
-              >
-                {collapsed ? "Развернуть" : "Свернуть"}
-              </button>
-            }
-          >
-            {!collapsed && (
-              <>
-                <p className="preserve">{data.student_text}</p>
-                {(data.material_upload_ids ?? []).map((id) => (
-                  <ArtifactLink key={id} ws={ws} id={id} />
-                ))}
-              </>
+            {bandStatus && (
+              <BandVal label="Статус" late={bandStatus.late}>
+                {bandStatus.label}
+              </BandVal>
             )}
-          </Card>
-          {(run || activeResult || history.data?.attempts.length) && (
-            <section className="card student-review-tabs">
-              <div
-                className="tabs"
-                style={{ padding: "var(--s-2) var(--s-5) 0", marginBottom: 0 }}
-              >
-                <button
-                  aria-pressed={reviewTab === "ai"}
-                  onClick={() => setReviewTab("ai")}
+          </BandMeta>
+        }
+      >
+        {(data.course_title || data.run_title) && (
+          <span className="label">
+            {[data.course_title, data.run_title].filter(Boolean).join(", ")}
+          </span>
+        )}
+        <h1 className="d2">{data.title}</h1>
+      </Band>
+      <Main page data-screen={screen}>
+        {action.feedback}
+        {!!history.error && (
+          <ErrorBox error={history.error} retry={history.refresh} />
+        )}
+        <div className="row-side">
+          <div className="stack">
+            <Card>
+              <CardHead title="Задание">
+                <Btn
+                  size="s"
+                  variant="link"
+                  aria-expanded={!collapsed}
+                  onClick={() => setCollapsed((v) => !v)}
                 >
-                  ИИ-ревью
-                </button>
-                <button
-                  aria-pressed={reviewTab === "human"}
-                  onClick={() => setReviewTab("human")}
-                >
-                  Ревью
-                </button>
-              </div>
-              <div className="card-body">
-                {reviewTab === "ai" ? (
-                  <>
-                    {data.self_reviews
-                      .filter(
-                        (value) =>
-                          value.id !== run &&
-                          (!!run || value.id !== activeResult?.id),
-                      )
-                      .map((value) => (
-                        <details className="acc" key={value.id}>
-                          <summary className="acc__h">
-                            Проверка от {date(value.created_at)}
-                          </summary>
-                          <SelfReviewResult value={value} />
-                        </details>
+                  {collapsed ? "Развернуть" : "Свернуть"}
+                </Btn>
+              </CardHead>
+              {!collapsed && (
+                <CardBody prose>
+                  <p className="preserve">{data.student_text}</p>
+                  {!!data.material_upload_ids?.length && (
+                    <p className="btn-row">
+                      {data.material_upload_ids.map((id) => (
+                        <ArtifactLink key={id} ws={ws} id={id} />
                       ))}
-                    {run ? (
-                      <details className="acc" open>
-                        <summary className="acc__h">Текущая проверка</summary>
-                        <StudentSelfReview
-                          ws={ws}
-                          id={run}
-                          onComplete={async (value) => {
-                            setResult(value);
-                            setData((previous) => ({
-                              ...previous,
-                              quota: value.quota,
-                            }));
-                            setRun(undefined);
-                            const next = await ws.studentContext(
-                              data.publication_id,
-                            );
-                            if (mounted.current) setData(next);
-                          }}
-                        />
-                      </details>
-                    ) : activeResult ? (
-                      <details className="acc" key={activeResult.id} open>
-                        <summary className="acc__h">
-                          Проверка от {date(activeResult.created_at)}
-                          <span className="pill">последняя</span>
-                        </summary>
-                        {(dirty ||
-                          saved?.revision !== activeResult.draft_revision) && (
-                          <p className="notice">
-                            После проверки работа изменена. Результат относится
-                            к сохранённому снимку.
-                          </p>
-                        )}
-                        <SelfReviewResult value={activeResult} />
-                      </details>
-                    ) : (
-                      <p>Самопроверка не запускалась.</p>
-                    )}
-                  </>
-                ) : history.data?.attempts.length ? (
-                  history.data.attempts.map((attempt, index) => {
-                    const published = history.data!.reviews.filter(
-                      (value) => value.submission_version_id === attempt.id,
-                    );
-                    const latest = published.at(-1);
-                    return (
-                      <details
-                        className="acc"
-                        key={attempt.id}
-                        open={index === history.data!.attempts.length - 1}
-                      >
-                        <summary className="acc__h">
-                          <span>
-                            Попытка {attempt.sequence},{" "}
-                            {date(attempt.submitted_at)}
-                          </span>
-                          {index === history.data!.attempts.length - 1 && (
-                            <span className="pill">последняя</span>
+                    </p>
+                  )}
+                </CardBody>
+              )}
+            </Card>
+
+            {hasChecks && (
+              <Card>
+                <Tabs className="tabs--card" label="Проверки">
+                  <Tab
+                    on={reviewTab === "ai"}
+                    onClick={() => setReviewTab("ai")}
+                  >
+                    ИИ-ревью
+                  </Tab>
+                  <Tab
+                    on={reviewTab === "human"}
+                    onClick={() => setReviewTab("human")}
+                  >
+                    Ревью
+                  </Tab>
+                </Tabs>
+                <CardBody>
+                  {reviewTab === "ai" ? (
+                    <>
+                      {data.self_reviews
+                        .filter(
+                          (value) =>
+                            value.id !== run &&
+                            (!!run || value.id !== activeResult?.id),
+                        )
+                        .map((value) => (
+                          <Acc
+                            key={value.id}
+                            className="acc--pill"
+                            head={
+                              <span className="acc__t">
+                                Проверка от {dayNum(value.created_at)}
+                              </span>
+                            }
+                          >
+                            <SelfReviewResult value={value} />
+                          </Acc>
+                        ))}
+                      {run ? (
+                        <Acc
+                          className="acc--pill"
+                          defaultOpen
+                          head={
+                            <>
+                              <span className="acc__t">Текущая проверка</span>
+                              <Pill dot>идёт</Pill>
+                            </>
+                          }
+                        >
+                          <StudentSelfReview
+                            ws={ws}
+                            id={run}
+                            onComplete={async (value) => {
+                              setResult(value);
+                              setData((previous) => ({
+                                ...previous,
+                                quota: value.quota,
+                              }));
+                              setRun(undefined);
+                              const next = await ws.studentContext(
+                                data.publication_id,
+                              );
+                              if (mounted.current) setData(next);
+                            }}
+                          />
+                        </Acc>
+                      ) : activeResult ? (
+                        <Acc
+                          key={activeResult.id}
+                          className="acc--pill"
+                          defaultOpen
+                          head={
+                            <>
+                              <span className="acc__t">
+                                Проверка от {dayNum(activeResult.created_at)}
+                              </span>
+                              <Pill>последняя</Pill>
+                            </>
+                          }
+                        >
+                          {(dirty ||
+                            saved?.revision !==
+                              activeResult.draft_revision) && (
+                            <p className="caption self-review__stale">
+                              После проверки работа изменена. Результат
+                              относится к сохранённому снимку.
+                            </p>
                           )}
-                        </summary>
-                        <div style={{ paddingBottom: "var(--s-4)" }}>
+                          <SelfReviewResult value={activeResult} />
+                        </Acc>
+                      ) : (
+                        <p className="small dim">ИИ-ревью не запускалось.</p>
+                      )}
+                    </>
+                  ) : attempts.length ? (
+                    attempts.map((attempt, index) => {
+                      const published = history.data!.reviews.filter(
+                        (value) => value.submission_version_id === attempt.id,
+                      );
+                      const latest = published.at(-1);
+                      const last = index === attempts.length - 1;
+                      return (
+                        <Acc
+                          key={attempt.id}
+                          className="acc--pill"
+                          defaultOpen={last}
+                          head={
+                            <>
+                              <span className="acc__t">
+                                Попытка {attempt.sequence},{" "}
+                                {dayNum(attempt.submitted_at)}
+                              </span>
+                              {last && <Pill>последняя</Pill>}
+                            </>
+                          }
+                        >
                           {latest ? (
                             <PublishedStudentReview value={latest} />
                           ) : (
-                            <p>Результат ещё не опубликован.</p>
+                            <p className="small dim">
+                              Результат ещё не опубликован.
+                            </p>
                           )}
                           {published.length > 1 && (
-                            <details className="student-history">
-                              <summary>
-                                Предыдущие публикации этой попытки
-                              </summary>
+                            <Acc
+                              className="acc--nested"
+                              head={
+                                <span className="acc__t small">
+                                  Предыдущие публикации этой попытки
+                                </span>
+                              }
+                            >
                               {published.slice(0, -1).map((value) => (
-                                <div key={value.id}>
-                                  <p className="caption">
-                                    {date(value.published_at)}
-                                  </p>
+                                <div key={value.id} className="attempt__old">
+                                  <div className="caption">
+                                    {dayNum(value.published_at)}
+                                  </div>
                                   <PublishedStudentReview value={value} />
                                 </div>
                               ))}
-                            </details>
+                            </Acc>
                           )}
-                        </div>
-                      </details>
-                    );
-                  })
-                ) : (
-                  <p>
-                    Результат появится после отправки работы и публикации ревью.
-                  </p>
-                )}
-              </div>
-            </section>
-          )}
-          <Card
-            title={revision ? "Исправленная версия" : "Ваша работа"}
-            actions={
-              <div className="actions">
-                <button
-                  disabled={action.busy}
-                  aria-pressed={source === "url"}
-                  onClick={() => {
-                    setSource("url");
-                    setDirty(true);
-                  }}
-                >
-                  Ссылка
-                </button>
-                <button
-                  disabled={action.busy}
-                  aria-pressed={source === "file"}
-                  onClick={() => {
-                    setSource("file");
-                    setDirty(true);
-                  }}
-                >
-                  Файлы
-                </button>
-              </div>
-            }
-          >
-            <fieldset disabled={action.busy}>
-              {source === "url" ? (
-                <label>
-                  Ссылка на репозиторий или Google Docs
-                  <input
-                    type="url"
-                    aria-label="Ссылка на репозиторий или Google Docs"
-                    value={url}
-                    placeholder="https://github.com/username/project"
-                    onChange={(e) => {
-                      setUrl(e.target.value);
-                      setDirty(true);
-                    }}
-                  />
-                  <small>
-                    Откройте доступ к работе по ссылке. При отправке сохраняется
-                    отдельный снимок.
-                  </small>
-                </label>
-              ) : (
-                <label>
-                  Markdown, PDF или DOCX, до 10 МБ
-                  <input
-                    type="file"
-                    accept=".md,.pdf,.docx"
-                    onChange={(e) => {
-                      setFile(e.target.files?.[0]);
-                      setDirty(true);
-                    }}
-                  />
-                  {saved?.upload_id && !file && (
-                    <small>Ранее загруженный файл сохранён.</small>
+                        </Acc>
+                      );
+                    })
+                  ) : (
+                    <p className="small dim">
+                      Результат появится после отправки работы и публикации
+                      ревью.
+                    </p>
                   )}
-                </label>
-              )}
-              <label>
-                Комментарий к сдаче, необязательно
-                <textarea
-                  value={comment}
-                  placeholder="Что доработали и что стоит учесть при проверке"
-                  onChange={(e) => {
-                    setComment(e.target.value);
+                </CardBody>
+              </Card>
+            )}
+
+            <Card hard>
+              <CardHead
+                title={revision ? "Исправленная версия" : "Ваша работа"}
+              >
+                <Seg
+                  label="Как сдаём"
+                  value={source}
+                  disabled={action.busy}
+                  onChange={(value) => {
+                    setSource(value);
                     setDirty(true);
                   }}
+                  options={[
+                    { value: "url", label: "Ссылка на репозиторий" },
+                    { value: "file", label: "Файлы" },
+                  ]}
                 />
-              </label>
-              <small>
-                {dirty
-                  ? "Сохраняем изменения…"
-                  : saved
-                    ? "Черновик сохранён"
-                    : ""}
-              </small>
-            </fieldset>
-            <div className="student-form-actions">
-              <div className="actions">
-                <button
-                  className="primary"
-                  disabled={action.busy}
-                  onClick={() =>
-                    void action.run(async () => {
-                      try {
-                        await submit();
-                      } finally {
-                        setStage("");
+              </CardHead>
+              <CardBody compact>
+                <fieldset className="acc-list" disabled={action.busy}>
+                  {source === "url" ? (
+                    <Field
+                      label="Ссылка на репозиторий или Google Docs"
+                      hint={
+                        revision && lastAttempt
+                          ? `Версия попытки ${lastAttempt.sequence} сохранится в истории, ревьюер увидит обе.`
+                          : "Откройте доступ к работе по ссылке. При отправке сохраняется отдельный снимок."
                       }
-                    })
-                  }
-                >
-                  {revision
-                    ? "Отправить исправленную версию"
-                    : "Отправить на ревью"}
-                </button>
-                <button
-                  disabled={
-                    action.busy ||
-                    (data.quota
-                      ? data.quota.remaining === 0
-                      : !data.policy || data.policy.self_review_limit === 0) ||
-                    !!run
-                  }
-                  onClick={() =>
-                    void action.run(async () => {
-                      try {
-                        const d = await prepare();
-                        if (!d) return;
-                        setStage("Запускаем самопроверку…");
-                        const started = await ws.command(
-                          "start_self_review",
-                          d.id,
-                          d.revision,
-                          {},
-                        );
-                        setReviewTab("ai");
-                        setCollapsed(true);
-                        setRun(started.id);
-                        setResult(started);
-                      } finally {
-                        setStage("");
+                    >
+                      <Inp
+                        mono
+                        type="url"
+                        value={url}
+                        placeholder="https://github.com/username/project"
+                        onChange={(e) => {
+                          setUrl(e.target.value);
+                          setDirty(true);
+                        }}
+                      />
+                    </Field>
+                  ) : (
+                    <Field
+                      label="Markdown, PDF или DOCX, до 10 МБ"
+                      hint={
+                        saved?.upload_id && !file
+                          ? "Ранее загруженный файл сохранён."
+                          : undefined
                       }
-                    })
-                  }
+                    >
+                      <Inp
+                        type="file"
+                        accept=".md,.pdf,.docx"
+                        onChange={(e) => {
+                          setFile(e.target.files?.[0]);
+                          setDirty(true);
+                        }}
+                      />
+                    </Field>
+                  )}
+                  <Field label="Комментарий к сдаче, необязательно">
+                    <Inp
+                      value={comment}
+                      placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками"
+                      onChange={(e) => {
+                        setComment(e.target.value);
+                        setDirty(true);
+                      }}
+                    />
+                  </Field>
+                  {(dirty || saved) && (
+                    <span className="caption" role="status">
+                      {dirty ? "Сохраняем изменения…" : "Черновик сохранён"}
+                    </span>
+                  )}
+                </fieldset>
+              </CardBody>
+              <CardFoot>
+                <span className="foot-actions">
+                  <Btn
+                    variant="pri"
+                    disabled={action.busy}
+                    onClick={() =>
+                      void action.run(async () => {
+                        try {
+                          await submit();
+                        } finally {
+                          setStage("");
+                        }
+                      })
+                    }
+                  >
+                    {revision
+                      ? "Отправить исправленную версию"
+                      : "Отправить на ревью"}
+                  </Btn>
+                  <Btn
+                    aria-label={
+                      activeResult
+                        ? "Проверить повторно"
+                        : "Проверить перед сдачей"
+                    }
+                    disabled={!canSelfReview}
+                    onClick={() =>
+                      void action.run(async () => {
+                        try {
+                          const d = await prepare();
+                          if (!d) return;
+                          setStage("Запускаем ИИ-ревью…");
+                          const started = await ws.command(
+                            "start_self_review",
+                            d.id,
+                            d.revision,
+                            {},
+                          );
+                          setReviewTab("ai");
+                          setCollapsed(true);
+                          setRun(started.id);
+                          setResult(started);
+                        } finally {
+                          setStage("");
+                        }
+                      })
+                    }
+                  >
+                    ИИ-ревью
+                  </Btn>
+                  <span className="caption" role={stage ? "status" : undefined}>
+                    {stage ? (
+                      stage
+                    ) : run ? (
+                      "Проверяем работу, это займёт около минуты."
+                    ) : (
+                      <>
+                        {activeResult
+                          ? `Проверено ИИ-ревью ${dayLong(activeResult.created_at)}. `
+                          : "Результат ИИ-ревью видит ревьюер и учитывает при оценке. "}
+                        {data.quota || !data.policy ? (
+                          <Quota value={data.quota} />
+                        ) : (
+                          "Доступные попытки уточнятся после сохранения работы."
+                        )}
+                      </>
+                    )}
+                  </span>
+                </span>
+              </CardFoot>
+            </Card>
+          </div>
+
+          <div className="stack">
+            <Card>
+              <CardHead title="Что будут проверять">
+                <Btn
+                  size="s"
+                  variant="link"
+                  aria-expanded={!rubricCollapsed}
+                  onClick={() => setRubricCollapsed((v) => !v)}
                 >
-                  {activeResult
-                    ? "Проверить повторно"
-                    : "Проверить перед сдачей"}
-                </button>
-              </div>
-              {stage && <p role="status">{stage}</p>}
-              {!run &&
-                (data.quota || !data.policy ? (
-                  <Quota value={data.quota} />
-                ) : (
-                  <p className="caption">
-                    Доступные попытки уточнятся после сохранения работы.
-                  </p>
-                ))}
-              <p className="muted">
-                Самопроверка необязательна. Результат и число запусков видит
-                ревьюер. Оценку выставляет человек.
-              </p>
-            </div>
-          </Card>
-        </div>
-        <aside className="stack">
-          <Card title="Что будут проверять">
-            {data.criteria.map((c) => (
-              <div className="rubric-row" key={c.id}>
-                <span>{c.title}</span>
-                {"max_points" in c && typeof c.max_points === "number" && (
-                  <span className="points">{c.max_points} б.</span>
-                )}
-              </div>
-            ))}
-            {data.max_score !== undefined && (
-              <div className="rubric-row">
-                <span>Всего</span>
-                <span className="points">{data.max_score} баллов</span>
-              </div>
+                  {rubricCollapsed ? "Развернуть" : "Свернуть"}
+                </Btn>
+              </CardHead>
+              {!rubricCollapsed && (
+                <CardBody tight>
+                  {data.criteria.map((c) => (
+                    <Kv key={c.id} label={c.title} ink>
+                      <Pill mono>{points(c.max_points)}</Pill>
+                    </Kv>
+                  ))}
+                  {data.max_score !== undefined && (
+                    <Kv label="Всего" total>
+                      {num(data.max_score)}{" "}
+                      {plural(data.max_score, "балл", "балла", "баллов")}
+                    </Kv>
+                  )}
+                </CardBody>
+              )}
+            </Card>
+            {penalty > 0 && (
+              <Callout tone="warn">
+                <p>
+                  За каждый день после срока снимается {num(penalty)}{" "}
+                  {plural(penalty, "балл", "балла", "баллов")}. Работу можно
+                  пересдать после замечаний ревьюера, срок пересдачи назначает
+                  ревьюер.
+                </p>
+              </Callout>
             )}
-          </Card>
-          {data.policy && data.policy.penalty_per_day > 0 && (
-            <p className="notice warn">
-              За каждый день после срока снимается {data.policy.penalty_per_day}{" "}
-              балла. Срок исправлений назначает ревьюер.
-            </p>
-          )}
-        </aside>
-      </div>
+          </div>
+        </div>
+      </Main>
     </>
   );
 }
+
 function StudentSelfReview({
   ws,
   id,
@@ -574,15 +684,20 @@ function StudentSelfReview({
       <Resource value={r}>
         {r.data && (
           <>
-            <Quota value={r.data.quota} />
             <SelfReviewResult value={r.data} />
+            <div className="caption self-review__foot">
+              <Quota value={r.data.quota} />
+            </div>
           </>
         )}
       </Resource>
       {error && (
-        <p role="alert">
-          Не удалось обновить лимит. Обновите страницу перед следующим запуском.
-        </p>
+        <Callout tone="warn" role="alert">
+          <p>
+            Не удалось обновить лимит. Обновите страницу перед следующим
+            запуском.
+          </p>
+        </Callout>
       )}
     </>
   );

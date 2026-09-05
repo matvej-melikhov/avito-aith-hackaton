@@ -1,6 +1,18 @@
 import { markProgrammaticNavigation } from "./navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { errorMessage } from "./api/client";
+import {
+  Btn,
+  Callout,
+  Card as DsCard,
+  CardBody,
+  CardHead,
+  Empty as DsEmpty,
+  Skel,
+  St,
+  statuses,
+} from "./ds";
+export { statuses, Skel };
 export function useResource<T>(
   load: () => Promise<T>,
   key: string,
@@ -73,11 +85,11 @@ export function useAction() {
     success,
     feedback: (
       <>
-        {error && <ErrorBox error={error} />}{" "}
+        {error && <ErrorBox error={error} />}
         {success && (
-          <p role="status" className="notice ok">
-            {success}
-          </p>
+          <Callout tone="info" role="status" className="feedback">
+            <p>{success}</p>
+          </Callout>
         )}
       </>
     ),
@@ -91,10 +103,19 @@ export function ErrorBox({
   retry?: () => void;
 }) {
   return (
-    <div role="alert" className="notice bad">
-      {errorMessage(error)}{" "}
-      {retry && <button onClick={retry}>Обновить данные</button>}
-    </div>
+    <Callout tone="bad" role="alert" className="feedback">
+      <p>
+        {errorMessage(error)}
+        {retry && (
+          <>
+            {" "}
+            <Btn variant="link" onClick={retry}>
+              Обновить данные
+            </Btn>
+          </>
+        )}
+      </p>
+    </Callout>
   );
 }
 export function Resource({
@@ -107,9 +128,7 @@ export function Resource({
   return (
     <>
       {value.loading ? (
-        <p role="status" className="notice">
-          Загрузка…
-        </p>
+        <Skel label="Загрузка…" />
       ) : value.error ? (
         <ErrorBox error={value.error} retry={value.refresh} />
       ) : (
@@ -118,52 +137,14 @@ export function Resource({
     </>
   );
 }
-const statuses: Record<string, string> = {
-  passed: "Зачтена",
-  failed: "Не зачтена",
-  needs_changes: "Нужны правки",
-  active: "Активен",
-  archived: "В архиве",
-  draft: "Черновик",
-  queued: "В очереди",
-  submitted: "Сдана",
-  resubmitted: "На повторном ревью",
-  capturing: "Подготовка снимка",
-  in_review: "На проверке",
-  ready_to_publish: "Готово к публикации",
-  published: "Опубликовано",
-  canceled: "Отменено",
-  pending: "Ожидает",
-  processing: "Выполняется",
-  running: "Выполняется",
-  partial: "Частичный результат",
-  succeeded: "Готово",
-  retryable_failed: "Нужен повтор",
-  unknown_outcome: "Результат неизвестен",
-  reconciling: "Сверка результата",
-  action_required: "Нужно действие",
-  stale: "Устарело",
-  superseded: "Заменено",
-  validating: "Проверка доступа",
-  ready: "Готово",
-  access_error: "Нет доступа",
-  pending_review: "Ожидает ревью",
-  consumed: "Использовано",
-  revoked: "Отозвано",
-  expired: "Истекло",
-  available: "Доступно",
-  requires_action: "Нужно действие",
-  unavailable: "Недоступно",
-  not_supported: "Не поддерживается",
-};
-export function Status({ value }: { value: string }) {
-  return (
-    <span
-      className={`status ${["passed", "succeeded", "published", "active", "ready", "available"].includes(value) ? "ok" : /failed|error/.test(value) ? "bad" : ["in_review", "pending_review", "resubmitted"].includes(value) ? "human" : value === "needs_changes" || /action|unknown/.test(value) ? "warn" : value === "submitted" ? "info" : ""}`}
-    >
-      {statuses[value] ?? value}
-    </span>
-  );
+export function Status({
+  value,
+  attempt,
+}: {
+  value: string;
+  attempt?: number;
+}) {
+  return <St status={value} attempt={attempt} />;
 }
 export const roleNames = {
   student: "Студент",
@@ -174,27 +155,28 @@ export function Card({
   title,
   children,
   actions,
+  sub,
 }: {
   title: string;
   children: ReactNode;
   actions?: ReactNode;
+  sub?: ReactNode;
 }) {
   return (
-    <section className="card">
-      <div className="card-head">
-        <h2>{title}</h2>
+    <DsCard>
+      <CardHead title={title} sub={sub}>
         {actions}
-      </div>
-      <div className="card-body">{children}</div>
-    </section>
+      </CardHead>
+      <CardBody>{children}</CardBody>
+    </DsCard>
   );
 }
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="empty">{children}</div>;
+  return <DsEmpty>{children}</DsEmpty>;
 }
 export function Id({ value }: { value: string }) {
   return (
-    <span className="identifier" title={value}>
+    <span className="mono" title={value}>
       {value}
     </span>
   );

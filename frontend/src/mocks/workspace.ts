@@ -738,17 +738,68 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             status: "succeeded",
             revision: 0,
             result: {
+              authorship_signal: {
+                id: crypto.randomUUID(),
+                probability: 0.31,
+                explanation:
+                  "Стиль текста ровный, но история коммитов живая: правки шли несколькими коммитами.",
+                evidence: [
+                  {
+                    quote:
+                      "однородная длина абзацев в README и одинаковые связки между разделами",
+                    locator: "README.md",
+                    path: "README.md",
+                    verified: false,
+                  },
+                  {
+                    quote:
+                      "тесты и обработчики добавлены разными коммитами в течение двух дней",
+                    locator: "git log",
+                    path: null,
+                    verified: false,
+                  },
+                ],
+              },
+              feedback_draft:
+                "Привет! Сервис создаёт ссылки и делает редирект, ошибки валидации обрабатываются. Что поправить: добавь тест на редирект по несуществующему коду и опиши формат ошибок в README.",
               suggestions: version.criteria.map((criterion) => ({
                 criterion_id: criterion.id,
                 status: "suggested",
-                proposed_points: criterion.max_points,
-                reason: "Демо: проверьте вывод по снимку работы.",
-                evidence: [
-                  "Локальный пример: решение для проверки интерфейса.",
+                proposed_points: Math.max(0, criterion.max_points - 2),
+                requirement_met: false,
+                reason:
+                  "Обработчик проверяет тело запроса и возвращает 400 при невалидном JSON, редирект работает. Формат ошибок описан в README, но теста на несуществующий код нет, поэтому балл не полный.",
+                sources: [
+                  {
+                    path: "internal/server/handlers.go",
+                    line_start: 42,
+                    line_end: 47,
+                    quote:
+                      'func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {\n\tvar body shortenRequest\n\tif err := json.NewDecoder(r.Body).Decode(&body); err != nil {\n\t\thttp.Error(w, "bad request", http.StatusBadRequest)\n\t\treturn\n\t}',
+                    verified: false,
+                  },
+                  {
+                    path: "README.md",
+                    line_start: 12,
+                    line_end: 14,
+                    quote:
+                      '## Ошибки\nВсе ошибки возвращаются как {"error": "..."}\nКоды: 400 для невалидного запроса, 404 для неизвестного кода, 500 для остального.',
+                    verified: false,
+                  },
+                  {
+                    path: "internal/server/handlers_test.go",
+                    line_start: 8,
+                    line_end: 10,
+                    quote:
+                      "func TestShortenRejectsInvalidJSON(t *testing.T) {\n\t// редирект по несуществующему коду не покрыт\n}",
+                    verified: false,
+                  },
                 ],
+                evidence: [],
                 confidence: "medium",
                 reviewer_note: null,
-                student_feedback: null,
+                student_feedback:
+                  "Добавь тест на редирект по несуществующему коду и вынеси формат ошибок в README.",
               })),
             },
             error_code: null,

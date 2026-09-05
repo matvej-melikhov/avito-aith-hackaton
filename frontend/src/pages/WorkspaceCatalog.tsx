@@ -1,17 +1,44 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
-import {
-  Card,
-  Empty,
-  Resource,
-  Status,
-  date,
-  useAction,
-  useResource,
-} from "../ui";
+import { useMenuCounts } from "../App";
+import { Resource, useAction, useResource } from "../ui";
 import { WorkspaceSearch } from "./WorkspaceSearch";
-import { Modal, ScreenTitle } from "../workspace-ui";
+import { CabinetTabs, Modal } from "../workspace-ui";
+import {
+  Area,
+  Btn,
+  BtnRow,
+  Callout,
+  Card as DsCard,
+  CardBody,
+  CardFoot,
+  CardHead,
+  Chk,
+  Crumbs,
+  Empty as DsEmpty,
+  Field,
+  Inp,
+  Kv,
+  Main,
+  OpPill,
+  Pill,
+  Seg,
+  Sel,
+  Tgl,
+  Tile,
+  Tiles,
+  Topbar,
+  cx,
+  dayLong,
+  dayShort,
+  daysSince,
+  plural,
+} from "../ds";
+
+const HOT_DAYS = 3;
+const WEEK = 7 * 86_400_000;
+
 function localDate(value?: string | null) {
   if (!value) return "";
   const d = new Date(value);
@@ -19,6 +46,57 @@ function localDate(value?: string | null) {
     .toISOString()
     .slice(0, 16);
 }
+
+type RunStats = {
+  all: number;
+  pool: number;
+  stuck: number;
+  review: number;
+  accepted: number;
+  students: number;
+  homeworks: number;
+  deadline?: string;
+  upcoming: { title: string; deadline: string }[];
+};
+
+function useRunStats(ws: WorkspaceClient, run: W<"CourseRunView">) {
+  return useResource(async (): Promise<RunStats> => {
+    const [all, pool, review, accepted, members, homeworks] = await Promise.all(
+      [
+        ws.works({ course_run_id: run.id, limit: 1 }),
+        ws.works({ course_run_id: run.id, state: "pending_review", limit: 50 }),
+        ws.works({ course_run_id: run.id, state: "in_review", limit: 1 }),
+        ws.works({ course_run_id: run.id, state: "passed", limit: 1 }),
+        ws.assignments(run.id),
+        ws.core.homeworks(run.id),
+      ],
+    );
+    const now = Date.now();
+    const upcoming = homeworks.items
+      .filter(
+        (h): h is typeof h & { submission_deadline: string } =>
+          !!h.submission_deadline &&
+          new Date(h.submission_deadline).getTime() >= now,
+      )
+      .map((h) => ({ title: h.title, deadline: h.submission_deadline }))
+      .sort((a, b) => a.deadline.localeCompare(b.deadline));
+    return {
+      all: all.total,
+      pool: pool.total,
+      stuck: pool.items.filter(
+        (w) => (daysSince(w.submitted_at) ?? 0) >= HOT_DAYS,
+      ).length,
+      review: review.total,
+      accepted: accepted.total,
+      students: members.items.length,
+      homeworks: homeworks.items.length,
+      deadline: upcoming[0]?.deadline,
+      upcoming,
+    };
+  }, `run-stats:${run.id}:${run.revision}`);
+}
+
+/** К1 «Обзор» и К2 «Курсы» координатора; модалки К3 и К4. */
 export function WorkspaceCatalog({
   ws,
   mode = "overview",
@@ -29,485 +107,536 @@ export function WorkspaceCatalog({
   const r = useResource(() => ws.catalog(), "catalog");
   const [modal, setModal] = useState<string>();
   const [editCourse, setEditCourse] = useState<W<"CourseView">>();
-  const [selectedCourse, setSelectedCourse] = useState("");
   const close = useCallback(() => setModal(undefined), []);
   const action = useAction();
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("active");
+  const [courseFilter, setCourseFilter] = useState("");
+  const [status, setStatus] = useState("");
+  const [stats, setStats] = useState<Record<string, RunStats>>({});
+  const { setCounts } = useMenuCounts();
+  useEffect(() => {
+    if (r.data) setCounts({ courses: r.data.courses.length });
+  }, [r.data, setCounts]);
+  const report = useCallback(
+    (id: string, value: RunStats) =>
+      setStats((prev) =>
+        prev[id] === value ? prev : { ...prev, [id]: value },
+      ),
+    [],
+  );
+  const runs = r.data?.course_runs ?? [];
+  const courses = r.data?.courses ?? [];
+  const activeRuns = runs.filter((run) => run.status === "active");
+  const shownRuns = runs
+    .filter(
+      (run) =>
+        (!status || run.status === status) &&
+        (!courseFilter || run.course_id === courseFilter),
+    )
+    .sort((a, b) =>
+      a.status === b.status ? 0 : a.status === "active" ? -1 : 1,
+    );
+  const known = Object.values(stats);
+  const totals = activeRuns.reduce(
+    (sum, run) => {
+      const s = stats[run.id];
+      if (!s) return sum;
+      return {
+        all: sum.all + s.all,
+        review: sum.review + s.review,
+        pool: sum.pool + s.pool,
+        stuck: sum.stuck + s.stuck,
+      };
+    },
+    { all: 0, review: 0, pool: 0, stuck: 0 },
+  );
+  const now = Date.now();
+  const upcoming = activeRuns
+    .flatMap((run) =>
+      (stats[run.id]?.upcoming ?? []).map((u) => ({
+        ...u,
+        course: courses.find((c) => c.id === run.course_id)?.title ?? "Курс",
+      })),
+    )
+    .sort((a, b) => a.deadline.localeCompare(b.deadline));
+  const thisWeek = upcoming.filter(
+    (u) => new Date(u.deadline).getTime() <= now + WEEK,
+  ).length;
+  const coursesWithWork = new Set(
+    activeRuns
+      .filter((run) => (stats[run.id]?.all ?? 0) > 0)
+      .map((run) => run.course_id),
+  ).size;
+  const loadingStats = activeRuns.some((run) => !stats[run.id]);
+
+  const courseSelect = (
+    <Sel
+      small
+      aria-label="Курс"
+      value={courseFilter}
+      onChange={(e) => setCourseFilter(e.target.value)}
+    >
+      <option value="">Курс: все</option>
+      {courses.map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.title}
+        </option>
+      ))}
+    </Sel>
+  );
+
+  if (mode === "courses")
+    return (
+      <>
+        <Topbar
+          title="Курсы"
+          actions={
+            <Btn size="s" variant="dark" onClick={() => setModal("course")}>
+              Создать курс
+            </Btn>
+          }
+        />
+        <Main data-screen="К2">
+          {action.feedback}
+          <DsCard>
+            <Resource value={r}>
+              {r.data && (
+                <CardBody flush>
+                  <table className="tbl">
+                    <thead>
+                      <tr>
+                        <th>Курс</th>
+                        <th className="n">Заданий</th>
+                        <th className="n">Потоков</th>
+                        <th className="n">Активных</th>
+                        <th>Курс в Stepik</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {courses.map((c) => (
+                        <tr
+                          key={c.id}
+                          className={cx(
+                            "is-link",
+                            c.status === "archived" && "is-done",
+                          )}
+                          onClick={(e) => {
+                            if ((e.target as HTMLElement).closest("a")) return;
+                            setEditCourse(c);
+                            setModal("edit-course");
+                          }}
+                        >
+                          <td>
+                            <div className="who">{c.title}</div>
+                            {c.description && (
+                              <div className="sub">{c.description}</div>
+                            )}
+                          </td>
+                          <td className="n">
+                            <HomeworkCount ws={ws} courseId={c.id} />
+                          </td>
+                          <td className="n">
+                            {
+                              runs.filter((run) => run.course_id === c.id)
+                                .length
+                            }
+                          </td>
+                          <td className="n">
+                            {
+                              runs.filter(
+                                (run) =>
+                                  run.course_id === c.id &&
+                                  run.status === "active",
+                              ).length
+                            }
+                          </td>
+                          <td>
+                            {c.stepik_url ? (
+                              <a
+                                className="mono"
+                                href={c.stepik_url}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {c.stepik_url.replace(/^https?:\/\//, "")}
+                              </a>
+                            ) : (
+                              <span className="mono dim">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {courses.length === 0 && (
+                    <DsEmpty
+                      title="Курсов пока нет"
+                      action={
+                        <Btn
+                          size="s"
+                          variant="dark"
+                          onClick={() => setModal("course")}
+                        >
+                          Создать курс
+                        </Btn>
+                      }
+                    >
+                      Курс — верхний уровень: внутри него живут задания и
+                      потоки.
+                    </DsEmpty>
+                  )}
+                </CardBody>
+              )}
+            </Resource>
+          </DsCard>
+        </Main>
+        {modal && (
+          <CatalogModal
+            ws={ws}
+            modal={modal}
+            course={editCourse}
+            courses={courses}
+            close={close}
+            refresh={r.refresh}
+          />
+        )}
+      </>
+    );
+
   return (
     <>
-      <ScreenTitle
-        code={mode === "overview" ? "К1" : "К2"}
-        title={mode === "overview" ? "Обзор" : "Курсы"}
-        leading={mode === "overview" ? <WorkspaceSearch ws={ws} /> : undefined}
-      >
-        <button className="primary" onClick={() => setModal("course")}>
-          Создать курс
-        </button>
-        {mode === "overview" && (
-          <button className="primary" onClick={() => setModal("run")}>
-            Создать поток
-          </button>
-        )}
-      </ScreenTitle>
-      {action.feedback}
-      {mode === "overview" && <OverviewMetrics ws={ws} />}
-      <Resource value={r}>
-        {r.data && mode === "overview" && (
-          <Card
-            title="Потоки"
-            actions={
-              <div className="filters">
-                <label>
-                  Найти курс или поток
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </label>
-                <label>
-                  Состояние
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    <option value="active">Активные</option>
-                    <option value="archived">Архив</option>
-                    <option value="">Все</option>
-                  </select>
-                </label>
-              </div>
-            }
-          >
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Курс / поток</th>
-                    <th>Студенты</th>
-                    <th>Ближайший срок</th>
-                    <th>Все работы</th>
-                    <th>В пуле</th>
-                    <th>На проверке</th>
-                    <th>Зачтено</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {r.data.course_runs
-                    .filter(
-                      (run) =>
-                        (!status || run.status === status) &&
-                        `${run.title} ${r.data!.courses.find((c) => c.id === run.course_id)?.title}`
-                          .toLowerCase()
-                          .includes(search.toLowerCase()),
-                    )
-                    .map((run) => (
-                      <RunSummary
-                        key={run.id}
-                        ws={ws}
-                        run={run}
-                        course={
-                          r.data!.courses.find((c) => c.id === run.course_id)
-                            ?.title ?? "Курс"
-                        }
-                      />
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        )}
-        {r.data && mode === "courses" && (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Курс</th>
-                  <th>Заданий</th>
-                  <th>Потоков</th>
-                  <th>Активных</th>
-                  <th>Курс в Stepik</th>
-                  <th>Состояние</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {r.data.courses.map((c) => (
-                  <tr key={c.id}>
-                    <td>
-                      <button
-                        className="link-button"
-                        onClick={() => {
-                          setEditCourse(c);
-                          setModal("edit-course");
-                        }}
-                      >
-                        {c.title}
-                      </button>
-                      <small>{c.description}</small>
-                    </td>
-                    <td>
-                      <HomeworkCount ws={ws} courseId={c.id} />
-                    </td>
-                    <td>
-                      {
-                        r.data!.course_runs.filter(
-                          (run) => run.course_id === c.id,
-                        ).length
-                      }
-                    </td>
-                    <td>
-                      {
-                        r.data!.course_runs.filter(
-                          (run) =>
-                            run.course_id === c.id && run.status === "active",
-                        ).length
-                      }
-                    </td>
-                    <td>
-                      {c.stepik_url ? (
-                        <a href={c.stepik_url} target="_blank" rel="noreferrer">
-                          {c.stepik_url.replace("https://", "")}
-                        </a>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td>
-                      <Status value={c.status} />
-                    </td>
-                    <td>
-                      <button
-                        disabled={action.busy}
-                        onClick={() =>
-                          void action.run(async () => {
-                            if (c.status === "archived")
-                              await ws.core.command(
-                                "restore_course",
-                                c.id,
-                                c.revision,
-                                {},
-                              );
-                            else
-                              await ws.core.command(
-                                "archive_course",
-                                c.id,
-                                c.revision,
-                                { reason: "Архивирование координатором" },
-                              );
-                            r.refresh();
-                          })
-                        }
-                      >
-                        {c.status === "archived"
-                          ? "Восстановить"
-                          : "Архивировать"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {r.data?.courses.length === 0 && (
-          <Empty>Создайте курс или импортируйте его из Stepik.</Empty>
-        )}
-      </Resource>
-      {modal && (
-        <Modal
-          title={
-            modal === "course"
-              ? "Создать курс"
-              : modal === "edit-course"
-                ? "Редактировать курс"
-                : "Создать поток"
-          }
-          close={close}
-        >
-          {modal === "course" || modal === "edit-course" ? (
-            <CourseForm
-              ws={ws}
-              course={modal === "edit-course" ? editCourse : undefined}
-              done={() => {
-                close();
-                r.refresh();
-              }}
-            />
-          ) : (
-            <>
-              <label>
-                Курс
-                <select
-                  value={selectedCourse}
-                  onChange={(e) => setSelectedCourse(e.target.value)}
-                >
-                  <option value="">Выберите курс</option>
-                  {r.data?.courses
-                    .filter((c) => c.status === "active")
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.title}
-                      </option>
-                    ))}
-                </select>
-              </label>
-              {selectedCourse && (
-                <RunForm
-                  key={selectedCourse}
-                  ws={ws}
-                  course={r.data!.courses.find((c) => c.id === selectedCourse)!}
-                  done={() => {
-                    close();
-                    r.refresh();
-                  }}
+      <Topbar
+        center
+        title="Обзор"
+        lead={<WorkspaceSearch ws={ws} />}
+        actions={
+          <>
+            <Btn size="s" onClick={() => setModal("course")}>
+              Создать курс
+            </Btn>
+            <Btn size="s" variant="dark" onClick={() => setModal("run")}>
+              Создать поток
+            </Btn>
+          </>
+        }
+      />
+      <Main data-screen="К1">
+        {action.feedback}
+        <Resource value={r}>
+          {r.data && (
+            <div className="stack">
+              <Tiles>
+                <Tile
+                  href="#/registry"
+                  n={loadingStats ? "…" : totals.all}
+                  l="домашек в активных потоках"
+                  d={
+                    coursesWithWork
+                      ? `по ${coursesWithWork} ${plural(coursesWithWork, "курсу", "курсам", "курсам")}`
+                      : `${activeRuns.length} ${plural(activeRuns.length, "активный поток", "активных потока", "активных потоков")}`
+                  }
                 />
-              )}
-            </>
+                <Tile
+                  href="#/registry?state=in_review"
+                  n={loadingStats ? "…" : totals.review}
+                  l="у ревьюеров прямо сейчас"
+                  d="взяты из пула и проверяются"
+                />
+                <Tile
+                  href="#/coord-pool"
+                  n={loadingStats ? "…" : totals.pool}
+                  alert={totals.stuck > 0}
+                  l="в пуле без ревьюера"
+                  d={
+                    totals.stuck
+                      ? `${totals.stuck} ${plural(totals.stuck, "лежит", "лежат", "лежат")} дольше ${HOT_DAYS} дней`
+                      : "ни одна не лежит дольше 3 дней"
+                  }
+                />
+                <Tile
+                  href="#/homeworks"
+                  n={loadingStats ? "…" : thisWeek}
+                  l={`${plural(thisWeek, "дедлайн", "дедлайна", "дедлайнов")} на этой неделе`}
+                  d={
+                    upcoming[0]
+                      ? `ближайший ${dayShort(upcoming[0].deadline)}, ${upcoming[0].course}`
+                      : "предстоящих сроков нет"
+                  }
+                />
+              </Tiles>
+
+              <DsCard>
+                <CardHead
+                  title="Потоки"
+                  sub={`Показаны ${shownRuns.length} из ${runs.length}, сначала активные`}
+                >
+                  <BtnRow>
+                    {courseSelect}
+                    <Sel
+                      small
+                      aria-label="Статус"
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                    >
+                      <option value="">Статус: все</option>
+                      <option value="active">Активные</option>
+                      <option value="archived">Архив</option>
+                    </Sel>
+                  </BtnRow>
+                </CardHead>
+                <CardBody flush>
+                  <table className="tbl">
+                    <thead>
+                      <tr>
+                        <th>Курс</th>
+                        <th>Поток</th>
+                        <th className="n">Студентов</th>
+                        <th className="n">Ближайший дедлайн</th>
+                        <th className="n">Сдано</th>
+                        <th className="n">На ревью</th>
+                        <th className="n">Зависло</th>
+                        <th className="n">Зачтено</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shownRuns.map((run) => (
+                        <RunRow
+                          key={run.id}
+                          ws={ws}
+                          run={run}
+                          course={
+                            courses.find((c) => c.id === run.course_id)
+                              ?.title ?? "Курс"
+                          }
+                          report={report}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                  {shownRuns.length === 0 && (
+                    <DsEmpty
+                      title="Потоков нет"
+                      action={
+                        <Btn
+                          size="s"
+                          variant="dark"
+                          onClick={() => setModal("run")}
+                        >
+                          Создать поток
+                        </Btn>
+                      }
+                    >
+                      {runs.length
+                        ? "По этим фильтрам потоков нет."
+                        : "Поток всегда принадлежит курсу и открывает задания студентам."}
+                    </DsEmpty>
+                  )}
+                </CardBody>
+              </DsCard>
+
+              <div className="row-2">
+                <DsCard>
+                  <CardHead title="Требует внимания" />
+                  <CardBody tight>
+                    {totals.stuck > 0 ? (
+                      activeRuns
+                        .filter((run) => (stats[run.id]?.stuck ?? 0) > 0)
+                        .map((run) => (
+                          <Kv
+                            key={run.id}
+                            ink
+                            label={`${stats[run.id].stuck} ${plural(stats[run.id].stuck, "работа", "работы", "работ")} в пуле дольше ${HOT_DAYS} дней, поток «${run.title}»`}
+                          >
+                            <Btn
+                              variant="link"
+                              href={`#/coord-pool?run=${run.id}`}
+                            >
+                              Открыть пул
+                            </Btn>
+                          </Kv>
+                        ))
+                    ) : (
+                      <p className="small dim">
+                        {loadingStats
+                          ? "Считаем работы в пулах…"
+                          : "Зависших работ нет: всё берут вовремя."}
+                      </p>
+                    )}
+                    {known.length > 0 &&
+                      activeRuns
+                        .filter((run) => (stats[run.id]?.homeworks ?? 1) === 0)
+                        .map((run) => (
+                          <Kv
+                            key={`hw:${run.id}`}
+                            ink
+                            label={`В потоке «${run.title}» нет опубликованных заданий`}
+                          >
+                            <Btn variant="link" href="#/homeworks">
+                              Задания
+                            </Btn>
+                          </Kv>
+                        ))}
+                  </CardBody>
+                </DsCard>
+                <DsCard>
+                  <CardHead title="Ближайшие дедлайны" />
+                  <CardBody tight>
+                    {upcoming.slice(0, 5).map((u, i) => (
+                      <Kv key={i} ink label={`${u.course}, ${u.title}`}>
+                        <Pill
+                          tone={
+                            new Date(u.deadline).getTime() - now <
+                            3 * 86_400_000
+                              ? "late"
+                              : undefined
+                          }
+                        >
+                          {dayShort(u.deadline)}
+                        </Pill>
+                      </Kv>
+                    ))}
+                    {upcoming.length === 0 && (
+                      <p className="small dim">
+                        {loadingStats
+                          ? "Собираем сроки…"
+                          : "Предстоящих дедлайнов нет."}
+                      </p>
+                    )}
+                  </CardBody>
+                </DsCard>
+              </div>
+            </div>
           )}
-        </Modal>
+        </Resource>
+      </Main>
+      {modal && (
+        <CatalogModal
+          ws={ws}
+          modal={modal}
+          course={editCourse}
+          courses={courses}
+          close={close}
+          refresh={r.refresh}
+        />
       )}
     </>
   );
 }
-function OverviewMetrics({ ws }: { ws: WorkspaceClient }) {
-  const r = useResource(async () => {
-    const [all, active, pool, catalog] = await Promise.all([
-      ws.works({ limit: 1 }),
-      ws.works({ state: "in_review", limit: 1 }),
-      ws.works({ state: "pending_review", limit: 1 }),
-      ws.catalog(),
-    ]);
-    const homeworks = await Promise.all(
-      catalog.course_runs
-        .filter((run) => run.status === "active")
-        .map((run) => ws.core.homeworks(run.id)),
-    );
-    const now = Date.now();
-    const deadlines = homeworks
-      .flatMap((h) => h.items)
-      .filter(
-        (h) =>
-          h.submission_deadline &&
-          new Date(h.submission_deadline).getTime() >= now &&
-          new Date(h.submission_deadline).getTime() <= now + 7 * 86400000,
-      ).length;
-    return {
-      all: all.total,
-      active: active.total,
-      pool: pool.total,
-      deadlines,
-    };
-  }, "overview-metrics");
-  return (
-    <Resource value={r}>
-      {r.data && (
-        <div className="tiles">
-          <a className="tile" href="#/registry">
-            <div className="n">{r.data.all}</div>
-            <div className="l">домашек в потоках</div>
-          </a>
-          <a className="tile" href="#/registry?state=in_review">
-            <div className="n">{r.data.active}</div>
-            <div className="l">у ревьюеров прямо сейчас</div>
-          </a>
-          <a
-            className="tile tile--alert"
-            href="#/registry?state=pending_review"
-          >
-            <div className="n">{r.data.pool}</div>
-            <div className="l">в пуле без проверки</div>
-          </a>
-          <div className="tile">
-            <div className="n">{r.data.deadlines}</div>
-            <div className="l">дедлайнов в ближайшие 7 дней</div>
-          </div>
-        </div>
-      )}
-    </Resource>
-  );
-}
-function RunSummary({
+
+function RunRow({
   ws,
   run,
   course,
+  report,
 }: {
   ws: WorkspaceClient;
   run: W<"CourseRunView">;
   course: string;
+  report: (id: string, value: RunStats) => void;
 }) {
-  const r = useResource(async () => {
-    const [all, pool, review, accepted, members, homeworks] = await Promise.all(
-      [
-        ws.works({ course_run_id: run.id, limit: 1 }),
-        ws.works({ course_run_id: run.id, state: "pending_review", limit: 1 }),
-        ws.works({ course_run_id: run.id, state: "in_review", limit: 1 }),
-        ws.works({ course_run_id: run.id, state: "passed", limit: 1 }),
-        ws.assignments(run.id),
-        ws.core.homeworks(run.id),
-      ],
-    );
-    const deadline = homeworks.items
-      .map((h) => h.submission_deadline)
-      .filter((d): d is string => !!d && new Date(d).getTime() >= Date.now())
-      .sort()[0];
-    return {
-      all: all.total,
-      pool: pool.total,
-      review: review.total,
-      accepted: accepted.total,
-      students: members.items.length,
-      deadline,
-    };
-  }, run.id);
-  const link = (count: number, state = "") => (
-    <a href={`#/registry?run=${run.id}&state=${state}`}>{count}</a>
-  );
+  const r = useRunStats(ws, run);
+  useEffect(() => {
+    if (r.data) report(run.id, r.data);
+  }, [r.data, run.id, report]);
+  const s = r.data;
+  const hot =
+    !!s?.deadline &&
+    new Date(s.deadline).getTime() - Date.now() < 3 * 86_400_000;
+  const href = `#/registry?run=${run.id}`;
   return (
-    <tr>
+    <tr
+      className={cx(
+        "is-link",
+        hot && "is-hot",
+        run.status === "archived" && "is-done",
+      )}
+      onClick={() => {
+        window.location.hash = href;
+      }}
+    >
       <td>
-        <small>{course}</small>
-        <a href={`#/courses/${run.id}`}>{run.title}</a>
-        <Status value={run.status} />
+        <div className="who">{course}</div>
+        <div className="sub">
+          {s
+            ? `${s.homeworks} ${plural(s.homeworks, "задание", "задания", "заданий")}`
+            : "…"}
+        </div>
       </td>
-      {r.data ? (
+      <td>
+        {run.title}
+        {run.status === "archived" && <span className="caption"> · архив</span>}
+      </td>
+      {s ? (
         <>
-          <td>{r.data.students}</td>
-          <td>{r.data.deadline ? date(r.data.deadline) : "Нет предстоящих"}</td>
-          <td>{link(r.data.all)}</td>
-          <td>{link(r.data.pool, "pending_review")}</td>
-          <td>{link(r.data.review, "in_review")}</td>
-          <td>{link(r.data.accepted, "passed")}</td>
+          <td className="n">{s.students}</td>
+          <td className={cx("n", hot && "late")}>
+            {s.deadline ? dayShort(s.deadline) : "—"}
+          </td>
+          <td className="n">{s.all}</td>
+          <td className="n">{s.review}</td>
+          <td className={cx("n", s.stuck > 0 && "bad")}>{s.stuck}</td>
+          <td className="n">{s.accepted}</td>
         </>
       ) : (
-        <td colSpan={6}>
-          <Resource value={r}>{null}</Resource>
+        <td className="n dim" colSpan={6}>
+          {r.error ? "не удалось посчитать" : "…"}
         </td>
       )}
     </tr>
   );
 }
-export function RunCard({
+
+function CatalogModal({
   ws,
-  run,
+  modal,
+  course,
+  courses,
+  close,
   refresh,
 }: {
   ws: WorkspaceClient;
-  run: W<"CourseRunView">;
+  modal: string;
+  course?: W<"CourseView">;
+  courses: W<"CourseView">[];
+  close: () => void;
   refresh: () => void;
 }) {
-  const work = useResource(
-    () => ws.works({ course_run_id: run.id, limit: 1 }),
-    run.id,
-  );
-  const action = useAction();
-  const [priority, setPriority] = useState(run.priority);
-  const [editing, setEditing] = useState(false);
-  const catalog = useResource(() => ws.catalog(), run.id);
+  const done = () => {
+    close();
+    refresh();
+  };
+  if (modal === "course" || modal === "edit-course")
+    return (
+      <Modal title={course ? "Курс" : "Новый курс"} close={close} flush>
+        <CourseForm
+          ws={ws}
+          course={modal === "edit-course" ? course : undefined}
+          done={done}
+          cancel={close}
+        />
+      </Modal>
+    );
   return (
-    <article className="list-item">
-      <div className="row">
-        <a href={`#/courses/${run.id}`}>
-          <strong>{run.title}</strong>
-        </a>
-        <Status value={run.status} />
-      </div>
-      <p className="muted">
-        {run.starts_at ? date(run.starts_at) : "Начало не указано"} —{" "}
-        {run.ends_at ? date(run.ends_at) : "Окончание не указано"}
-      </p>
-      <Resource value={work}>
-        {work.data && (
-          <p>
-            <a href={`#/registry?run=${run.id}`}>Работы: {work.data.total} →</a>
-          </p>
-        )}
-      </Resource>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void action.run(async () => {
-            await ws.command(
-              "set_run_priority",
-              run.id,
-              run.priority_revision,
-              { priority },
-            );
-            refresh();
-          });
-        }}
-      >
-        <label>
-          Приоритет рекомендаций
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as typeof priority)}
-          >
-            <option value="assigned">Свои студенты сначала</option>
-            <option value="deadline">Ближайший срок сначала</option>
-          </select>
-        </label>
-        <button disabled={action.busy || priority === run.priority}>
-          Сохранить приоритет
-        </button>
-      </form>
-      {editing && catalog.data && (
-        <Modal title="Редактировать поток" close={() => setEditing(false)}>
-          <RunForm
-            ws={ws}
-            course={catalog.data.courses.find((c) => c.id === run.course_id)!}
-            run={run}
-            done={() => {
-              setEditing(false);
-              refresh();
-            }}
-          />
-        </Modal>
-      )}
-      <div className="actions">
-        <button onClick={() => setEditing(true)}>Редактировать поток</button>
-        <a href={`#/assignments/${run.id}`}>Ревьюеры и студенты</a>
-        <button
-          disabled={action.busy}
-          onClick={() =>
-            void action.run(async () => {
-              const fresh = (await ws.catalog()).course_runs.find(
-                (r) => r.id === run.id,
-              )!;
-              if (fresh.status === "archived")
-                await ws.core.command(
-                  "restore_course_run",
-                  run.id,
-                  fresh.revision,
-                  {},
-                );
-              else
-                await ws.core.command(
-                  "archive_course_run",
-                  run.id,
-                  fresh.revision,
-                  { reason: "Архивирование потока координатором" },
-                );
-              refresh();
-            })
-          }
-        >
-          {run.status === "archived"
-            ? "Восстановить поток"
-            : "Архивировать поток"}
-        </button>
-      </div>
-      {action.feedback}
-    </article>
+    <Modal title="Новый поток" close={close} flush>
+      <RunForm
+        ws={ws}
+        courses={courses.filter((c) => c.status === "active")}
+        done={done}
+        cancel={close}
+      />
+    </Modal>
   );
 }
+
+/** К3: форма курса. */
 function CourseForm({
   ws,
   done,
+  cancel,
   course,
 }: {
   ws: WorkspaceClient;
   done: () => void;
+  cancel: () => void;
   course?: W<"CourseView">;
 }) {
   const [title, setTitle] = useState(course?.title ?? "");
@@ -537,65 +666,113 @@ function CourseForm({
         });
       }}
     >
-      {action.feedback}
-      <label>
-        Название курса
-        <input
-          required
-          maxLength={512}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </label>
-      <label>
-        Описание
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </label>
-      <label>
-        Ссылка на курс в Stepik (необязательно)
-        <input
-          type="url"
-          value={stepikUrl}
-          onChange={(e) => setStepikUrl(e.target.value)}
-          placeholder="https://stepik.org/course/…"
-        />
-      </label>
-      <label>
-        Координатор
-        <select value={owner} onChange={(e) => setOwner(e.target.value)}>
-          <option value="">Не выбран</option>
-          {people.data?.items
-            .filter((p) => p.roles.includes("methodologist"))
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.display_name}
-              </option>
-            ))}
-        </select>
-      </label>
-      <button type="button" onClick={done}>
-        Отмена
-      </button>
-      <button className="primary" disabled={action.busy}>
-        {course ? "Сохранить курс" : "Создать курс"}
-      </button>
+      <div className="card__body">
+        {action.feedback}
+        <Field label="Название">
+          <Inp
+            required
+            maxLength={512}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </Field>
+        <Field label="Короткое описание, видно студентам и ревьюерам">
+          <Area
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </Field>
+        <Field
+          label="Ссылка на курс в Stepik"
+          opt="необязательно"
+          hint="Нужна, чтобы открыть курс на Stepik из справочника."
+        >
+          <Inp
+            mono
+            type="url"
+            value={stepikUrl}
+            onChange={(e) => setStepikUrl(e.target.value)}
+            placeholder="https://stepik.org/course/…"
+          />
+        </Field>
+        <Field
+          label="Кто ведёт курс"
+          hint="Задания и потоки внутри курса сможет создавать координатор курса."
+        >
+          <Sel value={owner} onChange={(e) => setOwner(e.target.value)}>
+            <option value="">Не выбран</option>
+            {people.data?.items
+              .filter((p) => p.roles.includes("methodologist"))
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.display_name}
+                </option>
+              ))}
+          </Sel>
+        </Field>
+      </div>
+      <div className="card__foot card__foot--end">
+        <BtnRow>
+          {course && (
+            <Btn
+              variant="quiet"
+              disabled={action.busy}
+              onClick={() =>
+                void action.run(async () => {
+                  if (course.status === "archived")
+                    await ws.core.command(
+                      "restore_course",
+                      course.id,
+                      course.revision,
+                      {},
+                    );
+                  else
+                    await ws.core.command(
+                      "archive_course",
+                      course.id,
+                      course.revision,
+                      {
+                        reason: "Архивирование координатором",
+                      },
+                    );
+                  done();
+                })
+              }
+            >
+              {course.status === "archived" ? "Восстановить" : "В архив"}
+            </Btn>
+          )}
+          <Btn variant="quiet" onClick={cancel}>
+            Отмена
+          </Btn>
+          <Btn variant="pri" type="submit" disabled={action.busy}>
+            {course ? "Сохранить курс" : "Создать курс"}
+          </Btn>
+        </BtnRow>
+      </div>
     </form>
   );
 }
+
+/** К4: форма потока. */
 function RunForm({
   ws,
-  course,
+  courses,
+  course: fixedCourse,
   done,
+  cancel,
   run,
 }: {
   ws: WorkspaceClient;
-  course: W<"CourseView">;
+  courses?: W<"CourseView">[];
+  course?: W<"CourseView">;
   done: () => void;
+  cancel: () => void;
   run?: W<"CourseRunView">;
 }) {
+  const [courseId, setCourseId] = useState(
+    fixedCourse?.id ?? run?.course_id ?? "",
+  );
   const [title, setTitle] = useState(run?.title ?? "");
   const [start, setStart] = useState(localDate(run?.starts_at));
   const [end, setEnd] = useState(localDate(run?.ends_at));
@@ -604,11 +781,13 @@ function RunForm({
     run?.priority ?? "assigned",
   );
   const action = useAction();
+  const course = fixedCourse ?? courses?.find((c) => c.id === courseId);
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         void action.run(async () => {
+          if (!course) throw new Error("Выберите курс.");
           await ws.command(
             run ? "update_course_run" : "create_course_run",
             run?.id ?? course.id,
@@ -625,68 +804,227 @@ function RunForm({
         });
       }}
     >
-      {action.feedback}
-      <p>Курс: {course.title}</p>
-      <label>
-        Название потока
-        <input
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-      </label>
-      <label>
-        Начало
-        <input
-          required
-          type="datetime-local"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-        />
-      </label>
-      <label>
-        Окончание
-        <input
-          required
-          type="datetime-local"
-          min={start}
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-        />
-      </label>
-      <label>
-        Часовой пояс
-        <input
-          required
-          value={zone}
-          onChange={(e) => setZone(e.target.value)}
-        />
-      </label>
-      <label>
-        Порядок рекомендаций
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value as typeof priority)}
+      <div className="card__body">
+        {action.feedback}
+        <Field label="Курс">
+          {fixedCourse || run ? (
+            <Inp disabled readOnly value={course?.title ?? ""} />
+          ) : (
+            <Sel
+              required
+              value={courseId}
+              onChange={(e) => setCourseId(e.target.value)}
+            >
+              <option value="">Выберите курс</option>
+              {courses?.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </Sel>
+          )}
+        </Field>
+        <Field label="Название потока" hint="Например, «Февраль 2026»">
+          <Inp
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </Field>
+        <Field group label="Даты">
+          <div className="row-2 row-2--tight">
+            <Inp
+              aria-label="Дата начала"
+              required
+              type="datetime-local"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+            />
+            <Inp
+              aria-label="Дата окончания"
+              required
+              type="datetime-local"
+              min={start}
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+            />
+          </div>
+        </Field>
+        <Field label="Часовой пояс">
+          <Inp
+            mono
+            required
+            value={zone}
+            onChange={(e) => setZone(e.target.value)}
+          />
+        </Field>
+        <Field
+          group
+          label="Порядок рекомендаций ревьюерам"
+          hint="Порядок рекомендаций не ограничивает доступ к общему пулу."
         >
-          <option value="assigned">Свои студенты сначала</option>
-          <option value="deadline">Ближайший срок сначала</option>
-        </select>
-      </label>
-      <p className="muted">
-        Порядок рекомендаций не ограничивает доступ к общему пулу.
-      </p>
-      <p className="muted">
-        После создания добавьте участников или импортируйте состав из Stepik.
-      </p>
-      <button type="button" onClick={done}>
-        Отмена
-      </button>
-      <button className="primary" disabled={action.busy}>
-        {run ? "Сохранить поток" : "Создать поток"}
-      </button>
+          <Seg
+            value={priority}
+            onChange={setPriority}
+            options={[
+              { value: "assigned", label: "Свои студенты сначала" },
+              { value: "deadline", label: "Ближайший срок сначала" },
+            ]}
+          />
+        </Field>
+        <Callout>
+          <p>
+            Студентов добавлять не нужно. Зачисление происходит при первом
+            переходе по ссылке задания: платформа узнаёт студента по Stepik ID.
+          </p>
+        </Callout>
+      </div>
+      <div className="card__foot card__foot--end">
+        <BtnRow>
+          <Btn variant="quiet" onClick={cancel}>
+            Отмена
+          </Btn>
+          <Btn variant="pri" type="submit" disabled={action.busy}>
+            {run ? "Сохранить поток" : "Создать поток"}
+          </Btn>
+        </BtnRow>
+      </div>
     </form>
   );
 }
+
+/** Карточка потока на странице потока: даты, приоритет, архив. Экрана в паке нет. */
+export function RunCard({
+  ws,
+  run,
+  refresh,
+}: {
+  ws: WorkspaceClient;
+  run: W<"CourseRunView">;
+  refresh: () => void;
+}) {
+  const work = useResource(
+    () => ws.works({ course_run_id: run.id, limit: 1 }),
+    run.id,
+  );
+  const action = useAction();
+  const [priority, setPriority] = useState(run.priority);
+  const [editing, setEditing] = useState(false);
+  const catalog = useResource(() => ws.catalog(), run.id);
+  return (
+    <DsCard>
+      <CardHead title="Поток" sub={run.title}>
+        <OpPill status={run.status} />
+      </CardHead>
+      <CardBody tight>
+        <Kv label="Начало">{dayLong(run.starts_at)}</Kv>
+        <Kv label="Окончание">{dayLong(run.ends_at)}</Kv>
+        <Kv label="Часовой пояс">
+          <span className="mono">{run.timezone}</span>
+        </Kv>
+        <Kv label="Работ в потоке">
+          {work.data ? (
+            <Btn variant="link" href={`#/registry?run=${run.id}`}>
+              {work.data.total}
+            </Btn>
+          ) : (
+            "…"
+          )}
+        </Kv>
+        <Kv label="Порядок рекомендаций">
+          <BtnRow>
+            <Seg
+              value={priority}
+              onChange={setPriority}
+              options={[
+                { value: "assigned", label: "Свои студенты" },
+                { value: "deadline", label: "Ближайший срок" },
+              ]}
+            />
+            <Btn
+              size="s"
+              disabled={action.busy || priority === run.priority}
+              onClick={() =>
+                void action.run(async () => {
+                  await ws.command(
+                    "set_run_priority",
+                    run.id,
+                    run.priority_revision,
+                    {
+                      priority,
+                    },
+                  );
+                  refresh();
+                })
+              }
+            >
+              Сохранить
+            </Btn>
+          </BtnRow>
+        </Kv>
+      </CardBody>
+      {!!action.error && <CardBody>{action.feedback}</CardBody>}
+      <CardFoot>
+        <BtnRow>
+          <Btn size="s" onClick={() => setEditing(true)}>
+            Редактировать поток
+          </Btn>
+          <Btn size="s" variant="quiet" href={`#/assignments/${run.id}`}>
+            Ревьюеры и студенты
+          </Btn>
+        </BtnRow>
+        <Btn
+          size="s"
+          variant="quiet"
+          disabled={action.busy}
+          onClick={() =>
+            void action.run(async () => {
+              const fresh = (await ws.catalog()).course_runs.find(
+                (r) => r.id === run.id,
+              )!;
+              if (fresh.status === "archived")
+                await ws.core.command(
+                  "restore_course_run",
+                  run.id,
+                  fresh.revision,
+                  {},
+                );
+              else
+                await ws.core.command(
+                  "archive_course_run",
+                  run.id,
+                  fresh.revision,
+                  {
+                    reason: "Архивирование потока координатором",
+                  },
+                );
+              refresh();
+            })
+          }
+        >
+          {run.status === "archived"
+            ? "Восстановить поток"
+            : "Архивировать поток"}
+        </Btn>
+      </CardFoot>
+      {editing && catalog.data && (
+        <Modal title="Поток" close={() => setEditing(false)} flush>
+          <RunForm
+            ws={ws}
+            course={catalog.data.courses.find((c) => c.id === run.course_id)!}
+            run={run}
+            cancel={() => setEditing(false)}
+            done={() => {
+              setEditing(false);
+              refresh();
+            }}
+          />
+        </Modal>
+      )}
+    </DsCard>
+  );
+}
+
 export function WorkspacePreferences({
   ws,
   session,
@@ -702,17 +1040,20 @@ export function WorkspacePreferences({
     "preferences",
   );
   return (
-    <Resource value={r}>
-      {r.data && (
-        <PreferencesForm
-          key={r.data.preferences.revision}
-          ws={ws}
-          session={session}
-          {...r.data}
-          refresh={r.refresh}
-        />
-      )}
-    </Resource>
+    <>
+      {r.loading && <Topbar title="Кабинет" />}
+      <Resource value={r}>
+        {r.data && (
+          <PreferencesForm
+            key={r.data.preferences.revision}
+            ws={ws}
+            session={session}
+            {...r.data}
+            refresh={r.refresh}
+          />
+        )}
+      </Resource>
+    </>
   );
 }
 function PreferencesForm({
@@ -729,9 +1070,10 @@ function PreferencesForm({
   refresh: () => void;
 }) {
   const initial = preferences.value;
+  const defaults = { deadline: true, revision: true, pool: false };
   const [showPool, setShowPool] = useState(initial?.show_pool ?? true);
   const [notifications, setNotifications] = useState(
-    initial?.notifications ?? { deadline: true, revision: true, pool: false },
+    initial?.notifications ?? defaults,
   );
   const [selected, setSelected] = useState(initial?.course_run_ids ?? []);
   const [from, setFrom] = useState(localDate(initial?.absent_from));
@@ -739,171 +1081,187 @@ function PreferencesForm({
   const action = useAction();
   function reset() {
     setShowPool(initial?.show_pool ?? true);
-    setNotifications(
-      initial?.notifications ?? { deadline: true, revision: true, pool: false },
-    );
+    setNotifications(initial?.notifications ?? defaults);
     setSelected(initial?.course_run_ids ?? []);
     setFrom(localDate(initial?.absent_from));
     setTo(localDate(initial?.absent_until));
   }
+  const courses = catalog.courses
+    .map((course) => ({
+      course,
+      runs: catalog.course_runs.filter(
+        (run) => run.course_id === course.id && run.status === "active",
+      ),
+    }))
+    .filter(({ runs }) => runs.length > 0);
   return (
     <>
-      <ScreenTitle code="Р3" title="Кабинет">
-        <div className="actions">
-          <button type="button" onClick={reset}>
-            Отменить
-          </button>
-          <button
-            className="primary"
-            form="reviewer-preferences"
-            disabled={action.busy}
-          >
-            Сохранить
-          </button>
-        </div>
-      </ScreenTitle>
-      <nav className="tabs">
-        <a href="#/preferences" aria-current="page">
-          Настройки
-        </a>
-        <a href="#/statistics">Статистика</a>
-      </nav>
-      {action.feedback}
-      <form
-        id="reviewer-preferences"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void action.run(async () => {
-            await ws.command(
-              "save_preferences",
-              session.user_id,
-              preferences.revision,
-              {
-                course_run_ids: selected,
-                show_pool: showPool,
-                notifications,
-                planned_minutes: initial?.planned_minutes ?? 0,
-                until_at: initial?.until_at ?? new Date().toISOString(),
-                absent_from: from ? new Date(from).toISOString() : null,
-                absent_until: from && to ? new Date(to).toISOString() : null,
-              },
-            );
-            refresh();
-          });
-        }}
-      >
-        <div className="row-side">
-          <Card title="Курсы, которые готов проверять">
-            {catalog.courses
-              .filter((course) =>
-                catalog.course_runs.some(
-                  (run) =>
-                    run.course_id === course.id && run.status === "active",
-                ),
-              )
-              .map((course) => {
-                const runs = catalog.course_runs.filter(
-                  (run) =>
-                    run.course_id === course.id && run.status === "active",
-                );
-                return (
-                  <label key={course.id} className="check list-item">
-                    <input
-                      type="checkbox"
-                      checked={runs.every((run) => selected.includes(run.id))}
-                      onChange={(e) =>
-                        setSelected(
-                          e.target.checked
-                            ? [
-                                ...new Set([
-                                  ...selected,
-                                  ...runs.map((run) => run.id),
-                                ]),
-                              ]
-                            : selected.filter(
-                                (id) => !runs.some((run) => run.id === id),
-                              ),
-                        )
-                      }
+      <Topbar
+        title="Кабинет"
+        actions={
+          <>
+            <Btn size="s" variant="quiet" onClick={reset}>
+              Отменить
+            </Btn>
+            <Btn
+              size="s"
+              variant="pri"
+              type="submit"
+              form="reviewer-preferences"
+              disabled={action.busy}
+            >
+              Сохранить
+            </Btn>
+          </>
+        }
+      />
+      <Main data-screen="Р3">
+        <CabinetTabs on="preferences" />
+        {action.feedback}
+        <form
+          id="reviewer-preferences"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void action.run(async () => {
+              await ws.command(
+                "save_preferences",
+                session.user_id,
+                preferences.revision,
+                {
+                  course_run_ids: selected,
+                  show_pool: showPool,
+                  notifications,
+                  planned_minutes: initial?.planned_minutes ?? 0,
+                  until_at: initial?.until_at ?? new Date().toISOString(),
+                  absent_from: from ? new Date(from).toISOString() : null,
+                  absent_until: from && to ? new Date(to).toISOString() : null,
+                },
+              );
+              refresh();
+            }, "Настройки сохранены");
+          }}
+        >
+          <div className="row-side">
+            <DsCard>
+              <CardHead title="Курсы, которые готов проверять" />
+              <CardBody>
+                {courses.length === 0 ? (
+                  <DsEmpty title="Активных потоков нет">
+                    Когда координатор откроет поток, курс появится здесь.
+                  </DsEmpty>
+                ) : (
+                  <div className="stack--chk">
+                    {courses.map(({ course, runs }) => (
+                      <Chk
+                        key={course.id}
+                        row
+                        checked={runs.every((run) => selected.includes(run.id))}
+                        onChange={(e) =>
+                          setSelected(
+                            e.target.checked
+                              ? [
+                                  ...new Set([
+                                    ...selected,
+                                    ...runs.map((run) => run.id),
+                                  ]),
+                                ]
+                              : selected.filter(
+                                  (id) => !runs.some((run) => run.id === id),
+                                ),
+                          )
+                        }
+                        trail={<CoursePoolCount ws={ws} runs={runs} />}
+                      >
+                        {course.title}
+                      </Chk>
+                    ))}
+                  </div>
+                )}
+              </CardBody>
+            </DsCard>
+            <div className="stack">
+              <DsCard>
+                <CardHead title="Доступность" />
+                <CardBody>
+                  <div className="tgl-row">
+                    <div>
+                      <div id="pref-show-pool">
+                        Показывать мне работы из пула
+                      </div>
+                      <div className="caption">
+                        выключите, если временно не берёте новое
+                      </div>
+                    </div>
+                    <Tgl
+                      aria-labelledby="pref-show-pool"
+                      checked={showPool}
+                      onChange={(e) => setShowPool(e.target.checked)}
                     />
-                    <span>{course.title}</span>
-                    <CoursePoolCount ws={ws} runs={runs} />
-                  </label>
-                );
-              })}
-          </Card>
-          <div className="stack">
-            <Card title="Доступность">
-              <label className="check">
-                <span>
-                  Показывать мне работы из пула
-                  <small className="muted">
-                    выключите, если временно не берёте новое
-                  </small>
-                </span>
-                <span className="tgl">
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    checked={showPool}
-                    onChange={(e) => setShowPool(e.target.checked)}
-                  />
-                  <span className="tgl__t" />
-                </span>
-              </label>
-              <fieldset>
-                <legend>Отпуск или отсутствие</legend>
-                <div className="actions">
-                  <input
-                    aria-label="Начало отсутствия"
-                    type="datetime-local"
-                    value={from}
-                    onChange={(e) => {
-                      setFrom(e.target.value);
-                      if (!e.target.value) setTo("");
-                    }}
-                  />
-                  <span>—</span>
-                  <input
-                    aria-label="Окончание отсутствия"
-                    type="datetime-local"
-                    required={!!from}
-                    min={from}
-                    value={to}
-                    onChange={(e) => setTo(e.target.value)}
-                  />
-                </div>
-              </fieldset>
-              <p className="muted">
-                На это время новые работы не берём, уже взятые остаются за вами.
-              </p>
-            </Card>
-            <Card title="Уведомления">
-              {(
-                [
-                  ["deadline", "Работа, которую я взял, близка к сроку"],
-                  ["revision", "Студент прислал правки"],
-                  ["pool", "В пуле по моим курсам появилось что-то новое"],
-                ] as const
-              ).map(([key, label]) => (
-                <label key={key} className="check">
-                  <input
-                    type="checkbox"
-                    checked={notifications[key]}
-                    onChange={(e) =>
-                      setNotifications((current) => ({
-                        ...current,
-                        [key]: e.target.checked,
-                      }))
-                    }
-                  />
-                  {label}
-                </label>
-              ))}
-            </Card>
+                  </div>
+                  <div className="field field--after">
+                    <span className="field__lbl" id="pref-absence">
+                      Отпуск или отсутствие
+                    </span>
+                    <div className="row-2 row-2--tight">
+                      <Inp
+                        aria-label="Начало отсутствия"
+                        type="datetime-local"
+                        value={from}
+                        onChange={(e) => {
+                          setFrom(e.target.value);
+                          if (!e.target.value) setTo("");
+                        }}
+                      />
+                      <Inp
+                        aria-label="Окончание отсутствия"
+                        type="datetime-local"
+                        required={!!from}
+                        min={from}
+                        value={to}
+                        onChange={(e) => setTo(e.target.value)}
+                      />
+                    </div>
+                    <span className="field__hint">
+                      На это время новые работы не берём, уже взятые остаются за
+                      вами.
+                    </span>
+                  </div>
+                </CardBody>
+              </DsCard>
+              <DsCard>
+                <CardHead title="Уведомления" />
+                <CardBody>
+                  <div className="stack--chk stack--chk-tight">
+                    {(
+                      [
+                        ["deadline", "Работа, которую я взял, близка к сроку"],
+                        ["revision", "Студент прислал правки"],
+                        [
+                          "pool",
+                          "В пуле по моим курсам появилось что-то новое",
+                        ],
+                      ] as const
+                    ).map(([key, label]) => (
+                      <Chk
+                        key={key}
+                        checked={notifications[key]}
+                        onChange={(e) =>
+                          setNotifications((current) => ({
+                            ...current,
+                            [key]: e.target.checked,
+                          }))
+                        }
+                      >
+                        {label}
+                      </Chk>
+                    ))}
+                  </div>
+                </CardBody>
+              </DsCard>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </Main>
     </>
   );
 }
@@ -930,15 +1288,17 @@ function CoursePoolCount({
     runs.map((run) => run.id).join(":"),
   );
   return (
-    <span className="muted">
+    <span className="caption">
       {r.data !== undefined
-        ? `в пуле ${r.data} работ`
+        ? `в пуле ${r.data} ${plural(r.data, "работа", "работы", "работ")}`
         : r.error
-          ? "Число работ недоступно"
+          ? "число работ недоступно"
           : "…"}
     </span>
   );
 }
+
+/** Закрепления студентов за ревьюерами и напоминания. Экрана в паке нет. */
 export function WorkspaceAssignments({
   ws,
   runId,
@@ -961,150 +1321,192 @@ export function WorkspaceAssignments({
     "В потоке есть работы, ожидающие проверки.",
   );
   const [recipients, setRecipients] = useState<string[]>([]);
+  const run = r.data?.catalog.course_runs.find((x) => x.id === runId);
+  const course = r.data?.catalog.courses.find((c) => c.id === run?.course_id);
   return (
     <>
-      <ScreenTitle code="К1" title="Студенты и ревьюеры" />
-      <p>
-        <a href={`#/courses/${runId}`}>← Вернуться к потоку</a>
-      </p>
-      <p className="notice">
-        Основной ревьюер закрепляется за студентом в потоке. Участники
-        конкретной проверки могут быть другими: коллеги сохраняют доступ к
-        работе, а разовое участие не меняет закрепление.
-      </p>
-      {action.feedback}
-      <Resource value={r}>
-        {r.data && (
-          <>
-            <Card title="Основной ревьюер студента">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Студент</th>
-                    <th>Ревьюер</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {r.data.assignments.items.map((a) => (
-                    <AssignmentRow
-                      key={`${a.id}:${a.revision}`}
-                      ws={ws}
-                      runId={runId}
-                      value={a}
-                      people={r.data!.people.items}
-                      refresh={r.refresh}
-                    />
-                  ))}
-                </tbody>
-              </table>
-              {r.data.assignments.items.length === 0 && (
-                <Empty>В потоке пока нет студентов.</Empty>
-              )}
-            </Card>
-            <div className="two-col">
-              <Card title="Добавить участника">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void action.run(async () => {
-                      const current = (await ws.catalog()).course_runs.find(
-                        (r) => r.id === runId,
-                      )!;
-                      await ws.command(
-                        "set_course_membership",
-                        runId,
-                        current.revision,
-                        { user_id: member, kind, active: true },
-                      );
-                      r.refresh();
-                    });
-                  }}
-                >
-                  <label>
-                    Роль в потоке
-                    <select
-                      value={kind}
-                      onChange={(e) => {
-                        setKind(e.target.value as typeof kind);
-                        setMember("");
+      <Topbar
+        crumbs={
+          <Crumbs
+            back={`#/courses/${runId}`}
+            items={[
+              { href: "#/courses", label: "Курсы" },
+              ...(course ? [{ href: "#/courses", label: course.title }] : []),
+              ...(run
+                ? [{ href: `#/courses/${runId}`, label: run.title }]
+                : []),
+            ]}
+            current="Студенты и ревьюеры"
+          />
+        }
+        title="Студенты и ревьюеры"
+      />
+      <Main>
+        {action.feedback}
+        <Resource value={r}>
+          {r.data && (
+            <div className="stack">
+              <Callout>
+                <p>
+                  Основной ревьюер закрепляется за студентом в потоке. Участники
+                  конкретной проверки могут быть другими: коллеги сохраняют
+                  доступ к работе, а разовое участие не меняет закрепление.
+                </p>
+              </Callout>
+              <DsCard>
+                <CardHead title="Основной ревьюер студента" />
+                {r.data.assignments.items.length === 0 ? (
+                  <DsEmpty title="В потоке пока нет студентов">
+                    Студенты появятся после первого перехода по ссылке задания.
+                  </DsEmpty>
+                ) : (
+                  <CardBody flush>
+                    <table className="tbl">
+                      <thead>
+                        <tr>
+                          <th>Студент</th>
+                          <th>Ревьюер</th>
+                          <th className="r"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {r.data.assignments.items.map((a) => (
+                          <AssignmentRow
+                            key={`${a.id}:${a.revision}`}
+                            ws={ws}
+                            runId={runId}
+                            value={a}
+                            people={r.data!.people.items}
+                            refresh={r.refresh}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </CardBody>
+                )}
+              </DsCard>
+              <div className="row-2">
+                <DsCard>
+                  <CardHead title="Добавить участника" />
+                  <CardBody>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void action.run(async () => {
+                          const current = (await ws.catalog()).course_runs.find(
+                            (x) => x.id === runId,
+                          )!;
+                          await ws.command(
+                            "set_course_membership",
+                            runId,
+                            current.revision,
+                            { user_id: member, kind, active: true },
+                          );
+                          r.refresh();
+                        });
                       }}
                     >
-                      <option value="student">Студент</option>
-                      <option value="reviewer">Ревьюер</option>
-                    </select>
-                  </label>
-                  <label>
-                    Участник
-                    <select
-                      required
-                      value={member}
-                      onChange={(e) => setMember(e.target.value)}
+                      <Field label="Роль в потоке">
+                        <Sel
+                          value={kind}
+                          onChange={(e) => {
+                            setKind(e.target.value as typeof kind);
+                            setMember("");
+                          }}
+                        >
+                          <option value="student">Студент</option>
+                          <option value="reviewer">Ревьюер</option>
+                        </Sel>
+                      </Field>
+                      <Field label="Участник">
+                        <Sel
+                          required
+                          value={member}
+                          onChange={(e) => setMember(e.target.value)}
+                        >
+                          <option value="">Выбрать</option>
+                          {r.data.people.items
+                            .filter((p) => p.roles.includes(kind))
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.display_name}
+                              </option>
+                            ))}
+                        </Sel>
+                      </Field>
+                      <BtnRow>
+                        <Btn size="s" type="submit" disabled={action.busy}>
+                          Добавить
+                        </Btn>
+                      </BtnRow>
+                    </form>
+                  </CardBody>
+                </DsCard>
+                <DsCard>
+                  <CardHead title="Напомнить ревьюерам" />
+                  <CardBody>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void action.run(async () => {
+                          const current = (await ws.catalog()).course_runs.find(
+                            (x) => x.id === runId,
+                          )!;
+                          await ws.command(
+                            "remind_reviewers",
+                            runId,
+                            current.revision,
+                            { reviewer_ids: recipients, text: message },
+                          );
+                        }, "Напоминание появится у выбранных ревьюеров в платформе.");
+                      }}
                     >
-                      <option value="">Выбрать</option>
-                      {r.data.people.items
-                        .filter((p) => p.roles.includes(kind))
-                        .map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.display_name}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                  <button disabled={action.busy}>Добавить</button>
-                </form>
-              </Card>
-              <Card title="Напомнить ревьюерам">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void action.run(async () => {
-                      const current = (await ws.catalog()).course_runs.find(
-                        (r) => r.id === runId,
-                      )!;
-                      await ws.command(
-                        "remind_reviewers",
-                        runId,
-                        current.revision,
-                        { reviewer_ids: recipients, text: message },
-                      );
-                    }, "Напоминание появится у выбранных ревьюеров в платформе.");
-                  }}
-                >
-                  {r.data.people.items
-                    .filter((p) => p.roles.includes("reviewer"))
-                    .map((p) => (
-                      <label className="check" key={p.id}>
-                        <input
-                          type="checkbox"
-                          checked={recipients.includes(p.id)}
-                          onChange={(e) =>
-                            setRecipients(
-                              e.target.checked
-                                ? [...recipients, p.id]
-                                : recipients.filter((v) => v !== p.id),
-                            )
-                          }
+                      <Field group label="Кому">
+                        <div className="stack--chk stack--chk-tight">
+                          {r.data.people.items
+                            .filter((p) => p.roles.includes("reviewer"))
+                            .map((p) => (
+                              <Chk
+                                key={p.id}
+                                checked={recipients.includes(p.id)}
+                                onChange={(e) =>
+                                  setRecipients(
+                                    e.target.checked
+                                      ? [...recipients, p.id]
+                                      : recipients.filter((v) => v !== p.id),
+                                  )
+                                }
+                              >
+                                {p.display_name}
+                              </Chk>
+                            ))}
+                        </div>
+                      </Field>
+                      <Field label="Сообщение">
+                        <Area
+                          required
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
                         />
-                        {p.display_name}
-                      </label>
-                    ))}
-                  <label>
-                    Сообщение
-                    <textarea
-                      required
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                    />
-                  </label>
-                  <button disabled={action.busy || !recipients.length}>
-                    Отправить напоминание
-                  </button>
-                </form>
-              </Card>
+                      </Field>
+                      <BtnRow>
+                        <Btn
+                          size="s"
+                          variant="dark"
+                          type="submit"
+                          disabled={action.busy || !recipients.length}
+                        >
+                          Отправить напоминание
+                        </Btn>
+                      </BtnRow>
+                    </form>
+                  </CardBody>
+                </DsCard>
+              </div>
             </div>
-          </>
-        )}
-      </Resource>
+          )}
+        </Resource>
+      </Main>
     </>
   );
 }
@@ -1125,40 +1527,42 @@ function AssignmentRow({
   const action = useAction();
   return (
     <tr>
-      <td>{value.student_name}</td>
+      <td className="mono">{value.student_name}</td>
       <td>
-        <div className="actions">
-          <select
-            aria-label={`Ревьюер: ${value.student_name}`}
-            value={reviewer}
-            onChange={(e) => setReviewer(e.target.value)}
-          >
-            <option value="">Не закреплён</option>
-            {people
-              .filter((p) => p.roles.includes("reviewer"))
-              .map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.display_name}
-                </option>
-              ))}
-          </select>
-          <button
-            disabled={action.busy}
-            onClick={() =>
-              void action.run(async () => {
-                await ws.command("assign_student", runId, value.revision, {
-                  student_id: value.student_id,
-                  reviewer_id: reviewer || null,
-                  reason: "Изменение закрепления координатором",
-                });
-                refresh();
-              })
-            }
-          >
-            Сохранить
-          </button>
-        </div>
+        <Sel
+          small
+          aria-label={`Ревьюер: ${value.student_name}`}
+          value={reviewer}
+          onChange={(e) => setReviewer(e.target.value)}
+        >
+          <option value="">Не закреплён</option>
+          {people
+            .filter((p) => p.roles.includes("reviewer"))
+            .map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.display_name}
+              </option>
+            ))}
+        </Sel>
         {action.feedback}
+      </td>
+      <td className="r">
+        <Btn
+          size="s"
+          disabled={action.busy || reviewer === (value.reviewer_id ?? "")}
+          onClick={() =>
+            void action.run(async () => {
+              await ws.command("assign_student", runId, value.revision, {
+                student_id: value.student_id,
+                reviewer_id: reviewer || null,
+                reason: "Изменение закрепления координатором",
+              });
+              refresh();
+            })
+          }
+        >
+          Сохранить
+        </Btn>
       </td>
     </tr>
   );
@@ -1195,9 +1599,10 @@ function HomeworkCount({
   courseId: string;
 }) {
   const r = useResource(() => ws.courseHomeworks(courseId), courseId);
-  return <Resource value={r}>{r.data?.items.length}</Resource>;
+  return <>{r.data ? r.data.items.length : "…"}</>;
 }
 
+/** Список заданий всех курсов. В паке экрана нет, собран по образцу К2. */
 export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
   const r = useResource(async () => {
     const catalog = await ws.catalog();
@@ -1218,63 +1623,76 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
   const [title, setTitle] = useState("");
   const action = useAction();
   const close = useCallback(() => setCreating(false), []);
+  const { setCounts } = useMenuCounts();
+  useEffect(() => {
+    if (r.data) setCounts({ homeworks: r.data.homeworks.length });
+  }, [r.data, setCounts]);
+  const shown =
+    r.data?.homeworks.filter(
+      (item) =>
+        (!courseId || item.course_id === courseId) &&
+        item.title.toLowerCase().includes(search.toLowerCase()),
+    ) ?? [];
   return (
     <>
-      <ScreenTitle code="К4" title="Задания">
-        <button className="primary" onClick={() => setCreating(true)}>
-          Создать задание
-        </button>
-      </ScreenTitle>
-      {action.feedback}
-      <Resource value={r}>
-        <Card
-          title="Задания курсов"
-          actions={
-            <div className="filters">
-              <label>
-                Поиск
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Название задания"
-                />
-              </label>
-              <label>
-                Курс
-                <select
-                  value={courseId}
-                  onChange={(e) => setCourseId(e.target.value)}
-                >
-                  <option value="">Все курсы</option>
-                  {r.data?.courses.map((course) => (
-                    <option key={course.id} value={course.id}>
-                      {course.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          }
-        >
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Задание</th>
-                  <th>Курс</th>
-                  <th>Версия</th>
-                  <th>Публикации</th>
-                  <th>Поток для настройки</th>
-                </tr>
-              </thead>
-              <tbody>
-                {r.data?.homeworks
-                  .filter(
-                    (item) =>
-                      (!courseId || item.course_id === courseId) &&
-                      item.title.toLowerCase().includes(search.toLowerCase()),
-                  )
-                  .map((item) => (
+      <Topbar
+        center
+        title="Задания"
+        lead={
+          <Inp
+            small
+            className="inp--w-200"
+            aria-label="Поиск"
+            placeholder="Название задания"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        }
+        actions={
+          <Btn size="s" variant="dark" onClick={() => setCreating(true)}>
+            Новое задание
+          </Btn>
+        }
+      />
+      <Main>
+        {action.feedback}
+        <DsCard>
+          <CardHead
+            title="Задания курсов"
+            sub={
+              r.data
+                ? `Показаны ${shown.length} из ${r.data.homeworks.length}`
+                : undefined
+            }
+          >
+            <Sel
+              small
+              aria-label="Курс"
+              value={courseId}
+              onChange={(e) => setCourseId(e.target.value)}
+            >
+              <option value="">Курс: все</option>
+              {r.data?.courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.title}
+                </option>
+              ))}
+            </Sel>
+          </CardHead>
+          <Resource value={r}>
+            <CardBody flush>
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Задание</th>
+                    <th>Курс</th>
+                    <th className="n">Версия</th>
+                    <th>Публикации</th>
+                    <th className="r">Поток для настройки</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shown.map((item) => (
                     <HomeworkDirectoryRow
                       key={item.id}
                       item={item}
@@ -1288,23 +1706,30 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
                       )}
                     />
                   ))}
-              </tbody>
-            </table>
-          </div>
-          {r.data &&
-            !r.data.homeworks.some(
-              (item) =>
-                (!courseId || item.course_id === courseId) &&
-                item.title.toLowerCase().includes(search.toLowerCase()),
-            ) && (
-              <Empty>
-                Заданий не найдено. Создайте задание или измените поиск.
-              </Empty>
-            )}
-        </Card>
-      </Resource>
+                </tbody>
+              </table>
+              {r.data && shown.length === 0 && (
+                <DsEmpty
+                  title="Заданий не найдено"
+                  action={
+                    <Btn
+                      size="s"
+                      variant="dark"
+                      onClick={() => setCreating(true)}
+                    >
+                      Новое задание
+                    </Btn>
+                  }
+                >
+                  Создайте задание или измените поиск.
+                </DsEmpty>
+              )}
+            </CardBody>
+          </Resource>
+        </DsCard>
+      </Main>
       {creating && (
-        <Modal title="Новое задание" close={close}>
+        <Modal title="Новое задание" close={close} flush>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -1326,48 +1751,50 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
               });
             }}
           >
-            <label>
-              Курс и поток
-              <select
-                required
-                value={runId}
-                onChange={(e) => setRunId(e.target.value)}
+            <div className="card__body">
+              {action.feedback}
+              <Field
+                label="Курс и поток"
+                hint="Задание сохраняется в курсе. Сроки публикации в потоке задаются на последнем шаге мастера."
               >
-                <option value="">Выберите поток</option>
-                {r.data?.course_runs
-                  .filter((run) => run.status === "active")
-                  .map((run) => (
-                    <option key={run.id} value={run.id}>
-                      {
-                        r.data!.courses.find(
-                          (course) => course.id === run.course_id,
-                        )?.title
-                      }{" "}
-                      · {run.title}
-                    </option>
-                  ))}
-              </select>
-            </label>
-            <label>
-              Название задания
-              <input
-                required
-                maxLength={512}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </label>
-            <p className="muted">
-              Задание сохраняется в курсе. На последнем шаге мастера задаются
-              сроки публикации в выбранном потоке.
-            </p>
-            <div className="actions">
-              <button type="button" onClick={close}>
-                Отмена
-              </button>
-              <button className="primary" disabled={action.busy}>
-                Создать задание
-              </button>
+                <Sel
+                  required
+                  value={runId}
+                  onChange={(e) => setRunId(e.target.value)}
+                >
+                  <option value="">Выберите поток</option>
+                  {r.data?.course_runs
+                    .filter((run) => run.status === "active")
+                    .map((run) => (
+                      <option key={run.id} value={run.id}>
+                        {
+                          r.data!.courses.find(
+                            (course) => course.id === run.course_id,
+                          )?.title
+                        }{" "}
+                        · {run.title}
+                      </option>
+                    ))}
+                </Sel>
+              </Field>
+              <Field label="Название задания">
+                <Inp
+                  required
+                  maxLength={512}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="card__foot card__foot--end">
+              <BtnRow>
+                <Btn variant="quiet" onClick={close}>
+                  Отмена
+                </Btn>
+                <Btn variant="pri" type="submit" disabled={action.busy}>
+                  Создать задание
+                </Btn>
+              </BtnRow>
             </div>
           </form>
         </Modal>
@@ -1393,11 +1820,11 @@ function HomeworkDirectoryRow({
   return (
     <tr>
       <td>
-        <strong>{item.title}</strong>
-        {!item.published_run_ids.length && <small>Черновик</small>}
+        <div className="who">{item.title}</div>
+        {!item.published_run_ids.length && <div className="sub">Черновик</div>}
       </td>
       <td>{course}</td>
-      <td>{item.latest_version_number ?? "Не сохранена"}</td>
+      <td className="n">{item.latest_version_number ?? "—"}</td>
       <td>
         {item.published_run_ids.length
           ? item.published_run_ids
@@ -1405,9 +1832,10 @@ function HomeworkDirectoryRow({
               .join(", ")
           : "Не опубликовано"}
       </td>
-      <td>
-        <div className="actions">
-          <select
+      <td className="r">
+        <BtnRow end>
+          <Sel
+            small
             aria-label={`Поток: ${item.title}`}
             value={runId}
             onChange={(e) => setRunId(e.target.value)}
@@ -1418,11 +1846,13 @@ function HomeworkDirectoryRow({
                 {run.title}
               </option>
             ))}
-          </select>
+          </Sel>
           {runId && (
-            <a href={`#/homework/${item.id}?run=${runId}`}>Настроить →</a>
+            <Btn size="s" href={`#/homework/${item.id}?run=${runId}`}>
+              Настроить →
+            </Btn>
           )}
-        </div>
+        </BtnRow>
       </td>
     </tr>
   );
