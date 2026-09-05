@@ -401,14 +401,20 @@ a:hover { border-bottom-color: var(--ink); }
 .seg > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
 
 /* Шкала оценки требования: значения из конфигурации задания                 */
-.scale { display: inline-flex; border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill); overflow: hidden; }
-.scale > * { min-width: 34px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+.scale { display: inline-flex; padding: 2px; border: var(--bw-hair) solid var(--line-2);
+         border-radius: var(--r-pill); background: var(--surface); }
+.scale > * { min-width: 32px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
              font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
-             border-right: var(--bw-hair) solid var(--line); cursor: pointer; background: var(--surface); border-top:0;border-bottom:0;border-left:0; }
-.scale > *:last-child { border-right: 0; }
-.scale > .is-on { background: var(--surface); color: var(--ink); font-weight: var(--w-semi);
+             border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
+/* Выбранное значение — пилюля внутри пилюли, углы обоих полные: промежуточных
+   радиусов в системе нет, а прямой угол внутри скруглённой рамки читается
+   как артефакт вёрстки.                                                     */
+.scale > .is-on { color: var(--ink); font-weight: var(--w-semi);
                   box-shadow: inset 0 0 0 1px var(--ink); }
-.scale--zero > .is-on { background: var(--red-wash); color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+/* Края шкалы окрашены: ноль красный, максимум зелёный. Промежуточные
+   значения остаются чёрными, у них нет своего смысла.                       */
+.scale--zero > .is-on { background: var(--red-wash);   color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+.scale--max  > .is-on { background: var(--green-wash); color: var(--ok);  box-shadow: inset 0 0 0 1px var(--ok); }
 
 /* --- Табы и крошки -------------------------------------------------------- */
 
@@ -460,7 +466,7 @@ a:hover { border-bottom-color: var(--ink); }
    зелёных заливок подряд перегружают экран и ничего не сообщают.           */
 .ck { flex: none; width: 21px; height: 21px; display: grid; place-items: center;
       font-size: 11px; font-weight: var(--w-semi); border: var(--bw-hair) solid;
-      background: var(--surface); }
+      background: var(--surface); line-height: 1; }
 .ck--y { border-color: var(--ok);    color: var(--ok); }
 .ck--n { border-color: var(--bad);   color: var(--bad); }
 .ck--h { border-color: var(--human); color: var(--human); border-radius: var(--r-circle); }
@@ -1453,7 +1459,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">Р5</span><h2>Карточка работы</h2></div>
   <p class="screen__note">Экран, ради которого всё остальное существует. Справа разбор от модели по требованиям задания: шкала из конфигурации, выбранное значение, обоснование с цитатой. Слева работа, признаки ИИ, итог и черновик ответа студенту. Правила экрана: оценки уже проставлены моделью, ревьюер меняет их там, где не согласен, остальное подтверждается как есть. Ревьюер может добавить своё требование, его видят студент и координатор, и оно попадает в разбор наравне с требованиями задания.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Три класса требований различаются маркером: квадрат в зелёном контуре — выполнено, квадрат в красном контуре — нет, круг в фиолетовом — решает человек. Цитата с подсветкой строки лежит внутри требования, а не отдельным блоком. Подпись «шкала» снята: она повторялась у каждого из десяти требований, а шкала и без неё узнаётся по форме. Сумма по требованиям стоит последней строкой внутри карточки с чертой сверху, как «Всего» на экране студента. Итог ниже порога показан красной суммой и строкой с выбором, что делать дальше, без всплывающих предупреждений.</p>
-  <div class="shot" style="height:1333px"><div class="vp">
+  <div class="shot" style="height:1173px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -1518,6 +1524,12 @@ a:hover { border-bottom-color: var(--ink); }
               </div>
 
               <div class="card">
+                <div class="card__head"><div><h4>Ответ студенту</h4><div class="card__sub">Уходит студенту вместе с вердиктом, правьте свободно</div></div><span class="btn btn--s btn--quiet">Собрать заново</span></div>
+                <div class="card__body">
+                  <textarea class="inp inp--area" style="min-height:172px;line-height:1.6">Привет! Диаграммы и декомпозиция в порядке. Что поправить: опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe, добавь раздел с анализом связности, укажи в работе, пользовался ли ты ИИ.</textarea>
+                </div>
+              </div>
+              <div class="card">
                 <div class="card__head">
                   <h4>Итог</h4>
                   <div class="sum"><b style="color:var(--bad)">3,5</b><span>из 6</span></div>
@@ -1545,18 +1557,17 @@ a:hover { border-bottom-color: var(--ink); }
                 </div>
                 <div class="card__body">
                   <div class="acc">
-                    <div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Декомпозиция по двум и более признакам</span><span class="scale"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▲</span></div>
+                    <div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Декомпозиция по двум и более признакам</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▲</span></div>
                     <div class="acc__b"><div class="acc__empty">Нарушений не найдено</div></div>
                   </div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="scale"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc">
                     <div class="acc__h">
-                      <span class="ck ck--n">–</span>
+                      <span class="ck ck--n">✕</span>
                       <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
-                      <span class="pill pill--mono">2 места</span>
                       
                       <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
                       <span class="acc__chev">▲</span>
@@ -1587,24 +1598,24 @@ a:hover { border-bottom-color: var(--ink); }
                     </div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">–</span><span class="acc__t">Анализ связности компонентов</span><span class="pill pill--mono">1 место</span><span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Анализ связности компонентов</span><span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc">
                     <div class="acc__h">
                       <span class="ck ck--h">?</span><span class="acc__t">Обосновано соблюдение SRP</span>
                       <span class="pill pill--human">оценочное</span>
-                      <span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▲</span>
+                      <span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▲</span>
                     </div>
                     <div class="acc__b"><div class="quote quote--human">Модель рекомендует 0,5: принцип назван и применён к двум компонентам из четырёх. Оценочное требование, решение принимает ревьюер.</div></div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="scale"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc" style="background:var(--surface-2);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
                     <div class="acc__h">
                       <span class="ck ck--q">＋</span><span class="acc__t">Своё требование</span>
-                      <span class="scale"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
+                      <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
                     </div>
                     <div class="acc__b" style="padding-left:0;padding-bottom:var(--s-4)">
                       <input class="inp" value="Читаемость диаграмм без пояснений в тексте">
@@ -1621,12 +1632,6 @@ a:hover { border-bottom-color: var(--ink); }
                 </div>
               </div>
 
-              <div class="card">
-                <div class="card__head"><div><h4>Ответ студенту</h4><div class="card__sub">Черновик собран из ваших отметок, правьте свободно</div></div><span class="btn btn--s btn--quiet">Собрать заново</span></div>
-                <div class="card__body">
-                  <textarea class="inp inp--area" style="min-height:96px;line-height:1.6">Привет! Диаграммы и декомпозиция в порядке. Что поправить: опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe, добавь раздел с анализом связности, укажи в работе, пользовался ли ты ИИ.</textarea>
-                </div>
-              </div>
             </div>
           </div>
         </div>

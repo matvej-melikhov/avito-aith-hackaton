@@ -401,14 +401,20 @@ a:hover { border-bottom-color: var(--ink); }
 .seg > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
 
 /* Шкала оценки требования: значения из конфигурации задания                 */
-.scale { display: inline-flex; border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill); overflow: hidden; }
-.scale > * { min-width: 34px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+.scale { display: inline-flex; padding: 2px; border: var(--bw-hair) solid var(--line-2);
+         border-radius: var(--r-pill); background: var(--surface); }
+.scale > * { min-width: 32px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
              font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
-             border-right: var(--bw-hair) solid var(--line); cursor: pointer; background: var(--surface); border-top:0;border-bottom:0;border-left:0; }
-.scale > *:last-child { border-right: 0; }
-.scale > .is-on { background: var(--surface); color: var(--ink); font-weight: var(--w-semi);
+             border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
+/* Выбранное значение — пилюля внутри пилюли, углы обоих полные: промежуточных
+   радиусов в системе нет, а прямой угол внутри скруглённой рамки читается
+   как артефакт вёрстки.                                                     */
+.scale > .is-on { color: var(--ink); font-weight: var(--w-semi);
                   box-shadow: inset 0 0 0 1px var(--ink); }
-.scale--zero > .is-on { background: var(--red-wash); color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+/* Края шкалы окрашены: ноль красный, максимум зелёный. Промежуточные
+   значения остаются чёрными, у них нет своего смысла.                       */
+.scale--zero > .is-on { background: var(--red-wash);   color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+.scale--max  > .is-on { background: var(--green-wash); color: var(--ok);  box-shadow: inset 0 0 0 1px var(--ok); }
 
 /* --- Табы и крошки -------------------------------------------------------- */
 
@@ -460,7 +466,7 @@ a:hover { border-bottom-color: var(--ink); }
    зелёных заливок подряд перегружают экран и ничего не сообщают.           */
 .ck { flex: none; width: 21px; height: 21px; display: grid; place-items: center;
       font-size: 11px; font-weight: var(--w-semi); border: var(--bw-hair) solid;
-      background: var(--surface); }
+      background: var(--surface); line-height: 1; }
 .ck--y { border-color: var(--ok);    color: var(--ok); }
 .ck--n { border-color: var(--bad);   color: var(--bad); }
 .ck--h { border-color: var(--human); color: var(--human); border-radius: var(--r-circle); }
@@ -968,8 +974,9 @@ a:hover { border-bottom-color: var(--ink); }
         <div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div>
         <div>
           <span class="label" style="display:block;margin-bottom:var(--s-2)">Шкала требования</span>
-          <span class="scale"><span>0</span><span>0.5</span><span class="is-on">1</span></span>
-          <span class="scale scale--zero" style="margin-left:var(--s-2)"><span class="is-on">0</span><span>0.5</span><span>1</span></span>
+          <span class="scale scale--max"><span>0</span><span>0,5</span><span class="is-on">1</span></span>
+          <span class="scale" style="margin-left:var(--s-2)"><span>0</span><span class="is-on">0,5</span><span>1</span></span>
+          <span class="scale scale--zero" style="margin-left:var(--s-2)"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
         </div>
       </div>
     </div>
@@ -1095,17 +1102,17 @@ a:hover { border-bottom-color: var(--ink); }
           <span class="ck ck--y">✓</span>
           <span class="acc__t">Декомпозиция по двум и более признакам</span>
           <span class="label">шкала</span>
-          <span class="scale"><span>0</span><span class="is-on">1</span></span>
+          <span class="scale scale--max"><span>0</span><span class="is-on">1</span></span>
           <span class="acc__chev">▼</span>
         </div>
       </div>
       <div class="acc">
         <div class="acc__h">
-          <span class="ck ck--n">–</span>
+          <span class="ck ck--n">✕</span>
           <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
-          <span class="pill pill--mono">2 места</span>
+          
           <span class="label">шкала</span>
-          <span class="scale scale--zero"><span class="is-on">0</span><span>0.5</span><span>1</span></span>
+          <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
           <span class="acc__chev">▲</span>
         </div>
         <div class="acc__b">
@@ -1127,11 +1134,11 @@ a:hover { border-bottom-color: var(--ink); }
           <span class="acc__t">Отказоустойчивость описана глубоко</span>
           <span class="pill pill--human">оценочное</span>
           <span class="label">шкала</span>
-          <span class="scale"><span>0</span><span class="is-on">0.5</span><span>1</span></span>
+          <span class="scale"><span>0</span><span class="is-on">0,5</span><span>1</span></span>
           <span class="acc__chev">▲</span>
         </div>
         <div class="acc__b">
-          <div class="quote quote--human">Модель рекомендует 0.5: репликация упомянута, но сценарий отказа не разобран. Оценочное требование, решение принимает ревьюер.</div>
+          <div class="quote quote--human">Модель рекомендует 0,5: репликация упомянута, но сценарий отказа не разобран. Оценочное требование, решение принимает ревьюер.</div>
         </div>
       </div>
       <div class="acc">
