@@ -181,7 +181,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T104 [US4] Implement append-only human draft revision creation used to prove AI cannot overwrite a human edit in `backend/src/review_platform/application/services/review_drafts.py`
 - [X] T105 [US4] Implement idempotent AI start with frozen immutable inputs, exact credential binding provenance, Operation ID, and signed artifact grant in `backend/src/review_platform/application/services/ai_review_start.py`
 - [X] T106 [US4] Implement sequenced idempotent AI event ingestion, terminal completeness/error checks, stale detection, and separate AI signal storage in `backend/src/review_platform/application/services/ai_review_events.py`
-- [ ] T107 [US4] Implement and register AI dispatch/event workers with full Operation attempt history in `backend/src/review_platform/infrastructure/tasks/ai_review.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
+- [X] T107 [US4] Implement and register AI dispatch/event workers with full Operation attempt history in `backend/src/review_platform/infrastructure/tasks/ai_review.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
 - [ ] T108 [US4] Implement and register AI start/read routes and enrich review detail with the canonical AI run/signal/suggestion fields in `backend/src/review_platform/api/routes/ai_reviews.py`, `backend/src/review_platform/api/routes/__init__.py`, and `backend/src/review_platform/application/projections/review_detail.py`
 
 **Checkpoint**: US4 is GREEN for AI lifecycle and human-revision protection. Publishing a human review while AI is unavailable is deliberately proven in US5, where publication exists.
