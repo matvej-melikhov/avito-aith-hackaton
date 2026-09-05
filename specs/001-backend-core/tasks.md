@@ -258,7 +258,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T148 [P] [US7] Write failing revoke-versus-commit races against concurrent REST/MCP reads/writes and queued/claimed jobs using Membership and AgentAuthorization revalidation in `backend/tests/isolation/test_agent_revocation.py`
 - [X] T149 [P] [US7] Write failing end-to-end agent edit/responsibility/AI/publication-request plus separate human-confirmation tests in `backend/tests/integration/test_agent_review_workflow.py`
 - [X] T150 [US7] Implement opaque agent token creation, hashing, rotation, and constant-time verification for the existing AgentAuthorization table in `backend/src/review_platform/infrastructure/auth/agent_tokens.py`
-- [ ] T151 [US7] Implement the tenant-scoped AgentAuthorization repository, digest lookup, row locks, and revision checks in `backend/src/review_platform/infrastructure/db/repositories/agents.py`
+- [X] T151 [US7] Implement the tenant-scoped AgentAuthorization repository, digest lookup, row locks, and revision checks in `backend/src/review_platform/infrastructure/db/repositories/agents.py`
 - [ ] T152 [US7] Implement interactive grant returning the bearer secret exactly once, digest-only storage, revoke, scope intersection, TTL, and pending-command invalidation in `backend/src/review_platform/application/services/agent_authorizations.py`
 - [ ] T153 [US7] Implement the concrete combined OrganizationMembership/AgentAuthorization fixed-order guard with final pre-commit revalidation in `backend/src/review_platform/application/auth_guards/agent.py`
 - [ ] T154 [US7] Implement MCP bearer resolution to current AgentAuthorization, represented user, membership, organization, and auth epochs in `backend/src/review_platform/mcp/authentication.py`
