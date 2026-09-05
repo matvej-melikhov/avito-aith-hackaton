@@ -1,0 +1,41 @@
+{
+  "_note": "Ручная построчная разметка по xlsx Авито (hw1–hw3) для трёх репозиториев корпуса, 6 сентября 2026, автор: stn + Claude, один проход. Не оценки Авито. Баллы по весам файла задания go_tasks_1_3.json. Спорные строки перечислены в _disputed.",
+  "_disputed": {
+    "start_log": "хорошее пишет через log.Printf, у пакета log вывод по умолчанию stderr; строго по ТЗ (stdout) 0, снисходительный ревьюер даст 1",
+    "shutdown_log": "слабое выводит «Shutting down gracefully...», а ТЗ требует дословно «Shutting down service-courier»; по строке xlsx («выводится сообщение») можно дать 1.5, по ТЗ 0",
+    "crud_post": "слабое не валидирует обязательные поля и телефон (нет 400), любой сбой сервиса отдаёт 409; частично",
+    "crud_put": "слабое не валидирует тело (нет 400), любой сбой отдаёт 404; частично",
+    "code_quality": "оценочная строка",
+    "thin_models": "оценочная строка"
+  },
+  "хорошее": {
+    "structure": 1, "go_mod": 1, "entrypoint": 1, "code_quality": 1,
+    "server_starts": 1, "port_env": 1, "start_log": 0, "ping": 1, "healthcheck": 1,
+    "graceful_signal": 2, "graceful_context": 1.5, "shutdown_log": 1.5, "port_flag": 1, "flag_over_env": 1,
+    "db_connect": 1.5, "db_defer_close": 1, "db_ping": 1, "db_ping_retry": 0, "db_panic": 0.5,
+    "migrations_tool": 1, "migrations_command": 1, "migrations_clean": 1, "migrations_idempotent": 1,
+    "crud_get": 1, "crud_post": 1, "crud_put": 1, "handlers_in_internal": 1, "sql_safety": 1.5, "pgx": 0.5,
+    "clean_layers": 1.5, "di_constructors": 1.5, "constructors_interfaces": 1.5, "interfaces_at_use": 1, "interfaces_private": 1,
+    "no_layer_leaks": 1, "no_sql_in_usecase": 1.5, "no_logic_in_handlers": 1, "thin_models": 1, "layer_packages": 0, "di_package": 0
+  },
+  "среднее": {
+    "structure": 1, "go_mod": 1, "entrypoint": 1, "code_quality": 1,
+    "server_starts": 1, "port_env": 0, "start_log": 0, "ping": 1, "healthcheck": 1,
+    "graceful_signal": 0, "graceful_context": 0, "shutdown_log": 0, "port_flag": 0, "flag_over_env": 0,
+    "db_connect": 0, "db_defer_close": 0, "db_ping": 0, "db_ping_retry": 0, "db_panic": 0,
+    "migrations_tool": 0, "migrations_command": 0, "migrations_clean": 0, "migrations_idempotent": 0,
+    "crud_get": 0, "crud_post": 0, "crud_put": 0, "handlers_in_internal": 1, "sql_safety": 0, "pgx": 0,
+    "clean_layers": 0, "di_constructors": 0, "constructors_interfaces": 0, "interfaces_at_use": 0, "interfaces_private": 0,
+    "no_layer_leaks": 0, "no_sql_in_usecase": 0, "no_logic_in_handlers": 1, "thin_models": 0.5, "layer_packages": 0, "di_package": 0
+  },
+  "слабое": {
+    "structure": 1, "go_mod": 1, "entrypoint": 1, "code_quality": 1,
+    "server_starts": 1, "port_env": 1, "start_log": 1, "ping": 1, "healthcheck": 1,
+    "graceful_signal": 2, "graceful_context": 1.5, "shutdown_log": 0, "port_flag": 1, "flag_over_env": 1,
+    "db_connect": 1.5, "db_defer_close": 1, "db_ping": 0, "db_ping_retry": 0, "db_panic": 0.5,
+    "migrations_tool": 0, "migrations_command": 0, "migrations_clean": 0, "migrations_idempotent": 0,
+    "crud_get": 1, "crud_post": 0.5, "crud_put": 0.5, "handlers_in_internal": 1, "sql_safety": 1.5, "pgx": 0.5,
+    "clean_layers": 1.5, "di_constructors": 1.5, "constructors_interfaces": 1, "interfaces_at_use": 0, "interfaces_private": 0,
+    "no_layer_leaks": 0, "no_sql_in_usecase": 1.5, "no_logic_in_handlers": 1, "thin_models": 1, "layer_packages": 1, "di_package": 0
+  }
+}

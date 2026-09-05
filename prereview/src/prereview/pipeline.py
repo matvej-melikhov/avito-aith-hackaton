@@ -206,6 +206,14 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
                 return judge_formal(ctx, c)
             if prep.clean.is_repo:
                 files = pack.files_for(c.key)
+                # Подсказки scope из файла задания добавляются к найденному Harness:
+                # оценочные строки («тонкие handlers») требуют видеть весь слой, а не одну цитату.
+                if c.scope:
+                    import fnmatch
+
+                    for f in prep.clean.files:
+                        if any(fnmatch.fnmatch(f.path, g) for g in c.scope) and f.path not in files:
+                            files.append(f.path)
                 if files:
                     text, cut = ctx.slice(files)
                     r = judge_model(ctx, c, work_text=text, evidence_pack=pack.text_for(c.key), condensed=bool(cut))
