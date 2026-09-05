@@ -426,6 +426,14 @@ a:hover { border-bottom-color: var(--ink); }
 .tab .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
 
 .crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
+/* Стрелка возврата на родительский экран. Живёт первой в строке крошек:
+   так у пути и у возврата одно место, а не два разных.                      */
+.crumbs__back { display: inline-grid; place-items: center; flex: none;
+                width: 32px; height: 32px; margin-left: -9px; margin-right: -4px;
+                border: 0; border-radius: var(--r-circle);
+                color: var(--ink-3); font-size: 15px; line-height: 1;
+                transition: background var(--t-fast), color var(--t-fast); }
+.crumbs__back:hover { background: var(--surface-2); color: var(--ink); }
 .crumbs a { color: var(--ink-3); border: 0; }
 .crumbs a:hover { color: var(--ink); }
 .crumbs .cur { color: var(--ink); font-weight: var(--w-medium); }
@@ -985,7 +993,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="sub">
     <h3>Навигация</h3>
     <div class="demo">
-      <div class="crumbs" style="margin-bottom:var(--s-4)"><a href="#">Мои работы</a><span>/</span><span class="cur">Студент 4790</span></div>
+      <div class="crumbs" style="margin-bottom:var(--s-4)"><a class="crumbs__back" href="#" title="Назад">&#8592;</a><a href="#">Мои работы</a><span>/</span><span class="cur">Студент 4790</span></div>
       <div class="tabs">
         <span class="tab is-on">Попытка 2<span class="c">текущая</span></span>
         <span class="tab">Попытка 1</span>
