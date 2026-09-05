@@ -273,6 +273,10 @@ async def _read(request: Request, name: str, identity: UUID | None) -> Response:
                 )
             else:
                 raise ReviewRouteError(f"review read handler is not composed: {name}")
+            await runtime.user_auth_guard.lock_and_revalidate(
+                actor=actor,
+                transaction=transaction,
+            )
         return JSONResponse(dict(result) if result is not None else None)
     except AuthorizationError as error:
         return _error(403, str(error))

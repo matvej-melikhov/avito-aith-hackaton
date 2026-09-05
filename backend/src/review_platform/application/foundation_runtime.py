@@ -13,7 +13,9 @@ import boto3
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from review_platform.api.middleware import Redactor
-from review_platform.application.auth_guards.membership import UserMembershipAuthGuard
+from review_platform.application.auth_guards.agent import (
+    CombinedMembershipAgentAuthGuard,
+)
 from review_platform.application.authorization import Authorizer
 from review_platform.application.command_bus import CommandBus
 from review_platform.application.idempotency import (
@@ -124,7 +126,10 @@ class FoundationRuntime:
         )
         self._object_storage = object_storage
         self._redactor = Redactor()
-        self._membership_guard = UserMembershipAuthGuard(session_factory)
+        self._membership_guard = CombinedMembershipAgentAuthGuard(
+            session_factory,
+            clock=clock,
+        )
         self._worker_auth_revalidator = MembershipWorkerAuthRevalidator(self._membership_guard)
         self._command_bus = CommandBus(
             transactions=self._transactions,
@@ -164,7 +169,7 @@ class FoundationRuntime:
         return self._worker_auth_revalidator
 
     @property
-    def user_auth_guard(self) -> UserMembershipAuthGuard:
+    def user_auth_guard(self) -> CombinedMembershipAgentAuthGuard:
         return self._membership_guard
 
     @asynccontextmanager
@@ -382,9 +387,7 @@ class FoundationRuntime:
             operation.state = outcome
             operation.revision += 1
             operation.updated_at = now
-            operation.finished_at = (
-                now if outcome in self._TERMINAL_OPERATION_STATES else None
-            )
+            operation.finished_at = now if outcome in self._TERMINAL_OPERATION_STATES else None
             operation.error_code = attempt.error_code
             operation.sanitized_error = bounded
             await repository.flush()
