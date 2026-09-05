@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from typing import Any, cast
+from typing import Any, ClassVar, cast
 from uuid import UUID
 
 import anyio
@@ -47,8 +47,16 @@ from review_platform.infrastructure.db.models.submission import (
     Submission,
     SubmissionVersion,
 )
+from review_platform.infrastructure.db.repositories.publications import (
+    SqlReviewRequirementImpactRepository,
+)
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
-from review_platform.infrastructure.tasks.registry import REGISTRY, load_handler_modules
+from review_platform.infrastructure.tasks.registry import (
+    REGISTRY,
+    REVIEW_IMPACT_HANDLER_FACTORY_ENV,
+    ReviewImpactTaskRuntime,
+    load_handler_modules,
+)
 from review_platform.main import create_app
 
 pytestmark = [pytest.mark.behavioral, pytest.mark.infrastructure, pytest.mark.anyio]
@@ -82,6 +90,43 @@ SUBMISSION_ID = UUID("00000000-0000-7000-8000-000000012109")
 CREDENTIAL_ID = UUID("00000000-0000-7000-8000-000000012110")
 NOW = datetime(2026, 9, 5, 12, 0, tzinfo=UTC)
 
+_IMPACT_SESSION_FACTORY: AsyncSessionFactory | None = None
+_IMPACT_ID_SEQUENCE = 0
+
+
+class _RecordingImpactOperations:
+    calls: ClassVar[list[Mapping[str, object]]] = []
+
+    async def record_ingestion(self, **values: object) -> None:
+        self.calls.append(dict(values))
+
+
+class _RecordingImpactAudit:
+    calls: ClassVar[list[Mapping[str, object]]] = []
+
+    async def record_impacts(self, **values: object) -> None:
+        self.calls.append(dict(values))
+
+
+def _next_impact_id() -> UUID:
+    global _IMPACT_ID_SEQUENCE
+    _IMPACT_ID_SEQUENCE += 1
+    return UUID(f"00000000-0000-7000-8000-{13000 + _IMPACT_ID_SEQUENCE:012d}")
+
+
+def build_review_impact_task_runtime() -> ReviewImpactTaskRuntime:
+    if _IMPACT_SESSION_FACTORY is None:
+        raise RuntimeError("T112 impact runtime requires its explicit fixture session factory")
+    return ReviewImpactTaskRuntime(
+        session_factory=_IMPACT_SESSION_FACTORY,
+        repository=SqlReviewRequirementImpactRepository(),
+        operations=_RecordingImpactOperations(),
+        audit=_RecordingImpactAudit(),
+        id_factory=_next_impact_id,
+        clock=lambda: NOW,
+    )
+
+
 MIGRATION_ROUTE_TEMPLATE = "/api/v1/review-iterations/{reviewIterationId}/requirements-migrations"
 CORRECTION_ROUTE_TEMPLATE = "/api/v1/review-iterations/{reviewIterationId}/corrections"
 MIGRATION_ROUTE = MIGRATION_ROUTE_TEMPLATE.replace(
@@ -105,7 +150,17 @@ class SuccessorHarness:
 async def successor_harness(
     foundation_runtime: FoundationRuntime,
     foundation_session_factory: AsyncSessionFactory,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> AsyncIterator[SuccessorHarness]:
+    global _IMPACT_ID_SEQUENCE, _IMPACT_SESSION_FACTORY
+    _IMPACT_SESSION_FACTORY = foundation_session_factory
+    _IMPACT_ID_SEQUENCE = 0
+    _RecordingImpactOperations.calls.clear()
+    _RecordingImpactAudit.calls.clear()
+    monkeypatch.setenv(
+        REVIEW_IMPACT_HANDLER_FACTORY_ENV,
+        f"{__name__}:build_review_impact_task_runtime",
+    )
     app = create_app(runtime=foundation_runtime)
     actor = RequestActor.user(
         organization_id=ORG,
@@ -128,6 +183,7 @@ async def successor_harness(
         base_url="https://review-platform.test",
     ) as client:
         yield SuccessorHarness(app, client, foundation_session_factory)
+    _IMPACT_SESSION_FACTORY = None
 
 
 async def _mysql_ready(factory: AsyncSessionFactory) -> None:

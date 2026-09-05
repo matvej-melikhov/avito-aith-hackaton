@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from review_platform.application.ports.providers import JsonValue
+from review_platform.application.services.homeworks import HomeworkRequirementsChanged
 from review_platform.application.services.publication_requests import (
     PublicationRequestContext,
     PublicationRequestRecord,
@@ -32,6 +33,12 @@ from review_platform.application.services.review_publication import (
     ReviewPublicationRecord,
     ReviewPublicationRepository,
 )
+from review_platform.application.services.review_requirement_impacts import (
+    AffectedReviewContext,
+    RequirementsChangeContext,
+    ReviewImpactRecord,
+    ReviewRequirementImpactRepository,
+)
 from review_platform.application.services.review_requirements import (
     ExistingRequirementsMigration,
     RequirementsCriterion,
@@ -42,6 +49,8 @@ from review_platform.application.services.review_requirements import (
 )
 from review_platform.domain.primitives import require_utc
 from review_platform.infrastructure.db.models.homework import (
+    CourseRunHomework,
+    CourseRunHomeworkPublication,
     Criterion,
     CriterionSet,
     Homework,
@@ -55,6 +64,7 @@ from review_platform.infrastructure.db.models.learning import (
 from review_platform.infrastructure.db.models.operations import AuditEvent
 from review_platform.infrastructure.db.models.publication import (
     ExternalDelivery,
+    ReviewImpactEvent,
     ReviewIterationRelation,
 )
 from review_platform.infrastructure.db.models.publication import (
@@ -69,7 +79,11 @@ from review_platform.infrastructure.db.models.review_revision import (
     ReviewNote,
     ReviewRevision,
 )
-from review_platform.infrastructure.db.models.submission import ArtifactVersion
+from review_platform.infrastructure.db.models.submission import (
+    ArtifactVersion,
+    Submission,
+    SubmissionVersion,
+)
 from review_platform.infrastructure.db.repositories.review_revisions import (
     ReviewDecisionKind,
     ReviewDecisionRecord,
@@ -92,6 +106,192 @@ class InvalidPublicationTransaction(PublicationRepositoryError):
 
 class PublicationPersistenceConflict(PublicationRepositoryError):
     pass
+
+
+class SqlReviewRequirementImpactRepository:
+    """Project requirement changes onto exact older ReviewIterations."""
+
+    async def lock_change_context(
+        self,
+        event: HomeworkRequirementsChanged,
+        *,
+        transaction: object,
+    ) -> RequirementsChangeContext | None:
+        session = _session(transaction)
+        if event.previous_homework_version_id is None or event.previous_publication_id is None:
+            return None
+        relation = await session.scalar(
+            select(CourseRunHomework)
+            .where(
+                CourseRunHomework.organization_id == event.organization_id,
+                CourseRunHomework.id == event.course_run_homework_id,
+                CourseRunHomework.course_run_id == event.course_run_id,
+                CourseRunHomework.homework_id == event.homework_id,
+                CourseRunHomework.current_publication_id == event.current_publication_id,
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        if relation is None:
+            return None
+        previous = await session.scalar(
+            select(CourseRunHomeworkPublication)
+            .where(
+                CourseRunHomeworkPublication.organization_id == event.organization_id,
+                CourseRunHomeworkPublication.course_run_homework_id == relation.id,
+                CourseRunHomeworkPublication.id == event.previous_publication_id,
+                CourseRunHomeworkPublication.homework_id == relation.homework_id,
+                CourseRunHomeworkPublication.homework_version_id
+                == event.previous_homework_version_id,
+            )
+            .with_for_update()
+        )
+        current = await session.scalar(
+            select(CourseRunHomeworkPublication)
+            .where(
+                CourseRunHomeworkPublication.organization_id == event.organization_id,
+                CourseRunHomeworkPublication.course_run_homework_id == relation.id,
+                CourseRunHomeworkPublication.id == event.current_publication_id,
+                CourseRunHomeworkPublication.homework_id == relation.homework_id,
+                CourseRunHomeworkPublication.homework_version_id
+                == event.current_homework_version_id,
+                CourseRunHomeworkPublication.publication_sequence == event.publication_sequence,
+            )
+            .with_for_update()
+        )
+        criterion_set_id = await session.scalar(
+            select(CriterionSet.id)
+            .where(
+                CriterionSet.organization_id == event.organization_id,
+                CriterionSet.homework_version_id == event.current_homework_version_id,
+            )
+            .with_for_update()
+        )
+        if previous is None or current is None or criterion_set_id is None:
+            return None
+        return RequirementsChangeContext(
+            organization_id=event.organization_id,
+            course_run_id=relation.course_run_id,
+            course_run_homework_id=relation.id,
+            homework_id=relation.homework_id,
+            previous_homework_version_id=previous.homework_version_id,
+            current_homework_version_id=current.homework_version_id,
+            current_criterion_set_id=criterion_set_id,
+            previous_publication_id=previous.id,
+            current_publication_id=current.id,
+            publication_sequence=current.publication_sequence,
+        )
+
+    async def list_affected_reviews(
+        self,
+        context: RequirementsChangeContext,
+        *,
+        transaction: object,
+    ) -> Sequence[AffectedReviewContext]:
+        session = _session(transaction)
+        rows = (
+            await session.execute(
+                select(ReviewIteration, ReviewCase)
+                .join(
+                    ReviewCase,
+                    and_(
+                        ReviewCase.organization_id == ReviewIteration.organization_id,
+                        ReviewCase.id == ReviewIteration.review_case_id,
+                        ReviewCase.course_run_id == ReviewIteration.course_run_id,
+                        ReviewCase.homework_id == ReviewIteration.homework_id,
+                    ),
+                )
+                .join(
+                    SubmissionVersion,
+                    and_(
+                        SubmissionVersion.organization_id == ReviewIteration.organization_id,
+                        SubmissionVersion.id == ReviewIteration.submission_version_id,
+                    ),
+                )
+                .join(
+                    Submission,
+                    and_(
+                        Submission.organization_id == SubmissionVersion.organization_id,
+                        Submission.id == SubmissionVersion.submission_id,
+                        Submission.course_run_homework_id == context.course_run_homework_id,
+                    ),
+                )
+                .where(
+                    ReviewIteration.organization_id == context.organization_id,
+                    ReviewIteration.course_run_id == context.course_run_id,
+                    ReviewIteration.homework_id == context.homework_id,
+                    ReviewIteration.homework_version_id != context.current_homework_version_id,
+                    ReviewIteration.status != "canceled",
+                )
+                .order_by(ReviewIteration.iteration_number, ReviewIteration.id)
+            )
+        ).all()
+        return tuple(
+            AffectedReviewContext(
+                organization_id=iteration.organization_id,
+                review_case_id=review_case.id,
+                review_iteration_id=iteration.id,
+                course_run_id=iteration.course_run_id,
+                course_run_homework_id=context.course_run_homework_id,
+                homework_id=iteration.homework_id,
+                effective_homework_version_id=iteration.homework_version_id,
+                iteration_number=iteration.iteration_number,
+                iteration_status=iteration.status,
+            )
+            for iteration, review_case in rows
+        )
+
+    async def reserve_impact(
+        self,
+        candidate: ReviewImpactRecord,
+        *,
+        transaction: object,
+    ) -> tuple[ReviewImpactRecord, bool]:
+        session = _session(transaction)
+        existing = await _impact_by_identity(
+            session,
+            candidate.organization_id,
+            candidate.review_iteration_id,
+            candidate.current_homework_version_id,
+        )
+        if existing is not None:
+            return _impact_record(existing), False
+        if candidate.resolved_by_iteration_id is not None or candidate.resolved_at is not None:
+            raise PublicationPersistenceConflict("new ReviewImpactEvent cannot start resolved")
+        row = ReviewImpactEvent(
+            id=candidate.impact_id,
+            organization_id=candidate.organization_id,
+            source_event_id=candidate.source_event_id,
+            review_case_id=candidate.review_case_id,
+            review_iteration_id=candidate.review_iteration_id,
+            course_run_homework_id=candidate.course_run_homework_id,
+            course_run_id=candidate.course_run_id,
+            homework_id=candidate.homework_id,
+            previous_homework_version_id=candidate.previous_homework_version_id,
+            current_homework_version_id=candidate.current_homework_version_id,
+            previous_publication_id=candidate.previous_publication_id,
+            current_publication_id=candidate.current_publication_id,
+            publication_sequence=candidate.publication_sequence,
+            occurred_at=require_utc(candidate.occurred_at),
+            resolved_by_iteration_id=None,
+            resolved_at=None,
+        )
+        try:
+            async with session.begin_nested():
+                session.add(row)
+                await session.flush([row])
+        except IntegrityError:
+            existing = await _impact_by_identity(
+                session,
+                candidate.organization_id,
+                candidate.review_iteration_id,
+                candidate.current_homework_version_id,
+                current_read=True,
+            )
+            if existing is None:
+                raise
+            return _impact_record(existing), False
+        return _impact_record(row), True
 
 
 class SqlPublicationRepository:
@@ -1080,6 +1280,45 @@ async def _revision_record(
     )
 
 
+async def _impact_by_identity(
+    session: AsyncSession,
+    organization_id: UUID,
+    review_iteration_id: UUID,
+    current_homework_version_id: UUID,
+    *,
+    current_read: bool = False,
+) -> ReviewImpactEvent | None:
+    statement = select(ReviewImpactEvent).where(
+        ReviewImpactEvent.organization_id == organization_id,
+        ReviewImpactEvent.review_iteration_id == review_iteration_id,
+        ReviewImpactEvent.current_homework_version_id == current_homework_version_id,
+    )
+    if current_read:
+        statement = statement.with_for_update()
+    return cast(ReviewImpactEvent | None, await session.scalar(statement))
+
+
+def _impact_record(row: ReviewImpactEvent) -> ReviewImpactRecord:
+    return ReviewImpactRecord(
+        impact_id=row.id,
+        organization_id=row.organization_id,
+        source_event_id=row.source_event_id,
+        review_case_id=row.review_case_id,
+        review_iteration_id=row.review_iteration_id,
+        course_run_homework_id=row.course_run_homework_id,
+        course_run_id=row.course_run_id,
+        homework_id=row.homework_id,
+        previous_homework_version_id=row.previous_homework_version_id,
+        current_homework_version_id=row.current_homework_version_id,
+        previous_publication_id=row.previous_publication_id,
+        current_publication_id=row.current_publication_id,
+        publication_sequence=row.publication_sequence,
+        occurred_at=row.occurred_at,
+        resolved_by_iteration_id=row.resolved_by_iteration_id,
+        resolved_at=row.resolved_at,
+    )
+
+
 async def _request_by_key(
     session: AsyncSession,
     organization_id: UUID,
@@ -1231,6 +1470,7 @@ _requirements_port: ReviewRequirementsRepository = SqlPublicationRepository()
 _correction_port: ReviewCorrectionPublicationRepository = SqlPublicationRepository()
 _request_port: PublicationRequestRepository = SqlPublicationRepository()
 _publication_port: ReviewPublicationRepository = SqlPublicationRepository()
+_impact_port: ReviewRequirementImpactRepository = SqlReviewRequirementImpactRepository()
 
 
 __all__ = [
@@ -1238,5 +1478,6 @@ __all__ = [
     "PublicationPersistenceConflict",
     "PublicationRepositoryError",
     "SqlPublicationRepository",
+    "SqlReviewRequirementImpactRepository",
     "require_successor_revision_repository",
 ]
