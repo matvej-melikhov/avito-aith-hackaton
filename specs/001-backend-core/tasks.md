@@ -252,11 +252,11 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Independent Test**: Human grants scoped access, agent reviews over MCP and requests publication, human publishes, revocation blocks concurrent reads/writes/jobs, and direct agent publication is impossible.
 
-- [ ] T145 [P] [US7] Write failing grant/revoke, closed-scope, TTL, one-time response secret, and digest-only storage tests in `backend/tests/contract/test_agent_authorization_api.py`
-- [ ] T146 [P] [US7] Write failing MCP 2026-07-28 transport tests for headers, stateless requests, bearer auth, typed outputs, and obsolete handshake rejection in `backend/tests/contract/test_mcp_protocol.py`
-- [ ] T147 [P] [US7] Write failing 12-tool REST/MCP parity tests for CourseRun discovery, recommend→open→get flow, handler, role, scope, CAS, idempotency, audit, and no direct publication in `backend/tests/contract/test_http_mcp_parity.py`
-- [ ] T148 [P] [US7] Write failing revoke-versus-commit races against concurrent REST/MCP reads/writes and queued/claimed jobs using Membership and AgentAuthorization revalidation in `backend/tests/isolation/test_agent_revocation.py`
-- [ ] T149 [P] [US7] Write failing end-to-end agent edit/responsibility/AI/publication-request plus separate human-confirmation tests in `backend/tests/integration/test_agent_review_workflow.py`
+- [X] T145 [P] [US7] Write failing grant/revoke, closed-scope, TTL, one-time response secret, and digest-only storage tests in `backend/tests/contract/test_agent_authorization_api.py`
+- [X] T146 [P] [US7] Write failing MCP 2026-07-28 transport tests for headers, stateless requests, bearer auth, typed outputs, and obsolete handshake rejection in `backend/tests/contract/test_mcp_protocol.py`
+- [X] T147 [P] [US7] Write failing 12-tool REST/MCP parity tests for CourseRun discovery, recommend→open→get flow, handler, role, scope, CAS, idempotency, audit, and no direct publication in `backend/tests/contract/test_http_mcp_parity.py`
+- [X] T148 [P] [US7] Write failing revoke-versus-commit races against concurrent REST/MCP reads/writes and queued/claimed jobs using Membership and AgentAuthorization revalidation in `backend/tests/isolation/test_agent_revocation.py`
+- [X] T149 [P] [US7] Write failing end-to-end agent edit/responsibility/AI/publication-request plus separate human-confirmation tests in `backend/tests/integration/test_agent_review_workflow.py`
 - [ ] T150 [US7] Implement opaque agent token creation, hashing, rotation, and constant-time verification for the existing AgentAuthorization table in `backend/src/review_platform/infrastructure/auth/agent_tokens.py`
 - [ ] T151 [US7] Implement the tenant-scoped AgentAuthorization repository, digest lookup, row locks, and revision checks in `backend/src/review_platform/infrastructure/db/repositories/agents.py`
 - [ ] T152 [US7] Implement interactive grant returning the bearer secret exactly once, digest-only storage, revoke, scope intersection, TTL, and pending-command invalidation in `backend/src/review_platform/application/services/agent_authorizations.py`
