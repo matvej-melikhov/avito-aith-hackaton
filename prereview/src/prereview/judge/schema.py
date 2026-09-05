@@ -4,17 +4,23 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 Verdict = Literal["pass", "partial", "fail", "not_found"]
 Confidence = Literal["low", "medium", "high"]
 
 
 class EvidenceItem(BaseModel):
-    path: str = Field(description="Путь к файлу из среза, как в заголовке ===== FILE:")
-    line_start: int = Field(description="Первая строка цитаты по нумерации среза")
-    line_end: int = Field(description="Последняя строка цитаты")
-    quote: str = Field(description="Дословная цитата из работы, без правок и сокращений")
+    model_config = ConfigDict(populate_by_name=True)
+
+    path: str = Field(description="Путь к файлу из среза, как в заголовке ===== FILE:",
+                      validation_alias=AliasChoices("path", "file", "filename", "file_path"))
+    line_start: int = Field(description="Первая строка цитаты по нумерации среза",
+                            validation_alias=AliasChoices("line_start", "start_line", "line", "from"))
+    line_end: int = Field(description="Последняя строка цитаты",
+                          validation_alias=AliasChoices("line_end", "end_line", "to"))
+    quote: str = Field(description="Дословная цитата из работы, без правок и сокращений",
+                       validation_alias=AliasChoices("quote", "text", "snippet"))
 
 
 class Judgement(BaseModel):

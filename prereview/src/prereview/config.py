@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     max_file_bytes: int = 200_000
     judge_context_chars: int = 60_000
     judge_repeats: int = 2
-    judge_max_tokens: int = 2_000
+    judge_max_tokens: int = 3_000
 
     # DeepSeek Harness как субагент-исследователь репозиториев.
     harness_enabled: bool = True

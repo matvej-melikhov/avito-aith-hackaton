@@ -1,0 +1,30 @@
+# AI-сервис prereview рядом с платформой. Использовать вместе с compose.yaml и compose.workspace.yaml:
+#   docker compose -p workspace-completion-local -f deploy/compose.yaml -f deploy/compose.workspace.yaml \
+#     -f deploy/compose.ai.yaml up --build -d --wait mysql redis minio ai api
+# Ключ DEEPSEEK_API_KEY берётся из окружения или файла .env в корне репозитория.
+services:
+  ai:
+    build:
+      context: ..
+      dockerfile: prereview/Dockerfile
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?DEEPSEEK_API_KEY is required}
+      PREREVIEW_LLM_MODEL: ${PREREVIEW_LLM_MODEL:-deepseek-v4-flash}
+      PREREVIEW_HARNESS_ENABLED: ${PREREVIEW_HARNESS_ENABLED:-true}
+      PREREVIEW_TOKEN: ${PREREVIEW_TOKEN:-}
+      PREREVIEW_USD_RUB: ${PREREVIEW_USD_RUB:-80}
+    ports:
+      - "127.0.0.1:${AI_PORT:-18100}:8100"
+    volumes:
+      - ai-data:/data
+    restart: unless-stopped
+  api:
+    environment:
+      REVIEW_PLATFORM_WORKSPACE_AI_URL: http://ai:8100
+      REVIEW_PLATFORM_WORKSPACE_AI_TOKEN: ${PREREVIEW_TOKEN:-}
+      REVIEW_PLATFORM_PROVIDER_TIMEOUT_SECONDS: "30"
+    depends_on:
+      ai:
+        condition: service_healthy
+volumes:
+  ai-data:

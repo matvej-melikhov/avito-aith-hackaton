@@ -174,7 +174,12 @@ def merge(ctx: JudgeContext, c: Criterion, judgements: list[Judgement], condense
             requirement_met = True
             if points is None:
                 points = c.snap(c.max_points if verdict == "pass" else c.max_points / 2)
-            if verdict == "partial" and points == 0:
+            if verdict == "partial" and c.max_points <= c.score_step:
+                # Шаг балла не позволяет выразить «частично»: решает ревьюер.
+                status = "needs_human"
+                points = None
+                notes.append("Выполнено частично, а шаг балла не позволяет поставить часть: решите сами.")
+            elif verdict == "partial" and points == 0:
                 points = c.snap(min(c.score_step, c.max_points))
     elif verdict == "fail":
         if condensed and not verified:
@@ -208,7 +213,7 @@ def observe(ctx: JudgeContext, c: Criterion, work_text: str | None = None) -> li
                                 work=work_text if work_text is not None else ctx.work_text)
     try:
         res = ctx.client.complete_structured(system=system, user=user, schema=Observations,
-                                             tag=f"observe:{c.key}", max_tokens=1200)
+                                             tag=f"observe:{c.key}", max_tokens=2000)
     except LLMError:
         return []
     out = []

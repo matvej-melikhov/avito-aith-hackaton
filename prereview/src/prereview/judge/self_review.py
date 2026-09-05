@@ -36,7 +36,7 @@ def self_check(ctx: JudgeContext, c: Criterion) -> SelfResult:
     )
     try:
         res = ctx.client.complete_structured(system=system, user=user, schema=SelfFinding,
-                                             tag=f"self:{c.key}", max_tokens=1000)
+                                             tag=f"self:{c.key}", max_tokens=2500)
     except LLMError as e:
         log.warning("self-review %s failed: %s", c.key, e)
         return SelfResult(c, "not_checked", "Автоматическая проверка не сработала, посмотри этот пункт сам.")

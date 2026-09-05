@@ -25,3 +25,4 @@ grader/blind/
 grader/bundles/
 prereview/data/
 .dsh/
+prereview/evals/runs/

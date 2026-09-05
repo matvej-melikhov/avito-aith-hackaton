@@ -67,7 +67,10 @@ def create_app(
         if selected.workspace_fixtures:
             if selected.environment != "local":
                 raise RuntimeError("workspace fixtures require environment=local")
-            provider = provider or FixtureWorkspaceAI()
+            # Учебные участники остаются из fixtures, а AI при заданном адресе идёт в настоящий сервис.
+            provider = provider or (
+                HTTPWorkspaceAI(selected) if selected.workspace_ai_url else FixtureWorkspaceAI()
+            )
         elif selected.workspace_ai_url:
             provider = provider or HTTPWorkspaceAI(selected)
         reviewer = SelfReviewWorker(runtime, provider, runtime.object_storage) if provider else None
@@ -109,7 +112,7 @@ def create_app(
                 and not selected.workspace_ai_url
             ):
                 raise RuntimeError("Workspace workers require an explicitly configured AI provider")
-            if selected.workspace_ai_url and not selected.workspace_fixtures:
+            if selected.workspace_ai_url:
                 HTTPWorkspaceAI(selected)  # Validate before declaring application startup complete.
             worker = asyncio.create_task(workspace_loop())
         try:
