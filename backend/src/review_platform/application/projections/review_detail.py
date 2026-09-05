@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,7 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from review_platform.contracts.registry import CONTRACT_VERSION
 from review_platform.domain.primitives import require_utc, validate_digest
 from review_platform.infrastructure.db.models.ai_review import AIReviewRun
-from review_platform.infrastructure.db.models.operations import OperationAttempt
+from review_platform.infrastructure.db.models.delivery import (
+    DeliveryAttempt,
+    DeliveryReconciliationObservation,
+)
 from review_platform.infrastructure.db.models.publication import (
     ExternalDelivery,
     PublicationRequest,
@@ -185,10 +187,10 @@ async def read_review_detail(
         if publication is not None
         else []
     )
-    attempts_by_operation = await _delivery_attempts(
+    delivery_summaries = await project_delivery_summaries(
         session,
         organization_id=organization_id,
-        operation_ids={item.operation_id for item in deliveries},
+        deliveries=deliveries,
     )
 
     return {
@@ -220,9 +222,7 @@ async def read_review_detail(
         "publication_request": (
             _publication_request(publication_request) if publication_request is not None else None
         ),
-        "deliveries": [
-            _delivery(item, attempts_by_operation.get(item.operation_id, ())) for item in deliveries
-        ],
+        "deliveries": delivery_summaries,
     }
 
 
@@ -363,28 +363,64 @@ async def _highest_published_revision(
     return cast(tuple[ReviewPublication, ReviewIteration, ReviewRevision] | None, row)
 
 
-async def _delivery_attempts(
+async def project_delivery_summaries(
     session: AsyncSession,
     *,
     organization_id: UUID,
-    operation_ids: set[UUID],
-) -> dict[UUID, tuple[OperationAttempt, ...]]:
-    if not operation_ids:
-        return {}
-    rows = (
+    deliveries: Sequence[ExternalDelivery],
+) -> list[dict[str, Any]]:
+    """Project frozen DeliverySummary objects with T140 history in bulk."""
+
+    if not deliveries:
+        return []
+    delivery_ids = {row.id for row in deliveries}
+    attempts = (
         await session.scalars(
-            select(OperationAttempt)
+            select(DeliveryAttempt)
             .where(
-                OperationAttempt.organization_id == organization_id,
-                OperationAttempt.operation_id.in_(operation_ids),
+                DeliveryAttempt.organization_id == organization_id,
+                DeliveryAttempt.delivery_id.in_(delivery_ids),
             )
-            .order_by(OperationAttempt.operation_id, OperationAttempt.attempt_number)
+            .order_by(
+                DeliveryAttempt.delivery_id,
+                DeliveryAttempt.attempt_number,
+                DeliveryAttempt.id,
+            )
         )
     ).all()
-    grouped: defaultdict[UUID, list[OperationAttempt]] = defaultdict(list)
-    for row in rows:
-        grouped[row.operation_id].append(row)
-    return {identity: tuple(values) for identity, values in grouped.items()}
+    observations = (
+        await session.scalars(
+            select(DeliveryReconciliationObservation)
+            .where(
+                DeliveryReconciliationObservation.organization_id == organization_id,
+                DeliveryReconciliationObservation.delivery_id.in_(delivery_ids),
+            )
+            .order_by(
+                DeliveryReconciliationObservation.delivery_id,
+                DeliveryReconciliationObservation.attempt_number,
+                DeliveryReconciliationObservation.observed_at,
+                DeliveryReconciliationObservation.id,
+            )
+        )
+    ).all()
+    attempts_by_delivery: dict[UUID, list[DeliveryAttempt]] = {
+        identity: [] for identity in delivery_ids
+    }
+    observations_by_delivery: dict[UUID, list[DeliveryReconciliationObservation]] = {
+        identity: [] for identity in delivery_ids
+    }
+    for attempt in attempts:
+        attempts_by_delivery[attempt.delivery_id].append(attempt)
+    for observation in observations:
+        observations_by_delivery[observation.delivery_id].append(observation)
+    return [
+        project_delivery_summary(
+            row,
+            attempts=attempts_by_delivery[row.id],
+            observations=observations_by_delivery[row.id],
+        )
+        for row in deliveries
+    ]
 
 
 def _revision_summary(row: ReviewRevision) -> dict[str, Any]:
@@ -439,10 +475,37 @@ def _publication_request(row: PublicationRequest) -> dict[str, Any]:
     }
 
 
-def _delivery(
+def project_delivery_summary(
     row: ExternalDelivery,
-    attempts: Sequence[OperationAttempt],
+    *,
+    attempts: Sequence[DeliveryAttempt],
+    observations: Sequence[DeliveryReconciliationObservation],
 ) -> dict[str, Any]:
+    """Serialize one delivery while preserving its exact immutable snapshots."""
+
+    try:
+        artifact_content_digest = validate_digest(row.artifact_content_digest)
+    except ValueError as error:
+        raise ReviewDetailProjectionError("delivery artifact digest is invalid") from error
+    attempt_by_id = {attempt.id: attempt for attempt in attempts}
+    if len(attempt_by_id) != len(attempts):
+        raise ReviewDetailProjectionError("delivery attempt identity is duplicated")
+    for attempt in attempts:
+        _validate_delivery_attempt(row, attempt)
+    latest_observation: dict[UUID, DeliveryReconciliationObservation] = {}
+    for observation in observations:
+        matched_attempt = attempt_by_id.get(observation.delivery_attempt_id)
+        if matched_attempt is None:
+            raise ReviewDetailProjectionError(
+                "delivery reconciliation observation has no projected attempt"
+            )
+        _validate_reconciliation_observation(row, matched_attempt, observation)
+        previous = latest_observation.get(matched_attempt.id)
+        if previous is None or (
+            require_utc(observation.observed_at), observation.id
+        ) > (require_utc(previous.observed_at), previous.id):
+            latest_observation[matched_attempt.id] = observation
+
     return {
         "id": str(row.id),
         "operation_id": str(row.operation_id),
@@ -450,18 +513,8 @@ def _delivery(
         "destination_kind": row.destination_kind,
         "state": row.state,
         "attempts": [
-            {
-                "attempt_number": attempt.attempt_number,
-                "state": attempt.outcome,
-                "started_at": require_utc(attempt.started_at).isoformat(),
-                "finished_at": (
-                    require_utc(attempt.finished_at).isoformat()
-                    if attempt.finished_at is not None
-                    else None
-                ),
-                "error": _error(attempt.sanitized_error),
-            }
-            for attempt in attempts
+            _project_delivery_attempt(attempt, latest_observation.get(attempt.id))
+            for attempt in sorted(attempts, key=lambda item: (item.attempt_number, item.id))
         ],
         "provenance": {
             "course_run_id": str(row.course_run_id),
@@ -469,13 +522,97 @@ def _delivery(
             "criterion_set_id": str(row.criterion_set_id),
             "submission_version_id": str(row.submission_version_id),
             "artifact_version_id": str(row.artifact_version_id),
-            "artifact_content_digest": row.artifact_content_digest,
+            "artifact_content_digest": artifact_content_digest,
             "review_iteration_id": str(row.review_iteration_id),
             "review_revision_id": str(row.review_revision_id),
             "contract_version": row.contract_version,
         },
         "error": _error(row.sanitized_error),
     }
+
+
+def _project_delivery_attempt(
+    attempt: DeliveryAttempt,
+    observation: DeliveryReconciliationObservation | None,
+) -> dict[str, Any]:
+    state = attempt.outcome
+    finished_at = attempt.finished_at
+    error: Mapping[str, Any] | None = attempt.sanitized_error
+    if observation is not None:
+        state = "retryable_failed" if observation.outcome == "not_found" else observation.outcome
+        finished_at = observation.observed_at
+        error = _reconciliation_error(observation)
+    return {
+        "attempt_number": attempt.attempt_number,
+        "state": state,
+        "started_at": require_utc(attempt.started_at).isoformat(),
+        "finished_at": (
+            require_utc(finished_at).isoformat() if finished_at is not None else None
+        ),
+        "error": _error(error),
+    }
+
+
+def _reconciliation_error(
+    observation: DeliveryReconciliationObservation,
+) -> Mapping[str, Any] | None:
+    if observation.sanitized_error is not None:
+        return observation.sanitized_error
+    defaults: dict[str, dict[str, str]] = {
+        "not_found": {
+            "code": "delivery_not_found",
+            "message": "Provider reports no result for the delivery attempt",
+            "action": "retry",
+        },
+        "retryable_failed": {
+            "code": "reconciliation_retryable_failed",
+            "message": "Delivery reconciliation can be retried",
+            "action": "retry",
+        },
+        "unknown_outcome": {
+            "code": "reconciliation_unknown_outcome",
+            "message": "Delivery outcome remains unknown after reconciliation",
+            "action": "reconcile",
+        },
+        "action_required": {
+            "code": "reconciliation_action_required",
+            "message": "Delivery reconciliation requires operator action",
+            "action": "operator_review",
+        },
+    }
+    return defaults.get(observation.outcome)
+
+
+def _validate_delivery_attempt(row: ExternalDelivery, attempt: DeliveryAttempt) -> None:
+    if (
+        attempt.organization_id != row.organization_id
+        or attempt.delivery_id != row.id
+        or attempt.external_delivery_id != row.id
+        or attempt.operation_id != row.operation_id
+        or attempt.credential_binding_id != row.credential_binding_id
+        or attempt.credential_binding_version != row.credential_binding_version
+    ):
+        raise ReviewDetailProjectionError("delivery attempt provenance mismatched")
+
+
+def _validate_reconciliation_observation(
+    row: ExternalDelivery,
+    attempt: DeliveryAttempt,
+    observation: DeliveryReconciliationObservation,
+) -> None:
+    if (
+        observation.organization_id != row.organization_id
+        or observation.delivery_id != row.id
+        or observation.external_delivery_id != row.id
+        or observation.delivery_attempt_id != attempt.id
+        or observation.attempt_number != attempt.attempt_number
+        or observation.operation_id != row.operation_id
+        or observation.credential_binding_id != row.credential_binding_id
+        or observation.credential_binding_version != row.credential_binding_version
+    ):
+        raise ReviewDetailProjectionError(
+            "delivery reconciliation observation provenance mismatched"
+        )
 
 
 def _error(value: Mapping[str, Any] | None) -> dict[str, str | None] | None:
@@ -507,5 +644,7 @@ __all__ = [
     "ArtifactDownloadSigner",
     "ReviewDetailProjectionError",
     "project_ai_review",
+    "project_delivery_summaries",
+    "project_delivery_summary",
     "read_review_detail",
 ]

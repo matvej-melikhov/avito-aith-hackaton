@@ -15,6 +15,10 @@ from review_platform.application.audit import AuditRecorder
 from review_platform.application.authorization import AuthorizationError, Authorizer
 from review_platform.application.foundation_runtime import FoundationRuntime
 from review_platform.application.idempotency import IdempotencyCoordinator, IdempotencyError
+from review_platform.application.projections.review_detail import (
+    ReviewDetailProjectionError,
+    project_delivery_summaries,
+)
 from review_platform.application.request_context import RequestActor
 from review_platform.application.services.deliveries import (
     DeliveryScheduler,
@@ -52,7 +56,12 @@ async def list_deliveries(request: Request, state: str | None = Query(default=No
             if state is not None:
                 statement = statement.where(ExternalDelivery.state == state)
             rows = (await transaction.scalars(statement.order_by(ExternalDelivery.id))).all()
-        return JSONResponse({"items": [_summary(item) for item in rows]})
+            summaries = await project_delivery_summaries(
+                transaction,
+                organization_id=actor.organization_id,
+                deliveries=rows,
+            )
+        return JSONResponse({"items": summaries})
     except _ERRORS as error:
         return _error(error)
 
@@ -146,29 +155,6 @@ async def retry_delivery(deliveryId: UUID, request: Request, body: Mapping[str, 
         return JSONResponse(_operation(operation), status_code=202)
     except _ERRORS as error:
         return _error(error)
-
-
-def _summary(delivery: ExternalDelivery) -> dict[str, Any]:
-    return {
-        "id": str(delivery.id),
-        "operation_id": str(delivery.operation_id),
-        "destination_binding_id": str(delivery.destination_binding_id),
-        "destination_kind": delivery.destination_kind,
-        "state": delivery.state,
-        "attempts": [],
-        "provenance": {
-            "course_run_id": str(delivery.course_run_id),
-            "homework_version_id": str(delivery.homework_version_id),
-            "criterion_set_id": str(delivery.criterion_set_id),
-            "submission_version_id": str(delivery.submission_version_id),
-            "artifact_version_id": str(delivery.artifact_version_id),
-            "artifact_content_digest": delivery.artifact_content_digest,
-            "review_iteration_id": str(delivery.review_iteration_id),
-            "review_revision_id": str(delivery.review_revision_id),
-            "contract_version": delivery.contract_version,
-        },
-        "error": delivery.sanitized_error,
-    }
 
 
 async def _reserve(
@@ -274,6 +260,7 @@ _ERRORS = (
     DeliveryRouteError,
     DeliveryServiceError,
     IdempotencyError,
+    ReviewDetailProjectionError,
     ValidationError,
     ValueError,
 )
