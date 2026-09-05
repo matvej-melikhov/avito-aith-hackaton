@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "contract_version": "1.1.0",
+  "recorded_at": "2026-09-05T00:00:00Z",
+  "gates": [
+    {
+      "id": "stepik_identity",
+      "provider": "stepik",
+      "capability": "identity",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Authorized Stepik identity sandbox and credentials are not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_STEPIK_SANDBOX_ENABLED", "REVIEW_PLATFORM_STEPIK_SANDBOX_BASE_URL", "REVIEW_PLATFORM_STEPIK_CLIENT_ID", "REVIEW_PLATFORM_STEPIK_CLIENT_SECRET", "REVIEW_PLATFORM_LIVE_STEPIK_IDENTITY_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_STEPIK_IDENTITY_RUNNER"
+    },
+    {
+      "id": "stepik_course_import",
+      "provider": "stepik",
+      "capability": "course_import",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Authorized paid or Enterprise Stepik roster sandbox is not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_STEPIK_SANDBOX_ENABLED", "REVIEW_PLATFORM_STEPIK_SANDBOX_BASE_URL", "REVIEW_PLATFORM_STEPIK_CLIENT_ID", "REVIEW_PLATFORM_STEPIK_CLIENT_SECRET", "REVIEW_PLATFORM_STEPIK_SANDBOX_COURSE_ID", "REVIEW_PLATFORM_LIVE_STEPIK_IMPORT_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_STEPIK_IMPORT_RUNNER"
+    },
+    {
+      "id": "github_artifact",
+      "provider": "github",
+      "capability": "artifact_preflight_capture",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Authorized GitHub App installation and immutable test repository are not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_GITHUB_SANDBOX_ENABLED", "REVIEW_PLATFORM_GITHUB_TOKEN", "REVIEW_PLATFORM_GITHUB_SANDBOX_REPOSITORY", "REVIEW_PLATFORM_LIVE_GITHUB_ARTIFACT_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_GITHUB_ARTIFACT_RUNNER"
+    },
+    {
+      "id": "google_docs_artifact",
+      "provider": "google_docs",
+      "capability": "artifact_preflight_capture",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Authorized Google Docs sandbox document and credential are not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_GOOGLE_DOCS_SANDBOX_ENABLED", "GOOGLE_APPLICATION_CREDENTIALS", "REVIEW_PLATFORM_GOOGLE_DOCS_SANDBOX_DOCUMENT_ID", "REVIEW_PLATFORM_LIVE_GOOGLE_DOCS_ARTIFACT_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_GOOGLE_DOCS_ARTIFACT_RUNNER"
+    },
+    {
+      "id": "ai_review",
+      "provider": "ai_component",
+      "capability": "review_start_event",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Authorized external AI component sandbox and credential binding are not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_AI_SANDBOX_ENABLED", "REVIEW_PLATFORM_AI_SANDBOX_URL", "REVIEW_PLATFORM_AI_COMPONENT_TOKEN", "REVIEW_PLATFORM_LIVE_AI_REVIEW_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_AI_REVIEW_RUNNER"
+    },
+    {
+      "id": "stepik_delivery_reconciliation",
+      "provider": "stepik",
+      "capability": "delivery_reconciliation",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Writable Stepik score and feedback sandbox with a known delivery identity is not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_STEPIK_SANDBOX_ENABLED", "REVIEW_PLATFORM_STEPIK_SANDBOX_BASE_URL", "REVIEW_PLATFORM_STEPIK_CLIENT_ID", "REVIEW_PLATFORM_STEPIK_CLIENT_SECRET", "REVIEW_PLATFORM_STEPIK_SANDBOX_SUBMISSION_ID", "REVIEW_PLATFORM_LIVE_STEPIK_DELIVERY_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_STEPIK_DELIVERY_RUNNER"
+    },
+    {
+      "id": "github_delivery_reconciliation",
+      "provider": "github",
+      "capability": "delivery_reconciliation",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Writable GitHub App sandbox with a known delivery identity is not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_GITHUB_SANDBOX_ENABLED", "REVIEW_PLATFORM_GITHUB_TOKEN", "REVIEW_PLATFORM_GITHUB_SANDBOX_REPOSITORY", "REVIEW_PLATFORM_LIVE_GITHUB_DELIVERY_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_GITHUB_DELIVERY_RUNNER"
+    },
+    {
+      "id": "email_delivery",
+      "provider": "smtp",
+      "capability": "email_delivery",
+      "status": "BLOCKED",
+      "recorded_at": "2026-09-05T00:00:00Z",
+      "last_attempted_at": null,
+      "evidence": [],
+      "reason": "Authorized SMTP sandbox and non-production recipient are not configured.",
+      "required_environment": ["REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED", "REVIEW_PLATFORM_EMAIL_SANDBOX_ENABLED", "REVIEW_PLATFORM_SMTP_HOST", "REVIEW_PLATFORM_EMAIL_SANDBOX_RECIPIENT", "REVIEW_PLATFORM_LIVE_EMAIL_DELIVERY_RUNNER"],
+      "runner_environment": "REVIEW_PLATFORM_LIVE_EMAIL_DELIVERY_RUNNER"
+    }
+  ]
+}
