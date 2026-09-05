@@ -19,6 +19,7 @@ services:
       - "127.0.0.1:${AI_PORT:-18100}:8100"
     volumes:
       - ai-data:/data
+    networks: [backend]
     restart: unless-stopped
   api:
     environment:
