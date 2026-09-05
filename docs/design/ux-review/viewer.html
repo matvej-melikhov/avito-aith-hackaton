@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Авито Ревью · адресные правки UX/UI</title>
+ <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+ <style>/* AUDIT_STYLES */</style>
+</head>
+<body>
+ <aside class="rail">
+  <div class="identity">Авито Ревью<span>UX/UI · версия 2</span></div>
+  <div class="rail-label">Десять предложений</div>
+  <nav class="cases" id="case-list" aria-label="Предложения"></nav>
+  <div class="rail-label">Весь интерфейс</div>
+  <button class="case" id="inventory-button"><small>22</small>Реестр замечаний</button>
+  <div class="rail-note">«Было» — снимок текущего HTML. «Стало» — те же экраны с адресными изменениями.<br><br>Исходник: <code id="source-sha"></code><a href="screens.html" target="_blank" rel="noopener">Открыть исходные экраны ↗</a></div>
+ </aside>
+ <div class="workbench">
+  <header class="toolbar">
+   <div class="toolbar-left">
+    <div class="mode" aria-label="Режим сравнения"><button data-mode="before" aria-pressed="false">Было</button><button data-mode="after" aria-pressed="true">Стало</button><button data-mode="both" aria-pressed="false">Рядом</button></div>
+    <label class="toggle"><input id="highlight" type="checkbox">Подсветить правки</label>
+   </div>
+   <div class="toolbar-right">
+    <label class="toggle">Ширина <select id="width"><option value="1600">1600 px · исходник</option><option value="1280">1280 px</option><option value="1024">1024 px · стресс-тест</option></select></label>
+    <button class="plain" id="native">Масштаб 100%</button>
+   </div>
+  </header>
+  <section class="intro" id="intro"><div class="kicker" id="kind"></div><h1 id="case-title"></h1><p id="case-summary"></p><div class="case-links"><a href="#inventory" id="all-link">Все 22 экрана</a><span class="preview-state">Локальный прототип · данные никуда не отправляются</span></div></section>
+  <section class="changes" id="changes" aria-label="Обоснование изменений"></section>
+  <div class="caution" id="caution" hidden></div>
+  <section class="comparison" id="comparison" aria-label="Сравнение экранов">
+   <div class="panes" id="panes">
+    <div class="pane" id="before-pane" hidden><div class="pane-head"><b>Было · исходный экран</b><span id="before-scale"></span></div><div class="viewport" id="before-viewport"><iframe id="before-frame" title="Исходный экран" sandbox="allow-scripts"></iframe></div></div>
+    <div class="pane" id="after-pane"><div class="pane-head"><b id="after-label">Стало · предложение</b><span id="after-scale"></span></div><div class="viewport" id="after-viewport"><iframe id="after-frame" title="Предложенный экран" sandbox="allow-scripts"></iframe></div></div>
+   </div>
+   <p class="preview-help">Переключайте «Было / Стало» для сравнения в одной позиции. «Рядом» — для общего вида; 100% — для чтения мелкого текста. В «Стало» работают шкалы Р5, перестановка критериев К6 и фильтры восьми показанных строк К8. Остальные действия обозначают границы прототипа.</p>
+  </section>
+  <section class="all-screens" id="all-screens" hidden>
+   <h1>Что менять на каждом экране</h1>
+   <p>Реестр относится к текущим 22 экранам. Здесь отдельно отмечены локальные дефекты, вопросы к правилам продукта и решения, которые стоит сохранить. Смена навигации, новые метрики и новые права пользователей в предложения не включены.</p>
+   <table class="audit-table"><thead><tr><th>Экран</th><th>Рекомендация</th><th>Конкретное замечание</th></tr></thead><tbody id="inventory-body"></tbody></table>
+   <div class="maintenance"><h2>Как поддерживать дизайн без расхождений</h2><ol>
+    <li>Оставить <code>tokens.css</code> и <code>components.css</code> источниками визуальных правил. В этом предложении исходная палитра и шрифты встроены без изменений; дополнительные классы ограничены префиксом <code>proposal-</code>.</li>
+    <li>Собирать С1–С3 из одной формы сдачи, Р5–Р6–К9 — из одного компонента критерия с режимом чтения. Общие меню тоже собирать из одного списка для каждой роли. Количество inline-style само по себе не доказывает плохую архитектуру; опасны повторяющиеся правила, расходящиеся между экранами.</li>
+    <li>Связать сумму, штраф, итог и максимум одной моделью данных. Отдельно определить, меняет ли добавленное ревьюером требование максимум 6 баллов. Не задавать значения суммы вручную в каждой карточке.</li>
+    <li>У длинных названий предусмотреть перенос; у кода — локальную прокрутку; у баллов и дат — общий столбец. Проверять на реальной ширине 1280 px, а не считать уменьшенный макет 1600 px доказательством адаптивности.</li>
+    <li>Использовать реальные кнопки, связанные подписи полей и клавиатурное раскрытие. Нынешние <code>span.btn</code> нормальны как рисунок, но не подходят как готовая интерактивная спецификация.</li>
+    <li>Добавить конкретные состояния основных сценариев: отправка / отправлено / ошибка, взятие работы / уже взята другим, сохранение / ошибка, пустой результат поиска. Они перечислены в дизайн-паке; сейчас их нужно показать, не обещать новые механизмы.</li>
+    <li>Свести противоречащие формулировки дизайн-пака: крестик или минус у <code>.ck--n</code>; обязательная цитата или её отсутствие у выполненного требования; старые цвета и поведение карточки <code>.card--hard</code>. Компонент, описание и пример должны говорить одно.</li>
+   </ol></div>
+  </section>
+ </div>
+ <script id="source-data" type="application/json">/* SOURCE_DATA */</script>
+ <script>
+ /* AUDIT_CASES */
+ const source=JSON.parse(document.getElementById('source-data').textContent);
+ const proposalCSS=/* PROPOSAL_STYLES */;
+ const fonts='https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap';
+ const frames={before:document.getElementById('before-frame'),after:document.getElementById('after-frame')};
+ const heights={before:1300,after:1300};
+ const state={item:null,mode:'after',width:1600,native:false,inventory:false};
+ const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ document.getElementById('source-sha').textContent=source.sha.slice(0,12);
+ const caseList=document.getElementById('case-list');
+ for(const item of auditCases){const b=document.createElement('button');b.className='case';b.dataset.case=item.id;b.innerHTML=`<small>${item.screen}</small>${item.name}`;b.addEventListener('click',()=>selectCase(item));caseList.append(b);}
+ function previewDocument(snapshot,item,after){
+  const doc=new DOMParser().parseFromString(`<!doctype html><html lang="ru"><head><meta charset="utf-8"></head><body>${snapshot.html}</body></html>`,'text/html');
+  if(after&&item){doc.body.className='proposed';applyProposal(doc,item);}
+  if(after&&document.getElementById('highlight').checked)doc.body.classList.add('show-changes');
+  const link=doc.createElement('link');link.rel='stylesheet';link.href=fonts;doc.head.append(link);
+  const style=doc.createElement('style');style.textContent=source.css+'\nbody{margin:0;background:var(--surface)}\n'+(after?proposalCSS:'');doc.head.append(style);
+  const script=doc.createElement('script');script.textContent=`(${frameRuntime.toString()})();`;doc.body.append(script);
+  return '<!doctype html>'+doc.documentElement.outerHTML;
+ }
+ function setMode(mode){state.mode=mode;document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));document.getElementById('before-pane').hidden=mode==='after';document.getElementById('after-pane').hidden=mode==='before';document.getElementById('panes').classList.toggle('side-by-side',mode==='both');fit();}
+ function fit(){
+  for(const [key,frame]of Object.entries(frames)){
+   const viewport=document.getElementById(key+'-viewport');if(viewport.parentElement.hidden)continue;
+   const scale=state.native?1:Math.min(1,viewport.clientWidth/state.width);
+   frame.style.width=state.width+'px';frame.style.height=heights[key]+'px';frame.style.transform=`scale(${scale})`;
+   viewport.style.height=Math.ceil(heights[key]*scale)+'px';document.getElementById(key+'-scale').textContent=`${state.width} px · ${Math.round(scale*100)}%`;
+  }
+ }
+ function selectCase(item,snapshotOnly=false){
+  state.item=item;state.inventory=false;document.querySelectorAll('.intro,.changes,.comparison').forEach(el=>el.hidden=false);document.getElementById('all-screens').hidden=true;document.querySelector('.toolbar').hidden=false;
+  document.querySelectorAll('[data-case]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.case===item?.id)));
+  const snapshot=source.screens.find(screen=>screen.id===item.screen);if(!snapshot)throw new Error('Unknown screen '+item.screen);
+  document.getElementById('kind').textContent=`${snapshot.id} · ${snapshotOnly?'Исходный экран':item.kind}`;
+  document.getElementById('case-title').textContent=snapshotOnly?snapshot.title:item.title;
+  document.getElementById('case-summary').textContent=snapshotOnly?inventory.find(row=>row[0]===snapshot.id)[2]:item.summary;
+  document.getElementById('changes').replaceChildren();
+  if(!snapshotOnly)item.changes.forEach(([before,after,target],index)=>{
+   const article=document.createElement('article');article.className='change';article.innerHTML=`<span class="number">${String(index+1).padStart(2,'0')}</span><button>Показать место в макете ↓</button><dl><dt>Было</dt><dd>${escapeHTML(before)}</dd><dt>Стало</dt><dd>${escapeHTML(after)}</dd></dl>`;
+   article.querySelector('button').addEventListener('click',()=>{setMode('after');frames.after.contentWindow.postMessage({type:'audit-find',id:target},'*');});document.getElementById('changes').append(article);
+  });
+  const caution=document.getElementById('caution');caution.hidden=snapshotOnly||!item.caution;caution.innerHTML=item.caution?`<strong>Условие, которое нужно согласовать.</strong> ${escapeHTML(item.caution)}`:'';
+  frames.before.srcdoc=previewDocument(snapshot,null,false);frames.after.srcdoc=previewDocument(snapshot,snapshotOnly?null:item,true);
+  document.getElementById('after-label').textContent=snapshotOnly?'Исходный экран · без визуальных изменений':'Стало · адресные правки';
+  history.replaceState(null,'','#'+(snapshotOnly?'screen-'+snapshot.id:item.id));setMode(snapshotOnly?'before':state.mode);
+ }
+ function showInventory(){state.inventory=true;document.querySelectorAll('.intro,.changes,.comparison,.caution,.toolbar').forEach(el=>el.hidden=true);document.getElementById('all-screens').hidden=false;document.querySelectorAll('[data-case]').forEach(b=>b.setAttribute('aria-current','false'));history.replaceState(null,'','#inventory');window.scrollTo(0,0);}
+ const inventoryBody=document.getElementById('inventory-body');
+ inventory.forEach(([id,status,note])=>{const row=document.createElement('tr');row.innerHTML=`<td><button>${id}</button></td><td>${escapeHTML(status)}</td><td>${escapeHTML(note)}</td>`;row.querySelector('button').addEventListener('click',()=>{const item=auditCases.find(c=>c.screen===id);selectCase(item||{screen:id},!item);window.scrollTo(0,0);});inventoryBody.append(row);});
+ document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+ document.getElementById('inventory-button').addEventListener('click',showInventory);
+ document.getElementById('all-link').addEventListener('click',e=>{e.preventDefault();showInventory();});
+ document.getElementById('width').addEventListener('change',e=>{state.width=Number(e.target.value);fit();});
+ document.getElementById('native').addEventListener('click',()=>{state.native=!state.native;document.getElementById('native').textContent=state.native?'Вписать в окно':'Масштаб 100%';fit();});
+ document.getElementById('highlight').addEventListener('change',e=>frames.after.contentWindow.postMessage({type:'audit-highlight',show:e.target.checked},'*'));
+ window.addEventListener('message',event=>{
+  const key=Object.keys(frames).find(k=>frames[k].contentWindow===event.source);if(!key)return;
+  if(event.data.type==='audit-height'&&Number.isFinite(event.data.height)){heights[key]=Math.max(240,Math.min(20000,event.data.height));fit();}
+  if(event.data.type==='audit-focus'&&Number.isFinite(event.data.y)){const viewport=document.getElementById(key+'-viewport');const scale=state.native?1:Math.min(1,viewport.clientWidth/state.width);const toolbar=document.querySelector('.toolbar').offsetHeight;window.scrollTo({top:window.scrollY+viewport.getBoundingClientRect().top+event.data.y*scale-toolbar-24,behavior:'smooth'});}
+ });
+ new ResizeObserver(fit).observe(document.getElementById('panes'));
+ const hash=decodeURIComponent(location.hash.slice(1));
+ if(hash==='inventory')showInventory();else if(hash.startsWith('screen-'))selectCase({screen:hash.slice(7)},true);else selectCase(auditCases.find(c=>c.id===hash)||auditCases[0]);
+ </script>
+</body>
+</html>

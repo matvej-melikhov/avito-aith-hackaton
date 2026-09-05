@@ -1,0 +1,67 @@
+/* Additive proposals. Product palette and typography come from the captured
+   tokens.css + components.css. No replacement design system. */
+body.proposed {
+ --review-score-w:136px;
+ --review-comment-h:80px;
+ --review-status-w:248px;
+ --review-search-w:200px;
+}
+.proposed .proposal-zone {position:relative}
+.proposed.show-changes .proposal-zone {outline:2px dashed var(--info);outline-offset:4px}
+.proposed .proposal-score-row {
+ display:grid;grid-template-columns:21px minmax(0,1fr) var(--review-score-w) 16px;
+ column-gap:var(--s-3);padding:var(--s-4) 0;align-items:center;
+}
+.proposed .proposal-score-row .acc__t {min-width:0}
+.proposed .proposal-score-row .acc__t > .pill {margin-left:var(--s-2);vertical-align:middle}
+.proposed .proposal-score-row .scale {width:var(--review-score-w);justify-self:end}
+.proposed .proposal-score-row .scale > button {flex:1;min-height:var(--ctl-s);border:0;font:inherit;font-size:var(--small-size);cursor:pointer}
+.proposed .proposal-score-row .scale > button:not(.is-on) {background:transparent;color:var(--ink-3)}
+.proposed .proposal-score-row > .acc__chev {grid-column:4}
+.proposed .proposal-review .card__head {align-items:flex-start;flex-wrap:wrap;gap:var(--s-2)}
+.proposed .proposal-review-layout > .stack {min-width:0}
+.proposed .proposal-review .finding__src {flex-wrap:wrap}
+.proposed .proposal-review .code {overflow-x:auto}
+.proposed .proposal-response .card__head {display:grid;grid-template-columns:1fr;gap:var(--s-3)}
+.proposed .proposal-response .card__head > .btn {justify-self:start}
+.proposed .card__foot .proposal-decisions {display:grid;grid-template-columns:1fr;gap:var(--s-2)}
+.proposed .proposal-decisions .btn {width:100%}
+.proposed .proposal-submit {display:flex;align-items:flex-start;gap:var(--s-6);flex-wrap:wrap}
+.proposed .proposal-submit > .btn {flex:none}
+.proposed .proposal-precheck {flex:1;min-width:240px;display:grid;justify-items:start;gap:var(--s-2)}
+.proposed .proposal-precheck .caption {max-width:48ch}
+.proposed .proposal-comment {min-height:var(--review-comment-h);height:auto}
+.proposed .proposal-criterion {padding:var(--s-5) 0;border-bottom:var(--bw-hair) solid var(--line)}
+.proposed .proposal-criterion:first-child {padding-top:0}
+.proposed .proposal-criterion-head {display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s-4)}
+.proposed .proposal-criterion .field {margin-bottom:var(--s-4)}
+.proposed .proposal-criterion textarea {height:auto;min-height:96px;line-height:var(--body-lh)}
+.proposed .proposal-criterion-settings {display:flex;gap:var(--s-6);flex-wrap:wrap}
+.proposed .proposal-criterion-settings .field {margin-bottom:0;min-width:0}
+.proposed .proposal-filters {display:flex;gap:var(--s-3);align-items:center;flex-wrap:wrap;margin-bottom:var(--s-5)}
+.proposed .proposal-search {width:var(--review-search-w)}
+.proposed .proposal-status-filter {display:flex;align-items:center;gap:var(--s-2);margin-left:auto}
+.proposed .proposal-status-filter select {width:var(--review-status-w)}
+.proposed .proposal-dates {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-3)}
+.proposed .proposal-readonly {color:var(--ink);font-size:var(--small-size);padding:var(--s-2) 0;user-select:text}
+.proposed .proposal-event {display:block;padding:var(--s-4) 0}
+.proposed .proposal-event > span {display:block}
+.proposed .proposal-event > .caption {margin-top:var(--s-2);white-space:nowrap}
+.proposed .proposal-event > span:first-child {max-width:100%}
+.proposed .modal.overlay--wide.proposal-export {width:min(720px,calc(100% - 2 * var(--gutter)));max-width:720px}
+.proposed .proposal-export-context {font-size:var(--body-size);line-height:var(--body-lh);color:var(--ink)}
+.prototype-notice {position:fixed;z-index:30;bottom:var(--s-5);left:50%;transform:translateX(-50%);padding:var(--s-3) var(--s-5);max-width:90%;background:var(--ink);color:var(--surface);border-radius:var(--r-pill);font-size:var(--small-size);box-shadow:var(--shadow-overlay)}
+[hidden] {display:none!important}
+@media(min-width:1101px) {
+ .proposed .proposal-review-layout {grid-template-columns:384px minmax(0,1fr)}
+}
+@media(max-width:1100px) {
+ .proposed .proposal-status-filter {margin-left:0}
+}
+@media(max-width:640px) {
+ .proposed .proposal-dates {grid-template-columns:1fr}
+ .proposed .proposal-score-row {grid-template-columns:21px minmax(0,1fr) 16px}
+ .proposed .proposal-score-row .scale {grid-column:2;grid-row:2;justify-self:start;margin-top:var(--s-2)}
+ .proposed .proposal-score-row > .acc__chev {grid-column:3;grid-row:1}
+ .proposed .proposal-submit {gap:var(--s-4)}
+}

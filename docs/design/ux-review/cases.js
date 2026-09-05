@@ -1,8 +1,14 @@
 const auditCases = [
+  {id:'navigation',screen:'Р2',name:'Навигация ревьюера',title:'Меню не должно меняться при переходе между экранами',kind:'Последовательность навигации',
+   summary:'Оставляем оба списка на странице: свои работы и обзор пула. Правка касается реального расхождения Р2 с Р3–Р6, а не гипотезы о новой информационной архитектуре.',
+   changes:[
+    ['На Р2 в меню «Статистика» и «Настройки», на Р3–Р6 вместо них «Кабинет» с двумя вкладками.','То же меню «Мои работы / Пул / Кабинет» на всех экранах ревьюера. Верхняя кнопка «Настройки» как короткий путь остаётся.','reviewer-nav'],
+    ['Таблица называется «Активные», но в ней есть зачтённая работа 4776.','Название «Мои работы» согласовано с меню и не обещает фильтр, которого в данных нет. Строки сохраняются.','reviewer-list']
+   ],caution:'В Р2 работа 4790 взята 17 февраля, а в Р5 сдана 18 февраля. Эти даты нужно получить из общей фикстуры, не править визуально независимо.'},
   {id:'review',screen:'Р5',name:'Карточка ревью',title:'Выровнять разбор, дать ответу и кнопкам достаточно места',kind:'Вёрстка и ясность действий',
    summary:'Сохраняем левую колонку с работой, ИИ, ответом и итогом, правую с требованиями, все цитаты, баллы и порядок рубрики. Меняем только внутреннюю геометрию.',
    changes:[
-    ['Шкалы имеют разную ширину; длинное требование и метка «оценочное» конкурируют за одну строку.','Общий правый столбец шкал шириной 136 px; метка относится к названию. Зона выбора 32 px вместо 22 px.','review-grid'],
+    ['Шкалы имеют разную ширину; длинное требование и метка «оценочное» конкурируют за одну строку.','Общий правый столбец шкал шириной 136 px; метка относится к названию. Зона выбора 32 px вместо 22 px. Длинный код прокручивается внутри цитаты.','review-grid'],
     ['«Ответ студенту» и «Собрать заново» стоят в одной тесной шапке; два длинных решения делят ширину 384 px.','У названия и действия отдельные строки. Кнопки решения располагаются одна под другой: текст читается целиком.','review-response'],
     ['«Принять все» не объясняет, что произойдёт: баллы уже заполнены и по описанию сохраняются при финальном решении.','Вместо повторного подтверждения — короткая подпись о редактировании баллов. Финальные кнопки и ручное сохранение остаются.','review-grid'],
     ['Первое выполненное требование раскрыто ради «Нарушений не найдено».','Свернуть только этот пустой блок. Остальные требования не сортировать, не прятать и не сокращать.','review-grid']
@@ -50,6 +56,12 @@ const auditCases = [
    changes:[
     ['Длинное событие и дата делят строку .kv шириной около 340 px. Они сжимают друг друга и рвутся на короткие строки.','Событие занимает всю строку; дата — спокойная подпись под ним. Отступ и тонкая линия разделяют события.','history-log'],
     ['«Модель → человек → итог» есть в данных, но почти не считывается в плотной сетке ключ — значение.','Последнее событие остаётся последним, без повторной метрики и без декоративной ленты: последовательность читается по блокам.','history-log']
+   ]},
+  {id:'export',screen:'К10',name:'Окно выгрузки',title:'У широкого окна должна быть действительно широкая вёрстка',kind:'Конкретный конфликт CSS',
+   summary:'Состав колонок, формат, правила обработки незакрытых работ и 47 строк остаются как в исходнике. Это уже предусмотренные возможности, а не новые функции.',
+   changes:[
+    ['.overlay--wide задаёт width:720px, но .modal одновременно ограничивает max-width:560px. Широкое окно не расширяется.','Согласованный модификатор .modal.overlay--wide: ширина и максимум 720 px, с полями до границы небольшого окна.','export-width'],
+    ['Область «Что выгружаем» выглядит редактируемым input, хотя содержит задание и поток из предыдущего экрана.','Тот же контекст показан читаемым текстом на всю ширину. Название полностью переносится на строки.','export-context']
    ]}
 ];
 
@@ -60,7 +72,7 @@ const inventory = [
  ['С4','Сохранить основу','Компактная таблица решает задачу. Не добавлять сводки и разделение на табы без объёма данных.'],
  ['С5','Локальная проверка','Архив и история уместны. Объяснить, куда ведёт «Открыть страницу сдачи» у закрытой работы: просмотр или новая попытка.'],
  ['Р1','Уточнить содержание','Описание обещает аккаунт без одобрений; экран говорит «доступ у сотрудников» и «если вас нет в списке». Согласовать реальный доступ, затем править текст.'],
- ['Р2','Сохранить композицию','Свои работы и обзор пула могут быть на одной странице. Уточнить переход «Пул», не объединять разделы автоматически.'],
+ ['Р2','Правки показаны','Меню отличается от Р3–Р6; в «Активных» есть зачтённая работа. Исправить названия, сохранив композицию.'],
  ['Р3','Сохранить основу','Две настройки понятны. Для формы нужны состояния несохранённых изменений и ошибки, а не обещание нового автосохранения.'],
  ['Р4','Уточнить измерение','Не убирать согласие с моделью: экран уже объясняет, что расхождение не ошибка. Для 6% расхождения определить формулу и размер сравниваемой выборки.'],
  ['Р5','Правки показаны','Вёрстка шкал, ответа и решений; отдельно правила зачёта и добавленного критерия.'],
@@ -75,7 +87,7 @@ const inventory = [
  ['К7','Проверить семантику','Рядом с полосами типичных ошибок указать выборку: все закрытые работы или весь поток. Не вводить автоназначение вопреки pull-процессу.'],
  ['К8','Правки показаны','Компактные фильтры. Способ продолжения списка отдельно от восьми демонстрационных строк.'],
  ['К9','Правки показаны','Читаемый журнал. Текст ответа уже доступен ссылкой внизу — отсутствие ответа не является дефектом.'],
- ['К10','Локальная правка','Счётчик 47 строк и состав колонок уже есть. Исправить .modal max-width:560px, который ограничивает .overlay--wide width:720px; проверить длинные сегменты.']
+ ['К10','Правки показаны','Счётчик 47 строк и состав колонок уже есть. Исправить конфликт width и max-width у широкого окна.']
 ];
 
 function applyProposal(doc, item) {
@@ -96,8 +108,13 @@ function applyProposal(doc, item) {
    const group=doc.createElement('div');group.className='proposal-precheck';group.append(controls[1]);if(caption)group.append(caption);foot.append(group);
    mark(foot,'submit-actions');
  };
+ if(item.id==='navigation'){
+   const nav=query('.aside .menu');const links=[...nav.children];
+   links[2].textContent='Кабинет';links[3].remove();mark(nav,'reviewer-nav');
+   const list=card('Активные');list.querySelector('h4').textContent='Мои работы';mark(list.querySelector('.card__head'),'reviewer-list');
+ }
  if(item.id==='review'){
-   const review=card('Предварительное ревью от модели');review.classList.add('proposal-review');mark(review,'review-grid');
+   const review=card('Предварительное ревью от модели');review.classList.add('proposal-review');review.closest('.row-rev').classList.add('proposal-review-layout');mark(review,'review-grid');
    const head=review.querySelector('.card__head');head.querySelector('.btn').remove();
    const sub=doc.createElement('span');sub.className='caption';sub.textContent='Баллы можно изменить перед отправкой решения';head.append(sub);
    review.querySelectorAll('.acc__h').forEach(row=>{
@@ -166,7 +183,12 @@ function applyProposal(doc, item) {
    const log=card('История решений');log.classList.add('proposal-history');mark(log,'history-log');
    log.querySelectorAll('.kv').forEach(row=>{row.classList.add('proposal-event');row.lastElementChild.classList.add('caption');});
  }
+ if(item.id==='export'){
+   const modal=query('.modal');modal.classList.add('proposal-export');mark(modal,'export-width');
+   const input=modal.querySelector('input.inp');const value=doc.createElement('div');value.className='proposal-export-context';value.textContent=input.value;input.replaceWith(value);mark(value.closest('.field'),'export-context');
+ }
  // These are real controls only where the proposal demonstrates interaction.
+ all('.proposal-review .scale').forEach(group=>{group.setAttribute('role','group');group.setAttribute('aria-label','Балл: '+group.closest('.acc__h').querySelector('.acc__t').textContent);});
  all('.proposal-review .scale > span').forEach(el=>{const b=replace(el,'button');b.type='button';b.setAttribute('aria-pressed',String(b.classList.contains('is-on')));});
  all('span.btn').forEach(el=>{const b=replace(el,'button');b.type='button';});
  return root.innerHTML;
@@ -174,7 +196,7 @@ function applyProposal(doc, item) {
 
 // This function is embedded into the sandboxed preview frame.
 function frameRuntime(){
- const report=()=>parent.postMessage({type:'audit-height',height:Math.ceil(document.documentElement.scrollHeight)},'*');
+ const report=()=>parent.postMessage({type:'audit-height',height:Math.ceil(document.body.getBoundingClientRect().height)+4},'*');
  document.fonts.ready.then(report);window.addEventListener('load',report);new ResizeObserver(report).observe(document.body);
  let notice;
  function localNotice(text){if(!notice){notice=document.createElement('div');notice.className='prototype-notice';notice.setAttribute('role','status');document.body.append(notice);}notice.textContent=text;notice.hidden=false;clearTimeout(localNotice.timer);localNotice.timer=setTimeout(()=>notice.hidden=true,3500);}
@@ -182,7 +204,7 @@ function frameRuntime(){
   const move=event.target.closest('[data-move]');
   if(move){const block=move.closest('.proposal-criterion');const sibling=move.dataset.move==='up'?block.previousElementSibling:block.nextElementSibling;if(sibling?.classList.contains('proposal-criterion')){if(move.dataset.move==='up')sibling.before(block);else sibling.after(block);[...document.querySelectorAll('.proposal-criterion')].forEach((el,i)=>{el.querySelector('.proposal-number').textContent=`Критерий ${i+1}`;el.querySelectorAll('[data-move]').forEach(b=>b.setAttribute('aria-label',`${b.dataset.move==='up'?'Поднять':'Опустить'} критерий ${i+1}`));});move.focus();}return;}
   const scale=event.target.closest('.proposal-review .scale button');
-  if(scale){const group=scale.parentElement;[...group.children].forEach(b=>{b.classList.toggle('is-on',b===scale);b.setAttribute('aria-pressed',String(b===scale));});const n=s=>Number(s.replace(',','.'));const value=n(scale.textContent);const max=Math.max(...[...group.children].map(b=>n(b.textContent)));group.classList.toggle('scale--zero',value===0);group.classList.toggle('scale--max',value===max);const total=[...document.querySelectorAll('.proposal-review .acc:not([data-custom]) .scale > .is-on')].reduce((sum,b)=>sum+n(b.textContent),0);const result=[...document.querySelectorAll('.card')].find(c=>c.querySelector('h4')?.textContent==='Результат');if(result){const rows=result.querySelectorAll('.card__body .kv');rows[0].lastElementChild.textContent=total.toLocaleString('ru-RU');rows[2].lastElementChild.innerHTML=`${(total-1).toLocaleString('ru-RU')}<span style="color:var(--ink-3);font-weight:400"> из 6</span>`;rows[2].lastElementChild.style.color=total-1<4?'var(--bad)':'var(--ink)';result.querySelector('.card__foot > div').textContent=total-1<4?'Ниже порога зачёта, нужно 4 из 6. Выберите, что делать дальше.':'Порог зачёта пройден: 4 из 6.';}const summary=document.querySelector('.proposal-review .card__body > .kv:last-child');if(summary)summary.lastElementChild.textContent=`${total.toLocaleString('ru-RU')} из 6`;return;}
+  if(scale){if(scale.closest('[data-custom]')){localNotice('Макет: влияние своего требования на максимум баллов ещё не определено.');return;}const group=scale.parentElement;[...group.children].forEach(b=>{b.classList.toggle('is-on',b===scale);b.setAttribute('aria-pressed',String(b===scale));});const n=s=>Number(s.replace(',','.'));const value=n(scale.textContent);const max=Math.max(...[...group.children].map(b=>n(b.textContent)));group.classList.toggle('scale--zero',value===0);group.classList.toggle('scale--max',value===max);const marker=group.closest('.acc__h').querySelector('.ck');if(marker&&!marker.classList.contains('ck--h')&&!marker.classList.contains('ck--q')){marker.classList.toggle('ck--y',value===max);marker.classList.toggle('ck--n',value<max);marker.textContent=value===max?'✓':'✕';}const total=[...document.querySelectorAll('.proposal-review .acc:not([data-custom]) .scale > .is-on')].reduce((sum,b)=>sum+n(b.textContent),0);const result=[...document.querySelectorAll('.card')].find(c=>c.querySelector('h4')?.textContent==='Результат');if(result){const rows=result.querySelectorAll('.card__body .kv');rows[0].lastElementChild.textContent=total.toLocaleString('ru-RU');rows[2].lastElementChild.innerHTML=`${(total-1).toLocaleString('ru-RU')}<span style="color:var(--ink-3);font-weight:400"> из 6</span>`;rows[2].lastElementChild.style.color=total-1<4?'var(--bad)':'var(--ink)';result.querySelector('.card__foot > div').style.color=total-1<4?'var(--bad)':'var(--ink-2)';result.querySelector('.card__foot > div').textContent=total-1<4?'Ниже порога зачёта, нужно 4 из 6. Выберите, что делать дальше.':'Порог зачёта пройден: 4 из 6.';}const summary=document.querySelector('.proposal-review .card__body > .kv:last-child');if(summary)summary.lastElementChild.textContent=`${total.toLocaleString('ru-RU')} из 6`;return;}
   const row=event.target.closest('.proposal-review .acc__h');
   if(row&&!event.target.closest('button')){const body=row.nextElementSibling;if(body?.classList.contains('acc__b')){body.hidden=!body.hidden;const c=row.querySelector('.acc__chev');if(c)c.textContent=body.hidden?'▼':'▲';report();}return;}
   const control=event.target.closest('button,a');if(control){event.preventDefault();localNotice('Макет: это действие не отправляет и не сохраняет данные.');}

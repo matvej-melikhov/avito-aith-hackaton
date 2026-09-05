@@ -326,6 +326,16 @@ a:hover { border-bottom-color: var(--ink); }
 .acc__b { padding: 0 0 var(--s-4) 36px; }
 .acc__empty { padding: var(--s-3) var(--s-4); background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3); }
 
+/* Ручка перетаскивания. Нарисована точками из градиента, а не знаком шрифта:
+   подходящего символа нет ни в одной из трёх наших гарнитур.                */
+.drag { flex: none; width: 10px; height: 16px; cursor: grab; color: var(--ink-4);
+        background-image: radial-gradient(currentColor 1px, transparent 1.2px);
+        background-size: 5px 5px; background-position: 0 2px; }
+.drag:hover { color: var(--ink-3); }
+
+/* Шкала только для показа: так критерий будет выглядеть у ревьюера.         */
+.scale--ro > * { cursor: default; }
+
 /* Маркер вердикта. Форма несёт смысл наравне с цветом:
    квадрат с галочкой — выполнено, квадрат с минусом — нет,
    круг — решает человек.                                                    */

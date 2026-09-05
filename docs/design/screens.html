@@ -483,6 +483,16 @@ a:hover { border-bottom-color: var(--ink); }
 .acc__b { padding: 0 0 var(--s-4) 36px; }
 .acc__empty { padding: var(--s-3) var(--s-4); background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3); }
 
+/* Ручка перетаскивания. Нарисована точками из градиента, а не знаком шрифта:
+   подходящего символа нет ни в одной из трёх наших гарнитур.                */
+.drag { flex: none; width: 10px; height: 16px; cursor: grab; color: var(--ink-4);
+        background-image: radial-gradient(currentColor 1px, transparent 1.2px);
+        background-size: 5px 5px; background-position: 0 2px; }
+.drag:hover { color: var(--ink-3); }
+
+/* Шкала только для показа: так критерий будет выглядеть у ревьюера.         */
+.scale--ro > * { cursor: default; }
+
 /* Маркер вердикта. Форма несёт смысл наравне с цветом:
    квадрат с галочкой — выполнено, квадрат с минусом — нет,
    круг — решает человек.                                                    */
@@ -2233,9 +2243,9 @@ a.step { border: 0; }
 </section>
 <section class="screen" id="К6">
   <div class="screen__head"><span class="screen__id">К6</span><h2>Задание, шаг 2: конфигурация ревью</h2></div>
-  <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У каждого критерия своя формулировка, шкала, описание «что считается выполненным» и класс проверки. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Правила этого шага: порядок критериев меняется перетаскиванием и он же определяет порядок в разборе у ревьюера и студента. Рекомендации видят только ревьюеры. Описания «что считается выполненным» студент видит после проверки, до сдачи ему видны только названия критериев и баллы. Уже проверенные работы остаются на своей версии критериев.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Шаг 1 в карте пройден и нажимается, это и есть возврат. Кнопка внизу одна и ведёт только вперёд. Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг: настройка и результат выглядят как одно и то же решение.</p>
-  <div class="shot" style="height:941px"><div class="vp">
+  <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У критерия четыре настройки: формулировка, условие «выполнено, если», как проверяем и сколько это стоит. Шкалу отдельно не задают, она собирается из числа баллов и шага. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Правила этого шага: порядок критериев меняется перетаскиванием и он же определяет порядок в разборе у ревьюера и студента. Рекомендации видят только ревьюеры. Условие «выполнено, если» студент видит после проверки, до сдачи ему видны только названия критериев и баллы. Уже проверенные работы остаются на своей версии критериев.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Шаг 1 в карте пройден и нажимается, это и есть возврат. Кнопка внизу одна и ведёт только вперёд. Критерии лежат тем же списком со стрелками, что и разбор у ревьюера на Р5: одинаковая настройка и одинаковый результат. Развёрнут тот, который правите, остальные свёрнуты в строку с классом проверки и баллом. Скрытых критериев нет, все девять на месте. Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг. Шкала не выбирается из готовых наборов, она считается: баллы за критерий и шаг дают ряд значений, и он тут же показан той самой пилюлей, которую увидит ревьюер. Внизу слева сумма, справа порог зачёта: сумма считается, порог задаёт человек, поэтому одно текстом, другое полем.</p>
+  <div class="shot" style="height:1072px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2269,66 +2279,106 @@ a.step { border: 0; }
             <div class="stack">
               <div class="card">
                 <div class="card__head">
-                  <div><h4>Критерии</h4><div class="card__sub">Порог зачёта 4 балла из 6</div></div>
+                  <h4>Критерии</h4>
                   <span class="btn btn--s btn--dark">Добавить критерий</span>
                 </div>
                 <div class="card__body">
-                  <div style="padding-bottom:var(--s-5);border-bottom:1px solid var(--line)">
-                    <div style="display:flex;gap:var(--s-4);align-items:flex-start">
+                  <div class="acc">
+                    <div class="acc__h">
+                      <span class="drag"></span>
                       <input class="inp" value="Выполнена декомпозиция по двум и более признакам">
-                      <div style="flex:none">
-                        <span class="label" style="display:block;margin-bottom:var(--s-2)">шкала</span>
-                        <div class="seg"><span class="is-on">0 или 1</span><span>0, 0,5 или 1</span></div>
+                      <span class="acc__chev">&#9650;</span>
+                    </div>
+                    <div class="acc__b">
+                      <label class="field">
+                        <span class="field__lbl">Выполнено, если</span>
+                        <input class="inp" value="в работе есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они">
+                      </label>
+                      <div class="field">
+                        <span class="field__lbl">Как проверяем</span>
+                        <div class="seg"><span>формальная</span><span class="is-on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
+                      </div>
+                      <div style="display:flex;gap:var(--s-6);align-items:flex-start;flex-wrap:wrap">
+                        <div class="field" style="margin-bottom:0">
+                          <span class="field__lbl">Баллов за критерий</span>
+                          <div class="seg"><span>0,5</span><span class="is-on">1</span><span>2</span></div>
+                        </div>
+                        <div class="field" style="margin-bottom:0">
+                          <span class="field__lbl">Шаг</span>
+                          <div class="seg"><span class="is-on">1</span><span>0,5</span></div>
+                        </div>
+                        <div class="field" style="margin-bottom:0">
+                          <span class="field__lbl">Что увидит ревьюер</span>
+                          <span class="scale scale--ro"><span>0</span><span>1</span></span>
+                        </div>
                       </div>
                     </div>
-                    <input class="inp" style="margin-top:var(--s-3);font-size:var(--small-size)" value="Выполнено, если в работе есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они">
-                    <div style="display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-3)">
-                      <span class="label">проверка</span>
-                      <div class="seg"><span>формальная</span><span class="is-on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
-                    </div>
                   </div>
-
-                  <div style="padding:var(--s-5) 0;border-bottom:1px solid var(--line)">
-                    <div style="display:flex;gap:var(--s-4);align-items:flex-start">
-                      <input class="inp" value="Построена диаграмма C4: контекст и компоненты">
-                      <div style="flex:none">
-                        <span class="label" style="display:block;margin-bottom:var(--s-2)">шкала</span>
-                        <div class="seg"><span class="is-on">0 или 1</span><span>0, 0,5 или 1</span></div>
-                      </div>
-                    </div>
-                    <input class="inp" style="margin-top:var(--s-3);font-size:var(--small-size)" value="Выполнено, если обе диаграммы присутствуют и подписаны">
-                    <div style="display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-3)">
-                      <span class="label">проверка</span>
-                      <div class="seg"><span class="is-on">формальная</span><span>по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
-                    </div>
-                  </div>
-
-                  <div style="padding:var(--s-5) 0;border-bottom:1px solid var(--line)">
-                    <div style="display:flex;gap:var(--s-4);align-items:flex-start">
-                      <input class="inp" value="Проведён анализ связности компонентов">
-                      <div style="flex:none">
-                        <span class="label" style="display:block;margin-bottom:var(--s-2)">шкала</span>
-                        <div class="seg"><span>0 или 1</span><span class="is-on">0 или 0,5</span></div>
-                      </div>
-                    </div>
-                    <input class="inp" style="margin-top:var(--s-3);font-size:var(--small-size)" value="Выполнено, если разобраны конкретные зависимости между компонентами, а не общая фраза про слабую связность">
-                    <div style="display:flex;gap:var(--s-3);align-items:center;margin-top:var(--s-3)">
-                      <span class="label">проверка</span>
-                      <div class="seg"><span>формальная</span><span class="is-on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
-                    </div>
-                  </div>
-
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);padding-top:var(--s-5)">
-                    <span class="muted">Ещё 6 критериев: диаграмма последовательностей, интерфейсы, контракты, снижение связности, SRP, структура</span>
-                    <span class="btn btn--s btn--quiet">Развернуть</span>
-                  </div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Построена диаграмма C4: контекст и компоненты</span>
+                    <span class="caption">формальная</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">1</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Диаграмма последовательностей для основного сценария</span>
+                    <span class="caption">формальная</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Интерфейсы между компонентами описаны</span>
+                    <span class="caption">по смыслу, с цитатой</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
+                    <span class="caption">по смыслу, с цитатой</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">1</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Проведён анализ связности компонентов</span>
+                    <span class="caption">по смыслу, с цитатой</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Предложены способы снижения связности</span>
+                    <span class="caption">по смыслу, с цитатой</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Обосновано соблюдение SRP</span>
+                    <span class="caption">на усмотрение ревьюера</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
+                  <div class="acc"><div class="acc__h">
+                    <span class="drag"></span>
+                    <span class="acc__t">Структура и оформление документации</span>
+                    <span class="caption">формальная</span>
+                    <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
+                    <span class="acc__chev">&#9660;</span>
+                  </div></div>
                   <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:var(--s-5)">
-                    <span style="color:var(--ink)">Сумма баллов</span><span style="color:var(--ink);font-weight:var(--w-semi)">6</span>
+                    <span class="muted">9 критериев, всего 6 баллов</span>
+                    <span style="display:flex;align-items:center;gap:var(--s-3)">
+                      <span class="small" style="font-weight:var(--w-medium)">Порог зачёта</span>
+                      <input class="inp inp--s mono" value="4" style="width:56px;text-align:center">
+                    </span>
                   </div>
                 </div>
-
               </div>
-
               <div class="card">
                 <div class="card__head"><h4>Рекомендации ревьюерам</h4></div>
                 <div class="card__body">
