@@ -128,6 +128,11 @@
   /* --- Тень. Только у слоёв поверх страницы. У карточек тени нет ---------- */
   --shadow-overlay: 0 24px 60px rgba(0,0,0,.18);
 
+  /* Полупрозрачная подложка круглой кнопки. Не сплошной серый: кнопка стоит
+     и на белом, и на зелёной плашке, и должна работать на обоих.          */
+  --tint-soft:       rgba(26,26,26,.06);
+  --tint-soft-hover: rgba(26,26,26,.12);
+
   /* --- Движение ----------------------------------------------------------- */
   --t-fast: 120ms cubic-bezier(.2,0,.2,1);
   --t-base: 200ms cubic-bezier(.2,0,.2,1);
@@ -428,12 +433,16 @@ a:hover { border-bottom-color: var(--ink); }
 .crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
 /* Стрелка возврата на родительский экран. Живёт первой в строке крошек:
    так у пути и у возврата одно место, а не два разных.                      */
-.crumbs__back { display: inline-grid; place-items: center; flex: none;
-                width: 32px; height: 32px; margin-left: -9px; margin-right: -4px;
+.crumbs__back { position: relative; display: inline-grid; place-items: center; flex: none;
+                width: 28px; height: 28px; margin-left: -7px; margin-right: -2px;
                 border: 0; border-radius: var(--r-circle);
-                color: var(--ink-3); font-size: 15px; line-height: 1;
+                background: var(--tint-soft); color: var(--ink-2);
+                font-size: 14px; line-height: 1;
                 transition: background var(--t-fast), color var(--t-fast); }
-.crumbs__back:hover { background: var(--surface-2); color: var(--ink); }
+/* Круг 28px, зона нажатия 32px: кружок не должен спорить по весу со строкой
+   пути, но попадать в него надо по правилу доступности.                    */
+.crumbs__back::after { content: ""; position: absolute; inset: -2px; }
+.crumbs__back:hover { background: var(--tint-soft-hover); color: var(--ink); }
 .crumbs a { color: var(--ink-3); border: 0; }
 .crumbs a:hover { color: var(--ink); }
 .crumbs .cur { color: var(--ink); font-weight: var(--w-medium); }

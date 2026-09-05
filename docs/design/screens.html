@@ -128,6 +128,11 @@
   /* --- Тень. Только у слоёв поверх страницы. У карточек тени нет ---------- */
   --shadow-overlay: 0 24px 60px rgba(0,0,0,.18);
 
+  /* Полупрозрачная подложка круглой кнопки. Не сплошной серый: кнопка стоит
+     и на белом, и на зелёной плашке, и должна работать на обоих.          */
+  --tint-soft:       rgba(26,26,26,.06);
+  --tint-soft-hover: rgba(26,26,26,.12);
+
   /* --- Движение ----------------------------------------------------------- */
   --t-fast: 120ms cubic-bezier(.2,0,.2,1);
   --t-base: 200ms cubic-bezier(.2,0,.2,1);
@@ -428,12 +433,16 @@ a:hover { border-bottom-color: var(--ink); }
 .crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
 /* Стрелка возврата на родительский экран. Живёт первой в строке крошек:
    так у пути и у возврата одно место, а не два разных.                      */
-.crumbs__back { display: inline-grid; place-items: center; flex: none;
-                width: 32px; height: 32px; margin-left: -9px; margin-right: -4px;
+.crumbs__back { position: relative; display: inline-grid; place-items: center; flex: none;
+                width: 28px; height: 28px; margin-left: -7px; margin-right: -2px;
                 border: 0; border-radius: var(--r-circle);
-                color: var(--ink-3); font-size: 15px; line-height: 1;
+                background: var(--tint-soft); color: var(--ink-2);
+                font-size: 14px; line-height: 1;
                 transition: background var(--t-fast), color var(--t-fast); }
-.crumbs__back:hover { background: var(--surface-2); color: var(--ink); }
+/* Круг 28px, зона нажатия 32px: кружок не должен спорить по весу со строкой
+   пути, но попадать в него надо по правилу доступности.                    */
+.crumbs__back::after { content: ""; position: absolute; inset: -2px; }
+.crumbs__back:hover { background: var(--tint-soft-hover); color: var(--ink); }
 .crumbs a { color: var(--ink-3); border: 0; }
 .crumbs a:hover { color: var(--ink); }
 .crumbs .cur { color: var(--ink); font-weight: var(--w-medium); }
@@ -1468,7 +1477,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">Р5</span><h2>Карточка работы</h2></div>
   <p class="screen__note">Экран, ради которого всё остальное существует. Справа разбор от модели по требованиям задания: шкала из конфигурации, выбранное значение, обоснование с цитатой. Слева работа, признаки ИИ, итог и черновик ответа студенту. Правила экрана: оценки уже проставлены моделью, ревьюер меняет их там, где не согласен, остальное подтверждается как есть. Ревьюер может добавить своё требование, его видят студент и координатор, и оно попадает в разбор наравне с требованиями задания.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Три класса требований различаются маркером: квадрат в зелёном контуре — выполнено, квадрат в красном контуре — нет, круг в фиолетовом — решает человек. Цитата с подсветкой строки лежит внутри требования, а не отдельным блоком. Подпись «шкала» снята: она повторялась у каждого из десяти требований, а шкала и без неё узнаётся по форме. Сумма по требованиям стоит последней строкой внутри карточки с чертой сверху, как «Всего» на экране студента. Карточка результата собрана так же: слагаемые, черта, итог. Итог ниже порога показан красной цифрой и строкой с выбором, что делать дальше, без всплывающих предупреждений.</p>
-  <div class="shot" style="height:1181px"><div class="vp">
+  <div class="shot" style="height:1178px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -1646,9 +1655,9 @@ a:hover { border-bottom-color: var(--ink); }
 
 <section class="screen" id="Р6">
   <div class="screen__head"><span class="screen__id">Р6</span><h2>Карточка работы, повторная проверка</h2></div>
-  <p class="screen__note">Та же карточка, когда студент прислал правки. Работа остаётся за тем же ревьюером и в общий пул не возвращается. Попытки разложены вкладками: текущая открыта, прошлая доступна целиком и только для чтения. Отдельная карточка слева показывает, что ревьюер просил исправить и что с этим стало. Признаки генерации ИИ считаются заново для новой версии и показываются там же, где на Р5, в макете этот блок не повторён.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Вкладки попыток появляются только тогда, когда попыток больше одной: на первой проверке их нет, как нет табов на странице сдачи до первой проверки. Прошлые замечания стоят слева, рядом с решением, а не внутри разбора: ревьюер сначала смотрит, закрылось ли то, что он просил, и только потом читает разбор целиком. Сравнение показано цифрами «0 в попытке 1» подписью у требования, без второй колонки и без подсветки различий.</p>
-  <div class="shot" style="height:1001px"><div class="vp">
+  <p class="screen__note">Та же карточка, когда студент прислал правки. Работа остаётся за тем же ревьюером и в общий пул не возвращается. Попытки разложены вкладками: текущая открыта, прошлая доступна целиком и только для чтения. Признаки генерации ИИ считаются заново: правки это новая версия работы, и проверять её надо как новую.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Вкладки попыток появляются только тогда, когда попыток больше одной: на первой проверке их нет, как нет табов на странице сдачи до первой проверки. Больше повторная проверка ничем не отличается от первой: тот же разбор, тот же порядок карточек, те же кнопки. Прошлая попытка лежит на соседней вкладке целиком, поэтому сравнивать её пересказом внутри текущей не нужно. У выполненного требования кода нет: показывать нечего, стоит строка «Нарушений не найдено».</p>
+  <div class="shot" style="height:1015px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -1676,7 +1685,7 @@ a:hover { border-bottom-color: var(--ink); }
         </div>
         <div class="main">
           <div class="tabs" style="margin-bottom:var(--s-6)">
-            <span class="tab is-on">Попытка 2<span class="c">текущая</span></span>
+            <span class="tab is-on">Попытка 2</span>
             <span class="tab">Попытка 1</span>
           </div>
           <div class="row-rev">
@@ -1691,23 +1700,22 @@ a:hover { border-bottom-color: var(--ink); }
                 </div>
               </div>
 
-              <div class="card card--hard">
-                <div class="card__head">
-                  <h4>Что вы просили исправить</h4>
-                  <span class="btn btn--s btn--quiet">Открыть попытку 1</span>
-                </div>
-                <div class="card__body card__body--tight">
-                  <div class="kv">
-                    <span style="display:flex;align-items:center;gap:var(--s-3);color:var(--ink)"><span class="ck ck--y">&#10003;</span>Контракты: формат, входы, выходы, ошибки</span>
-                    <span class="mono" style="color:var(--ink-3)">0 &#8594; <b style="color:var(--ok)">1</b></span>
+              <div class="card">
+                <div class="card__head"><div><h4>Признаки генерации ИИ</h4><div class="card__sub">Оценка модели, на балл не влияет</div></div></div>
+                <div class="card__body">
+                  <div style="display:flex;align-items:center;gap:var(--s-4)">
+                    <span class="d3" style="color:var(--human)">38%</span>
+                    <div style="flex:1"><div class="meter"><i style="width:38%;background:var(--brand-violet)"></i></div></div>
                   </div>
-                  <div class="kv" style="border-bottom:0">
-                    <span style="display:flex;align-items:center;gap:var(--s-3);color:var(--ink)"><span class="ck ck--n">&#10005;</span>Анализ связности компонентов</span>
-                    <span class="mono" style="color:var(--ink-3)">0 &#8594; <b style="color:var(--bad)">0</b></span>
+                  <ul style="margin:var(--s-4) 0 0;padding-left:1.1em;font-size:var(--small-size);color:var(--ink-2);line-height:1.6">
+                    <li>добавленные разделы написаны короче и неровнее остального текста,</li>
+                    <li>правки пришли четырьмя коммитами за два дня,</li>
+                    <li>декларация об использовании ИИ появилась, как просили в прошлый раз.</li>
+                  </ul>
+                  <div class="btn-row" style="margin-top:var(--s-4)">
+                    <span class="btn btn--s">Подтвердить сигнал</span>
+                    <span class="btn btn--s btn--quiet">Отклонить сигнал</span>
                   </div>
-                </div>
-                <div class="card__foot">
-                  <span class="caption">Ваш ответ по попытке 1 от 18 февраля: «опиши входы и выходы для внутренних вызовов, добавь раздел с анализом связности»</span>
                 </div>
               </div>
 
@@ -1729,7 +1737,7 @@ a:hover { border-bottom-color: var(--ink); }
                   </div>
                 </div>
                 <div class="card__foot" style="display:block">
-                  <div style="color:var(--ink-2);margin-bottom:var(--s-3)">Порог зачёта пройден, нужно было 4 из 6. В попытке 1 было 3,5.</div>
+                  <div style="color:var(--ink-2);margin-bottom:var(--s-3)">Порог зачёта пройден, нужно было 4 из 6.</div>
                   <div class="btn-row">
                     <span class="btn btn--dark" style="flex:1;justify-content:center">Вернуть на доработку</span>
                     <span class="btn btn--pri" style="flex:1;justify-content:center">Зачесть</span>
@@ -1753,28 +1761,17 @@ a:hover { border-bottom-color: var(--ink); }
                   <div class="acc">
                     <div class="acc__h">
                       <span class="ck ck--y">&#10003;</span>
-                      <span class="acc__t">Контракты: формат, входы, выходы, ошибки<span class="caption" style="display:block">в попытке 1 было 0</span></span>
+                      <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
                       <span class="scale scale--max"><span>0</span><span>0,5</span><span class="is-on">1</span></span>
                       <span class="acc__chev">&#9650;</span>
                     </div>
-                    <div class="acc__b">
-                      <div class="finding">
-                        <div class="finding__src"><span class="f">docs/architecture.md</span><span>строки 112&#8211;134</span><span class="o">Открыть в репозитории &#8599;</span></div>
-                        <div class="code">
-                          <div class="cl"><span class="n">112</span><span>### 5.1 Контракт I1: GET /wardrobe/items</span></div>
-                          <div class="cl is-hit"><span class="n">118</span><span>Вход: user_id, фильтры. Выход: список вещей.</span></div>
-                          <div class="cl is-hit"><span class="n">124</span><span>### 5.2 Контракт I2: Outfits &#8594; Wardrobe</span></div>
-                          <div class="cl is-hit"><span class="n">129</span><span>Вход: user_id, сезон. Выход: вещи. Ошибки: 404, 500.</span></div>
-                        </div>
-                        <div class="finding__why">Появились входы, выходы и ошибки для внешнего интерфейса и для обоих внутренних вызовов. Требование закрыто полностью.</div>
-                      </div>
-                    </div>
+                    <div class="acc__b"><div class="acc__empty">Нарушений не найдено</div></div>
                   </div>
 
                   <div class="acc">
                     <div class="acc__h">
                       <span class="ck ck--n">&#10005;</span>
-                      <span class="acc__t">Анализ связности компонентов<span class="caption" style="display:block">в попытке 1 было 0</span></span>
+                      <span class="acc__t">Анализ связности компонентов</span>
                       <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span></span>
                       <span class="acc__chev">&#9650;</span>
                     </div>
@@ -2009,7 +2006,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">К4</span><h2>Задание, шаг 1: что видит студент</h2></div>
   <p class="screen__note">Задание принадлежит курсу и заполняется по шагам. Сначала то, что увидит студент: название, условие, формат сдачи, срок и правило штрафа. Критерии на следующем шаге, чтобы не смешивать текст для студента с конфигурацией проверки.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Шаги мастера — круги с номерами, пройденный заливается зелёным. Это единственное место, где заливка вернулась: шагов всего три, и они не повторяются списком.</p>
-  <div class="shot" style="height:591px"><div class="vp">
+  <div class="shot" style="height:588px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2100,7 +2097,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">К5</span><h2>Задание, шаг 2: конфигурация ревью</h2></div>
   <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У каждого критерия своя формулировка, шкала, описание «что считается выполненным» и класс проверки. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг: настройка и результат выглядят как одно и то же решение.</p>
-  <div class="shot" style="height:902px"><div class="vp">
+  <div class="shot" style="height:899px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2311,7 +2308,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">К7</span><h2>Реестр домашек курса</h2></div>
   <p class="screen__note">Все домашки выбранного курса и потока, в отличие от пула — со всеми статусами, включая закрытые. Отсюда открывается любое ревью и отсюда же делается выгрузка. Кнопка выгрузки становится активной после дедлайна задания.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Восемь вкладок по статусам — единственное место, где их так много. Счётчик у каждой набран моноширинным, чтобы вкладки не прыгали при обновлении цифр.</p>
-  <div class="shot" style="height:659px"><div class="vp">
+  <div class="shot" style="height:657px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2377,7 +2374,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">К8</span><h2>Просмотр ревью, только чтение</h2></div>
   <p class="screen__note">Тот же экран, что у ревьюера, с теми же блоками и в том же порядке, но без возможности что-либо менять: шкалы зафиксированы, полей ввода нет, кнопок действия нет. Нужен для разбора жалоб и выборочного контроля. Дополнительно показана история решений.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Режим чтения показан не серым «диммингом» всего экрана, а одной пилюлей в шапке и отсутствием шкал: вместо них моноширинные баллы. Журнал решений слева читается как лента, потому что это и есть доказательство участия человека.</p>
-  <div class="shot" style="height:883px"><div class="vp">
+  <div class="shot" style="height:880px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
