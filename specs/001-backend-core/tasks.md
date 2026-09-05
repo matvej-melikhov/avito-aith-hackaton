@@ -176,8 +176,8 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T099 [US4] Create the reversible AI-review migration with `down_revision=0005_review_spine` in `backend/migrations/versions/0006_ai_review.py`
 - [X] T100 [US4] Implement canonical immutable-input fingerprinting and shared vector verification in `backend/src/review_platform/domain/ai_fingerprint.py`
 - [X] T101 [US4] Implement generated typed AI request/event/error models plus exact completeness and zero..criterion-max semantic validation for every AI suggestion in `backend/src/review_platform/contracts/ai_review.py`
-- [ ] T102 [US4] Implement tenant-scoped draft revision/decision/note repositories with expected-current CAS in `backend/src/review_platform/infrastructure/db/repositories/review_revisions.py`
-- [ ] T103 [US4] Implement tenant-scoped AI run/attempt/event/suggestion/signal repositories in `backend/src/review_platform/infrastructure/db/repositories/ai_reviews.py`
+- [X] T102 [US4] Implement tenant-scoped draft revision/decision/note repositories with expected-current CAS in `backend/src/review_platform/infrastructure/db/repositories/review_revisions.py`
+- [X] T103 [US4] Implement tenant-scoped AI run/attempt/event/suggestion/signal repositories in `backend/src/review_platform/infrastructure/db/repositories/ai_reviews.py`
 - [ ] T104 [US4] Implement append-only human draft revision creation used to prove AI cannot overwrite a human edit in `backend/src/review_platform/application/services/review_drafts.py`
 - [ ] T105 [US4] Implement idempotent AI start with frozen immutable inputs, exact credential binding provenance, Operation ID, and signed artifact grant in `backend/src/review_platform/application/services/ai_review_start.py`
 - [ ] T106 [US4] Implement sequenced idempotent AI event ingestion, terminal completeness/error checks, stale detection, and separate AI signal storage in `backend/src/review_platform/application/services/ai_review_events.py`

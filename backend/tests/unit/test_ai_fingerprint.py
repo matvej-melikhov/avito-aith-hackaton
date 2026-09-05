@@ -18,7 +18,8 @@ from review_platform.domain.ai_fingerprint import (
     canonical_ai_input_bytes,
     compute_ai_fingerprint,
     verify_ai_fingerprint,
-        )
+)
+
 
 def _vector() -> dict[str, object]:
     return load_fixture("ai-fingerprint-v1.1.0.json")

@@ -1,5 +1,6 @@
 """Tenant-scoped persistence repositories."""
 
+from review_platform.infrastructure.db.repositories.ai_reviews import AIReviewRepository
 from review_platform.infrastructure.db.repositories.homeworks import SqlHomeworkRepository
 from review_platform.infrastructure.db.repositories.identity import (
     AgentAuthorizationRepository,
@@ -26,6 +27,9 @@ from review_platform.infrastructure.db.repositories.operations import (
     OutboxRepository,
     ReceiptRepository,
 )
+from review_platform.infrastructure.db.repositories.review_revisions import (
+    SqlReviewRevisionRepository,
+)
 from review_platform.infrastructure.db.repositories.submissions import (
     SqlArtifactCaptureAuthorization,
     SqlArtifactCaptureRepository,
@@ -40,6 +44,7 @@ from review_platform.infrastructure.db.repositories.submissions import (
 )
 
 __all__ = [
+    "AIReviewRepository",
     "AgentAuthorizationRepository",
     "AuditEventRepository",
     "AuditRepository",
@@ -67,6 +72,7 @@ __all__ = [
     "SqlCaptureScheduler",
     "SqlHomeworkRepository",
     "SqlReviewIterationRepository",
+    "SqlReviewRevisionRepository",
     "SqlSubmissionRepository",
     "SqlSubmissionScopeAuthorization",
     "UserIdentityRepository",
