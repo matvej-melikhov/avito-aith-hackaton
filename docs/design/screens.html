@@ -1666,7 +1666,7 @@ a.step { border: 0; }
                     <div class="acc__b"><div class="quote quote--human">Модель рекомендует 0,5: принцип назван и применён к двум компонентам из четырёх. Оценочное требование, решение принимает ревьюер.</div></div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации</span><span class="pill pill--human">оценочное</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc" style="background:var(--surface-2);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
                     <div class="acc__h">
@@ -1823,7 +1823,7 @@ a.step { border: 0; }
 
                   <div class="acc"><div class="acc__h"><span class="ck ck--y">&#10003;</span><span class="acc__t">Предложены способы снижения связности</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
                   <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="pill pill--human">оценочное</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">&#10003;</span><span class="acc__t">Структура и оформление документации</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
+                  <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации</span><span class="pill pill--human">оценочное</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
 
                   <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:var(--s-5)">
                     <span style="color:var(--ink)">Сумма по требованиям</span><span style="color:var(--ink);font-weight:var(--w-semi)">5,5 из 6</span>
@@ -2252,9 +2252,9 @@ a.step { border: 0; }
 </section>
 <section class="screen" id="К6">
   <div class="screen__head"><span class="screen__id">К6</span><h2>Задание, шаг 2: конфигурация ревью</h2></div>
-  <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У критерия четыре настройки: формулировка, условие «выполнено, если», как проверяем и сколько это стоит. Шкалу отдельно не задают, она собирается из числа баллов и шага. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Правила этого шага: порядок критериев меняется перетаскиванием и он же определяет порядок в разборе у ревьюера и студента. Рекомендации видят только ревьюеры. Условие «выполнено, если» студент видит после проверки, до сдачи ему видны только названия критериев и баллы. Уже проверенные работы остаются на своей версии критериев.</p>
+  <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У критерия четыре настройки: формулировка, условие «выполнено, если», как проверяем и сколько это стоит. Шкалу отдельно не задают, она собирается из числа баллов и шага. У содержательного критерия можно включить второй шаг «ещё и оценить качество»: сначала модель находит и цитирует, потом судит о качестве, и второй шаг считается только если первый дал «да». Формат файла задания лежит в 08-review-core.md, экран и формат держим сведёнными. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Правила этого шага: порядок критериев меняется перетаскиванием и он же определяет порядок в разборе у ревьюера и студента. Рекомендации видят только ревьюеры. Условие «выполнено, если» студент видит после проверки, до сдачи ему видны только названия критериев и баллы. Уже проверенные работы остаются на своей версии критериев.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Шаг 1 в карте пройден и нажимается, это и есть возврат. Кнопка внизу одна и ведёт только вперёд. Критерии лежат тем же списком со стрелками, что и разбор у ревьюера на Р5: одинаковая настройка и одинаковый результат. Скрытых критериев нет, все девять на месте: свёрнуты все, кроме того, который правите. Открытый — не строка с полем посередине, а форма на подложке, где подписано каждое поле, включая название. Иначе название и условие читаются как два одинаковых ящика подряд, а список выходит наполовину текстом, наполовину полями. Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг. Шкала не выбирается из готовых наборов, она считается: баллы за критерий и шаг дают ряд значений, и он тут же показан той самой пилюлей, которую увидит ревьюер. Внизу одна строка: «Порог зачёта 4 балла из 6 возможных». Порог задаёт человек, поэтому он поле, шестёрка считается сама, поэтому она текст рядом. Отдельной строки с суммой нет, число и так стоит там, где оно нужно.</p>
-  <div class="shot" style="height:1130px"><div class="vp">
+  <div class="shot" style="height:1178px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2311,6 +2311,10 @@ a.step { border: 0; }
                       <span class="field__lbl">Как проверяем</span>
                       <div class="seg"><span>формальная</span><span class="is-on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
                     </div>
+                    <div class="field">
+                      <label class="chk"><input type="checkbox"><span class="chk__box"></span><span class="small">Ещё и оценить качество</span></label>
+                      <span class="field__hint">Второй шаг после того, как модель нашла и процитировала. Считается только если первый шаг дал «да».</span>
+                    </div>
                     <div style="display:flex;gap:var(--s-6);align-items:flex-start;flex-wrap:wrap">
                       <div class="field" style="margin-bottom:0">
                         <span class="field__lbl">Баллов за критерий</span>
@@ -2357,14 +2361,14 @@ a.step { border: 0; }
                   <div class="acc"><div class="acc__h">
                     <span class="drag"></span>
                     <span class="acc__t">Проведён анализ связности компонентов</span>
-                    <span class="caption">по смыслу, с цитатой</span>
+                    <span class="caption">по смыслу, с цитатой, плюс качество</span>
                     <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
                     <span class="acc__chev">&#9660;</span>
                   </div></div>
                   <div class="acc"><div class="acc__h">
                     <span class="drag"></span>
                     <span class="acc__t">Предложены способы снижения связности</span>
-                    <span class="caption">по смыслу, с цитатой</span>
+                    <span class="caption">по смыслу, с цитатой, плюс качество</span>
                     <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
                     <span class="acc__chev">&#9660;</span>
                   </div></div>
@@ -2378,7 +2382,7 @@ a.step { border: 0; }
                   <div class="acc"><div class="acc__h">
                     <span class="drag"></span>
                     <span class="acc__t">Структура и оформление документации</span>
-                    <span class="caption">формальная</span>
+                    <span class="caption">на усмотрение ревьюера</span>
                     <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
                     <span class="acc__chev">&#9660;</span>
                   </div></div>
@@ -2647,7 +2651,7 @@ a.step { border: 0; }
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Проведён анализ связности компонентов</span><span class="pill pill--human">изменено ревьюером</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Предложены способы снижения связности</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0 из 0,5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Структура и оформление документации</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc" style="background:var(--violet-wash);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
                   <div class="acc__h">
                     <span class="ck ck--q">＋</span><span class="acc__t">Читаемость диаграмм без пояснений в тексте</span>
