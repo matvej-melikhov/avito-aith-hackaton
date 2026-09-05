@@ -116,9 +116,7 @@ class ReviewIterationAuthorizationPort(Protocol):
         self, *, actor: RequestActor, organization_id: UUID, transaction: object
     ) -> None: ...
 
-    async def revalidate_for_commit(
-        self, *, actor: RequestActor, transaction: object
-    ) -> None: ...
+    async def revalidate_for_commit(self, *, actor: RequestActor, transaction: object) -> None: ...
 
 
 class ReviewIterationAuditPort(Protocol):
@@ -280,16 +278,18 @@ class ReviewIterationService:
         )
         return _result(review_case, iteration, replayed=False)
 
-    def _validate_actor(
-        self, command: OpenReviewIterationCommand, actor: RequestActor
-    ) -> None:
+    def _validate_actor(self, command: OpenReviewIterationCommand, actor: RequestActor) -> None:
         if actor.organization_id != command.organization_id:
             raise ReviewIterationPermissionDenied("actor tenant does not match review tenant")
-        if actor.actor_type != "user" or not actor.roles.intersection(
+        if actor.actor_type not in {"user", "agent"} or not actor.roles.intersection(
             {"reviewer", "methodologist"}
         ):
             raise ReviewIterationPermissionDenied(
                 "review iteration requires reviewer or methodologist"
+            )
+        if actor.actor_type == "agent" and "reviews:write" not in actor.scopes:
+            raise ReviewIterationPermissionDenied(
+                "agent authorization requires reviews:write scope"
             )
         if command.expected_review_case_revision < 0:
             raise ReviewIterationInvalidInput("expected ReviewCase revision must be nonnegative")
@@ -306,9 +306,7 @@ class ReviewIterationService:
         ):
             raise ReviewIterationConflict("selected version does not match Submission scope")
         if selected.status not in {"ready", "pending_review"}:
-            raise ReviewIterationInvalidInput(
-                "selected version must be ready or pending_review"
-            )
+            raise ReviewIterationInvalidInput("selected version must be ready or pending_review")
         if selected.artifact_version_id is None:
             raise ReviewIterationInvalidInput("selected version has no immutable ArtifactVersion")
 

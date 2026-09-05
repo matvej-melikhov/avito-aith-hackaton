@@ -42,6 +42,8 @@ ARTIFACT = UUID("00000000-0000-7000-8000-000000000909")
 HOMEWORK_VERSION = UUID("00000000-0000-7000-8000-000000000910")
 CRITERION_SET = UUID("00000000-0000-7000-8000-000000000911")
 CASE = UUID("00000000-0000-7000-8000-000000000912")
+AGENT = UUID("00000000-0000-7000-8000-000000000913")
+AGENT_AUTHORIZATION = UUID("00000000-0000-7000-8000-000000000914")
 NOW = datetime(2026, 9, 5, 12, 0, tzinfo=UTC)
 
 
@@ -221,26 +223,34 @@ class FakeAuthorization:
     def __init__(self) -> None:
         self.initial = 0
         self.final = 0
+        self.initial_actors: list[RequestActor] = []
+        self.final_actors: list[RequestActor] = []
 
     async def authorize_open(
         self, *, actor: RequestActor, organization_id: UUID, transaction: object
     ) -> None:
-        del actor, organization_id, transaction
+        del organization_id, transaction
         self.initial += 1
+        self.initial_actors.append(actor)
 
     async def revalidate_for_commit(self, *, actor: RequestActor, transaction: object) -> None:
-        del actor, transaction
+        del transaction
         self.final += 1
+        self.final_actors.append(actor)
 
 
 class FakeAudit:
     def __init__(self) -> None:
         self.iterations: list[UUID] = []
+        self.actors: list[RequestActor] = []
 
     async def record_open(self, **values: object) -> None:
         iteration = values["iteration"]
+        actor = values["actor"]
         assert isinstance(iteration, ReviewIteration)
+        assert isinstance(actor, RequestActor)
         self.iterations.append(iteration.id)
+        self.actors.append(actor)
 
 
 def _actor(*, organization_id: UUID = ORG, roles: list[str] | None = None) -> RequestActor:
@@ -250,6 +260,25 @@ def _actor(*, organization_id: UUID = ORG, roles: list[str] | None = None) -> Re
         roles=roles or ["reviewer"],
         membership_revision=0,
         auth_epoch=0,
+    )
+
+
+def _agent_actor(
+    *,
+    roles: set[str] | None = None,
+    scopes: set[str] | None = None,
+) -> RequestActor:
+    return RequestActor.agent(
+        organization_id=ORG,
+        user_id=USER,
+        roles=roles or {"reviewer"},
+        membership_revision=0,
+        auth_epoch=0,
+        agent_id=AGENT,
+        agent_authorization_id=AGENT_AUTHORIZATION,
+        agent_authorization_revision=2,
+        scopes=scopes or {"reviews:write"},
+        expires_at=NOW + timedelta(hours=1),
     )
 
 
@@ -326,6 +355,47 @@ async def test_wrong_tenant_role_archived_run_and_missing_artifact_fail_closed()
     repository.versions[VERSION].artifact_version_id = None
     with pytest.raises(ReviewIterationInvalidInput, match="ArtifactVersion"):
         await service.open(_command(), actor=_actor(), transaction=object())
+
+
+@pytest.mark.anyio
+async def test_agent_open_preserves_actor_provenance_through_final_revalidation() -> None:
+    repository = FakeRepository()
+    service, authorization, audit = _service(repository)
+    actor = _agent_actor()
+
+    result = await service.open(_command(), actor=actor, transaction=object())
+
+    assert result.review_case_revision == 1
+    assert authorization.initial_actors == [actor]
+    assert authorization.final_actors == [actor]
+    assert audit.actors == [actor]
+    assert audit.actors[0].agent_id == AGENT
+    assert audit.actors[0].agent_authorization_id == AGENT_AUTHORIZATION
+
+
+@pytest.mark.anyio
+async def test_agent_open_requires_exact_role_and_scope_and_rejects_operator() -> None:
+    service, _, _ = _service(FakeRepository())
+
+    with pytest.raises(ReviewIterationPermissionDenied, match="reviewer or methodologist"):
+        await service.open(
+            _command(),
+            actor=_agent_actor(roles={"student"}),
+            transaction=object(),
+        )
+    with pytest.raises(ReviewIterationPermissionDenied, match="reviews:write"):
+        await service.open(
+            _command(),
+            actor=_agent_actor(scopes={"courses:read"}),
+            transaction=object(),
+        )
+    operator = RequestActor.installation_operator(
+        organization_id=ORG,
+        installation_operator_id="local-operator",
+        reason="not a product actor",
+    )
+    with pytest.raises(ReviewIterationPermissionDenied, match="reviewer or methodologist"):
+        await service.open(_command(), actor=operator, transaction=object())
 
 
 @pytest.mark.anyio
