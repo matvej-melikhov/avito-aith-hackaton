@@ -100,6 +100,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
   const privateDetails = new Map<string, W<"PrivateHomeworkView">>();
   const privateVersions = new Map<string, Model<"HomeworkVersionSummary">>();
   const uploads = new Map<string, { view: W<"UploadView">; url: string }>();
+  const submissionComments = new Map<string, string>();
   const exports = new Map<string, W<"ExportView">>();
   const notices: W<"NotificationView">[] = [];
   const outcomes = new Map<
@@ -617,9 +618,8 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
         }
         if (path.startsWith("/v2/artifacts/") && path.endsWith("/download"))
           return response({
-            url:
-              uploads.get(identity)?.url ??
-              `${location.origin}/demo-artifact.txt`,
+            filename: uploads.get(identity)?.view.filename ?? "work.md",
+            url: `${location.origin}/demo-artifact.txt?artifact=${encodeURIComponent(identity)}`,
             expires_at: new Date(Date.now() + 900000).toISOString(),
           });
         if (path.startsWith("/v2/submissions/")) {
@@ -632,7 +632,8 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             attempts: c.submission.versions.map((v) => ({
               id: v.id,
               sequence: v.sequence,
-              comment: "",
+              comment:
+                submissionComments.get(v.artifact_version_id ?? "") ?? "",
               submitted_at: v.submitted_at,
               status: v.status,
               artifact_id: v.artifact_version_id,
@@ -1004,6 +1005,10 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
               ? preparations.get(preparationId)?.artifact_id
               : null) ??
             null;
+          const submittedArtifact =
+            c.submission.versions.at(-1)!.artifact_version_id;
+          if (submittedArtifact)
+            submissionComments.set(submittedArtifact, draft.comment);
           result = {
             id: submitted.submission_id,
             revision: submitted.submission_revision,

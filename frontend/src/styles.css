@@ -1149,6 +1149,15 @@ dd {
   flex: none;
 }
 
+.submitted-attempt {
+  margin-bottom: var(--s-5);
+  padding: var(--s-4);
+  background: var(--surface-2);
+}
+.submitted-attempt .label {
+  margin: var(--s-3) 0 var(--s-1);
+}
+
 .page-heading-main {
   display: flex;
   align-items: center;

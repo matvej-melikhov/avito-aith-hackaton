@@ -2,6 +2,7 @@ import { useState } from "react";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { Card, Empty, Resource, Status, date, useResource } from "../ui";
 import { ScreenTitle, SelfReviewResult } from "../workspace-ui";
+import { ArtifactLink } from "./WorkspaceReview";
 
 const verdicts: Record<string, string> = {
   passed: "зачтена",
@@ -226,6 +227,27 @@ export function WorkspaceSubmissionDetail({
                           )}
                         </summary>
                         <div style={{ paddingBottom: "var(--s-4)" }}>
+                          <div className="submitted-attempt">
+                            <div className="rubric-row">
+                              <strong>Отправленная работа</strong>
+                              {attempt.artifact_id ? (
+                                <ArtifactLink
+                                  ws={ws}
+                                  id={attempt.artifact_id}
+                                />
+                              ) : (
+                                <span className="muted">Снимок недоступен</span>
+                              )}
+                            </div>
+                            {attempt.comment && (
+                              <>
+                                <p className="label">Комментарий к сдаче</p>
+                                <p className="preserve small">
+                                  {attempt.comment}
+                                </p>
+                              </>
+                            )}
+                          </div>
                           {latest ? (
                             <PublishedStudentReview value={latest} />
                           ) : (
