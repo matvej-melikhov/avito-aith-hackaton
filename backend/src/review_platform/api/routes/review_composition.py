@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import timedelta
 from decimal import Decimal
 from typing import Any, cast
 from uuid import UUID
@@ -12,8 +13,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from review_platform.application.audit import AuditRecorder
-from review_platform.application.authorization import Authorizer
+from review_platform.application.authorization import AuthorizationPolicy, Authorizer
 from review_platform.application.foundation_runtime import FoundationRuntime
+from review_platform.application.projections.review_detail import (
+    ArtifactDownloadGrant,
+    ReviewDetailProjectionError,
+    read_review_detail,
+)
 from review_platform.application.request_context import RequestActor
 from review_platform.application.services.publication_requests import (
     PublicationRequestError,
@@ -422,6 +428,53 @@ async def read_recommendation(
     }
 
 
+async def read_review_detail_response(
+    *,
+    runtime: FoundationRuntime,
+    actor: RequestActor,
+    review_iteration_id: UUID,
+    transaction: AsyncSession,
+) -> Mapping[str, Any]:
+    try:
+        await Authorizer(runtime.user_auth_guard, clock=runtime.clock).authorize(
+            actor=actor,
+            organization_id=actor.organization_id,
+            policy=AuthorizationPolicy(
+                required_roles=frozenset({"reviewer", "methodologist"}),
+                required_scopes=frozenset({"reviews:read"}),
+            ),
+        )
+        now = runtime.clock()
+
+        def sign(
+            organization_id: UUID,
+            artifact_version_id: UUID,
+        ) -> ArtifactDownloadGrant:
+            return ArtifactDownloadGrant(
+                organization_id=organization_id,
+                artifact_version_id=artifact_version_id,
+                url=runtime.sign_artifact_read(
+                    organization_id=str(organization_id),
+                    artifact_version_id=str(artifact_version_id),
+                    requested_by_organization_id=str(actor.organization_id),
+                ),
+                expires_at=now
+                + timedelta(seconds=runtime.settings.ai_signed_url_ttl_seconds),
+            )
+
+        result = await read_review_detail(
+            transaction,
+            organization_id=actor.organization_id,
+            review_iteration_id=review_iteration_id,
+            sign_artifact_download=sign,
+        )
+    except (ReviewDetailProjectionError, ValueError) as error:
+        raise ReviewCompositionError(str(error)) from error
+    if result is None:
+        raise ReviewCompositionError("tenant ReviewIteration was not found")
+    return result
+
+
 async def _review_case_id(
     session: AsyncSession,
     *,
@@ -483,4 +536,5 @@ __all__ = [
     "ReviewCompositionError",
     "dispatch_review_mutation",
     "read_recommendation",
+    "read_review_detail_response",
 ]

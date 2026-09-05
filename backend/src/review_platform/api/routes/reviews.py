@@ -15,6 +15,7 @@ from review_platform.api.routes.review_composition import (
     ReviewCompositionError,
     dispatch_review_mutation,
     read_recommendation,
+    read_review_detail_response,
 )
 from review_platform.application.authorization import AuthorizationError
 from review_platform.application.foundation_runtime import FoundationRuntime
@@ -209,6 +210,13 @@ async def _read(request: Request, name: str, identity: UUID | None) -> Response:
                     runtime=runtime,
                     actor=actor,
                     course_run_id=identity,
+                    transaction=transaction,
+                )
+            elif name == "get_review_iteration" and identity is not None:
+                result = await read_review_detail_response(
+                    runtime=runtime,
+                    actor=actor,
+                    review_iteration_id=identity,
                     transaction=transaction,
                 )
             else:
