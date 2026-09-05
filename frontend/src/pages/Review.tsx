@@ -1,4 +1,5 @@
-import { Btn, Dock } from "../ds";
+import { Btn, Dock, plural } from "../ds";
+import { ArtifactLink } from "./WorkspaceReview";
 import { nextPoolWork, openQueueWork } from "./reviewMode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ApiClient, Model } from "../api/client";
@@ -81,13 +82,13 @@ export function ReviewPage({
 }
 export function ReviewEditor({
   api,
-  detail,
+  detail: initialDetail,
   version,
   session,
   refresh,
   readOnly = false,
   ws,
-  context,
+  context: initialContext,
   onEdit,
 }: {
   api: ApiClient;
@@ -103,6 +104,17 @@ export function ReviewEditor({
   context?: W<"ReviewContext">;
   onEdit?: () => void;
 }) {
+  const [detail, setDetail] = useState(initialDetail);
+  const [context, setContext] = useState(initialContext);
+  const [savedNotice, setSavedNotice] = useState("");
+  const directory = useResource(
+    () =>
+      ws && session.roles.includes("methodologist")
+        ? ws.directory()
+        : Promise.resolve(null),
+    "review-directory",
+  );
+  const criterionNodes = useRef(new Map<string, HTMLDetailsElement>());
   const action = useAction();
   const [correcting, setCorrecting] = useState(false);
   const [poolEmpty, setPoolEmpty] = useState(false);
@@ -142,6 +154,9 @@ export function ReviewEditor({
   const feedbackTouched = useRef(false);
   const [dirty, setDirty] = useState(false);
   useDirtyGuard(dirty);
+  useEffect(() => {
+    if (dirty) setSavedNotice("");
+  }, [dirty]);
   const [sourceRun, setSourceRun] = useState<string | null>(
     context?.ai_run_id ?? null,
   );
@@ -272,28 +287,60 @@ export function ReviewEditor({
       all.map((d, i) => (i === index ? { ...d, ...patch } : d)),
     );
   }
+  async function reloadLocal() {
+    const [fresh, nextContext] = await Promise.all([
+      ws
+        ? ws.reviewDetail(detail.review_iteration_id)
+        : api.review(detail.review_iteration_id),
+      ws
+        ? ws.reviewContext(detail.review_iteration_id)
+        : Promise.resolve(context),
+    ]);
+    setDetail(fresh);
+    setContext(nextContext);
+    return fresh;
+  }
   async function save() {
     const draft = {
       feedback,
       criterion_decisions: decisions,
       review_notes: notes,
     };
+    let revisionId: string;
     if (ws)
-      await ws.command(
-        "save_workspace_review",
-        detail.review_iteration_id,
-        detail.revision,
-        { draft, ai_run_id: sourceRun, signal_decisions: signalDecisions },
-      );
+      revisionId = (
+        await ws.command(
+          "save_workspace_review",
+          detail.review_iteration_id,
+          detail.revision,
+          { draft, ai_run_id: sourceRun, signal_decisions: signalDecisions },
+        )
+      ).id;
     else
-      await api.command(
-        "save_review_revision",
-        detail.review_iteration_id,
-        detail.revision,
-        draft,
+      revisionId = (
+        await api.command(
+          "save_review_revision",
+          detail.review_iteration_id,
+          detail.revision,
+          draft,
+        )
+      ).review_revision_id;
+    const [fresh, nextContext] = await Promise.all([
+      ws
+        ? ws.reviewDetail(detail.review_iteration_id)
+        : api.review(detail.review_iteration_id),
+      ws
+        ? ws.reviewContext(detail.review_iteration_id)
+        : Promise.resolve(context),
+    ]);
+    if (fresh.current_review_revision_id !== revisionId)
+      throw new Error(
+        "После сохранения коллега изменил ревью. Ваш текст сохранён в редакторе; обновите проверку перед следующей записью.",
       );
+    setDetail(fresh);
+    setContext(nextContext);
     setDirty(false);
-    refresh();
+    setSavedNotice("Черновик сохранён.");
   }
   async function publish(revisionDeadline = deadline) {
     if (!outcome || !detail.current_review_revision_id) return;
@@ -336,7 +383,8 @@ export function ReviewEditor({
         { review_revision_id: detail.current_review_revision_id },
       );
     close();
-    refresh();
+    await reloadLocal();
+    setSavedNotice("Ревью опубликовано студенту.");
   }
   const activePeople = new Map<string, string>();
   detail.responsibility_events.forEach((e) =>
@@ -396,7 +444,9 @@ export function ReviewEditor({
           )}
           {canCorrect && (
             <div className="actions">
-              <Btn onClick={() => setCorrecting(true)}>Создать исправление</Btn>
+              <Btn onClick={() => setCorrecting(true)}>
+                Исправить опубликованное ревью
+              </Btn>
             </div>
           )}
           {editable && (
@@ -472,19 +522,29 @@ export function ReviewEditor({
                   "",
                 )}
               </span>
-              <a
-                className="button"
-                href={safeUrl(detail.immutable_inputs.artifact_download_url)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Открыть ↗
-              </a>
+              {ws ? (
+                <ArtifactLink
+                  ws={ws}
+                  id={detail.immutable_inputs.artifact_version_id}
+                  label="Открыть ↗"
+                />
+              ) : (
+                <a
+                  className="button"
+                  href={safeUrl(detail.immutable_inputs.artifact_download_url)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Открыть ↗
+                </a>
+              )}
             </div>
             <dl className="review-facts">
               <dt>Попытка</dt>
               <dd>{context?.attempt ?? "—"}</dd>
-              <dt>{(context?.attempt ?? 0) > 1 ? "Правки пришли" : "Сдана"}</dt>
+              <dt>
+                {(context?.attempt ?? 0) > 1 ? "Исправления сданы" : "Сдана"}
+              </dt>
               <dd>
                 {context?.submitted_at ? date(context.submitted_at) : "—"}
               </dd>
@@ -497,18 +557,45 @@ export function ReviewEditor({
               <dt>ИИ-ревью до сдачи</dt>
               <dd>
                 {context?.self_reviews.length ?? 0}{" "}
-                {(context?.self_reviews.length ?? 0) === 1
-                  ? "запуск"
-                  : (context?.self_reviews.length ?? 0) < 5
-                    ? "запуска"
-                    : "запусков"}
+                {plural(
+                  context?.self_reviews.length ?? 0,
+                  "запуск",
+                  "запуска",
+                  "запусков",
+                )}
               </dd>
             </dl>
-            {participants - (joined ? 1 : 0) > 0 && (
+            {session.roles.includes("methodologist") && directory.loading && (
+              <p role="status" className="caption">
+                Загружаем участников…
+              </p>
+            )}
+            {directory.data ? (
+              <div className="review-participants">
+                <strong>Участники проверки</strong>
+                <ul>
+                  {[...activePeople.entries()]
+                    .filter(([, state]) =>
+                      ["joined", "started"].includes(state),
+                    )
+                    .map(([id]) => {
+                      const person = directory.data!.items.find(
+                        (p) => p.id === id,
+                      );
+                      return (
+                        <li key={id}>
+                          {person?.display_name ?? "Имя участника недоступно"} ·
+                          ревьюер
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
+            ) : participants - (joined ? 1 : 0) > 0 ? (
               <p className="muted">
                 Других участников: {participants - (joined ? 1 : 0)}
               </p>
-            )}
+            ) : null}
             {editable && !joined && (
               <Btn
                 disabled={action.busy || dirty}
@@ -527,6 +614,13 @@ export function ReviewEditor({
                 Присоединиться
               </Btn>
             )}
+          </Card>
+          <Card title="Условие задания">
+            <div className="preserve">
+              {context?.student_text ??
+                version?.student_text ??
+                "Условие недоступно."}
+            </div>
           </Card>
           {readOnly && (
             <Card
@@ -604,9 +698,72 @@ export function ReviewEditor({
                 ) : (
                   <p>Нет данных о признаках генерации.</p>
                 )}
+              </Card>
+              <Card
+                title="Ответ студенту"
+                subtitle="Студент получит его вместе с решением"
+                headClassName="card__head--response"
+                actions={
+                  editable && (
+                    <Btn
+                      className="btn btn--s btn--quiet"
+                      disabled={
+                        action.busy ||
+                        (!assist.data?.result?.feedback_draft &&
+                          !suggestions.some((s) => s.student_feedback))
+                      }
+                      onClick={() => {
+                        feedbackTouched.current = true;
+                        setFeedback(
+                          assist.data?.result?.feedback_draft ??
+                            suggestions
+                              .map((s) => s.student_feedback)
+                              .filter(Boolean)
+                              .join("\n\n"),
+                        );
+                        setDirty(true);
+                      }}
+                    >
+                      Составить заново{" "}
+                    </Btn>
+                  )
+                }
+              >
+                {editable ? (
+                  <textarea
+                    aria-label="Обратная связь студенту"
+                    disabled={!editable || action.busy}
+                    rows={6}
+                    value={feedback}
+                    onChange={(e) => {
+                      feedbackTouched.current = true;
+                      setFeedback(e.target.value);
+                      setDirty(true);
+                    }}
+                  />
+                ) : (
+                  <p className="preserve">{feedback || "Отзыв не добавлен."}</p>
+                )}
+              </Card>
+            </>
+          )}
+        </div>
+        <div className="stack">
+          <Card
+            title={
+              editable
+                ? suggestions.length
+                  ? "Разбор по требованиям"
+                  : "Оценка по критериям"
+                : "Разбор по требованиям"
+            }
+            headClassName={editable ? "card__head--review" : undefined}
+            bodyClassName="review-criteria"
+            actions={
+              <div className="review-ai-actions">
                 {assist.data?.status === "failed" && (
                   <p role="alert">
-                    Не удалось завершить AI-проверку. Повторите запуск.
+                    Не удалось завершить проверку ИИ. Запустите её ещё раз.{" "}
                   </p>
                 )}
                 {!!assist.error && (
@@ -647,77 +804,13 @@ export function ReviewEditor({
                       })
                     }
                   >
-                    {assist.data ? "Повторить проверку" : "Запустить проверку"}
+                    {assist.data ? "Повторить ИИ-ревью" : "Получить ИИ-ревью"}
                   </Btn>
                 )}
-              </Card>
-              <Card
-                title="Ответ студенту"
-                subtitle="Уходит вместе с вердиктом"
-                headClassName="card__head--response"
-                actions={
-                  editable && (
-                    <Btn
-                      className="btn btn--s btn--quiet"
-                      disabled={
-                        action.busy ||
-                        (!assist.data?.result?.feedback_draft &&
-                          !suggestions.some((s) => s.student_feedback))
-                      }
-                      onClick={() => {
-                        feedbackTouched.current = true;
-                        setFeedback(
-                          assist.data?.result?.feedback_draft ??
-                            suggestions
-                              .map((s) => s.student_feedback)
-                              .filter(Boolean)
-                              .join("\n\n"),
-                        );
-                        setDirty(true);
-                      }}
-                    >
-                      Собрать заново
-                    </Btn>
-                  )
-                }
-              >
-                {editable ? (
-                  <textarea
-                    aria-label="Обратная связь студенту"
-                    disabled={!editable || action.busy}
-                    rows={6}
-                    value={feedback}
-                    onChange={(e) => {
-                      feedbackTouched.current = true;
-                      setFeedback(e.target.value);
-                      setDirty(true);
-                    }}
-                  />
-                ) : (
-                  <p className="preserve">{feedback || "Отзыв не добавлен."}</p>
-                )}
-              </Card>
-            </>
-          )}
-        </div>
-        <div className="stack">
-          <Card
-            title={
-              editable
-                ? "Предварительное ревью от модели"
-                : "Разбор по требованиям"
-            }
-            headClassName={editable ? "card__head--review" : undefined}
-            bodyClassName="review-criteria"
-            actions={
-              editable && (
-                <span className="caption">
-                  Баллы можно изменить перед отправкой решения
-                </span>
-              )
+              </div>
             }
           >
-            <fieldset disabled={!editable || action.busy}>
+            <fieldset disabled={action.busy}>
               {version?.criteria.map((c, i) => {
                 const suggestion = suggestions.find(
                   (s) => s.criterion_id === c.id,
@@ -739,10 +832,15 @@ export function ReviewEditor({
                     : met
                       ? "y"
                       : "n";
+                const SuggestionContainer = editable ? "div" : "details";
                 return (
                   <details
                     className="acc"
                     key={c.id}
+                    ref={(node) => {
+                      if (node) criterionNodes.current.set(c.id, node);
+                      else criterionNodes.current.delete(c.id);
+                    }}
                     open={
                       i === 0 ||
                       suggestion?.status === "needs_human" ||
@@ -790,62 +888,85 @@ export function ReviewEditor({
                       </span>
                     </summary>
                     <div className="acc__b">
+                      <p className="criterion-description">{c.description}</p>
+                      {!editable && (
+                        <div>
+                          <p className="label">Обоснование ревьюера</p>
+                          <p className="preserve">
+                            {decisions[i]?.reason ||
+                              "Обоснование ещё не сохранено."}
+                          </p>
+                        </div>
+                      )}
                       {suggestion && (
-                        <article className="suggestion">
-                          {(suggestion.sources ?? []).map((source, index) => (
-                            <div className="finding" key={`source:${index}`}>
-                              <div className="finding__src">
-                                <span className="f">
-                                  {source.path ??
-                                    source.locator ??
-                                    "Снимок работы"}
-                                </span>
-                                {source.line_start && (
-                                  <span>
-                                    строки {source.line_start}
-                                    {source.line_end
-                                      ? `–${source.line_end}`
-                                      : ""}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="code">
-                                {source.quote
-                                  .split("\n")
-                                  .map((line, number) => (
-                                    <div className="cl" key={number}>
-                                      {source.line_start && (
-                                        <span className="n">
-                                          {source.line_start + number}
-                                        </span>
-                                      )}
-                                      <span>{line || " "}</span>
-                                    </div>
-                                  ))}
-                              </div>
-                            </div>
-                          ))}
-                          {(!suggestion.sources?.length
-                            ? (suggestion.evidence ?? [])
-                            : []
-                          ).map((quote, index) => (
-                            <div className="finding" key={index}>
-                              <div className="code">
-                                <pre className="quote-text">{quote}</pre>
-                              </div>
-                            </div>
-                          ))}
-                          <div
-                            className={
-                              hasEvidence ? "finding__why" : "acc__empty"
-                            }
-                          >
-                            {suggestion.reason}
-                          </div>
-                          {suggestion.reviewer_note && (
-                            <p className="muted">{suggestion.reviewer_note}</p>
+                        <SuggestionContainer
+                          className={
+                            editable ? undefined : "ai-suggestion-history"
+                          }
+                        >
+                          {!editable && (
+                            <summary>
+                              Предложение ИИ до решения ревьюера
+                            </summary>
                           )}
-                        </article>
+                          <article className="suggestion">
+                            {(suggestion.sources ?? []).map((source, index) => (
+                              <div className="finding" key={`source:${index}`}>
+                                <div className="finding__src">
+                                  <span className="f">
+                                    {source.path ??
+                                      source.locator ??
+                                      "Снимок работы"}
+                                  </span>
+                                  {source.line_start && (
+                                    <span>
+                                      строки {source.line_start}
+                                      {source.line_end
+                                        ? `–${source.line_end}`
+                                        : ""}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="code">
+                                  {source.quote
+                                    .split("\n")
+                                    .map((line, number) => (
+                                      <div className="cl" key={number}>
+                                        {source.line_start && (
+                                          <span className="n">
+                                            {source.line_start + number}
+                                          </span>
+                                        )}
+                                        <span>{line || " "}</span>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                            {(!suggestion.sources?.length
+                              ? (suggestion.evidence ?? [])
+                              : []
+                            ).map((quote, index) => (
+                              <div className="finding" key={index}>
+                                <div className="code">
+                                  <pre className="quote-text">{quote}</pre>
+                                </div>
+                              </div>
+                            ))}
+                            <div
+                              className={
+                                hasEvidence ? "finding__why" : "acc__empty"
+                              }
+                            >
+                              {suggestion.reason}
+                            </div>
+                            {suggestion.reviewer_note && (
+                              <p className="muted">
+                                {suggestion.reviewer_note}
+                              </p>
+                            )}
+                          </article>
+                        </SuggestionContainer>
                       )}
                       {editable &&
                       (!suggestion ||
@@ -860,7 +981,7 @@ export function ReviewEditor({
                             }
                           />
                         </label>
-                      ) : !suggestion ? (
+                      ) : editable && !suggestion ? (
                         <p className="preserve">{decisions[i]?.reason}</p>
                       ) : null}
                     </div>
@@ -962,7 +1083,7 @@ export function ReviewEditor({
                 <>
                   <Btn
                     disabled={action.busy || !canSave}
-                    onClick={() => void action.run(save, "Черновик сохранён.")}
+                    onClick={() => void action.run(save)}
                   >
                     Сохранить черновик
                   </Btn>
@@ -1042,13 +1163,66 @@ export function ReviewEditor({
                 {version?.max_score.toLocaleString("ru-RU")}.
               </small>
             )}
+            {editable && !canSave && (
+              <div className="review-save-requirements">
+                <strong>Чтобы сохранить черновик:</strong>
+                {!version && <p>Нужны критерии задания.</p>}
+                <ul>
+                  {version?.criteria.flatMap((criterion, index) => {
+                    const decision = decisions[index];
+                    const issues = [];
+                    if (!decision?.reason.trim())
+                      issues.push("добавьте обоснование");
+                    if (
+                      !Number.isFinite(decision?.points) ||
+                      decision.points < 0 ||
+                      decision.points > criterion.max_points
+                    )
+                      issues.push(
+                        `укажите балл от 0 до ${criterion.max_points}`,
+                      );
+                    return issues.length
+                      ? [
+                          <li key={criterion.id}>
+                            <Btn
+                              variant="link"
+                              onClick={() => {
+                                const node = criterionNodes.current.get(
+                                  criterion.id,
+                                );
+                                if (node) {
+                                  node.open = true;
+                                  node.scrollIntoView({ block: "center" });
+                                  node
+                                    .querySelector<HTMLElement>(
+                                      "textarea,input",
+                                    )
+                                    ?.focus();
+                                }
+                              }}
+                            >
+                              {criterion.title}: {issues.join("; ")}
+                            </Btn>
+                          </li>,
+                        ]
+                      : [];
+                  })}
+                </ul>
+              </div>
+            )}
+            {savedNotice && <small role="status">{savedNotice}</small>}
             {dirty && <small>Сохраните черновик перед публикацией.</small>}
+            {detail.status === "published" &&
+              context?.outcome?.decision === "needs_changes" &&
+              context.outcome.revision_deadline && (
+                <p>Исправления до {date(context.outcome.revision_deadline)}</p>
+              )}
             {poolEmpty && <small>В пуле больше нет доступных работ.</small>}
           </section>
         </Dock>
       )}
       {correcting && (
-        <Modal title="Создать исправление" close={closeCorrection}>
+        <Modal title="Исправить опубликованное ревью" close={closeCorrection}>
           {action.feedback}
           <p>
             Откроется новая версия проверки. Студент продолжит видеть прежний

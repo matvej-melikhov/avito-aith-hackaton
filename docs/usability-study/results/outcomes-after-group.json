@@ -1,0 +1,199 @@
+{
+  "S1": {
+    "actor": "student-1",
+    "initial_state": "Опубликовано; нет черновика и сдачи; доступны 2 самопроверки.",
+    "context_accessible": true,
+    "submission_id": "01a07342-cac3-72ff-b7cd-7881b8a8a648",
+    "self_reviews": [],
+    "quota": {
+      "limit": 2,
+      "used": 0,
+      "reserved": 0,
+      "remaining": 2,
+      "policy_revision": 0,
+      "active_run_id": null
+    },
+    "attempts": [
+      {
+        "id": "01a07342-cac8-7d37-acac-13d58fc8d202",
+        "sequence": 1,
+        "comment": "Проверки ошибочных запросов включены в README.",
+        "status": "ready",
+        "artifact_id": "01a07342-b22e-777f-8f15-9e12348c9ac9"
+      }
+    ],
+    "reviews": [],
+    "current_publication_id": null
+  },
+  "S2": {
+    "actor": "student-2",
+    "initial_state": "Первая попытка возвращена с замечаниями; срок исправлений через 3 дня.",
+    "context_accessible": true,
+    "submission_id": "edaa1447-2d08-59a2-975d-c50d765fac5b",
+    "self_reviews": [],
+    "quota": {
+      "limit": 2,
+      "used": 0,
+      "reserved": 0,
+      "remaining": 2,
+      "policy_revision": 0,
+      "active_run_id": null
+    },
+    "attempts": [
+      {
+        "id": "d6eefa13-6e5c-50a7-948b-b2864b8fc50d",
+        "sequence": 1,
+        "comment": "Первая версия. Ошибочные запросы пока не проверены.",
+        "status": "ready",
+        "artifact_id": "8f4a7fb5-c36b-507e-8346-27509910c98b"
+      },
+      {
+        "id": "01a07343-5d6c-705f-bd05-ad7c3fab8cff",
+        "sequence": 2,
+        "comment": "Добавлены проверки пустого обязательного заголовка и неверного значения фильтра completed: оба ошибочных запроса возвращают 400. Также добавлен сценарий успешного создания задачи. Исправленная версия — revised-api.md.",
+        "status": "ready",
+        "artifact_id": "01a07343-11c6-7c22-b300-116e3853ea80"
+      }
+    ],
+    "reviews": [
+      {
+        "id": "3692dc14-ca6f-5fb5-b933-388704f6f8c0",
+        "iteration_id": "a487c022-dbac-524c-8131-f5d2a4bed06a",
+        "submission_version_id": "d6eefa13-6e5c-50a7-948b-b2864b8fc50d",
+        "score": 4.0,
+        "decision": "needs_changes",
+        "revision_deadline": "2026-09-08T19:19:18Z"
+      }
+    ],
+    "current_publication_id": "3692dc14-ca6f-5fb5-b933-388704f6f8c0"
+  },
+  "R1": {
+    "actor": "reviewer-1",
+    "initial_state": "Первая сдача ожидает открытия ревью.",
+    "attempts": [
+      {
+        "id": "a3468f5c-780c-52ea-a3b9-a01fd6ade5fe",
+        "sequence": 1,
+        "comment": "Готово к первой проверке.",
+        "status": "ready",
+        "artifact_id": "f2fab050-3b10-5f5d-8aae-2fcd9bd7571d"
+      }
+    ],
+    "reviews": [
+      {
+        "id": "01a07344-ead5-7c6c-9bcb-80c4dca953f0",
+        "iteration_id": "01a07343-1d39-7347-a10b-0e8adc6e999c",
+        "submission_version_id": "a3468f5c-780c-52ea-a3b9-a01fd6ade5fe",
+        "score": 4.0,
+        "decision": "needs_changes",
+        "revision_deadline": "2026-09-08T15:00:00Z"
+      }
+    ],
+    "current_publication_id": "01a07344-ead5-7c6c-9bcb-80c4dca953f0"
+  },
+  "R2": {
+    "actor": "reviewer-2",
+    "initial_state": "Вторая сдача после возврата; замечания к первой опубликованы.",
+    "attempts": [
+      {
+        "id": "c3d9a35b-f604-5da7-a755-4c1b4c60a0b6",
+        "sequence": 1,
+        "comment": "Первая попытка: фильтр ещё без валидации.",
+        "status": "ready",
+        "artifact_id": "06482be6-c84c-50cb-b32b-3b1722586a74"
+      },
+      {
+        "id": "512cd5f0-c02a-594c-8456-9024c19b420f",
+        "sequence": 2,
+        "comment": "Исправлены пустой заголовок и неизвестное значение фильтра.",
+        "status": "ready",
+        "artifact_id": "d9ae585f-f42a-5695-934a-18db7089c21e"
+      }
+    ],
+    "reviews": [
+      {
+        "id": "d8fc458a-f09c-528f-8544-7dbba4d7530f",
+        "iteration_id": "34ccc9a8-99b9-54b0-963c-ea5867ab4134",
+        "submission_version_id": "c3d9a35b-f604-5da7-a755-4c1b4c60a0b6",
+        "score": 4.0,
+        "decision": "needs_changes",
+        "revision_deadline": "2026-09-08T19:19:18Z"
+      }
+    ],
+    "current_publication_id": "d8fc458a-f09c-528f-8544-7dbba4d7530f"
+  },
+  "C1": {
+    "actor": "coordinator",
+    "initial_state": "Существует курс без потоков и заданий.",
+    "runs": [
+      {
+        "id": "01a07343-f8c0-706f-bf76-afefdc085e4f",
+        "title": "Практикум · учебная программа · 2026-10-01",
+        "starts_at": "2026-09-30T21:00:00Z",
+        "ends_at": "2026-11-15T20:59:00Z"
+      }
+    ],
+    "homeworks": [
+      {
+        "id": "01a07344-3d87-7d7a-ba4a-af7b8224efcd",
+        "title": "Контракты HTTP",
+        "revision": 1,
+        "latest_version_number": 1,
+        "published_run_ids": [
+          "01a07343-f8c0-706f-bf76-afefdc085e4f"
+        ]
+      }
+    ],
+    "published": {
+      "01a07343-f8c0-706f-bf76-afefdc085e4f": [
+        {
+          "course_run_homework_id": "01a07344-3d87-7d7a-ba4a-af7b8224efce",
+          "revision": 1,
+          "homework_id": "01a07344-3d87-7d7a-ba4a-af7b8224efcd",
+          "current_version_id": "01a07346-0217-7b2d-bf7a-9d08bd18c910",
+          "title": "Контракты HTTP",
+          "max_score": 10.0,
+          "artifact_kinds": [
+            "github",
+            "google_docs"
+          ],
+          "submission_deadline": "2026-10-15T20:59:00+00:00",
+          "review_deadline": "2026-10-20T20:59:00+00:00"
+        }
+      ]
+    }
+  },
+  "C2": {
+    "actor": "coordinator",
+    "initial_state": "Работа взята reviewer1 четыре дня назад; есть отдельная опубликованная работа.",
+    "attempts": [
+      {
+        "id": "5b16ce9f-4cd7-58bd-b12e-29495a00ec83",
+        "sequence": 1,
+        "comment": "Ожидаю результат проверки каталога.",
+        "status": "ready",
+        "artifact_id": "424c5f54-a0a4-5859-a018-366c8455db26"
+      }
+    ],
+    "reviews": [],
+    "current_publication_id": null,
+    "assignments": [
+      {
+        "id": "8b470ce5-fa30-50ec-81a3-f6ae4ba2e387",
+        "student_id": "75f50c96-ce15-5183-8312-5f21d6afc2be",
+        "student_name": "Студент 5f21d6afc2be",
+        "reviewer_id": "55689725-1ffa-50c5-bdc4-b8898f86b005",
+        "reviewer_name": "Елена Смирнова",
+        "revision": 0
+      },
+      {
+        "id": "241dcce6-5a11-5469-acdd-30339dfda712",
+        "student_id": "e8ae2a56-1f5b-5b09-bdb0-7402ea04f9ec",
+        "student_name": "Студент 7402ea04f9ec",
+        "reviewer_id": "13da64b0-ab30-5f93-87ad-211d06af5964",
+        "reviewer_name": "Дмитрий Волков",
+        "revision": 0
+      }
+    ]
+  }
+}

@@ -908,6 +908,7 @@ class WorkspaceSearchView(StrictModel):
 
 
 class StudentHomeworkItem(StrictModel):
+    revision_deadline: datetime | None = None
     publication_id: UUID
     title: str
     course_title: str

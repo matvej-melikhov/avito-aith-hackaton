@@ -1,0 +1,208 @@
+{
+  "url": "http://127.0.0.1:5180/#/courses",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\nКурсы\nСоздать курс\nКО\nКУРС\tЗАДАНИЙ\tПОТОКОВ\tАКТИВНЫХ\tКУРС В STEPIK\tСОСТОЯНИЕ\t\nПрактикум · команда и нагрузка\nУчебный практикум. Локальные данные исследования.\n\t2\t1\t1\t—\tАктивен\tАрхивировать\nПрактикум · учебная программа\nУчебный практикум. Локальные данные исследования.\n\t0\t0\t0\t—\tАктивен\tАрхивировать\nПрактикум API · задания студентов\nУчебный практикум. Локальные данные исследования.\n\t2\t2\t2\t—\tАктивен\tАрхивировать\nПрактикум API · проверка работ\nУчебный практикум. Локальные данные исследования.\n\t2\t2\t2\t—\tАктивен\tАрхивировать",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Создать курс",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 10,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Практикум · команда и нагрузка",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Архивировать",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Практикум · учебная программа",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Архивировать",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Практикум API · задания студентов",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Архивировать",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 16,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Практикум API · проверка работ",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 17,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Архивировать",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/courses",
+      "current": true
+    }
+  ]
+}

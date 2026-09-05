@@ -1,0 +1,99 @@
+{
+  "url": "http://127.0.0.1:5180/#/reviews/9da01de6-36cd-56ff-8e71-5f3fd8200f49",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nМои работы\n2\nПул\n3\nКабинет\nОбъект не найден или недоступен.\nОбновить данные\nСтудент прислал новую версию работы, которую вы проверяли.\n×",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои работы\n2",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/pool"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Кабинет",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 6,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Обновить данные",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 7,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "×",
+      "label": "Закрыть уведомление",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/reviews/9da01de6-36cd-56ff-8e71-5f3fd8200f49",
+      "current": true
+    }
+  ]
+}

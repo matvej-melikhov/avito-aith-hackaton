@@ -2,7 +2,7 @@ import { Field, Inp, Btn } from "../ds";
 import { HeaderProfile } from "../workspace-ui";
 import { WorkspaceClient } from "../api/workspace";
 import { WorkspaceRunSettings } from "./WorkspaceCatalog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ApiClient, Model, Role } from "../api/client";
 import {
   Card,
@@ -120,6 +120,10 @@ export function CoursePage({
   }, id);
   const action = useAction();
   const [title, setTitle] = useState("");
+  useEffect(() => {
+    if (state.data?.run)
+      sessionStorage.setItem("review-ui-selected-run", state.data.run.id);
+  }, [state.data?.run]);
   return (
     <Resource value={state}>
       {state.data && (
@@ -184,7 +188,12 @@ export function CoursePage({
                         <strong>{h.title}</strong>
                       </td>
                       <td>{date(h.submission_deadline)}</td>
-                      <td>{h.artifact_kinds.join(", ")}</td>
+                      <td>
+                        <HomeworkSourceLabel
+                          api={api}
+                          publicationId={h.course_run_homework_id}
+                        />
+                      </td>
                       <td>{h.max_score}</td>
                       <td>
                         <a
@@ -194,7 +203,12 @@ export function CoursePage({
                               : `#/homework/${h.homework_id}?run=${id}`
                           }
                         >
-                          {role === "student" ? "Сдать работу" : "Открыть"} →
+                          {role === "student"
+                            ? "Сдать работу"
+                            : role === "methodologist"
+                              ? "Настроить"
+                              : "Открыть"}{" "}
+                          →
                         </a>
                       </td>
                     </tr>
@@ -317,5 +331,30 @@ export function QueuePage({ api, id }: { api: ApiClient; id: string }) {
       </Resource>
       <Btn onClick={s.refresh}>Обновить рекомендацию</Btn>
     </>
+  );
+}
+
+function HomeworkSourceLabel({
+  api,
+  publicationId,
+}: {
+  api: ApiClient;
+  publicationId: string;
+}) {
+  const r = useResource(
+    () => new WorkspaceClient(api).submissionSources(publicationId),
+    publicationId,
+  );
+  const sources = r.data?.allowed_sources;
+  return (
+    <Resource value={r}>
+      {sources
+        ? sources.includes("upload")
+          ? sources.some((source) => source !== "upload")
+            ? "Ссылка или файлы"
+            : "Только файлы"
+          : "Только ссылка"
+        : "Формат не указан"}
+    </Resource>
   );
 }

@@ -1,0 +1,238 @@
+{
+  "url": "http://127.0.0.1:5180/#/prepare/855a06f7-919d-5496-8052-f3fc28c0f5e8",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nМои домашки\ne8ae\nПРАКТИКУМ API · ЗАДАНИЯ СТУДЕНТОВ · САМОСТОЯТЕЛЬНАЯ РАБОТА · ДОРАБОТКА\nНадёжная обработка ошибок\nПрислать исправления до\n8 сент. 2026 г., 22:19\nПорог зачёта\n7 из 10\nСтатус\nНужны правки\nЗадание\nРазвернуть\nИИ-ревью\nРевью\nПопытка 1, 31 авг. 2026 г., 22:19\nпоследняя\nОтправленная работа\nreturned-api.md ↗\n\nКОММЕНТАРИЙ К СДАЧЕ\n\nПервая версия. Ошибочные запросы пока не проверены.\n\nОсновной сценарий API\n2 из 5\nОшибки и воспроизводимые проверки\n2 из 5\nИтого\n4 из 10\nВердикт\nнужны правки\n\nКОММЕНТАРИЙ РЕВЬЮЕРА\n\nДобавьте проверку пустого заголовка и неверного значения фильтра. В README нужны воспроизводимые шаги.\n\nДоработать до 8 сент. 2026 г., 22:19\n\nИсправленная работа\nСсылка\nФайлы\nФайл работы\nreturned-api.md\nЗагружен в черновик. Нажмите, чтобы заменить.\nОткрыть сохранённый файл ↗\nMarkdown, PDF или DOCX, до 10 МБ. Ревьюер и модель получают сохранённый файл.\nКомментарий к сдаче, необязательно\nНапример: какие части делали с помощью ИИ и что дорабатывали руками\nЧерновик сохранён\nОтправить исправления\nИИ-ревью\nРезультат ИИ-ревью видит ревьюер и учитывает при оценке. Самопроверка необязательна. Осталось 2 из 2. Получено результатов: 0.\nЧто будут проверять\nСвернуть\nОсновной сценарий API\n5 б.\nОшибки и воспроизводимые проверки\n5 б.\nВсего\n10 баллов",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои домашки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 4,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "e8ae",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 5,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Развернуть",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 6,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "ИИ-ревью",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 7,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Ревью",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 8,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "Попытка 1, 31 авг. 2026 г., 22:19\nпоследняя",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "returned-api.md ↗",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "http://127.0.0.1:19010/workspace-usability-study/2f3f0995-653f-5421-9036-09069524c9d9/8f4a7fb5-c36b-507e-8346-27509910c98b/artifact.bin?[signed-download-query-redacted]"
+    },
+    {
+      "id": 10,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "Основной сценарий API\n2 из 5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 11,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "Ошибки и воспроизводимые проверки\n2 из 5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Ссылка",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Файлы",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "label",
+      "type": null,
+      "role": "button",
+      "text": "returned-api.md\nЗагружен в черновик. Нажмите, чтобы заменить.\nОткрыть сохранённый файл ↗",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "input",
+      "type": "file",
+      "role": null,
+      "text": "",
+      "label": "Файл работы",
+      "placeholder": null,
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 16,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Открыть сохранённый файл ↗",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "http://127.0.0.1:19010/workspace-usability-study/2f3f0995-653f-5421-9036-09069524c9d9/8f4a7fb5-c36b-507e-8346-27509910c98b/artifact.bin?[signed-download-query-redacted]"
+    },
+    {
+      "id": 17,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Комментарий к сдаче, необязательно",
+      "placeholder": null,
+      "value": "Первая версия. Ошибочные запросы пока не проверены.",
+      "disabled": false
+    },
+    {
+      "id": 18,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Отправить исправления",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "ИИ-ревью",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 20,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Свернуть",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/prepare/855a06f7-919d-5496-8052-f3fc28c0f5e8",
+      "current": true
+    }
+  ]
+}

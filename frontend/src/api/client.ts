@@ -30,6 +30,10 @@ export function errorMessage(error: unknown): string {
       return "У вашей роли нет доступа к этому действию.";
     if (error.status === 409)
       return "Данные изменились. Обновите экран и проверьте изменения перед повторным сохранением.";
+    if (error.status >= 500)
+      return error.action
+        ? `Ошибка сервиса. ${error.action}`
+        : "Ошибка сервиса. Попробуйте ещё раз.";
     return [error.message, error.action].filter(Boolean).join(" ");
   }
   return error instanceof Error
@@ -64,7 +68,7 @@ export class ApiClient {
       throw new ApiError(
         0,
         "network_error",
-        "Нет ответа от сервера. Проверьте подключение. Повтор того же действия использует прежний ключ запроса.",
+        "Нет ответа от сервера. Проверьте подключение и повторите действие.",
       );
     }
     if (!response.ok) {
@@ -96,7 +100,7 @@ export class ApiClient {
       throw new ApiError(
         0,
         "invalid_response",
-        "Сервер вернул нечитаемый ответ. Обновите данные перед следующим действием.",
+        "Не удалось прочитать ответ сервера. Обновите данные перед следующим действием.",
       );
     }
   }

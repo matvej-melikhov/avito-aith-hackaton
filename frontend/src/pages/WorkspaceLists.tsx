@@ -10,6 +10,7 @@ import {
   CardFoot,
   BtnRow,
   Seg,
+  plural,
 } from "../ds";
 import { StudentWorks } from "./StudentWorks";
 import { ReviewerQueue } from "./ReviewerQueue";
@@ -89,9 +90,18 @@ function WorksList({
   useEffect(() => {
     if (!run && catalog.data?.course_runs.length)
       setRun(
-        catalog.data.course_runs.find((value) => value.status === "active")
-          ?.id ?? catalog.data.course_runs[0].id,
+        catalog.data.course_runs.find(
+          (value) =>
+            value.id === sessionStorage.getItem("review-ui-selected-run"),
+        )?.id ??
+          catalog.data.course_runs.find((value) => value.status === "active")
+            ?.id ??
+          catalog.data.course_runs[0].id,
       );
+  }, [run, catalog.data]);
+  useEffect(() => {
+    if (run && catalog.data?.course_runs.some((value) => value.id === run))
+      sessionStorage.setItem("review-ui-selected-run", run);
   }, [run, catalog.data]);
   const insights = useResource(
     () =>
@@ -255,7 +265,7 @@ function WorksList({
                 <div className="n">
                   {insights.data.pool_metrics.average_wait_minutes === null
                     ? "Нет данных"
-                    : `${(insights.data.pool_metrics.average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дня`}
+                    : `${(insights.data.pool_metrics.average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дн.`}
                 </div>
                 <div className="l">среднее ожидание проверки</div>
               </div>
@@ -321,7 +331,7 @@ function WorksList({
             subtitle={
               coordinatorPool
                 ? "Ожидают проверки или находятся на ревью"
-                : "Все статусы и опубликованные результаты"
+                : undefined
             }
             actions={
               coordinatorPool ? (
@@ -336,7 +346,7 @@ function WorksList({
                       setOffset(0);
                     }}
                   >
-                    Только зависшие
+                    Ждут ревьюера больше 3 дней
                   </Chk>
                 </div>
               ) : undefined
@@ -420,11 +430,7 @@ function WorksList({
                       <td>
                         {coordinatorPool
                           ? work.participant_ids?.length
-                            ? work.participant_ids.length === 1
-                              ? "1 участник"
-                              : work.participant_ids.length < 5
-                                ? `${work.participant_ids.length} участника`
-                                : `${work.participant_ids.length} участников`
+                            ? `${work.participant_ids.length} ${plural(work.participant_ids.length, "участник", "участника", "участников")}`
                             : "Пока нет участников"
                           : (work.score?.toLocaleString("ru-RU") ?? "—")}
                       </td>
@@ -441,7 +447,7 @@ function WorksList({
                           </Btn>
                           {!coordinatorPool && work.submission_id && (
                             <a href={`#/submissions/${work.submission_id}`}>
-                              История и результат
+                              Результат для студента
                             </a>
                           )}
                         </div>
@@ -786,16 +792,16 @@ function ExportForm({
           </div>
         </div>
         <Field
-          label="Кому выгружаем"
+          label="Для кого файл"
           group
           hint="В студенческой копии только ID студента, балл и статус."
         >
           <Seg<"team" | "students">
-            label="Кому выгружаем"
+            label="Для кого файл"
             value={audience}
             options={[
-              { value: "team", label: "Команде, внутренняя ведомость" },
-              { value: "students", label: "Студентам, копия" },
+              { value: "team", label: "Для команды — внутренняя ведомость" },
+              { value: "students", label: "Для студентов — копия" },
             ]}
             onChange={(value) => {
               setAudience(value);
@@ -831,9 +837,9 @@ function ExportForm({
               ))}
           </div>
         </fieldset>
-        <Field label="Что делать с незакрытыми работами" group>
+        <Field label="Работы без итогового результата" group>
           <Seg<"omit" | "include">
-            label="Что делать с незакрытыми работами"
+            label="Работы без итогового результата"
             disabled={action.busy}
             value={unfinished ? "include" : "omit"}
             options={[
@@ -948,13 +954,13 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
                     ? "—"
                     : r.data.average_wait_minutes < 60
                       ? `${Math.round(r.data.average_wait_minutes)} мин`
-                      : `${(r.data.average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дня`}
+                      : `${(r.data.average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дн.`}
                 </div>
                 <div className="l">ждёт студент от сдачи до ответа</div>
                 <div className="d">
                   {r.data.course_average_wait_minutes == null
                     ? "Нет данных по курсу"
-                    : `по курсу ${(r.data.course_average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дня`}
+                    : `по курсу ${(r.data.course_average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дн.`}
                 </div>
               </div>
               <div className="tile">
@@ -982,7 +988,7 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
             </div>
             <div className="two-col">
               <Card
-                title="Где вы чаще правите модель"
+                title="По каким требованиям вы меняете оценку модели"
                 subtitle="Доля работ, где вы изменили предложенную оценку"
                 bodyClassName="card__body--flush"
               >
@@ -1057,8 +1063,8 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
                   </>
                 )}
                 <p className="notice">
-                  Расхождение само по себе не ошибка. Оно показывает требования,
-                  которые сформулированы так, что их можно понять по-разному.
+                  Расхождение само по себе не означает ошибку. Проверьте,
+                  одинаково ли ревьюеры понимают требование.{" "}
                 </p>
               </Card>
             </div>

@@ -32,7 +32,8 @@ async function snapshot(a) {
       proxy=handle.asElement();
       if(!proxy || !await proxy.isVisible())continue;
     }
-    const id=controls.length+1;
+    let id=Number(await el.getAttribute('data-usability-control-id'));
+    if(!id){id=++a.nextControlId;await el.evaluate((e,value)=>e.setAttribute('data-usability-control-id',String(value)),id);}
     const view=await el.evaluate(e=>({tag:e.tagName.toLowerCase(),type:e.getAttribute('type'),role:e.getAttribute('role'),text:(e.innerText||'').trim().slice(0,240),label:e.getAttribute('aria-label')||Array.from(e.labels||[]).map(l=>l.innerText).join(' '),placeholder:e.getAttribute('placeholder'),value:e.value,checked:e.checked,disabled:e.disabled||e.getAttribute('aria-disabled')==='true',href:e.tagName==='A'?e.getAttribute('href'):undefined,options:e.tagName==='SELECT'?Array.from(e.options).map(o=>({value:o.value,label:o.text,disabled:o.disabled})):undefined}));
     a.controls.set(id,{el,proxy}); controls.push({id,...view});
   }
@@ -61,17 +62,19 @@ async function execute(body) {
   if (!safeName(actor)) throw new Error('Invalid actor name');
   if(action==='start') {
     if(actors.has(actor)) throw new Error('Actor already started');
-    if(!['student-1','student-2','reviewer-1','reviewer-2','coordinator'].includes(body.identity)) throw new Error('Unknown fixture identity');
+    if(!['anonymous','student-1','student-2','reviewer-1','reviewer-2','coordinator'].includes(body.identity)) throw new Error('Unknown fixture identity');
     const context=await browser.newContext({viewport:{width:body.width||1440,height:900},acceptDownloads:true,locale:'ru-RU'});
     await context.route('**/*',async route=>{
       const u=new URL(route.request().url());
       if(['data:','blob:'].includes(u.protocol)||allowedHosts.has(u.host)||['fonts.googleapis.com','fonts.gstatic.com'].includes(u.hostname)) await route.continue();
       else await route.abort('blockedbyclient');
     });
-    const login=await context.request.post(base+'/api/v1/auth/local/login',{data:{identity:body.identity}});
-    if(!login.ok()) throw new Error(`Fixture login failed ${login.status()}`);
+    if(body.identity!=='anonymous') {
+      const login=await context.request.post(base+'/api/v1/auth/local/login',{data:{identity:body.identity}});
+      if(!login.ok()) throw new Error(`Fixture login failed ${login.status()}`);
+    }
     const dir=path.join(output,actor);await mkdir(dir,{recursive:true,mode:0o700});
-    const a={context,page:await context.newPage(),dir,controls:new Map(),downloads:[],chooser:null,step:0,readonly:!!body.readonly};
+    const a={context,page:await context.newPage(),dir,controls:new Map(),downloads:[],chooser:null,step:0,nextControlId:0,readonly:!!body.readonly};
     actors.set(actor,a);
     if(a.readonly) await context.route('**/api/**',async route=>{
       if(['GET','HEAD','OPTIONS'].includes(route.request().method())) await route.continue();
@@ -91,6 +94,11 @@ async function execute(body) {
     await p.screenshot({path:file,fullPage:body.fullPage!==false});await record(a,{kind:'screenshot',file});return {file};
   }
   if(action==='switch_tab') {const tab=a.context.pages()[body.id];if(!tab)throw new Error('Unknown tab');a.page=tab;}
+  else if(action==='navigate') {
+    const url=new URL(body.url,base);
+    if(url.origin!==base || url.pathname!=='/' || !url.hash.startsWith('#/'))throw new Error('Only frontend page routes are allowed');
+    await p.goto(url.href);
+  }
   else if(action==='back') await p.goBack();
   else if(action==='reload') await p.reload();
   else if(action==='wait') await p.waitForTimeout(Math.min(5000,body.ms||1000));

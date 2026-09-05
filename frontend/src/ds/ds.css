@@ -276,6 +276,67 @@
   margin: 0;
   font-size: var(--small-size);
 }
+.review-save-requirements {
+  flex-basis: 100%;
+  font-size: var(--small-size);
+}
+.review-save-requirements ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+  list-style: none;
+  padding: 0;
+  margin: var(--s-2) 0;
+}
+.review-save-requirements li {
+  min-width: 0;
+  max-width: 100%;
+}
+.review-save-requirements .btn {
+  white-space: normal;
+  text-align: left;
+  height: auto;
+  min-height: var(--ctl-s);
+  max-width: 100%;
+}
+.review-ai-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.review-ai-actions .btn {
+  max-width: 100%;
+  white-space: normal;
+  min-height: var(--ctl-s);
+  height: auto;
+  padding-top: var(--s-2);
+  padding-bottom: var(--s-2);
+}
+.review-participants {
+  margin-top: var(--s-4);
+  font-size: var(--small-size);
+}
+.review-participants ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--s-2) 0 0;
+}
+details.acc > summary:not(:has(.acc__chev))::after,
+details.student-history > summary:not(:has(.acc__chev))::after {
+  content: "⌄";
+  margin-left: auto;
+  color: var(--ink-3);
+}
+details.acc[open] > summary:not(:has(.acc__chev))::after,
+details.student-history[open] > summary:not(:has(.acc__chev))::after {
+  content: "⌃";
+}
+.student-history[open] > summary .acc__chev,
+.student-review-tabs .acc[open] > summary .acc__chev {
+  transform: rotate(180deg);
+}
 .review-dock-summary .review-facts dd {
   margin-right: var(--s-3);
   font-weight: var(--w-medium);

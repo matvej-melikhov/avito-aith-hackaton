@@ -1,0 +1,191 @@
+{
+  "url": "http://127.0.0.1:5180/#/statistics",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nМои работы\n2\nПул\n3\nКабинет\nКабинет\nВсе потоки\nСамостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания\n7 дней\n30 дней\n90 дней\nРВ\nНастройки\nСтатистика\n2\nработ проверено\nиз них 0 повторных\n2880 мин\nв среднем на работу\nОт открытия до публикации, включая перерывы; по курсу 2880 мин\n3 дня\nждёт студент от сдачи до ответа\nпо курсу 3 дня\n—\nвердиктов модели принято без правок\nНет данных по курсу\n0\nпросрочек за период\nпо курсу в среднем 0\nГде вы чаще правите модель\nДоля работ, где вы изменили предложенную оценку\nТРЕБОВАНИЕ\tРАБОТ\tПРАВИЛИ\nНет данных по отдельным требованиям.\nРасхождение с другими ревьюерами\nПо одинаковым требованиям на одинаковых работах. Сравнений: 0.\nДанные для сравнения пока недоступны.\n\nРасхождение само по себе не ошибка. Оно показывает требования, которые сформулированы так, что их можно понять по-разному.\n\nСтудент прислал новую версию работы, которую вы проверяли.\n×",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои работы\n2",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/pool"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Кабинет",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 6,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Все потоки\nСамостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания",
+      "label": "Поток",
+      "placeholder": null,
+      "value": "",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Все потоки",
+          "disabled": false
+        },
+        {
+          "value": "254f8a90-aa75-5e74-aea1-2b517e4d04ee",
+          "label": "Самостоятельная работа · доработка",
+          "disabled": false
+        },
+        {
+          "value": "a579a015-0268-5ce9-b38a-8be8c55a115d",
+          "label": "Осенний поток · распределение",
+          "disabled": false
+        },
+        {
+          "value": "c503d9f4-6c4a-5fd3-9b45-0c4e18979adb",
+          "label": "Повторная очередь · исправленные работы",
+          "disabled": false
+        },
+        {
+          "value": "d206f811-18da-5543-aa06-92988156d344",
+          "label": "Основная очередь · первые проверки",
+          "disabled": false
+        },
+        {
+          "value": "a65fb045-a967-5006-b90c-38856c64909a",
+          "label": "Самостоятельная работа · новые задания",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "7 дней\n30 дней\n90 дней",
+      "label": "Период",
+      "placeholder": null,
+      "value": "30",
+      "disabled": false,
+      "options": [
+        {
+          "value": "7",
+          "label": "7 дней",
+          "disabled": false
+        },
+        {
+          "value": "30",
+          "label": "30 дней",
+          "disabled": false
+        },
+        {
+          "value": "90",
+          "label": "90 дней",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "РВ",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Настройки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 10,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Статистика",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/statistics"
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "×",
+      "label": "Закрыть уведомление",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/statistics",
+      "current": true
+    }
+  ]
+}

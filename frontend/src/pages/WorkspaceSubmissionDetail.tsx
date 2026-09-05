@@ -180,10 +180,41 @@ export function WorkspaceSubmissionDetail({
     (v) => v.id === r.data?.current_publication_id,
   );
   const latestAttempt = r.data?.attempts.at(-1);
+  const statusProjection = useResource(
+    async () => {
+      if (!r.data) return null;
+      if (role !== "student") {
+        const history = await ws.core.submission(id);
+        return (
+          history.review_iterations
+            .filter(
+              (iteration) =>
+                iteration.submission_version_id ===
+                  history.current_submission_version_id &&
+                iteration.status !== "canceled",
+            )
+            .sort((a, b) => b.iteration_number - a.iteration_number)[0]
+            ?.status ?? null
+        );
+      }
+      let offset = 0;
+      while (true) {
+        const page = await ws.studentWorks({ offset, limit: 100 });
+        const work = page.items.find(
+          (item) => item.publication_id === r.data!.publication_id,
+        );
+        if (work) return work.status;
+        offset += page.items.length;
+        if (!page.items.length || offset >= page.total) return null;
+      }
+    },
+    `${role}:${id}:${r.data?.id ?? "loading"}`,
+    5000,
+  );
   const currentStatus =
     current?.submission_version_id === latestAttempt?.id
       ? (current?.decision ?? "published")
-      : "pending_review";
+      : (statusProjection.data ?? "pending_review");
   const events = [
     ...(r.data?.attempts.map((a) => ({
       id: a.id,

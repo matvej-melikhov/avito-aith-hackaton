@@ -545,6 +545,13 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
           );
         if (path.endsWith("/policy"))
           return response(policies.get(identity) ?? null);
+        if (path.endsWith("/sources")) {
+          const { version } = publication(identity);
+          return response({
+            allowed_sources: privateDetails.get(version.id)
+              ?.allowed_sources ?? ["github", "google_docs", "upload"],
+          });
+        }
         if (path.endsWith("/student-context")) {
           const { c, h, version } = publication(identity);
           return response({

@@ -1,0 +1,254 @@
+{
+  "url": "http://127.0.0.1:5180/#/courses/a579a015-0268-5ce9-b38a-8be8c55a115d",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\nКурсы /\nОсенний поток · распределение\nАктивен\nКО\nЗадания\nЗАДАНИЕ\tСДАТЬ ДО\tФОРМАТ\tБАЛЛЫ\t\nИтоги каталога\t12 сент. 2026 г., 22:19\tgithub, google_docs\t10\tОткрыть →\nAPI каталога\t12 сент. 2026 г., 22:19\tgithub, google_docs\t10\tОткрыть →\nНовое задание\nНазвание\nСоздать задание\nОсенний поток · распределение\nАктивен\n\nРевьюеров в потоке: 2\n\n22 авг. 2026 г., 22:19 — 20 окт. 2026 г., 22:19\n\nРаботы: 2 →\n\nПриоритет рекомендаций\nСвои студенты сначала\nБлижайший срок сначала\nСохранить приоритет\nРедактировать поток\nРевьюеры и студенты\nАрхивировать поток\nУчастники потока\n\nДмитрий Волков · Ревьюер · active\n\nЕлена Смирнова · Ревьюер · active\n\nСтудент 5f21d6afc2be · Студент · active\n\nСтудент 7402ea04f9ec · Студент · active",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы /",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 9,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 10,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Открыть →",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homework/119cfc3f-a1fb-51b8-a6d7-a99e9c994e9e?run=a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 11,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Открыть →",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homework/655d70e8-accf-5bb3-a4b5-73df5b911193?run=a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 12,
+      "tag": "input",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Название",
+      "placeholder": null,
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "submit",
+      "role": null,
+      "text": "Создать задание",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Осенний поток · распределение",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 15,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Работы: 2 →",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 16,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Свои студенты сначала\nБлижайший срок сначала",
+      "label": "Приоритет рекомендаций",
+      "placeholder": null,
+      "value": "assigned",
+      "disabled": false,
+      "options": [
+        {
+          "value": "assigned",
+          "label": "Свои студенты сначала",
+          "disabled": false
+        },
+        {
+          "value": "deadline",
+          "label": "Ближайший срок сначала",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "tag": "button",
+      "type": "submit",
+      "role": null,
+      "text": "Сохранить приоритет",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 18,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Редактировать поток",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Ревьюеры и студенты",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/assignments/a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 20,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Архивировать поток",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/courses/a579a015-0268-5ce9-b38a-8be8c55a115d",
+      "current": true
+    }
+  ]
+}

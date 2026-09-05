@@ -1,0 +1,285 @@
+{
+  "url": "http://127.0.0.1:5180/#/reviews/1a758b12-3589-59bf-ae70-85b97e2ed800",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nМои работы\n2\nПул\n3\nКабинет\n←\nМои работы\n/\nСтудент 5f21d6afc2be\nAPI каталога\nНа проверке\nВернуть в пул\nРВ\nРабота\nnew-api.md\nОткрыть ↗\nПопытка\n1\nСдана\n31 авг. 2026 г., 22:19\nСрок сдачи был\n12 сент. 2026 г., 22:19\nИИ-ревью до сдачи\n0 запуска\n\nДругих участников: 1\n\nПрисоединиться\nПризнаки генерации ИИ\nОценка модели, на балл не влияет\n\nНет данных о признаках генерации.\n\nЗапустить проверку\nОтвет студенту\nУходит вместе с вердиктом\nСобрать заново\nПредварительное ревью от модели\nБаллы можно изменить перед отправкой решения\n?\nОсновной сценарий API\nБаллы\nиз 5\n⌄\nОбоснование\n?\nОшибки и воспроизводимые проверки\nБаллы\nиз 5\n⌄\nДобавить своё требование\n\nСумма по требованиям\n0 из 10\n\nРезультат\nПо требованиям задания\n0\nПросрочка\n—\nИтог\n0 из 10\nПорог зачёта: 7 из 10.\nСохранить черновик\nВернуть на доработку\nЗачесть\nСтудент прислал новую версию работы, которую вы проверяли.\n×",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои работы\n2",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/pool"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Кабинет",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "←",
+      "label": "Назад",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои работы",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 8,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Вернуть в пул",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "РВ",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 10,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Открыть ↗",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "http://127.0.0.1:19010/workspace-usability-study/2f3f0995-653f-5421-9036-09069524c9d9/424c5f54-a0a4-5859-a018-366c8455db26/artifact.bin?[signed-download-query-redacted]"
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Присоединиться",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Запустить проверку",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Собрать заново",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 14,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Обратная связь студенту",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "?\nОсновной сценарий API\nБаллы\nиз 5\n⌄",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 16,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Баллы: Основной сценарий API",
+      "placeholder": null,
+      "value": "0",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 17,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Обоснование",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 18,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "?\nОшибки и воспроизводимые проверки\nБаллы\nиз 5\n⌄",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Баллы: Ошибки и воспроизводимые проверки",
+      "placeholder": null,
+      "value": "0",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 20,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Добавить своё требование",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 21,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Сохранить черновик",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 22,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Вернуть на доработку",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 23,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Зачесть",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 24,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "×",
+      "label": "Закрыть уведомление",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/reviews/1a758b12-3589-59bf-ae70-85b97e2ed800",
+      "current": true
+    }
+  ]
+}

@@ -1,0 +1,278 @@
+[
+  {
+    "id": "T025",
+    "file": "frontend/src/App.tsx",
+    "status": "applied",
+    "replacement": "Проверка учебных работ"
+  },
+  {
+    "id": "T027",
+    "file": "frontend/src/App.tsx",
+    "status": "applied",
+    "replacement": "Вход"
+  },
+  {
+    "id": "T030",
+    "file": "frontend/src/App.tsx",
+    "status": "applied",
+    "replacement": "Выберите участника для входа на локальный стенд."
+  },
+  {
+    "id": "T035",
+    "file": "frontend/src/App.tsx",
+    "status": "applied",
+    "replacement": "Для студентов и координаторов."
+  },
+  {
+    "id": "T037",
+    "file": "frontend/src/App.tsx",
+    "status": "applied",
+    "replacement": "Войдите по ссылке из приглашения. Если приглашения нет, обратитесь к координатору курса."
+  },
+  {
+    "id": "T102",
+    "file": "frontend/src/api/client.ts",
+    "status": "applied",
+    "replacement": "Нет ответа от сервера. Проверьте подключение и повторите действие."
+  },
+  {
+    "id": "T104",
+    "file": "frontend/src/api/client.ts",
+    "status": "applied",
+    "replacement": "Не удалось прочитать ответ сервера. Обновите данные перед следующим действием."
+  },
+  {
+    "id": "T180",
+    "file": "frontend/src/pages/People.tsx",
+    "status": "applied",
+    "replacement": "Приглашение создано."
+  },
+  {
+    "id": "T198",
+    "file": "frontend/src/pages/People.tsx",
+    "status": "applied",
+    "replacement": "Текущие настройки здесь не отображаются. При сохранении вы зададите новые значения."
+  },
+  {
+    "id": "T211",
+    "file": "frontend/src/pages/Review.tsx",
+    "status": "applied",
+    "replacement": "Исправления сданы"
+  },
+  {
+    "id": "T228",
+    "file": "frontend/src/pages/Review.tsx",
+    "status": "applied",
+    "replacement": "Не удалось завершить проверку ИИ. Запустите её ещё раз."
+  },
+  {
+    "id": "T232",
+    "file": "frontend/src/pages/Review.tsx",
+    "status": "applied",
+    "replacement": "Студент получит его вместе с решением"
+  },
+  {
+    "id": "T233",
+    "file": "frontend/src/pages/Review.tsx",
+    "status": "applied",
+    "replacement": "Составить заново"
+  },
+  {
+    "id": "T236",
+    "file": "frontend/src/pages/Review.tsx",
+    "status": "applied",
+    "replacement": "Разбор по требованиям"
+  },
+  {
+    "id": "T238",
+    "file": "frontend/src/pages/Review.tsx",
+    "status": "already_changed_or_not_found",
+    "replacement": "Перед публикацией можно изменить баллы"
+  },
+  {
+    "id": "T293",
+    "file": "frontend/src/pages/StudentWorks.tsx",
+    "status": "applied",
+    "replacement": "Срок"
+  },
+  {
+    "id": "T339",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "работ в потоках"
+  },
+  {
+    "id": "T340",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "работ на проверке"
+  },
+  {
+    "id": "T341",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "работ ожидают проверки"
+  },
+  {
+    "id": "T342",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "сроков сдачи в ближайшие 7 дней"
+  },
+  {
+    "id": "T343",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "Предстоящих сроков нет"
+  },
+  {
+    "id": "T377",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "Выключите, если временно не берёте новые работы"
+  },
+  {
+    "id": "T381",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "Во время отсутствия вы не берёте новые работы. Уже взятые остаются за вами."
+  },
+  {
+    "id": "T383",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "Приближается срок проверки моей работы"
+  },
+  {
+    "id": "T385",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "В пуле по моим курсам появились новые работы"
+  },
+  {
+    "id": "T386",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "`Работ в пуле: ${r.data}`"
+  },
+  {
+    "id": "T391",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "Основной ревьюер назначается студенту в потоке. Другие ревьюеры сохраняют доступ к его работам и могут участвовать в проверках. Разовое участие не меняет закрепление."
+  },
+  {
+    "id": "T417",
+    "file": "frontend/src/pages/WorkspaceCatalog.tsx",
+    "status": "applied",
+    "replacement": "Задание сохранится в курсе. На шаге «Публикация» укажите сроки для выбранного потока."
+  },
+  {
+    "id": "T453",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Способ сдачи"
+  },
+  {
+    "id": "T460",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Лимит самопроверок с ИИ на студента"
+  },
+  {
+    "id": "T464",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Штраф рассчитывается по правилам публикации. Итоговый балл не может быть меньше нуля."
+  },
+  {
+    "id": "T472",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Способ проверки"
+  },
+  {
+    "id": "T473",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Формальная проверка"
+  },
+  {
+    "id": "T476",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Оценивать качество"
+  },
+  {
+    "id": "T477",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Модель оценивает качество, только если сначала подтвердила выполнение критерия и привела цитату."
+  },
+  {
+    "id": "T497",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Пример для модели и ревьюеров при калибровке. Студентам не показывается."
+  },
+  {
+    "id": "T502",
+    "file": "frontend/src/pages/WorkspaceHomework.tsx",
+    "status": "applied",
+    "replacement": "Укажите лимит самопроверок целым числом от 0."
+  },
+  {
+    "id": "T528",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "`${(insights.data.pool_metrics.average_wait_minutes / 1440).toLocaleString(\"ru-RU\", { maximumFractionDigits: 1 })} дн.`"
+  },
+  {
+    "id": "T581",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "Для кого файл"
+  },
+  {
+    "id": "T583",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "Для команды — внутренняя ведомость"
+  },
+  {
+    "id": "T584",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "Для студентов — копия"
+  },
+  {
+    "id": "T586",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "Работы без итогового результата"
+  },
+  {
+    "id": "T603",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "`${(r.data.average_wait_minutes / 1440).toLocaleString(\"ru-RU\", { maximumFractionDigits: 1 })} дн.`"
+  },
+  {
+    "id": "T606",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "`по курсу ${(r.data.course_average_wait_minutes / 1440).toLocaleString(\"ru-RU\", { maximumFractionDigits: 1 })} дн.`"
+  },
+  {
+    "id": "T611",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "По каким требованиям вы меняете оценку модели"
+  },
+  {
+    "id": "T623",
+    "file": "frontend/src/pages/WorkspaceLists.tsx",
+    "status": "applied",
+    "replacement": "Расхождение само по себе не означает ошибку. Проверьте, одинаково ли ревьюеры понимают требование."
+  }
+]

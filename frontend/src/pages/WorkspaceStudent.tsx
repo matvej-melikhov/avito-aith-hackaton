@@ -1,4 +1,4 @@
-import { Area, Btn, Drop, Field, Inp, Seg, Tab, Tabs, cx } from "../ds";
+import { Area, Btn, Drop, Field, Inp, Seg, Tab, Tabs, cx, plural } from "../ds";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
@@ -48,6 +48,7 @@ function DraftForm({
   session: Model<"Session">;
 }) {
   const [data, setData] = useState(initial);
+  const correctionForm = useRef<HTMLDivElement>(null);
   const fileInputId = useId();
   const [fileError, setFileError] = useState<string>();
   const [dragging, setDragging] = useState(false);
@@ -76,7 +77,7 @@ function DraftForm({
         : "file";
   const sourceLabel =
     canGitHub && canDocs
-      ? "Ссылка на репозиторий или Google Docs"
+      ? "Ссылка на GitHub или Google Docs"
       : canGitHub
         ? "Ссылка на репозиторий GitHub"
         : "Ссылка на Google Docs";
@@ -130,6 +131,21 @@ function DraftForm({
   const canSubmit =
     !data.submission_id ||
     (!history.loading && !history.error && (!latestAttempt || revision));
+  const carriedUpload =
+    revision &&
+    source === "file" &&
+    !file &&
+    !!saved?.upload_id &&
+    saved.upload_id === latestAttempt?.artifact_id;
+  function jumpToCorrection() {
+    const form = correctionForm.current;
+    form?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+    form
+      ?.querySelector<HTMLElement>(
+        'input:not([type="file"]):not(:disabled), [role="button"]:not([aria-disabled="true"]), textarea:not(:disabled)',
+      )
+      ?.focus({ preventScroll: true });
+  }
   const submittedStatus = latestAttempt
     ? latestAttempt.status === "passed"
       ? "Зачтена"
@@ -177,7 +193,7 @@ function DraftForm({
         !(canDocs && parsed.hostname === "docs.google.com")
       )
         throw new Error(
-          `Для этого задания доступна: ${sourceLabel.toLowerCase()}.`,
+          `Для этого задания подходит: ${sourceLabel.toLowerCase()}.`,
         );
     }
   }
@@ -373,7 +389,16 @@ function DraftForm({
                   <>
                     {run ? (
                       <details className="acc" open>
-                        <summary className="acc__h">Текущая проверка</summary>
+                        <summary className="acc__h">
+                          Текущая проверка
+                          <span
+                            className="acc__chev"
+                            aria-hidden="true"
+                            style={{ marginLeft: "auto" }}
+                          >
+                            ▾
+                          </span>
+                        </summary>
                         <StudentSelfReview
                           ws={ws}
                           id={run}
@@ -396,6 +421,13 @@ function DraftForm({
                         <summary className="acc__h">
                           Проверка от {date(activeResult.created_at)}
                           <span className="pill">последняя</span>
+                          <span
+                            className="acc__chev"
+                            aria-hidden="true"
+                            style={{ marginLeft: "auto" }}
+                          >
+                            ▾
+                          </span>
                         </summary>
                         {(dirty ||
                           saved?.revision !== activeResult.draft_revision) && (
@@ -422,6 +454,13 @@ function DraftForm({
                         <details className="acc" key={value.id}>
                           <summary className="acc__h">
                             Проверка от {date(value.created_at)}
+                            <span
+                              className="acc__chev"
+                              aria-hidden="true"
+                              style={{ marginLeft: "auto" }}
+                            >
+                              ▾
+                            </span>
                           </summary>
                           <SelfReviewResult showHeading={false} value={value} />
                         </details>
@@ -447,6 +486,13 @@ function DraftForm({
                           {index === history.data!.attempts.length - 1 && (
                             <span className="pill">последняя</span>
                           )}
+                          <span
+                            className="acc__chev"
+                            aria-hidden="true"
+                            style={{ marginLeft: "auto" }}
+                          >
+                            ▾
+                          </span>
                         </summary>
                         <div style={{ paddingBottom: "var(--s-4)" }}>
                           <SubmittedStudentWork ws={ws} attempt={attempt} />
@@ -455,10 +501,26 @@ function DraftForm({
                           ) : (
                             <p>Результат ещё не опубликован.</p>
                           )}
+                          {revision && attempt.id === latestAttempt?.id && (
+                            <Btn
+                              variant="link"
+                              size="s"
+                              onClick={jumpToCorrection}
+                            >
+                              К исправленной работе
+                            </Btn>
+                          )}
                           {published.length > 1 && (
                             <details className="student-history">
-                              <summary>
+                              <summary className="acc__h">
                                 Предыдущие публикации этой попытки
+                                <span
+                                  className="acc__chev"
+                                  aria-hidden="true"
+                                  style={{ marginLeft: "auto" }}
+                                >
+                                  ▾
+                                </span>
                               </summary>
                               {published.slice(0, -1).map((value) => (
                                 <div key={value.id}>
@@ -482,242 +544,257 @@ function DraftForm({
               </div>
             </section>
           )}
-          <Card
-            title={revision ? "Исправленная работа" : "Ваша работа"}
-            headClassName="submission-head"
-            bodyClassName="card__body--compact"
-            actions={
-              <Seg
-                value={source}
-                label="Способ сдачи"
-                disabled={action.busy || !canSubmit}
-                options={[
-                  ...(canLink
-                    ? [{ value: "url" as const, label: "Ссылка" }]
-                    : []),
-                  ...(canFile
-                    ? [{ value: "file" as const, label: "Файлы" }]
-                    : []),
-                ]}
-                onChange={(value) => {
-                  setSource(value);
-                  setDirty(true);
-                }}
-              />
-            }
-          >
-            <fieldset disabled={action.busy || !canSubmit}>
-              {!canFile && !canLink ? (
-                <p>Для задания не настроены способы сдачи.</p>
-              ) : source === "url" ? (
+          <div ref={correctionForm}>
+            <Card
+              title={revision ? "Исправленная работа" : "Ваша работа"}
+              headClassName="submission-head"
+              bodyClassName="card__body--compact"
+              actions={
+                <Seg
+                  value={source}
+                  label="Способ сдачи"
+                  disabled={action.busy || !canSubmit}
+                  options={[
+                    ...(canLink
+                      ? [{ value: "url" as const, label: "Ссылка" }]
+                      : []),
+                    ...(canFile
+                      ? [{ value: "file" as const, label: "Файлы" }]
+                      : []),
+                  ]}
+                  onChange={(value) => {
+                    setSource(value);
+                    setDirty(true);
+                  }}
+                />
+              }
+            >
+              {carriedUpload && (
+                <p className="notice" role="status">
+                  Файл перенесён из прошлой попытки и ещё не заменён. Если
+                  исправления находятся в другом файле, выберите его перед
+                  отправкой.
+                </p>
+              )}
+              <fieldset disabled={action.busy || !canSubmit}>
+                {!canFile && !canLink ? (
+                  <p>Для задания не настроены способы сдачи.</p>
+                ) : source === "url" ? (
+                  <Field
+                    label={sourceLabel}
+                    hint="Откройте доступ к работе по ссылке. При отправке сохраняется отдельный снимок."
+                  >
+                    <Inp
+                      mono
+                      type="url"
+                      aria-label={sourceLabel}
+                      value={url}
+                      placeholder={
+                        canGitHub
+                          ? "https://github.com/username/project"
+                          : "https://docs.google.com/document/d/..."
+                      }
+                      onChange={(e) => {
+                        setUrl(e.target.value);
+                        setDirty(true);
+                      }}
+                    />
+                  </Field>
+                ) : (
+                  <Field
+                    label="Файл работы"
+                    group
+                    error={fileError}
+                    hint="Markdown, PDF или DOCX, до 10 МБ. Ревьюер и модель получают сохранённый файл."
+                  >
+                    <Drop
+                      className={cx(
+                        "upload",
+                        dragging && "upload--over",
+                        fileError && "upload--err",
+                      )}
+                      role="button"
+                      tabIndex={action.busy || !canSubmit ? -1 : 0}
+                      aria-disabled={action.busy || !canSubmit}
+                      title={
+                        file
+                          ? file.name
+                          : saved?.upload_id
+                            ? (uploaded.data?.filename ?? "Файл сохранён")
+                            : dragging
+                              ? "Отпустите файл здесь"
+                              : "Перетащите файл или выберите"
+                      }
+                      hint={
+                        file
+                          ? `${(file.size / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} КБ · ${action.busy ? "Загружаем…" : "Сохраним в черновике"}`
+                          : saved?.upload_id
+                            ? "Загружен в черновик. Нажмите, чтобы заменить."
+                            : "Нажмите, чтобы выбрать файл"
+                      }
+                      onKeyDown={(e) => {
+                        if (
+                          e.target !== e.currentTarget ||
+                          action.busy ||
+                          !canSubmit
+                        )
+                          return;
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.currentTarget
+                            .querySelector<HTMLInputElement>(
+                              'input[type="file"]',
+                            )
+                            ?.click();
+                        }
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (!action.busy && canSubmit) setDragging(true);
+                      }}
+                      onDragLeave={() => setDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragging(false);
+                        if (action.busy || !canSubmit) return;
+                        if (e.dataTransfer.files.length !== 1) {
+                          setFileError("Выберите один файл.");
+                          return;
+                        }
+                        pickFile(e.dataTransfer.files[0]);
+                      }}
+                    >
+                      <Inp
+                        id={fileInputId}
+                        className="sr-only"
+                        tabIndex={-1}
+                        type="file"
+                        accept=".md,.pdf,.docx"
+                        aria-label="Файл работы"
+                        onChange={(e) => {
+                          pickFile(e.target.files?.[0]);
+                          e.target.value = "";
+                        }}
+                      />
+                      {!file && uploaded.data && (
+                        <a
+                          href={safeUrl(uploaded.data.url)}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Открыть сохранённый файл ↗
+                        </a>
+                      )}
+                    </Drop>
+                  </Field>
+                )}
                 <Field
-                  label={sourceLabel}
-                  hint="Откройте доступ к работе по ссылке. При отправке сохраняется отдельный снимок."
+                  label="Комментарий к сдаче, необязательно"
+                  hint="Например, что вы доработали и где использовали ИИ"
                 >
-                  <Inp
-                    mono
-                    type="url"
-                    aria-label={sourceLabel}
-                    value={url}
-                    placeholder={
-                      canGitHub
-                        ? "https://github.com/username/project"
-                        : "https://docs.google.com/document/d/..."
-                    }
+                  <Area
+                    className="submission-comment"
+                    rows={2}
+                    aria-label="Комментарий к сдаче, необязательно"
+                    value={comment}
                     onChange={(e) => {
-                      setUrl(e.target.value);
+                      setComment(e.target.value);
                       setDirty(true);
                     }}
                   />
                 </Field>
-              ) : (
-                <Field
-                  label="Файл работы"
-                  group
-                  error={fileError}
-                  hint="Markdown, PDF или DOCX, до 10 МБ. Ревьюер и модель получают сохранённый файл."
-                >
-                  <Drop
-                    className={cx(
-                      "upload",
-                      dragging && "upload--over",
-                      fileError && "upload--err",
-                    )}
-                    role="button"
-                    tabIndex={action.busy || !canSubmit ? -1 : 0}
-                    aria-disabled={action.busy || !canSubmit}
-                    title={
-                      file
-                        ? file.name
-                        : saved?.upload_id
-                          ? (uploaded.data?.filename ?? "Файл сохранён")
-                          : dragging
-                            ? "Отпустите файл здесь"
-                            : "Перетащите файл или выберите"
-                    }
-                    hint={
-                      file
-                        ? `${(file.size / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} КБ · ${action.busy ? "Загружаем…" : "Сохраним в черновике"}`
-                        : saved?.upload_id
-                          ? "Загружен в черновик. Нажмите, чтобы заменить."
-                          : "Нажмите, чтобы выбрать файл"
-                    }
-                    onKeyDown={(e) => {
-                      if (
-                        e.target !== e.currentTarget ||
-                        action.busy ||
-                        !canSubmit
-                      )
-                        return;
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        e.currentTarget
-                          .querySelector<HTMLInputElement>('input[type="file"]')
-                          ?.click();
-                      }
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      if (!action.busy && canSubmit) setDragging(true);
-                    }}
-                    onDragLeave={() => setDragging(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setDragging(false);
-                      if (action.busy || !canSubmit) return;
-                      if (e.dataTransfer.files.length !== 1) {
-                        setFileError("Выберите один файл.");
-                        return;
-                      }
-                      pickFile(e.dataTransfer.files[0]);
-                    }}
-                  >
-                    <Inp
-                      id={fileInputId}
-                      className="sr-only"
-                      tabIndex={-1}
-                      type="file"
-                      accept=".md,.pdf,.docx"
-                      aria-label="Файл работы"
-                      onChange={(e) => {
-                        pickFile(e.target.files?.[0]);
-                        e.target.value = "";
-                      }}
-                    />
-                    {!file && uploaded.data && (
-                      <a
-                        href={safeUrl(uploaded.data.url)}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Открыть сохранённый файл ↗
-                      </a>
-                    )}
-                  </Drop>
-                </Field>
-              )}
-              <Field
-                label="Комментарий к сдаче, необязательно"
-                hint="Например: какие части делали с помощью ИИ и что дорабатывали руками"
-              >
-                <Area
-                  className="submission-comment"
-                  rows={2}
-                  aria-label="Комментарий к сдаче, необязательно"
-                  value={comment}
-                  onChange={(e) => {
-                    setComment(e.target.value);
-                    setDirty(true);
-                  }}
-                />
-              </Field>
-              <small>
-                {dirty
-                  ? "Сохраняем изменения…"
-                  : saved
-                    ? "Черновик сохранён"
-                    : ""}
-              </small>
-            </fieldset>
-            <div className="student-form-actions">
-              {!canSubmit && !history.loading && (
-                <p className="caption">
-                  Работа уже отправлена. Новую версию можно отправить после
-                  возврата на доработку.
-                </p>
-              )}
-              <div className="submission-actions">
-                <Btn
-                  variant="pri"
-                  disabled={action.busy || !canSubmit || (!canFile && !canLink)}
-                  onClick={() =>
-                    void action.run(async () => {
-                      try {
-                        await submit();
-                      } finally {
-                        setStage("");
-                      }
-                    })
-                  }
-                >
-                  {revision ? "Отправить исправления" : "Отправить на ревью"}
-                </Btn>
-                <div className="submission-actions__precheck">
+                <small>
+                  {dirty
+                    ? "Сохраняем изменения…"
+                    : saved
+                      ? "Черновик сохранён"
+                      : ""}
+                </small>
+              </fieldset>
+              <div className="student-form-actions">
+                {!canSubmit && !history.loading && (
+                  <p className="caption">
+                    Работа уже отправлена. Новую версию можно отправить после
+                    возврата на доработку.
+                  </p>
+                )}
+                <div className="submission-actions">
                   <Btn
+                    variant="pri"
                     disabled={
-                      action.busy ||
-                      !canSubmit ||
-                      (!canFile && !canLink) ||
-                      (data.quota
-                        ? data.quota.remaining === 0
-                        : !data.policy ||
-                          data.policy.self_review_limit === 0) ||
-                      !!run
+                      action.busy || !canSubmit || (!canFile && !canLink)
                     }
                     onClick={() =>
                       void action.run(async () => {
                         try {
-                          const d = await prepare();
-                          if (!d) return;
-                          setStage("Запускаем самопроверку…");
-                          const started = await ws.command(
-                            "start_self_review",
-                            d.id,
-                            d.revision,
-                            {},
-                          );
-                          setReviewTab("ai");
-                          setCollapsed(true);
-                          setRun(started.id);
-                          setResult(started);
+                          await submit();
                         } finally {
                           setStage("");
                         }
                       })
                     }
                   >
-                    ИИ-ревью
+                    {revision ? "Отправить исправления" : "Отправить на ревью"}
                   </Btn>
-                  <div className="caption">
-                    Результат ИИ-ревью видит ревьюер и учитывает при оценке.
-                    Самопроверка необязательна.{" "}
-                    {data.quota || !data.policy ? (
-                      <Quota
-                        compact
-                        value={run ? (result?.quota ?? data.quota) : data.quota}
-                      />
-                    ) : (
-                      <span>
-                        Доступные попытки уточнятся после сохранения работы.
-                      </span>
-                    )}
+                  <div className="submission-actions__precheck">
+                    <Btn
+                      disabled={
+                        action.busy ||
+                        !canSubmit ||
+                        (!canFile && !canLink) ||
+                        (data.quota
+                          ? data.quota.remaining === 0
+                          : !data.policy ||
+                            data.policy.self_review_limit === 0) ||
+                        !!run
+                      }
+                      onClick={() =>
+                        void action.run(async () => {
+                          try {
+                            const d = await prepare();
+                            if (!d) return;
+                            setStage("Запускаем самопроверку…");
+                            const started = await ws.command(
+                              "start_self_review",
+                              d.id,
+                              d.revision,
+                              {},
+                            );
+                            setReviewTab("ai");
+                            setCollapsed(true);
+                            setRun(started.id);
+                            setResult(started);
+                          } finally {
+                            setStage("");
+                          }
+                        })
+                      }
+                    >
+                      ИИ-ревью
+                    </Btn>
+                    <div className="caption">
+                      Результат ИИ-ревью видит ревьюер и учитывает при оценке.
+                      Самопроверка необязательна.{" "}
+                      {data.quota || !data.policy ? (
+                        <Quota
+                          compact
+                          value={
+                            run ? (result?.quota ?? data.quota) : data.quota
+                          }
+                        />
+                      ) : (
+                        <span>
+                          Доступные попытки уточнятся после сохранения работы.
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
+                {stage && <p role="status">{stage}</p>}
               </div>
-              {stage && <p role="status">{stage}</p>}
-            </div>
-          </Card>
+            </Card>
+          </div>
         </div>
         <aside className="stack">
           <Card
@@ -749,7 +826,10 @@ function DraftForm({
                 {data.max_score !== undefined && (
                   <div className="rubric-row">
                     <span>Всего</span>
-                    <span className="points">{data.max_score} баллов</span>
+                    <span className="points">
+                      {data.max_score}{" "}
+                      {plural(data.max_score, "балл", "балла", "баллов")}
+                    </span>
                   </div>
                 )}
               </>
@@ -758,7 +838,8 @@ function DraftForm({
           {data.policy && data.policy.penalty_per_day > 0 && (
             <p className="notice warn">
               За каждый день после срока снимается {data.policy.penalty_per_day}{" "}
-              балла. Срок исправлений назначает ревьюер.
+              {plural(data.policy.penalty_per_day, "балл", "балла", "баллов")}.
+              Срок исправлений назначает ревьюер.
             </p>
           )}
         </aside>

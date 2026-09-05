@@ -1,0 +1,277 @@
+{
+  "url": "http://127.0.0.1:5180/#/coord-pool",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\n←\nКурсы\n/\nПрактикум API · задания студентов\n/\nСамостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания\nПул проверок\nНапомнить ревьюерам\nКО\n0\nработ ждут ревьюера\nиз 1 сданных\n0\nждут больше 3 дней\n0 из 2\nревьюеров участвуют в проверках\n1 дня\nсреднее ожидание проверки\nНезавершённые проверки · 0\nОжидают проверки или находятся на ревью\nЗадание: все\nПервый API списка задач\nНадёжная обработка ошибок\nТолько зависшие\nСТУДЕНТ\tЗАДАНИЕ\tСТАТУС\tСДАНА\tСРОК ПРОВЕРКИ\tУЧАСТИЕ РЕВЬЮЕРОВ\t\nНезавершённых проверок по этим условиям нет.\nНазад\n0–0 из 0\nДальше\nТипичные ошибки потока\nПо завершённым проверкам\nДобавить в описание курса\nТРЕБОВАНИЕ\tНЕ ВЫПОЛНИЛИ\tДОЛЯ\n\nОсновной сценарий API\n\t1 из 1\t\n\n\nОшибки и воспроизводимые проверки\n\t1 из 1\t",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "←",
+      "label": "Назад к потокам",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 10,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Самостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания",
+      "label": "Поток",
+      "placeholder": null,
+      "value": "254f8a90-aa75-5e74-aea1-2b517e4d04ee",
+      "disabled": false,
+      "options": [
+        {
+          "value": "254f8a90-aa75-5e74-aea1-2b517e4d04ee",
+          "label": "Самостоятельная работа · доработка",
+          "disabled": false
+        },
+        {
+          "value": "a579a015-0268-5ce9-b38a-8be8c55a115d",
+          "label": "Осенний поток · распределение",
+          "disabled": false
+        },
+        {
+          "value": "c503d9f4-6c4a-5fd3-9b45-0c4e18979adb",
+          "label": "Повторная очередь · исправленные работы",
+          "disabled": false
+        },
+        {
+          "value": "d206f811-18da-5543-aa06-92988156d344",
+          "label": "Основная очередь · первые проверки",
+          "disabled": false
+        },
+        {
+          "value": "a65fb045-a967-5006-b90c-38856c64909a",
+          "label": "Самостоятельная работа · новые задания",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Напомнить ревьюерам",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Задание: все\nПервый API списка задач\nНадёжная обработка ошибок",
+      "label": "Задание",
+      "placeholder": null,
+      "value": "",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Задание: все",
+          "disabled": false
+        },
+        {
+          "value": "1a9bcf64-d069-5b03-8730-f2c228d07d35",
+          "label": "Первый API списка задач",
+          "disabled": false
+        },
+        {
+          "value": "99db2709-70ab-514d-ac31-0826ec576bfb",
+          "label": "Надёжная обработка ошибок",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Только зависшие",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Назад",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 16,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Дальше",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 17,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Добавить в описание курса",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 18,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Основной сценарий API",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ошибки и воспроизводимые проверки",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/coord-pool",
+      "current": true
+    }
+  ]
+}

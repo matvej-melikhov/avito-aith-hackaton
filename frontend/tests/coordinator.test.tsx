@@ -121,16 +121,16 @@ it("reviewer settings show only courses and absence while preserving compatibili
   expect(poolSwitch).toBeChecked();
   await user.click(poolSwitch);
   await user.click(
-    screen.getByLabelText("В пуле по моим курсам появилось что-то новое"),
+    screen.getByLabelText("В пуле по моим курсам появились новые работы"),
   );
   await user.click(screen.getByRole("button", { name: "Отменить" }));
   expect(poolSwitch).toBeChecked();
   expect(
-    screen.getByLabelText("В пуле по моим курсам появилось что-то новое"),
+    screen.getByLabelText("В пуле по моим курсам появились новые работы"),
   ).not.toBeChecked();
   await user.click(poolSwitch);
   await user.click(
-    screen.getByLabelText("В пуле по моим курсам появилось что-то новое"),
+    screen.getByLabelText("В пуле по моим курсам появились новые работы"),
   );
   await user.click(screen.getByRole("button", { name: "Сохранить" }));
   await waitFor(() => expect(saved).toBeDefined());
@@ -169,7 +169,7 @@ it("criterion settings autosave, derive total and reopen a single expanded form"
   await user.type(screen.getByLabelText("Баллов за критерий"), "2.5");
   await user.clear(screen.getByLabelText("Шаг"));
   await user.type(screen.getByLabelText("Шаг"), "0.25");
-  await user.click(screen.getByLabelText("Ещё и оценить качество"));
+  await user.click(screen.getByLabelText("Оценивать качество"));
   expect(screen.getByLabelText("Порог зачёта")).toHaveAttribute("max", "12.5");
   await screen.findByText("Изменения сохранены");
   view.unmount();
@@ -186,7 +186,7 @@ it("criterion settings autosave, derive total and reopen a single expanded form"
   await user.click(screen.getByRole("button", { name: /Качество объяснения/ }));
   expect(screen.getAllByLabelText("Название критерия")).toHaveLength(1);
   expect(screen.getByLabelText("Шаг")).toHaveValue(0.25);
-  expect(screen.getByLabelText("Ещё и оценить качество")).toBeChecked();
+  expect(screen.getByLabelText("Оценивать качество")).toBeChecked();
 });
 
 it("coordinator pool requests unfinished scope and registry exposes completed results and export", async () => {
@@ -235,7 +235,7 @@ it("coordinator pool requests unfinished scope and registry exposes completed re
     screen.getByRole("columnheader", { name: "Опубликованный балл" }),
   ).toBeInTheDocument();
   expect(
-    screen.getAllByRole("link", { name: "История и результат" }),
+    screen.getAllByRole("link", { name: "Результат для студента" }),
   ).toHaveLength(2);
 });
 
@@ -261,7 +261,9 @@ it("export has immutable flow context and connected audience and format controls
   await user.click(screen.getByRole("button", { name: "Выгрузить" }));
   await screen.findByRole("dialog", { name: "Выгрузка" });
   expect(screen.getByText(/Все задания, поток/)).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Студентам, копия" }));
+  await user.click(
+    screen.getByRole("button", { name: "Для студентов — копия" }),
+  );
   expect(screen.queryByLabelText("ID ревьюера")).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "XLSX" }));
   await user.click(
@@ -390,7 +392,7 @@ it("coordinator opening an unreviewed work is read-only and pool filters reach s
   };
   render(<WorkspaceWorks ws={ws} role="methodologist" coordinatorPool />);
   await screen.findByRole("button", { name: "Открыть проверку" });
-  await user.click(screen.getByLabelText("Только зависшие"));
+  await user.click(screen.getByLabelText("Ждут ревьюера больше 3 дней"));
   await waitFor(() =>
     expect(
       requests.some(
@@ -514,7 +516,7 @@ it("draft-only registry rows open readonly metadata instead of a null submission
   ).toHaveTextContent("Черновик · ещё не сдана");
   expect(window.location.hash).not.toContain("null");
   expect(
-    screen.queryByRole("link", { name: "История и результат" }),
+    screen.queryByRole("link", { name: "Результат для студента" }),
   ).not.toBeInTheDocument();
 });
 
@@ -533,7 +535,7 @@ it("overview active counts and drilldowns share reviewing scope without a ninth 
     };
   };
   const overview = render(<WorkspaceCatalog ws={ws} />);
-  const label = await screen.findByText("у ревьюеров прямо сейчас");
+  const label = await screen.findByText("работ на проверке");
   const tile = label.closest("a")!;
   expect(tile).toHaveAttribute("href", "#/registry?state=reviewing");
   expect(within(tile).getByText("7")).toBeInTheDocument();

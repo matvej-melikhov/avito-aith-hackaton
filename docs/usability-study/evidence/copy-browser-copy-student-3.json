@@ -1,0 +1,139 @@
+{
+  "url": "http://127.0.0.1:5180/#/submissions/24807d9a-6c39-5845-a38e-45f69cba118a",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\ne8ae\n←\nМои домашки\n/\nИтоги каталога\nИтоги каталога\nЗачтена\nИИ-ревью\nРевью\nПопытка 1, 31 авг. 2026 г., 22:19\nпоследняя\nОтправленная работа\nrevised-api.md ↗\n\nКОММЕНТАРИЙ К СДАЧЕ\n\nВсе проверки каталога завершены.\n\nОсновной сценарий API\n4 из 5\nОшибки и воспроизводимые проверки\n4 из 5\nИтого\n8 из 10\nВердикт\nзачтена\n\nКОММЕНТАРИЙ РЕВЬЮЕРА\n\nОсновные сценарии и проверки выполнены.\n\nИстория\nзачтена\n3 сент. 2026 г., 22:19\nСдана\n31 авг. 2026 г., 22:19",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "e8ae",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "←",
+      "label": "Назад",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои домашки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 6,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "ИИ-ревью",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 7,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Ревью",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 8,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "Попытка 1, 31 авг. 2026 г., 22:19\nпоследняя",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "revised-api.md ↗",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "http://127.0.0.1:19010/workspace-usability-study/2f3f0995-653f-5421-9036-09069524c9d9/363cb64a-5093-50a5-970e-9233cc2e9728/artifact.bin?[signed-download-query-redacted]"
+    },
+    {
+      "id": 10,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "Основной сценарий API\n4 из 5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 11,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "Ошибки и воспроизводимые проверки\n4 из 5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/submissions/24807d9a-6c39-5845-a38e-45f69cba118a",
+      "current": true
+    }
+  ]
+}

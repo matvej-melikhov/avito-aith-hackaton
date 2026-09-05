@@ -1,6 +1,11 @@
 // Оболочка приложения: панель, шапка, витринная плашка, крошки, шаги мастера,
 // нижняя панель действий. Разметка из docs/design/screens.html (Р2, С1, К5).
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import { cx } from "./controls";
 
 export const BRAND = "Авито Ревью";
@@ -229,8 +234,34 @@ export function Dock({
   actions?: ReactNode;
   className?: string;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const node = ref.current;
+    const shell = node?.closest<HTMLElement>(".app-shell");
+    if (!node || !shell) return;
+    const update = () => {
+      const box = node.getBoundingClientRect();
+      const clearance =
+        box.bottom > 0 && box.top < window.innerHeight
+          ? window.innerHeight - Math.max(0, box.top)
+          : 0;
+      shell.style.setProperty("--dock-clearance", `${clearance}px`);
+    };
+    update();
+    const observer =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    observer?.observe(node);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      shell.style.removeProperty("--dock-clearance");
+    };
+  }, []);
   return (
-    <div className={cx("dock", className)}>
+    <div ref={ref} className={cx("dock", className)}>
       <div className="dock__lead">{children}</div>
       {actions && <div className="btn-row dock__actions">{actions}</div>}
     </div>

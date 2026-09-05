@@ -11,7 +11,7 @@ import {
   CardBody,
   Tgl,
 } from "../ds";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import {
@@ -45,7 +45,12 @@ export function WorkspaceCatalog({
   const [selectedCourse, setSelectedCourse] = useState("");
   const close = useCallback(() => setModal(undefined), []);
   const action = useAction();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(
+    new URLSearchParams(window.location.hash.split("?")[1]).get("course") ?? "",
+  );
+  const courseFromUrl =
+    new URLSearchParams(window.location.hash.split("?")[1]).get("course") ?? "";
+  useEffect(() => setSearch(courseFromUrl), [courseFromUrl]);
   const [status, setStatus] = useState("");
   return (
     <>
@@ -167,14 +172,17 @@ export function WorkspaceCatalog({
                     {r.data.courses.map((c) => (
                       <tr key={c.id}>
                         <td>
+                          <a href={`#/dashboard?course=${c.id}`}>{c.title}</a>
                           <Btn
                             variant="link"
+                            size="s"
+                            aria-label={`Редактировать курс ${c.title}`}
                             onClick={() => {
                               setEditCourse(c);
                               setModal("edit-course");
                             }}
                           >
-                            {c.title}
+                            Редактировать
                           </Btn>
                           <small>{c.description}</small>
                         </td>
@@ -343,22 +351,22 @@ function OverviewMetrics({ ws }: { ws: WorkspaceClient }) {
         <div className="tiles">
           <a className="tile" href="#/registry">
             <div className="n">{r.data.all}</div>
-            <div className="l">домашек в потоках</div>
+            <div className="l"> работ в потоках </div>
           </a>
           <a className="tile" href="#/registry?state=reviewing">
             <div className="n">{r.data.active}</div>
-            <div className="l">у ревьюеров прямо сейчас</div>
+            <div className="l"> работ на проверке </div>
           </a>
           <a
             className="tile tile--alert"
             href="#/registry?state=pending_review"
           >
             <div className="n">{r.data.pool}</div>
-            <div className="l">в пуле без проверки</div>
+            <div className="l"> работ ожидают проверки </div>
           </a>
           <div className="tile">
             <div className="n">{r.data.deadlines}</div>
-            <div className="l">дедлайнов в ближайшие 7 дней</div>
+            <div className="l"> сроков сдачи в ближайшие 7 дней </div>
           </div>
         </div>
       )}
@@ -414,7 +422,9 @@ function RunSummary({
         <>
           <td>{r.data.students}</td>
           <td>{run.reviewer_count}</td>
-          <td>{r.data.deadline ? date(r.data.deadline) : "Нет предстоящих"}</td>
+          <td>
+            {r.data.deadline ? date(r.data.deadline) : "Предстоящих сроков нет"}
+          </td>
           <td>{link(r.data.all)}</td>
           <td>{link(r.data.pool, "pending_review")}</td>
           <td>{link(r.data.review, "reviewing")}</td>
@@ -862,7 +872,7 @@ function PreferencesForm({
                 <span>
                   Показывать мне работы из пула
                   <small className="muted">
-                    выключите, если временно не берёте новое
+                    Выключите, если временно не берёте новые работы{" "}
                   </small>
                 </span>
                 <Tgl
@@ -894,15 +904,16 @@ function PreferencesForm({
                 </div>
               </fieldset>
               <p className="muted">
-                На это время новые работы не берём, уже взятые остаются за вами.
+                Во время отсутствия вы не берёте новые работы. Уже взятые
+                остаются за вами.{" "}
               </p>
             </Card>
             <Card title="Уведомления">
               {(
                 [
-                  ["deadline", "Работа, которую я взял, близка к сроку"],
+                  ["deadline", "Приближается срок проверки моей работы"],
                   ["revision", "Студент прислал правки"],
-                  ["pool", "В пуле по моим курсам появилось что-то новое"],
+                  ["pool", "В пуле по моим курсам появились новые работы"],
                 ] as const
               ).map(([key, label]) => (
                 <Chk
@@ -951,7 +962,7 @@ function CoursePoolCount({
   return (
     <span className="muted course-pool-count">
       {r.data !== undefined
-        ? `в пуле ${r.data} работ`
+        ? `Работ в пуле: ${r.data}`
         : r.error
           ? "Число работ недоступно"
           : "…"}
@@ -973,6 +984,12 @@ export function WorkspaceAssignments({
     }),
     runId,
   );
+  useEffect(() => {
+    if (r.data) sessionStorage.setItem("review-ui-selected-run", runId);
+  }, [r.data, runId]);
+  const [assignmentNotices, setAssignmentNotices] = useState<
+    Record<string, string>
+  >({});
   const action = useAction();
   const [member, setMember] = useState("");
   const [kind, setKind] = useState<"student" | "reviewer">("student");
@@ -987,9 +1004,9 @@ export function WorkspaceAssignments({
         <a href={`#/courses/${runId}`}>← Вернуться к потоку</a>
       </p>
       <p className="notice">
-        Основной ревьюер закрепляется за студентом в потоке. Участники
-        конкретной проверки могут быть другими: коллеги сохраняют доступ к
-        работе, а разовое участие не меняет закрепление.
+        Основной ревьюер назначается студенту в потоке. Другие ревьюеры
+        сохраняют доступ к его работам и могут участвовать в проверках. Разовое
+        участие не меняет закрепление.{" "}
       </p>
       {action.feedback}
       <Resource value={r}>
@@ -1012,6 +1029,13 @@ export function WorkspaceAssignments({
                       value={a}
                       people={r.data!.people.items}
                       refresh={r.refresh}
+                      notice={assignmentNotices[a.student_id]}
+                      onSaved={(message) =>
+                        setAssignmentNotices((current) => ({
+                          ...current,
+                          [a.student_id]: message,
+                        }))
+                      }
                     />
                   ))}
                 </tbody>
@@ -1135,12 +1159,16 @@ function AssignmentRow({
   value,
   people,
   refresh,
+  notice,
+  onSaved,
 }: {
   ws: WorkspaceClient;
   runId: string;
   value: W<"AssignmentView">;
   people: W<"DirectoryMember">[];
   refresh: () => void;
+  notice?: string;
+  onSaved: (message: string) => void;
 }) {
   const [reviewer, setReviewer] = useState(value.reviewer_id ?? "");
   const action = useAction();
@@ -1152,7 +1180,10 @@ function AssignmentRow({
           <Sel
             aria-label={`Ревьюер: ${value.student_name}`}
             value={reviewer}
-            onChange={(e) => setReviewer(e.target.value)}
+            onChange={(e) => {
+              setReviewer(e.target.value);
+              onSaved("");
+            }}
           >
             <option value="">Не закреплён</option>
             {people
@@ -1172,6 +1203,9 @@ function AssignmentRow({
                   reviewer_id: reviewer || null,
                   reason: "Изменение закрепления координатором",
                 });
+                onSaved(
+                  `${reviewer ? `${people.find((person) => person.id === reviewer)?.display_name ?? "Ревьюер"} назначен для следующих работ.` : "Основной ревьюер снят."} Начатые проверки не изменены.`,
+                );
                 refresh();
               })
             }
@@ -1179,6 +1213,7 @@ function AssignmentRow({
             Сохранить
           </Btn>
         </div>
+        {notice && <p role="status">{notice}</p>}
         {action.feedback}
       </td>
     </tr>
@@ -1376,8 +1411,8 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
               />
             </Field>
             <p className="muted">
-              Задание сохраняется в курсе. На последнем шаге мастера задаются
-              сроки публикации в выбранном потоке.
+              Задание сохранится в курсе. На шаге «Публикация» укажите сроки для
+              выбранного потока.{" "}
             </p>
             <div className="actions">
               <Btn type="button" onClick={close}>

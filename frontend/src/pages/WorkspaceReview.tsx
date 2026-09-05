@@ -1,6 +1,14 @@
 import { WorkspaceClient } from "../api/workspace";
 import { Resource, safeUrl, useResource } from "../ui";
-export function ArtifactLink({ ws, id }: { ws: WorkspaceClient; id: string }) {
+export function ArtifactLink({
+  ws,
+  id,
+  label,
+}: {
+  ws: WorkspaceClient;
+  id: string;
+  label?: string;
+}) {
   const r = useResource(() => ws.download(id), id);
   return (
     <Resource value={r}>
@@ -11,7 +19,7 @@ export function ArtifactLink({ ws, id }: { ws: WorkspaceClient; id: string }) {
           target="_blank"
           rel="noreferrer"
         >
-          {r.data.filename ?? "Открыть работу"} ↗
+          {label ?? `${r.data.filename ?? "Открыть работу"} ↗`}
         </a>
       )}
     </Resource>

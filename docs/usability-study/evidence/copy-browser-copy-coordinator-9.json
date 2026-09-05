@@ -1,0 +1,99 @@
+{
+  "url": "http://127.0.0.1:5180/#/deliveries",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\nДоставки\n\nПубликация ревью и отправка во внешнюю систему имеют независимые статусы.\n\nВнешние доставки\nДоставок пока нет.\n\nРучной повтор доставки пока недоступен.",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/deliveries",
+      "current": true
+    }
+  ]
+}

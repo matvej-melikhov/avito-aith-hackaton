@@ -1343,7 +1343,7 @@ dd {
 .workspace-toast {
   position: fixed;
   right: var(--s-6);
-  bottom: var(--s-6);
+  bottom: calc(var(--s-6) + var(--dock-clearance, 0px));
   z-index: 100;
   max-width: min(32rem, calc(100vw - var(--s-10)));
 }

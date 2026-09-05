@@ -1,0 +1,120 @@
+{
+  "url": "http://127.0.0.1:5180/#/home",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\ne8ae\nМои домашки\nВсе\nВ работе\nЗавершённые\nЗАДАНИЕ\tКУРС\tДЕДЛАЙН\tПОПЫТКА\tБАЛЛ\tСТАТУС\nПовторная проверка фильтрации\tПрактикум API · проверка работ\t12.09, 22:19\t2\t4,0\tНа повторном ревью\nНадёжная обработка ошибок\tПрактикум API · задания студентов\t12.09, 22:19\t1\t4,0\tНужны правки\nИтоги каталога\tПрактикум · команда и нагрузка\t12.09, 22:19\t1\t8,0\tЗачтена",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "e8ae",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 4,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Все",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 5,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "В работе",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 6,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Завершённые",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Повторная проверка фильтрации",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/submissions/b7615eb9-db96-5cce-a9f0-ff4df74361cd"
+    },
+    {
+      "id": 8,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Надёжная обработка ошибок",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/prepare/855a06f7-919d-5496-8052-f3fc28c0f5e8"
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Итоги каталога",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/submissions/24807d9a-6c39-5845-a38e-45f69cba118a"
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/home",
+      "current": true
+    }
+  ]
+}

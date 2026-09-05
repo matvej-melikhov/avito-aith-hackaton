@@ -61,12 +61,16 @@ async def student_homeworks(
     published = (
         select(
             ReviewIteration.review_case_id,
+            ReviewIteration.id.label("review_iteration_id"),
             ReviewPublication.id.label("publication_id"),
             ReviewPublication.review_revision_id,
             func.row_number()
             .over(
                 partition_by=ReviewIteration.review_case_id,
-                order_by=ReviewIteration.iteration_number.desc(),
+                order_by=(
+                    ReviewIteration.iteration_number.desc(),
+                    ReviewPublication.publication_version.desc(),
+                ),
             )
             .label("rank"),
         )
@@ -77,7 +81,11 @@ async def student_homeworks(
                 ReviewPublication.organization_id == ReviewIteration.organization_id,
             ),
         )
-        .where(ReviewIteration.organization_id == org, ReviewIteration.student_id == user)
+        .where(
+            ReviewIteration.organization_id == org,
+            ReviewIteration.student_id == user,
+            ReviewPublication.status == "published",
+        )
         .subquery()
     )
     version = aliased(SubmissionVersion)
@@ -111,6 +119,18 @@ async def student_homeworks(
             WorkDraft.id,
             published.c.publication_id,
             ReviewRevision.total_score,
+            case(
+                (
+                    and_(
+                        current.status == "published",
+                        current.submission_version_id == version.id,
+                        published.c.review_iteration_id == current.id,
+                        ReviewOutcome.decision == "needs_changes",
+                    ),
+                    ReviewOutcome.revision_deadline,
+                ),
+                else_=None,
+            ).label("revision_deadline"),
         )
         .join(
             CourseMembership,
@@ -226,6 +246,7 @@ async def student_homeworks(
                 course_title=course_title,
                 course_run_title=run_title,
                 submission_deadline=deadline,
+                revision_deadline=revision_deadline,
                 status=item_status,
                 attempt=attempt or 0,
                 submission_id=submission_id,
@@ -248,6 +269,7 @@ async def student_homeworks(
                 draft_id,
                 grade_id,
                 raw_score,
+                revision_deadline,
             ) in rows
         ],
         total=total or 0,

@@ -1,0 +1,197 @@
+{
+  "url": "http://127.0.0.1:5180/#/pool",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nМои работы\n2\nПул\n3\nКабинет\nПул\nНастройки\nРВ\nПул\nПоиск\nПоток\nВсе потоки\nСамостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания\nСТУДЕНТ\tЗАДАНИЕ\tКУРС\tСДАНА\tВ ПУЛЕ\t\nСтудент 7402ea04f9ec\tПовторная проверка фильтрации\nПовторная очередь · исправленные работы · попытка 2\nНа повторном ревью · участников: 1\n\tПрактикум API · проверка работ\t5 сент.\t0 дн.\t\nПродолжить\n\nСтудент 5f21d6afc2be\tAPI каталога\nОсенний поток · распределение · попытка 1\nНа проверке · участников: 1\n\tПрактикум · команда и нагрузка\t31 авг.\t5 дн.\t\nНачать проверку\n\nСтудент 5f21d6afc2be\tПагинация списка задач\nОсновная очередь · первые проверки · попытка 1\nОжидает ревью\n\tПрактикум API · проверка работ\t4 сент.\t1 дн.\t\nНачать проверку\nСтудент прислал новую версию работы, которую вы проверяли.\n×",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои работы\n2",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/pool"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Кабинет",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Настройки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 7,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "РВ",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 8,
+      "tag": "input",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Поиск",
+      "placeholder": "Студент или задание",
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Все потоки\nСамостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания",
+      "label": "Поток\nВсе потоки\nСамостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания",
+      "placeholder": null,
+      "value": "",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Все потоки",
+          "disabled": false
+        },
+        {
+          "value": "254f8a90-aa75-5e74-aea1-2b517e4d04ee",
+          "label": "Самостоятельная работа · доработка",
+          "disabled": false
+        },
+        {
+          "value": "a579a015-0268-5ce9-b38a-8be8c55a115d",
+          "label": "Осенний поток · распределение",
+          "disabled": false
+        },
+        {
+          "value": "c503d9f4-6c4a-5fd3-9b45-0c4e18979adb",
+          "label": "Повторная очередь · исправленные работы",
+          "disabled": false
+        },
+        {
+          "value": "d206f811-18da-5543-aa06-92988156d344",
+          "label": "Основная очередь · первые проверки",
+          "disabled": false
+        },
+        {
+          "value": "a65fb045-a967-5006-b90c-38856c64909a",
+          "label": "Самостоятельная работа · новые задания",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Продолжить",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Начать проверку",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Начать проверку",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "×",
+      "label": "Закрыть уведомление",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/pool",
+      "current": true
+    }
+  ]
+}

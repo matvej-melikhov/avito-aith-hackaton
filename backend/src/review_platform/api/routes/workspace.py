@@ -77,6 +77,7 @@ from review_platform.contracts.workspace import (
     ReviewDraftView,
     SelfReviewEvent,
     SelfReviewView,
+    SourcePolicyInput,
     StatisticView,
     StudentContext,
     StudentSubmissionView,
@@ -653,6 +654,9 @@ async def artifact_download(identity: UUID, request: Request) -> DownloadView:
                 artifact_version_id=str(identity),
                 requested_by_organization_id=str(actor.organization_id),
                 expires_in_seconds=900,
+                response_content_type="text/plain; charset=utf-8"
+                if selected_artifact.media_type in {"text/markdown", "text/plain"}
+                else None,
             ),
             expires_at=runtime.clock() + timedelta(minutes=15),
         )
@@ -1213,6 +1217,32 @@ async def save_editor_draft(
     return await mutate(
         request, body, "save_editor_draft", identity, ("methodologist",), EditorDraftView, work
     )
+
+
+@router.get("/course-run-homeworks/{identity}/sources", response_model=SourcePolicyInput)
+async def get_submission_sources(identity: UUID, request: Request) -> SourcePolicyInput:
+    from review_platform.application.workspace.source_policy import allowed_sources
+
+    runtime, actor = await context(request)
+    require_roles(actor, "student", "reviewer", "methodologist")
+    async with runtime.transaction() as session:
+        publication = await row(session, CourseRunHomework, actor.organization_id, identity)
+        await course_scope(session, actor, publication.course_run_id)
+        if not publication.current_publication_id:
+            raise WorkspaceFailure("not_published", "Задание ещё не опубликовано.", 404)
+        current = await row(
+            session,
+            CourseRunHomeworkPublication,
+            actor.organization_id,
+            publication.current_publication_id,
+        )
+        return SourcePolicyInput.model_validate(
+            {
+                "allowed_sources": await allowed_sources(
+                    session, actor.organization_id, current.homework_version_id
+                )
+            }
+        )
 
 
 @router.get("/course-run-homeworks/{identity}/policy", response_model=PublicationPolicyView | None)

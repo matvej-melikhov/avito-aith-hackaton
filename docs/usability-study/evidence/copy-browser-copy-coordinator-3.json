@@ -1,0 +1,306 @@
+{
+  "url": "http://127.0.0.1:5180/#/assignments/a579a015-0268-5ce9-b38a-8be8c55a115d",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\nСтуденты и ревьюеры\nКО\n\n← Вернуться к потоку\n\nОсновной ревьюер закрепляется за студентом в потоке. Участники конкретной проверки могут быть другими: коллеги сохраняют доступ к работе, а разовое участие не меняет закрепление.\n\nОсновной ревьюер студента\nСТУДЕНТ\tРЕВЬЮЕР\nСтудент 5f21d6afc2be\t\nНе закреплён\nДмитрий Волков\nЕлена Смирнова\nСохранить\n\nСтудент 7402ea04f9ec\t\nНе закреплён\nДмитрий Волков\nЕлена Смирнова\nСохранить\nДобавить участника\nРоль в потоке\nСтудент\nРевьюер\nУчастник\nВыбрать\nСтудент 5f21d6afc2be\nСтудент 7402ea04f9ec\nДобавить\nНапомнить ревьюерам\nДмитрий Волков\nЕлена Смирнова\nСообщение\nОтправить напоминание",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "← Вернуться к потоку",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 10,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Не закреплён\nДмитрий Волков\nЕлена Смирнова",
+      "label": "Ревьюер: Студент 5f21d6afc2be",
+      "placeholder": null,
+      "value": "55689725-1ffa-50c5-bdc4-b8898f86b005",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Не закреплён",
+          "disabled": false
+        },
+        {
+          "value": "13da64b0-ab30-5f93-87ad-211d06af5964",
+          "label": "Дмитрий Волков",
+          "disabled": false
+        },
+        {
+          "value": "55689725-1ffa-50c5-bdc4-b8898f86b005",
+          "label": "Елена Смирнова",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Сохранить",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Не закреплён\nДмитрий Волков\nЕлена Смирнова",
+      "label": "Ревьюер: Студент 7402ea04f9ec",
+      "placeholder": null,
+      "value": "13da64b0-ab30-5f93-87ad-211d06af5964",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Не закреплён",
+          "disabled": false
+        },
+        {
+          "value": "13da64b0-ab30-5f93-87ad-211d06af5964",
+          "label": "Дмитрий Волков",
+          "disabled": false
+        },
+        {
+          "value": "55689725-1ffa-50c5-bdc4-b8898f86b005",
+          "label": "Елена Смирнова",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Сохранить",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Студент\nРевьюер",
+      "label": "Роль в потоке",
+      "placeholder": null,
+      "value": "student",
+      "disabled": false,
+      "options": [
+        {
+          "value": "student",
+          "label": "Студент",
+          "disabled": false
+        },
+        {
+          "value": "reviewer",
+          "label": "Ревьюер",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Выбрать\nСтудент 5f21d6afc2be\nСтудент 7402ea04f9ec",
+      "label": "Участник",
+      "placeholder": null,
+      "value": "",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Выбрать",
+          "disabled": false
+        },
+        {
+          "value": "75f50c96-ce15-5183-8312-5f21d6afc2be",
+          "label": "Студент 5f21d6afc2be",
+          "disabled": false
+        },
+        {
+          "value": "e8ae2a56-1f5b-5b09-bdb0-7402ea04f9ec",
+          "label": "Студент 7402ea04f9ec",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "tag": "button",
+      "type": "submit",
+      "role": null,
+      "text": "Добавить",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 17,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Дмитрий Волков",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 18,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Елена Смирнова",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Сообщение",
+      "placeholder": null,
+      "value": "В потоке есть работы, ожидающие проверки.",
+      "disabled": false
+    },
+    {
+      "id": 20,
+      "tag": "button",
+      "type": "submit",
+      "role": null,
+      "text": "Отправить напоминание",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/assignments/a579a015-0268-5ce9-b38a-8be8c55a115d",
+      "current": true
+    }
+  ]
+}

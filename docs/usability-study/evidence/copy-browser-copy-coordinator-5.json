@@ -1,0 +1,314 @@
+{
+  "url": "http://127.0.0.1:5180/#/homework/655d70e8-accf-5bb3-a4b5-73df5b911193?run=a579a015-0268-5ce9-b38a-8be8c55a115d",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\n\n←\nКурсы\n/\nЗадания потока\n/ Настройка задания\n\nAPI каталога\nКО\n1\nДля студента\n✓\nКритерии ревью\n✓\nПубликация\nУсловие для студента\nНазвание\nУсловие\nМатериалы для студента\n\nMarkdown, PDF или DOCX, до 10 МБ на файл. Эти материалы будут доступны студенту.\n\nЧто сдаём\nСсылка или файлы\nТолько ссылка\nТолько файлы\nСтудент выбирает разрешённый способ на странице сдачи.\nСроки и правила задания\nСрок сдачи\nСрок относится к выбранному потоку; перед публикацией его можно уточнить.\nЛимит AI-самопроверок на студента\n\nОдин лимит на всё задание в этом потоке. Пересдачи его не сбрасывают. Технический сбой не расходует попытку; 0 отключает самопроверку.\n\nШтраф за просрочку\n\nШтраф применяется по правилам публикации. Итог не может быть меньше нуля.\n\nДней на доработку\nМаксимум пересдач\nДальше: критерии",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "←",
+      "label": "Назад к заданиям",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 10,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания потока",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 11,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "1\nДля студента",
+      "label": "1. Для студента",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "✓\nКритерии ревью",
+      "label": "2. Критерии ревью",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "✓\nПубликация",
+      "label": "3. Публикация",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "input",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Название",
+      "placeholder": null,
+      "value": "API каталога",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 16,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Условие",
+      "placeholder": null,
+      "value": "Реализуйте HTTP API списка задач. Опишите основные сценарии и проверки ошибочных запросов в README.",
+      "disabled": false
+    },
+    {
+      "id": 17,
+      "tag": "input",
+      "type": "file",
+      "role": null,
+      "text": "",
+      "label": "Материалы для студента",
+      "placeholder": null,
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 18,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Ссылка или файлы",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Только ссылка",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 20,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Только файлы",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 21,
+      "tag": "input",
+      "type": "datetime-local",
+      "role": null,
+      "text": "",
+      "label": "Срок сдачи\nСрок относится к выбранному потоку; перед публикацией его можно уточнить.",
+      "placeholder": null,
+      "value": "2026-09-12T22:19",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 22,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Лимит AI-самопроверок на студента",
+      "placeholder": null,
+      "value": "2",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 23,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Штраф за просрочку",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 24,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Дней на доработку",
+      "placeholder": null,
+      "value": "3",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 25,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Максимум пересдач",
+      "placeholder": null,
+      "value": "3",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 26,
+      "tag": "button",
+      "type": "submit",
+      "role": null,
+      "text": "Дальше: критерии",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/homework/655d70e8-accf-5bb3-a4b5-73df5b911193?run=a579a015-0268-5ce9-b38a-8be8c55a115d",
+      "current": true
+    }
+  ]
+}

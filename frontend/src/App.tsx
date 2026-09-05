@@ -3,7 +3,7 @@ import { Aside, Brand, Btn } from "./ds";
 import { confirmNavigation, consumeProgrammaticNavigation } from "./navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WorkspaceNotifications } from "./WorkspaceNotifications";
-import { WorkspaceClient } from "./api/workspace";
+import { WorkspaceClient, type W } from "./api/workspace";
 import { WorkspaceHomework } from "./pages/WorkspaceHomework";
 import { WorkspaceSubmissionDetail } from "./pages/WorkspaceSubmissionDetail";
 import { WorkspaceSubmit } from "./pages/WorkspaceStudent";
@@ -34,6 +34,20 @@ import { DeliveriesPage, OperationPanel } from "./pages/Operations";
 export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
   const ws = useMemo(() => new WorkspaceClient(api), [api]);
   const s = useResource(() => api.session(), "session");
+  const profile = useResource(
+    () =>
+      s.data
+        ? api.request<W<"ProfileView">>("/v2/profile")
+        : Promise.resolve(null),
+    `own-profile:${s.data?.user_id ?? "none"}`,
+  );
+  useEffect(() => {
+    if (!s.data) return;
+    const owner = `${s.data.organization_id}:${s.data.user_id}`;
+    if (sessionStorage.getItem("review-ui-owner") !== owner)
+      sessionStorage.removeItem("review-ui-selected-run");
+    sessionStorage.setItem("review-ui-owner", owner);
+  }, [s.data?.organization_id, s.data?.user_id]);
   const [expired, setExpired] = useState(false);
   useEffect(() => {
     api.onUnauthorized = () => setExpired(true);
@@ -258,6 +272,9 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
             : "КО"}
       </summary>
       <div className="account-controls">
+        {profile.data?.display_name && (
+          <strong>{profile.data.display_name}</strong>
+        )}
         <span className="small">{roleNames[activeRole]}</span>
         {accountControls}
       </div>
@@ -301,6 +318,9 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
             <div className="actions">
               {activeRole === "student" && (
                 <>
+                  <Btn size="s" href="#/courses">
+                    Мои курсы
+                  </Btn>
                   {["prepare", "submit"].includes(section) && (
                     <Btn size="s" href="#/works">
                       Мои домашки
@@ -447,7 +467,7 @@ function Login({
             </span>
             Авито Ревью
           </a>
-          <h1 className="d2">Готовый разбор по каждой работе</h1>
+          <h1 className="d2"> Проверка учебных работ </h1>
           <p>
             Модель разбирает работу по требованиям задания и готовит черновик.
             Ревьюер проверяет выводы и принимает решение.
@@ -456,7 +476,7 @@ function Login({
       </div>
       <div className="login-form">
         <div>
-          <h2>Войти в рабочее пространство</h2>
+          <h2> Вход </h2>
           {demo && (
             <p className="notice">
               Демо-режим. Данные существуют в памяти этой вкладки.
@@ -471,7 +491,7 @@ function Login({
             <div className="login-invitation">
               <h3>Локальный стенд</h3>
               <p className="muted">
-                Вход создаёт серверную сессию выбранного участника.
+                Выберите участника для входа на локальный стенд.{" "}
               </p>
               <div className="stack">
                 {local.data.items.map((identity) => (
@@ -515,16 +535,12 @@ function Login({
               <a className="button primary" href="/api/v1/auth/stepik/start">
                 Войти через Stepik
               </a>
-              <p className="muted">
-                Для студентов и координаторов. После входа откроется ваше
-                рабочее пространство.
-              </p>
+              <p className="muted">Для студентов и координаторов. </p>
               <div className="login-invitation">
                 <h3>Вы ревьюер?</h3>
                 <p>
-                  Откройте ссылку в письме с приглашением. Она выполнит вход
-                  автоматически. Если приглашения нет, обратитесь к координатору
-                  курса.
+                  Войдите по ссылке из приглашения. Если приглашения нет,
+                  обратитесь к координатору курса.{" "}
                 </p>
               </div>
             </>

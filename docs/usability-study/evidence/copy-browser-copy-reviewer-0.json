@@ -1,0 +1,142 @@
+{
+  "url": "http://127.0.0.1:5180/#/home",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nМои работы\n2\nПул\n3\nКабинет\nМои работы\nНастройки\nРВ\nМои работы\nСТУДЕНТ\tЗАДАНИЕ\tСТАТУС\tВЗЯТА\tПРОВЕРИТЬ ДО\t\nСтудент 7402ea04f9ec\tИтоги каталога\nОсенний поток · распределение · попытка 1\n\tЗачтена\nУчастников: 1\n\t1 сент.\t3 сент.\t\nПосмотреть\n\nСтудент 7402ea04f9ec\tПовторная проверка фильтрации\nПовторная очередь · исправленные работы · попытка 2\n\tНа повторном ревью\nУчастников: 1\n\t1 сент.\t3 сент.\t\nПродолжить\nВернуть в пул\nСтудент прислал новую версию работы, которую вы проверяли.\n×",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои работы\n2",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/pool"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Кабинет",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Настройки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/preferences"
+    },
+    {
+      "id": 7,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "РВ",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 8,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Посмотреть",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Продолжить",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 10,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Вернуть в пул",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "×",
+      "label": "Закрыть уведомление",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/home",
+      "current": true
+    }
+  ]
+}

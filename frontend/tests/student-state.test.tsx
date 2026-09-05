@@ -239,3 +239,104 @@ it("validates a picked file before upload and stores the actual file ID with fil
     commands.mock.calls.some(([name]) => name === "submit_work_draft"),
   ).toBe(false);
 });
+
+it("marks the carried file without blocking resubmission and jumps to the correction form without changing routes", async () => {
+  const user = userEvent.setup();
+  const ws = new WorkspaceClient(new ApiClient(createDemoTransport()));
+  const session = await ws.core.session();
+  const base = await ws.studentContext(ids.publication);
+  const artifact = "00000000-0000-4000-8000-000000000091";
+  const attempt: W<"SubmissionAttemptView"> = {
+    id: "00000000-0000-4000-8000-000000000092",
+    sequence: 2,
+    status: "needs_changes",
+    submitted_at: "2026-09-04T10:00:00Z",
+    comment: "Пояснение прошлой попытки",
+    artifact_id: artifact,
+    capture_operation_id: null,
+  };
+  const review: W<"StudentReviewView"> = {
+    id: "00000000-0000-4000-8000-000000000093",
+    iteration_id: ids.review,
+    submission_version_id: attempt.id,
+    decision: "needs_changes",
+    feedback: "Исправьте обработку пустого заголовка",
+    published_at: "2026-09-04T11:00:00Z",
+    revision_deadline: "2026-09-08T11:00:00Z",
+    score: 4,
+    criteria: [],
+  };
+  vi.spyOn(ws, "studentContext").mockResolvedValue({
+    ...base,
+    submission_id: ids.submission,
+    self_reviews: [],
+    draft: {
+      id: "00000000-0000-4000-8000-000000000094",
+      publication_id: ids.publication,
+      revision: 1,
+      upload_id: artifact,
+      artifact_url: "",
+      comment: "Пояснение прошлой попытки",
+    },
+  });
+  vi.spyOn(ws, "submission").mockResolvedValue({
+    id: ids.submission,
+    publication_id: ids.publication,
+    course_run_id: ids.run,
+    title: base.title,
+    attempts: [
+      { ...attempt, id: "00000000-0000-4000-8000-000000000090", sequence: 1 },
+      attempt,
+    ],
+    reviews: [review],
+    current_publication_id: review.id,
+  });
+  vi.spyOn(ws, "download").mockResolvedValue({
+    filename: "returned-api.md",
+    url: `/api/v2/artifacts/${artifact}/download`,
+    expires_at: "2026-09-09T00:00:00Z",
+  });
+  const command = vi.spyOn(ws, "command");
+  window.location.hash = `#/prepare/${ids.publication}`;
+  render(<WorkspaceSubmit ws={ws} id={ids.publication} session={session} />);
+  await screen.findByText(/Файл перенесён из прошлой попытки и ещё не заменён/);
+  const submit = screen.getByRole("button", { name: "Отправить исправления" });
+  expect(submit).toBeEnabled();
+  const summaries = [...document.querySelectorAll("details.acc > summary")];
+  expect(summaries).toHaveLength(2);
+  expect(
+    summaries.every(
+      (summary) =>
+        summary.querySelector(".acc__chev")?.getAttribute("aria-hidden") ===
+        "true",
+    ),
+  ).toBe(true);
+  expect(summaries[0].parentElement).not.toHaveAttribute("open");
+  expect(summaries[1].parentElement).toHaveAttribute("open");
+  const correction = submit.closest("section")!.parentElement!;
+  const scroll = vi.fn();
+  Object.defineProperty(correction, "scrollIntoView", { value: scroll });
+  await user.click(
+    screen.getByRole("button", { name: "К исправленной работе" }),
+  );
+  expect(scroll).toHaveBeenCalledWith({ block: "start", behavior: "smooth" });
+  expect(screen.getByRole("button", { name: "Файл работы" })).toHaveFocus();
+  expect(window.location.hash).toBe(`#/prepare/${ids.publication}`);
+  expect(command).not.toHaveBeenCalled();
+  const newFile = new File(["Исправленная работа"], "revised-api.md", {
+    type: "text/markdown",
+  });
+  Object.defineProperty(newFile, "arrayBuffer", {
+    value: async () => new TextEncoder().encode("Исправленная работа").buffer,
+  });
+  await user.upload(
+    screen.getByLabelText("Файл работы", { selector: "input" }),
+    newFile,
+  );
+  expect(
+    screen.queryByText(/Файл перенесён из прошлой попытки и ещё не заменён/),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.getByLabelText("Комментарий к сдаче, необязательно"),
+  ).toHaveValue("Пояснение прошлой попытки");
+});

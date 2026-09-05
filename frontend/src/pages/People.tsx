@@ -73,7 +73,7 @@ export function PeoplePage({ api }: { api: ApiClient }) {
                       );
                       setEmail("");
                       s.refresh();
-                    }, "Приглашение создано. Отправка письма выполняется сервером.");
+                    }, "Приглашение создано.");
                   }}
                 >
                   <label>
@@ -311,7 +311,8 @@ export function PreferencesPage({
               />
             </label>
             <p className="muted">
-              Это новая настройка. Текущие значения сервер пока не возвращает.
+              Текущие настройки здесь не отображаются. При сохранении вы
+              зададите новые значения.{" "}
             </p>
             <button
               disabled={action.busy || !session.roles.includes("reviewer")}

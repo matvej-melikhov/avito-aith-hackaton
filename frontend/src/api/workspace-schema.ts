@@ -68,6 +68,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/course-run-homeworks/{identity}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Submission Sources */
+        get: operations["get_submission_sources_api_v2_course_run_homeworks__identity__sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/course-run-homeworks/{identity}/student-context": {
         parameters: {
             query?: never;
@@ -2077,6 +2094,11 @@ export interface components {
              */
             status: "queued" | "capturing" | "pending" | "running" | "unknown_outcome" | "succeeded" | "failed";
         };
+        /** SourcePolicyInput */
+        SourcePolicyInput: {
+            /** Allowed Sources */
+            allowed_sources?: ("upload" | "github" | "google_docs")[];
+        };
         /** StatisticView */
         StatisticView: {
             /** Ai Acceptance Percent */
@@ -2213,6 +2235,8 @@ export interface components {
              * Format: uuid
              */
             publication_id: string;
+            /** Revision Deadline */
+            revision_deadline?: string | null;
             /** Score */
             score: number | null;
             /** Status */
@@ -3190,6 +3214,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResourceResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_submission_sources_api_v2_course_run_homeworks__identity__sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcePolicyInput"];
                 };
             };
             /** @description Validation Error */

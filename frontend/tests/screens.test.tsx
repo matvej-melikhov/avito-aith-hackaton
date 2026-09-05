@@ -110,7 +110,7 @@ it("submits the latest saved source without requiring a self-review", async () =
   });
   render(<App api={api} />);
   const input = await screen.findByLabelText(
-    "Ссылка на репозиторий или Google Docs",
+    "Ссылка на GitHub или Google Docs",
   );
   await user.type(input, "https://github.com/example/one");
   await user.clear(input);
@@ -164,7 +164,7 @@ it("shows login for 401 without falling back to demo data", async () => {
       ),
   );
   render(<App api={api} />);
-  await screen.findByRole("heading", { name: "Войти в рабочее пространство" });
+  await screen.findByRole("heading", { name: "Вход" });
   expect(screen.queryByText("Go · осень 2026")).not.toBeInTheDocument();
 });
 it("does not erase edited feedback when save fails with a conflict", async () => {
@@ -236,7 +236,7 @@ it("expires a resource session once without an automatic authentication retry lo
         : demo(input, init),
   );
   render(<App api={new ApiClient(transport)} />);
-  await screen.findByRole("heading", { name: "Войти в рабочее пространство" });
+  await screen.findByRole("heading", { name: "Вход" });
   const workRequests = transport.mock.calls
     .map(([url]) => String(url))
     .filter((url) => url.includes("/v2/works"));
@@ -281,7 +281,7 @@ it("prepares the first URL draft before self-review and updates server quota wit
   });
   expect(check).toBeEnabled();
   await user.type(
-    screen.getByLabelText("Ссылка на репозиторий или Google Docs"),
+    screen.getByLabelText("Ссылка на GitHub или Google Docs"),
     "https://github.com/example/first-draft",
   );
   await user.click(check);
@@ -314,13 +314,13 @@ it("autosaves a valid submission comment and keeps its permanent hint and action
   window.location.hash = `/prepare/${ids.publication}`;
   render(<App api={api} />);
   const source = await screen.findByLabelText(
-    "Ссылка на репозиторий или Google Docs",
+    "Ссылка на GitHub или Google Docs",
   );
   const comment = screen.getByLabelText("Комментарий к сдаче, необязательно");
   expect(comment).toHaveAttribute("rows", "2");
   expect(comment).not.toHaveAttribute("placeholder");
   expect(comment).toHaveAccessibleDescription(
-    "Например: какие части делали с помощью ИИ и что дорабатывали руками",
+    "Например, что вы доработали и где использовали ИИ",
   );
   await user.type(source, "https://github.com/example/comment-draft");
   await user.type(comment, "Проверил граничные случаи вручную.");
@@ -355,7 +355,7 @@ it("autosaves a valid submission comment and keeps its permanent hint and action
     { timeout: 5000 },
   );
   expect(comment).toHaveValue("Проверил граничные случаи вручную.");
-  expect(
-    screen.getByLabelText("Ссылка на репозиторий или Google Docs"),
-  ).toHaveValue("https://github.com/example/comment-draft");
+  expect(screen.getByLabelText("Ссылка на GitHub или Google Docs")).toHaveValue(
+    "https://github.com/example/comment-draft",
+  );
 });

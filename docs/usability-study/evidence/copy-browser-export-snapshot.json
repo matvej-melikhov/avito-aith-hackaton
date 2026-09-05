@@ -1,0 +1,569 @@
+{
+  "url": "http://127.0.0.1:5180/#/registry?run=a579a015-0268-5ce9-b38a-8be8c55a115d",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\n←\nКурсы\n/\nПрактикум · команда и нагрузка\n/\nСамостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания\nДомашки потока\nВыгрузить\nКО\nВсе\n2\nЧерновик\n0\nСдана\n0\nНа ревью\n1\nНужны правки\n0\nПовторное ревью\n0\nЗачтена\n1\nНе зачтена\n0\nЗадание: все\nИтоги каталога\nAPI каталога\nДомашние работы · 2\nВсе статусы и опубликованные результаты\nСТУДЕНТ\tЗАДАНИЕ\tСТАТУС\tРЕВЬЮЕР\tПОПЫТКА\tСДАНА\tОБНОВЛЕНА\tБАЛЛ\t\nСтудент 7402ea04f9ec\tИтоги каталога\nОсенний поток · распределение · Попытка 1\n\tЗачтена\tДмитрий Волков\t1\t31 авг.\t5 сент.\t8\t\nОткрыть работу\nИстория и результат\n\nСтудент 5f21d6afc2be\tAPI каталога\nОсенний поток · распределение · Попытка 1\n\tНа проверке\tЕлена Смирнова\t1\t31 авг.\t5 сент.\t—\t\nОткрыть работу\nИстория и результат\nНазад\n1–2 из 2\nДальше\nВыгрузка\n✕\nЧто выгружаем\nВсе задания, поток «Осенний поток · распределение»\nКому выгружаем\nКоманде, внутренняя ведомость\nСтудентам, копия\nВ студенческой копии только ID студента, балл и статус.\nКолонки\nID студента\nИтоговый балл\nСтатус\nНомер попытки\nБаллы по каждому критерию\nКомментарий ревьюера\nID ревьюера\nСсылка на работу\nЧто делать с незакрытыми работами\nНе выгружать\nВыгрузить с пустым баллом\nФормат\nCSV\nXLSX\nОтмена\nПодготовить файл",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "←",
+      "label": "Назад к потокам",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 10,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Самостоятельная работа · доработка\nОсенний поток · распределение\nПовторная очередь · исправленные работы\nОсновная очередь · первые проверки\nСамостоятельная работа · новые задания",
+      "label": "Поток",
+      "placeholder": null,
+      "value": "a579a015-0268-5ce9-b38a-8be8c55a115d",
+      "disabled": false,
+      "options": [
+        {
+          "value": "254f8a90-aa75-5e74-aea1-2b517e4d04ee",
+          "label": "Самостоятельная работа · доработка",
+          "disabled": false
+        },
+        {
+          "value": "a579a015-0268-5ce9-b38a-8be8c55a115d",
+          "label": "Осенний поток · распределение",
+          "disabled": false
+        },
+        {
+          "value": "c503d9f4-6c4a-5fd3-9b45-0c4e18979adb",
+          "label": "Повторная очередь · исправленные работы",
+          "disabled": false
+        },
+        {
+          "value": "d206f811-18da-5543-aa06-92988156d344",
+          "label": "Основная очередь · первые проверки",
+          "disabled": false
+        },
+        {
+          "value": "a65fb045-a967-5006-b90c-38856c64909a",
+          "label": "Самостоятельная работа · новые задания",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "tag": "input",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Поиск",
+      "placeholder": "Поиск по ID студента",
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Выгрузить",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Все\n2",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Черновик\n0",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 16,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Сдана\n0",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 17,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "На ревью\n1",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 18,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Нужны правки\n0",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Повторное ревью\n0",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 20,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Зачтена\n1",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 21,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Не зачтена\n0",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 22,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Задание: все\nИтоги каталога\nAPI каталога",
+      "label": "Задание",
+      "placeholder": null,
+      "value": "",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Задание: все",
+          "disabled": false
+        },
+        {
+          "value": "119cfc3f-a1fb-51b8-a6d7-a99e9c994e9e",
+          "label": "Итоги каталога",
+          "disabled": false
+        },
+        {
+          "value": "655d70e8-accf-5bb3-a4b5-73df5b911193",
+          "label": "API каталога",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Открыть работу",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 24,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "История и результат",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/submissions/24807d9a-6c39-5845-a38e-45f69cba118a"
+    },
+    {
+      "id": 25,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Открыть работу",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 26,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "История и результат",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/submissions/f60ebc6a-9744-546b-bfd9-ff2324e1aef8"
+    },
+    {
+      "id": 27,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Назад",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 28,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Дальше",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 29,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "✕",
+      "label": "Закрыть",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 30,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Команде, внутренняя ведомость",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 31,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Студентам, копия",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 32,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "ID студента",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 33,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Итоговый балл",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 34,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Статус",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 35,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Номер попытки",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 36,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Баллы по каждому критерию",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 37,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Комментарий ревьюера",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 38,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "ID ревьюера",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 39,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ссылка на работу",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 40,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Не выгружать",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 41,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Выгрузить с пустым баллом",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 42,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "CSV",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 43,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "XLSX",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 44,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Отмена",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 45,
+      "tag": "button",
+      "type": "submit",
+      "role": null,
+      "text": "Подготовить файл",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/registry?run=a579a015-0268-5ce9-b38a-8be8c55a115d",
+      "current": true
+    }
+  ]
+}

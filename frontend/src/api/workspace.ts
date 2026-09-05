@@ -103,6 +103,10 @@ export class WorkspaceClient {
     this.core.request<W<"StudentContext">>(
       `/v2/course-run-homeworks/${id}/student-context`,
     );
+  submissionSources = (id: string) =>
+    this.core.request<W<"SourcePolicyInput">>(
+      `/v2/course-run-homeworks/${id}/sources`,
+    );
   async reviewDetail(id: string): Promise<Model<"ReviewDetail">> {
     const [detail, draft] = await Promise.all([
       this.core.review(id),

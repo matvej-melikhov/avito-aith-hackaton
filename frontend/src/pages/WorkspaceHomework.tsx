@@ -34,6 +34,9 @@ export function WorkspaceHomework({
     ]);
     return { history, editor, latest, privateDetails, policy, publication };
   }, `${id}:${run}`);
+  useEffect(() => {
+    if (r.data) sessionStorage.setItem("review-ui-selected-run", run);
+  }, [r.data, run]);
   return (
     <Resource value={r}>
       {r.data && (
@@ -203,7 +206,9 @@ function HomeworkWizard({
     !!reference ||
     materials.length > 0 ||
     versionContent(draft) !== savedContent;
-  const [published, setPublished] = useState<string>();
+  const [published, setPublished] = useState<string | undefined>(
+    data.publication?.course_run_homework_id,
+  );
 
   const [policyRevision, setPolicyRevision] = useState(
     data.policy?.revision ?? 0,
@@ -545,13 +550,9 @@ function HomeworkWizard({
                   </Btn>
                 </div>
               ))}
-              <Field
-                label="Что сдаём"
-                group
-                hint="Студент выбирает разрешённый способ на странице сдачи."
-              >
+              <Field label="Способ сдачи" group>
                 <Seg<"both" | "link" | "upload">
-                  label="Что сдаём"
+                  label="Способ сдачи"
                   value={
                     (
                       draft.allowed_sources ?? [
@@ -608,7 +609,7 @@ function HomeworkWizard({
                   можно уточнить.
                 </small>
               </label>
-              <Field label="Лимит AI-самопроверок на студента">
+              <Field label="Лимит самопроверок с ИИ на студента">
                 <Inp
                   required
                   type="number"
@@ -650,8 +651,8 @@ function HomeworkWizard({
                 </Field>
               )}
               <p className="muted">
-                Штраф применяется по правилам публикации. Итог не может быть
-                меньше нуля.
+                Штраф рассчитывается по правилам публикации. Итоговый балл не
+                может быть меньше нуля.{" "}
               </p>
               <Field label="Дней на доработку">
                 <Inp
@@ -760,12 +761,12 @@ function HomeworkWizard({
                           }
                         />
                       </Field>
-                      <Field label="Как проверяем" group>
+                      <Field label="Способ проверки" group>
                         <Seg<"formal" | "content" | "judgement">
-                          label="Как проверяем"
+                          label="Способ проверки"
                           value={c.check_class}
                           options={[
-                            { value: "formal", label: "формальная" },
+                            { value: "formal", label: "Формальная проверка" },
                             { value: "content", label: "по смыслу, с цитатой" },
                             {
                               value: "judgement",
@@ -792,12 +793,12 @@ function HomeworkWizard({
                               edit({ evaluate_quality: e.target.checked })
                             }
                           >
-                            Ещё и оценить качество
+                            Оценивать качество{" "}
                           </Chk>
                           <small>
-                            Второй шаг после того, как модель нашла и
-                            процитировала. Считается только если первый шаг дал
-                            «да».
+                            Модель оценивает качество, только если сначала
+                            подтвердила выполнение критерия и привела
+                            цитату.{" "}
                           </small>
                         </div>
                       )}
@@ -914,7 +915,7 @@ function HomeworkWizard({
                         </span>
                         <span className="caption">
                           {c.check_class === "formal"
-                            ? "формальная"
+                            ? "Формальная проверка"
                             : c.check_class === "content"
                               ? `по смыслу, с цитатой${c.evaluate_quality ? ", плюс качество" : ""}`
                               : "на усмотрение ревьюера"}
@@ -984,8 +985,8 @@ function HomeworkWizard({
                   </Btn>
                 )}
                 <p className="muted">
-                  Используется как пример для модели и ревьюеров при калибровке.
-                  Студентам не показывается никогда.
+                  Пример для модели и ревьюеров при калибровке. Студентам не
+                  показывается.{" "}
                 </p>
               </Card>
               <Card title="Версии">
@@ -1028,7 +1029,7 @@ function HomeworkWizard({
                   draft.policy.self_review_limit < 0
                 )
                   throw new Error(
-                    "Укажите конечный целый лимит самопроверок от 0.",
+                    "Укажите лимит самопроверок целым числом от 0.",
                   );
                 if (
                   new Date(draft.review_deadline) <
@@ -1111,7 +1112,7 @@ function HomeworkWizard({
           </form>
           {published && (
             <div className="notice ok">
-              <p>Задание и лимит опубликованы.</p>
+              <p>Ссылка на опубликованное задание</p>
               <Field label="Ссылка для Stepik">
                 <Inp
                   readOnly

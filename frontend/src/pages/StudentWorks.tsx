@@ -36,7 +36,7 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
                     <tr>
                       <th>Задание</th>
                       <th>Курс</th>
-                      <th className="n">Дедлайн</th>
+                      <th className="n"> Срок </th>
                       <th className="n">Попытка</th>
                       <th className="n r">Балл</th>
                       <th className="r">Статус</th>
@@ -71,15 +71,21 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
                           </td>
                           <td>{item.course_title}</td>
                           <td className="n">
-                            {new Date(item.submission_deadline).toLocaleString(
-                              "ru-RU",
-                              {
-                                day: "2-digit",
-                                month: "2-digit",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
+                            {new Date(
+                              item.status === "needs_changes" &&
+                                item.revision_deadline
+                                ? item.revision_deadline
+                                : item.submission_deadline,
+                            ).toLocaleString("ru-RU", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                            {item.status === "needs_changes" &&
+                              item.revision_deadline && (
+                                <small>Исправления до</small>
+                              )}
                           </td>
                           <td className="n">{item.attempt}</td>
                           <td className="n r">

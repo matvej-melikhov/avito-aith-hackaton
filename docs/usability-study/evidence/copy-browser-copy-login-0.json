@@ -1,0 +1,99 @@
+{
+  "url": "http://127.0.0.1:5180/#/home",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Авито Ревью\nГотовый разбор по каждой работе\n\nМодель разбирает работу по требованиям задания и готовит черновик. Ревьюер проверяет выводы и принимает решение.\n\nВойти в рабочее пространство\nЛокальный стенд\n\nВход создаёт серверную сессию выбранного участника.\n\nАлексей Иванов — студентМария Петрова — студентЕлена Смирнова — ревьюерДмитрий Волков — ревьюерАнна Соколова — координатор\nВойти через Stepik\n\nДля студентов и координаторов. После входа откроется ваше рабочее пространство.\n\nВы ревьюер?\n\nОткройте ссылку в письме с приглашением. Она выполнит вход автоматически. Если приглашения нет, обратитесь к координатору курса.",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 2,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Алексей Иванов — студент",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 3,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Мария Петрова — студент",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 4,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Елена Смирнова — ревьюер",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 5,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Дмитрий Волков — ревьюер",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 6,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Анна Соколова — координатор",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Войти через Stepik",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "/api/v1/auth/stepik/start"
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/home",
+      "current": true
+    }
+  ]
+}

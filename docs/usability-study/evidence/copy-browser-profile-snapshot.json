@@ -1,0 +1,165 @@
+{
+  "url": "http://127.0.0.1:5180/#/prepare/69b58ded-1270-53cb-bb5c-5bb0c9c13a0b",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nМои домашки\ne8ae\nСтудент\nВыйти\nПРАКТИКУМ API · ЗАДАНИЯ СТУДЕНТОВ · САМОСТОЯТЕЛЬНАЯ РАБОТА · НОВЫЕ ЗАДАНИЯ\nПервый API списка задач\nСдать до\n12 сент. 2026 г., 22:19\nПорог зачёта\n7 из 10\nЗадание\nСвернуть\n\nРеализуйте HTTP API списка задач. Опишите основные сценарии и проверки ошибочных запросов в README.\n\nВаша работа\nСсылка\nФайлы\nСсылка на репозиторий или Google Docs\nОткройте доступ к работе по ссылке. При отправке сохраняется отдельный снимок.\nКомментарий к сдаче, необязательно\nНапример: какие части делали с помощью ИИ и что дорабатывали руками\nОтправить на ревью\nИИ-ревью\nРезультат ИИ-ревью видит ревьюер и учитывает при оценке. Самопроверка необязательна. Осталось 2 из 2. Получено результатов: 0.\nЧто будут проверять\nСвернуть\nОсновной сценарий API\n5 б.\nОшибки и воспроизводимые проверки\n5 б.\nВсего\n10 баллов",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Мои домашки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/works"
+    },
+    {
+      "id": 4,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "e8ae",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 5,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Выйти",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 6,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Свернуть",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 7,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Ссылка",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 8,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Файлы",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "input",
+      "type": "url",
+      "role": null,
+      "text": "",
+      "label": "Ссылка на репозиторий или Google Docs",
+      "placeholder": "https://github.com/username/project",
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 10,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Комментарий к сдаче, необязательно",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Отправить на ревью",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "ИИ-ревью",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Свернуть",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/prepare/69b58ded-1270-53cb-bb5c-5bb0c9c13a0b",
+      "current": true
+    }
+  ]
+}

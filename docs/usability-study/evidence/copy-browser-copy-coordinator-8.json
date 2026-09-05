@@ -1,0 +1,392 @@
+{
+  "url": "http://127.0.0.1:5180/#/people",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\nУчастники и приглашения\nУчастники организации\nПОЛЬЗОВАТЕЛЬ\tРОЛИ\tСТАТУС\t\n13da64b0-ab30-5f93-87ad-211d06af5964\t\nСтудент\nРевьюер\nКоординатор\n\tАктивен\tСохранить роли\n2b45bfaf-d533-50bd-83d2-d64637401e17\t\nСтудент\nРевьюер\nКоординатор\n\tАктивен\tСохранить роли\n55689725-1ffa-50c5-bdc4-b8898f86b005\t\nСтудент\nРевьюер\nКоординатор\n\tАктивен\tСохранить роли\n75f50c96-ce15-5183-8312-5f21d6afc2be\t\nСтудент\nРевьюер\nКоординатор\n\tАктивен\tСохранить роли\ne8ae2a56-1f5b-5b09-bdb0-7402ea04f9ec\t\nСтудент\nРевьюер\nКоординатор\n\tАктивен\tСохранить роли\nПригласить участника\nEmail\nРоль\nРевьюер\nКоординатор\nДействует до\nПригласить\nПриглашения\nПриглашений пока нет.",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Студент",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ревьюер",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 10,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Координатор",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Сохранить роли",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Студент",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ревьюер",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Координатор",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Сохранить роли",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 16,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Студент",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 17,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ревьюер",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 18,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Координатор",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Сохранить роли",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 20,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Студент",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 21,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ревьюер",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 22,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Координатор",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 23,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Сохранить роли",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 24,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Студент",
+      "placeholder": null,
+      "value": "on",
+      "checked": true,
+      "disabled": false
+    },
+    {
+      "id": 25,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ревьюер",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 26,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Координатор",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 27,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Сохранить роли",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 28,
+      "tag": "input",
+      "type": "email",
+      "role": null,
+      "text": "",
+      "label": "Email",
+      "placeholder": null,
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 29,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Ревьюер\nКоординатор",
+      "label": "Роль\nРевьюер\nКоординатор",
+      "placeholder": null,
+      "value": "reviewer",
+      "disabled": false,
+      "options": [
+        {
+          "value": "reviewer",
+          "label": "Ревьюер",
+          "disabled": false
+        },
+        {
+          "value": "methodologist",
+          "label": "Координатор",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "tag": "input",
+      "type": "datetime-local",
+      "role": null,
+      "text": "",
+      "label": "Действует до",
+      "placeholder": null,
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 31,
+      "tag": "button",
+      "type": null,
+      "role": null,
+      "text": "Пригласить",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/people",
+      "current": true
+    }
+  ]
+}

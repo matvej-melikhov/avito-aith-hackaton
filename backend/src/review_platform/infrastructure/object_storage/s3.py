@@ -300,6 +300,7 @@ class S3ObjectStorage:
         key: str,
         expires_in_seconds: int,
         download_filename: str | None = None,
+        response_content_type: str | None = None,
     ) -> str:
         if requested_by_organization_id != organization_id:
             raise TenantObjectBoundaryError("requesting organization does not own the artifact")
@@ -311,6 +312,8 @@ class S3ObjectStorage:
         if not 1 <= expires_in_seconds <= 3600:
             raise ValueError("signed read TTL must be between 1 and 3600 seconds")
         parameters = {"Bucket": self._bucket, "Key": key}
+        if response_content_type is not None:
+            parameters["ResponseContentType"] = response_content_type
         if download_filename is not None:
             from urllib.parse import quote
 

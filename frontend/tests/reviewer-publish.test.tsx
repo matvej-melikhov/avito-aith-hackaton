@@ -135,7 +135,7 @@ it("keeps published review immutable and starts a reasoned correction", async ()
     screen.queryByRole("button", { name: "Добавить ещё требование" }),
   ).not.toBeInTheDocument();
   await userEvent.click(
-    screen.getByRole("button", { name: "Создать исправление" }),
+    screen.getByRole("button", { name: "Исправить опубликованное ревью" }),
   );
   await userEvent.type(
     screen.getByLabelText("Причина исправления"),

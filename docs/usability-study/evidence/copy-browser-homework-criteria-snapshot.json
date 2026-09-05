@@ -1,0 +1,379 @@
+{
+  "url": "http://127.0.0.1:5180/#/homework/655d70e8-accf-5bb3-a4b5-73df5b911193?run=a579a015-0268-5ce9-b38a-8be8c55a115d",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\n\n←\nКурсы\n/\nЗадания потока\n/ Настройка задания\n\nAPI каталога\nКО\n✓\nДля студента\n2\nКритерии ревью\n✓\nПубликация\nКритерии\nДобавить критерий\nНазвание критерия\nВыполнено, если\nПо этой формулировке работают и модель, и ревьюер. Студент видит её после проверки.\nКак проверяем\nформальная\nпо смыслу, с цитатой\nна усмотрение ревьюера\nЕщё и оценить качество\nВторой шаг после того, как модель нашла и процитировала. Считается только если первый шаг дал «да».\nБаллов за критерий\nШаг\nЧто увидит ревьюер\n0\n0.5\n1\n1.5\n2\n2.5\n3\n3.5\n4\n4.5\n5\nЧисло от 0 до 5, шаг 0.5\n↑\n↓\nУбрать критерий\nСвернуть\nОшибки и воспроизводимые проверки\nпо смыслу, с цитатой\n5\n▼\nПорог зачёта\nбаллов из 10 возможных\nРекомендации ревьюерам\nВнутренние рекомендации\nЭталонное решение\nПеретащите файл или выберите\n\nИспользуется как пример для модели и ревьюеров при калибровке. Студентам не показывается никогда.\n\nВерсии\n\nВерсия 1\n\nДальше: публикация",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "←",
+      "label": "Назад к заданиям",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 10,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания потока",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 11,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "✓\nДля студента",
+      "label": "1. Для студента",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "2\nКритерии ревью",
+      "label": "2. Критерии ревью",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "✓\nПубликация",
+      "label": "3. Публикация",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 15,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Добавить критерий",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 16,
+      "tag": "input",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Название критерия",
+      "placeholder": null,
+      "value": "Основной сценарий API",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 17,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Выполнено, если",
+      "placeholder": null,
+      "value": "Выполнено, если поведение подтверждено примерами входа и ожидаемого ответа.",
+      "disabled": false
+    },
+    {
+      "id": 18,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "формальная",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 19,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "по смыслу, с цитатой",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 20,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "на усмотрение ревьюера",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 21,
+      "tag": "input",
+      "type": "checkbox",
+      "role": null,
+      "text": "",
+      "label": "Ещё и оценить качество",
+      "placeholder": null,
+      "value": "on",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 22,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Баллов за критерий",
+      "placeholder": null,
+      "value": "5",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 23,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Шаг",
+      "placeholder": null,
+      "value": "0.5",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 24,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "↑",
+      "label": "Поднять критерий 1",
+      "placeholder": null,
+      "value": "",
+      "disabled": true
+    },
+    {
+      "id": 25,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "↓",
+      "label": "Опустить критерий 1",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 26,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Убрать критерий",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 27,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Свернуть",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 28,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Ошибки и воспроизводимые проверки\nпо смыслу, с цитатой\n5\n▼",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 29,
+      "tag": "input",
+      "type": "number",
+      "role": null,
+      "text": "",
+      "label": "Порог зачёта",
+      "placeholder": null,
+      "value": "7",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 30,
+      "tag": "textarea",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "Внутренние рекомендации",
+      "placeholder": null,
+      "value": "Проверьте реальные подтверждения выполнения требований.",
+      "disabled": false
+    },
+    {
+      "id": 31,
+      "tag": "input",
+      "type": "file",
+      "role": null,
+      "text": "",
+      "label": "Перетащите файл или выберите",
+      "placeholder": null,
+      "value": "",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 32,
+      "tag": "button",
+      "type": "submit",
+      "role": null,
+      "text": "Дальше: публикация",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/homework/655d70e8-accf-5bb3-a4b5-73df5b911193?run=a579a015-0268-5ce9-b38a-8be8c55a115d",
+      "current": true
+    }
+  ]
+}

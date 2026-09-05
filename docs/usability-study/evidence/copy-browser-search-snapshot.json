@@ -1,0 +1,583 @@
+{
+  "url": "http://127.0.0.1:5180/#/home",
+  "title": "Платформа ревью",
+  "bounds": {
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "scrollY": 0,
+    "viewportHeight": 900
+  },
+  "text": "Перейти к содержимому\nАвито Ревью\nОбзор\nКурсы\n4\nЗадания\n6\nПул проверок\n3\nДомашки\n5\nОбзор\nСТУДЕНТЫ\nРабот с таким ID студента нет.\nЗАДАНИЯ\nAPI каталога\nИтоги каталога\nEnter открывает выбранную строку, Escape закрывает поиск\nСоздать курс\nСоздать поток\nКО\n5\nдомашек в потоках\n1\nу ревьюеров прямо сейчас\n2\nв пуле без проверки\n6\nдедлайнов в ближайшие 7 дней\nПотоки\nКурс: все\nПрактикум · команда и нагрузка\nПрактикум · учебная программа\nПрактикум API · задания студентов\nПрактикум API · проверка работ\nСтатус: все\nАктивные\nАрхив\nКУРС\tПОТОК\tСТУДЕНТЫ\tРЕВЬЮЕРЫ\tБЛИЖАЙШИЙ СРОК\tВСЕ РАБОТЫ\tВ ПУЛЕ\tНА ПРОВЕРКЕ\tЗАЧТЕНО\nПрактикум API · задания студентов\t\nСамостоятельная работа · доработка\nАктивен\n\t2\t2\t12 сент. 2026 г., 22:19\t1\t0\t0\t0\nПрактикум · команда и нагрузка\t\nОсенний поток · распределение\nАктивен\n\t2\t2\t12 сент. 2026 г., 22:19\t2\t0\t1\t1\nПрактикум API · проверка работ\t\nПовторная очередь · исправленные работы\nАктивен\n\t2\t2\t12 сент. 2026 г., 22:19\t1\t1\t0\t0\nПрактикум API · проверка работ\t\nОсновная очередь · первые проверки\nАктивен\n\t2\t2\t12 сент. 2026 г., 22:19\t1\t1\t0\t0\nПрактикум API · задания студентов\t\nСамостоятельная работа · новые задания\nАктивен\n\t2\t2\t12 сент. 2026 г., 22:19\t0\t0\t0\t0\nТребует внимания\nПовторная проверка фильтрации · срок проверки истёк\nОткрыть пул\nБлижайшие дедлайны\nСамостоятельная работа · доработка · Надёжная обработка ошибок\n12 сент. 2026 г., 22:19\nОсенний поток · распределение · Итоги каталога\n12 сент. 2026 г., 22:19\nОсенний поток · распределение · API каталога\n12 сент. 2026 г., 22:19",
+  "controls": [
+    {
+      "id": 1,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Перейти к содержимому",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#main"
+    },
+    {
+      "id": 2,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Авито Ревью",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/home"
+    },
+    {
+      "id": 3,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Обзор",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/dashboard"
+    },
+    {
+      "id": 4,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Курсы\n4",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses"
+    },
+    {
+      "id": 5,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Задания\n6",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homeworks"
+    },
+    {
+      "id": 6,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Пул проверок\n3",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool"
+    },
+    {
+      "id": 7,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Домашки\n5",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 8,
+      "tag": "input",
+      "type": null,
+      "role": null,
+      "text": "",
+      "label": "ID студента или название задания",
+      "placeholder": "ID студента или название задания",
+      "value": "каталог",
+      "checked": false,
+      "disabled": false
+    },
+    {
+      "id": 9,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "API каталога",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homework/655d70e8-accf-5bb3-a4b5-73df5b911193?run=a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 10,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Итоги каталога",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homework/119cfc3f-a1fb-51b8-a6d7-a99e9c994e9e?run=a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 11,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Создать курс",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 12,
+      "tag": "button",
+      "type": "button",
+      "role": null,
+      "text": "Создать поток",
+      "label": "",
+      "placeholder": null,
+      "value": "",
+      "disabled": false
+    },
+    {
+      "id": 13,
+      "tag": "summary",
+      "type": null,
+      "role": null,
+      "text": "КО",
+      "label": "Ваш профиль",
+      "placeholder": null,
+      "disabled": false
+    },
+    {
+      "id": 14,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "5\nдомашек в потоках",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry"
+    },
+    {
+      "id": 15,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1\nу ревьюеров прямо сейчас",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?state=reviewing"
+    },
+    {
+      "id": 16,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "2\nв пуле без проверки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?state=pending_review"
+    },
+    {
+      "id": 17,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Курс: все\nПрактикум · команда и нагрузка\nПрактикум · учебная программа\nПрактикум API · задания студентов\nПрактикум API · проверка работ",
+      "label": "Курс",
+      "placeholder": null,
+      "value": "",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Курс: все",
+          "disabled": false
+        },
+        {
+          "value": "5bc971bb-e073-58c7-8ab5-ac817f1213d8",
+          "label": "Практикум · команда и нагрузка",
+          "disabled": false
+        },
+        {
+          "value": "08b9cc25-dedd-5b6f-90c7-b13b147013de",
+          "label": "Практикум · учебная программа",
+          "disabled": false
+        },
+        {
+          "value": "8bd3625e-ff46-5071-843b-8ab83b05b5e3",
+          "label": "Практикум API · задания студентов",
+          "disabled": false
+        },
+        {
+          "value": "9130fc5b-9b7f-5299-adf8-50d3a46cbd31",
+          "label": "Практикум API · проверка работ",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "tag": "select",
+      "type": null,
+      "role": null,
+      "text": "Статус: все\nАктивные\nАрхив",
+      "label": "Состояние",
+      "placeholder": null,
+      "value": "",
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "label": "Статус: все",
+          "disabled": false
+        },
+        {
+          "value": "active",
+          "label": "Активные",
+          "disabled": false
+        },
+        {
+          "value": "archived",
+          "label": "Архив",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Самостоятельная работа · доработка",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/254f8a90-aa75-5e74-aea1-2b517e4d04ee"
+    },
+    {
+      "id": 20,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=254f8a90-aa75-5e74-aea1-2b517e4d04ee&state="
+    },
+    {
+      "id": 21,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=254f8a90-aa75-5e74-aea1-2b517e4d04ee&state=pending_review"
+    },
+    {
+      "id": 22,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=254f8a90-aa75-5e74-aea1-2b517e4d04ee&state=reviewing"
+    },
+    {
+      "id": 23,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=254f8a90-aa75-5e74-aea1-2b517e4d04ee&state=passed"
+    },
+    {
+      "id": 24,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Осенний поток · распределение",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 25,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "2",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a579a015-0268-5ce9-b38a-8be8c55a115d&state="
+    },
+    {
+      "id": 26,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a579a015-0268-5ce9-b38a-8be8c55a115d&state=pending_review"
+    },
+    {
+      "id": 27,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a579a015-0268-5ce9-b38a-8be8c55a115d&state=reviewing"
+    },
+    {
+      "id": 28,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a579a015-0268-5ce9-b38a-8be8c55a115d&state=passed"
+    },
+    {
+      "id": 29,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Повторная очередь · исправленные работы",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/c503d9f4-6c4a-5fd3-9b45-0c4e18979adb"
+    },
+    {
+      "id": 30,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=c503d9f4-6c4a-5fd3-9b45-0c4e18979adb&state="
+    },
+    {
+      "id": 31,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=c503d9f4-6c4a-5fd3-9b45-0c4e18979adb&state=pending_review"
+    },
+    {
+      "id": 32,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=c503d9f4-6c4a-5fd3-9b45-0c4e18979adb&state=reviewing"
+    },
+    {
+      "id": 33,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=c503d9f4-6c4a-5fd3-9b45-0c4e18979adb&state=passed"
+    },
+    {
+      "id": 34,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Основная очередь · первые проверки",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/d206f811-18da-5543-aa06-92988156d344"
+    },
+    {
+      "id": 35,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=d206f811-18da-5543-aa06-92988156d344&state="
+    },
+    {
+      "id": 36,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "1",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=d206f811-18da-5543-aa06-92988156d344&state=pending_review"
+    },
+    {
+      "id": 37,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=d206f811-18da-5543-aa06-92988156d344&state=reviewing"
+    },
+    {
+      "id": 38,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=d206f811-18da-5543-aa06-92988156d344&state=passed"
+    },
+    {
+      "id": 39,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Самостоятельная работа · новые задания",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/courses/a65fb045-a967-5006-b90c-38856c64909a"
+    },
+    {
+      "id": 40,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a65fb045-a967-5006-b90c-38856c64909a&state="
+    },
+    {
+      "id": 41,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a65fb045-a967-5006-b90c-38856c64909a&state=pending_review"
+    },
+    {
+      "id": 42,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a65fb045-a967-5006-b90c-38856c64909a&state=reviewing"
+    },
+    {
+      "id": 43,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "0",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/registry?run=a65fb045-a967-5006-b90c-38856c64909a&state=passed"
+    },
+    {
+      "id": 44,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Открыть пул",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/coord-pool?run=c503d9f4-6c4a-5fd3-9b45-0c4e18979adb"
+    },
+    {
+      "id": 45,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Самостоятельная работа · доработка · Надёжная обработка ошибок",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homework/99db2709-70ab-514d-ac31-0826ec576bfb?run=254f8a90-aa75-5e74-aea1-2b517e4d04ee"
+    },
+    {
+      "id": 46,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Осенний поток · распределение · Итоги каталога",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homework/119cfc3f-a1fb-51b8-a6d7-a99e9c994e9e?run=a579a015-0268-5ce9-b38a-8be8c55a115d"
+    },
+    {
+      "id": 47,
+      "tag": "a",
+      "type": null,
+      "role": null,
+      "text": "Осенний поток · распределение · API каталога",
+      "label": "",
+      "placeholder": null,
+      "disabled": false,
+      "href": "#/homework/655d70e8-accf-5bb3-a4b5-73df5b911193?run=a579a015-0268-5ce9-b38a-8be8c55a115d"
+    }
+  ],
+  "downloads": [],
+  "fileChooserOpen": false,
+  "tabs": [
+    {
+      "id": 0,
+      "url": "http://127.0.0.1:5180/#/home",
+      "current": true
+    }
+  ]
+}

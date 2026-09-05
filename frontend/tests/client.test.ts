@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ApiClient, ApiError } from "../src/api/client";
+import { ApiClient, ApiError, errorMessage } from "../src/api/client";
 import { createDemoTransport } from "../src/mocks/transport";
 import { ids } from "../src/mocks/fixtures";
 import Ajv2020 from "ajv/dist/2020";
@@ -14,6 +14,23 @@ const ok = () =>
     headers: { "Content-Type": "application/json" },
   });
 describe("REST command boundary", () => {
+  it("explains server failures in Russian and retains the prescribed recovery action", () => {
+    expect(
+      errorMessage(
+        new ApiError(500, "internal", "The request could not be completed"),
+      ),
+    ).toBe("Ошибка сервиса. Попробуйте ещё раз.");
+    expect(
+      errorMessage(
+        new ApiError(
+          503,
+          "unavailable",
+          "Unavailable",
+          "Обновите данные перед повтором.",
+        ),
+      ),
+    ).toBe("Ошибка сервиса. Обновите данные перед повтором.");
+  });
   it("sends exact frozen command, cookie credentials and no client actor", async () => {
     const transport = vi.fn(async () => ok());
     const api = new ApiClient(transport);

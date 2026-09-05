@@ -3147,6 +3147,27 @@
         "title": "SelfReviewView",
         "type": "object"
       },
+      "SourcePolicyInput": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_sources": {
+            "items": {
+              "enum": [
+                "upload",
+                "github",
+                "google_docs"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Allowed Sources",
+            "type": "array"
+          }
+        },
+        "title": "SourcePolicyInput",
+        "type": "object"
+      },
       "StatisticView": {
         "additionalProperties": false,
         "properties": {
@@ -3484,6 +3505,18 @@
             "format": "uuid",
             "title": "Publication Id",
             "type": "string"
+          },
+          "revision_deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Deadline"
           },
           "score": {
             "anyOf": [
@@ -5781,6 +5814,49 @@
           "workspace-v2"
         ],
         "x-command-name": "set_publication_policy"
+      }
+    },
+    "/v2/course-run-homeworks/{identity}/sources": {
+      "get": {
+        "operationId": "get_submission_sources_api_v2_course_run_homeworks__identity__sources_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourcePolicyInput"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Submission Sources",
+        "tags": [
+          "workspace-v2"
+        ]
       }
     },
     "/v2/course-run-homeworks/{identity}/student-context": {

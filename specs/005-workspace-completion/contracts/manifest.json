@@ -1,6 +1,6 @@
 {
   "sha256": {
-    "openapi.json": "08cb07a32db4890f752fc0fa30de151c1d080eba122513e86cac5921aaf05f94",
+    "openapi.json": "1276b1ffe37abb309cba381e5ea531052f3a76c7246ace9d87c5d22dd728f081",
     "review-assist-event.schema.json": "7ea38dcaa95d75dcb681d57d293dfc9255f55d96202b0e97ef60e9ae67299c89",
     "review-assist-request.schema.json": "966555672a5b9fde6cc66d1b999e1f3e6a4d94c132d537a7a3d06a21f21b1b4d",
     "self-review-event.schema.json": "2482e3dc88e524844f1d192c9d8200b5fa50ae330017f3ae5235ffc78440f87c",
