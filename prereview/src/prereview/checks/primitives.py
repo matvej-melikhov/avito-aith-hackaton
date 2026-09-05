@@ -178,7 +178,14 @@ def test_defs(work: Work, min: int = 1, scope: str | list[str] | None = None, **
     return CheckOutcome("pass" if len(hits) >= min else "fail", f"определений тестов: {len(hits)}, нужно от {min}", hits[:5])
 
 
+def _go_build(work: Work, **kw: object) -> CheckOutcome:
+    from prereview.checks.gobuild import go_build_check
+
+    return go_build_check(work, **kw)
+
+
 PRIMITIVES: dict[str, Callable[..., CheckOutcome]] = {
+    "go_build": _go_build,
     "file_exists": file_exists,
     "file_absent": file_absent,
     "dir_exists": dir_exists,

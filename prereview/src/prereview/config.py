@@ -57,6 +57,15 @@ class Settings(BaseSettings):
     harness_timeout_seconds: int = 240
     harness_max_output_bytes: int = 1_000_000
 
+    # Сборка Go-снимков как факт для судьи (go build, go vet; код студента не исполняется).
+    go_build_enabled: bool = True
+    go_build_timeout_seconds: int = 180
+
+    # Распознавание PDF без текстового слоя vision-моделью.
+    ocr_enabled: bool = True
+    ocr_model: str = "deepseek-v4-flash-vision-exp"
+    ocr_max_pages: int = 12
+
     # Курс для «₽ за работу». Допущение, уточнить на дату защиты.
     usd_rub: float = 80.0
 

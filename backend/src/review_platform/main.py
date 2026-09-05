@@ -79,8 +79,12 @@ def create_app(
             if isinstance(provider, FixtureWorkspaceAI | HTTPWorkspaceAI)
             else None
         )
+        # Учебный стенд с fixtures может тянуть настоящие GitHub и Google Docs,
+        # если явно включены live providers; иначе снимок имитируется.
         preparer = (
-            FixtureArtifactPreparer() if selected.workspace_fixtures else SourcePreparer(selected)
+            FixtureArtifactPreparer()
+            if selected.workspace_fixtures and not selected.live_providers_enabled
+            else SourcePreparer(selected)
         )
         preparation = PreparationWorker(runtime, preparer, runtime.object_storage)
         exporter = ExportWorker(runtime)

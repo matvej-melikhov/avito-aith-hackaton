@@ -19,7 +19,9 @@ from prereview import __version__
 from prereview.artifact.extract import ExtractionError, UnsupportedFormat, extract
 from prereview.artifact.fetch import ArtifactError, fetch_artifact
 from prereview.artifact.model import Work
+from prereview.artifact.ocr import apply_ocr
 from prereview.artifact.redact import RedactionReport, redact_work
+from prereview.checks.gobuild import go_build, is_go_project
 from prereview.checks.run import facts_for_prompt, run_checks
 from prereview.config import Settings
 from prereview.contracts import (
@@ -70,6 +72,7 @@ class RunRecord:
     work: dict = field(default_factory=dict)
     redaction: dict = field(default_factory=dict)
     harness: dict = field(default_factory=dict)
+    build: dict = field(default_factory=dict)
     criteria: list[dict] = field(default_factory=list)
     signal: dict = field(default_factory=dict)
     ledger: dict = field(default_factory=dict)
@@ -101,18 +104,23 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def load_work(artifact_bytes: bytes | None, url: str, digest: str, media_type: str, settings: Settings) -> Work:
+def load_work_bytes(artifact_bytes: bytes | None, url: str, digest: str, media_type: str,
+                    settings: Settings) -> tuple[Work, bytes]:
     try:
         data = artifact_bytes if artifact_bytes is not None else fetch_artifact(
             url, digest, max_bytes=settings.max_artifact_bytes, rewrites=settings.url_rewrites)
     except ArtifactError as e:
         raise PipelineError(e.code, str(e)) from e
     try:
-        return extract(data, media_type, max_file_bytes=settings.max_file_bytes)
+        return extract(data, media_type, max_file_bytes=settings.max_file_bytes), data
     except UnsupportedFormat as e:
         raise PipelineError("unsupported_format", str(e)) from e
     except ExtractionError as e:
         raise PipelineError("invalid_artifact", str(e)) from e
+
+
+def load_work(artifact_bytes: bytes | None, url: str, digest: str, media_type: str, settings: Settings) -> Work:
+    return load_work_bytes(artifact_bytes, url, digest, media_type, settings)[0]
 
 
 def prepare(work: Work, criteria: list[ReviewCriterionView] | list[PublicCriterion], settings: Settings,
@@ -168,7 +176,9 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
     record.model = client.model
     record.prompt_versions = prompts.versions()
 
-    work = load_work(artifact_bytes, request.artifact_url, request.artifact_digest, request.media_type, settings)
+    work, data = load_work_bytes(artifact_bytes, request.artifact_url, request.artifact_digest, request.media_type, settings)
+    if "needs_vision" in work.flags:
+        work = apply_ocr(work, data, settings, ledger)
     prep = prepare(work, request.criteria, settings, assignment_slug)
     record.assignment = prep.assignment.slug if prep.assignment else None
     record.work = {k: v for k, v in work.meta.items() if k != "skipped"} | {"format": work.format, "flags": work.flags,
@@ -182,6 +192,14 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
     # Формальные проверки: для formal-критериев это вердикт, для остальных факты в промпт.
     reports = {c.key: run_checks(prep.clean, c) for c in prep.rubric if c.checks}
     ctx.facts_text = facts_for_prompt(reports, {c.key for c in prep.rubric if c.is_formal})
+    # Go-снимок собираем и прогоняем vet: несобирающийся код ревьюер ловит запуском.
+    build = None
+    if settings.go_build_enabled and is_go_project(prep.clean):
+        build = go_build(prep.clean, timeout=settings.go_build_timeout_seconds)
+        record.build = build.to_dict()
+        ctx.facts_text = build.facts() + "\n\n" + ctx.facts_text
+        if build.build_ok is False:
+            record.flags.append("build_failed")
 
     results: list[CriterionResult] = []
     if "needs_vision" in prep.clean.flags or "no_text_files" in prep.clean.flags:
@@ -239,7 +257,14 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
     record.signal = signal_record
 
     feedback = draft_feedback(client, prompts, results) if results else None
-    summary = reviewer_summary(results, signal_record.get("level", "low"), ledger.cost_rub,
+    build_note = ""
+    if "ocr_transcribed" in prep.clean.flags:
+        build_note = f"PDF без текстового слоя распознан моделью ({prep.clean.meta.get('ocr_pages')} стр.), цитаты относятся к распознанному тексту. "
+    if build is not None and build.build_ok is not None:
+        build_note = ("Сборка go build: успешно. " if build.build_ok else "Сборка go build НЕ ПРОХОДИТ: " + build.build_output.strip().splitlines()[-1][:160] + ". ")
+        if build.vet_ok is False:
+            build_note += "go vet с замечаниями. "
+    summary = build_note + reviewer_summary(results, signal_record.get("level", "low"), ledger.cost_rub,
                                ledger.prompt_tokens + ledger.completion_tokens, record.prompt_versions,
                                client.model, pack.source if pack.source != "none" else ("нет: " + (pack.error or "не нужен")))
     suggestions = [_suggestion(r, summary if i == 0 else "") for i, r in enumerate(results)]
@@ -304,7 +329,9 @@ def run_self_review(request: SelfReviewRequest, settings: Settings, *, client: L
     record.model = client.model
     record.prompt_versions = prompts.versions()
 
-    work = load_work(artifact_bytes, request.artifact_url, request.artifact_digest, request.media_type, settings)
+    work, data = load_work_bytes(artifact_bytes, request.artifact_url, request.artifact_digest, request.media_type, settings)
+    if "needs_vision" in work.flags:
+        work = apply_ocr(work, data, settings, ledger)
     prep = prepare(work, request.criteria, settings, assignment_slug)
     record.assignment = prep.assignment.slug if prep.assignment else None
     record.work = {"format": work.format, "flags": work.flags, "chars": work.meta.get("chars")}

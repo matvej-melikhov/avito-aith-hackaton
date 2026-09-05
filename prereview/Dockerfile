@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
+# Go для фактов сборки (go build, go vet) по снимкам репозиториев; код студента не исполняется.
+COPY --from=golang:1.26-bookworm /usr/local/go /usr/local/go
+ENV PATH="/usr/local/go/bin:$PATH" GOTOOLCHAIN=local PREREVIEW_GOMODCACHE=/data/gomodcache
 
 WORKDIR /app/prereview
 COPY prereview/pyproject.toml prereview/uv.lock ./

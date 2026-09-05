@@ -28,3 +28,22 @@ def test_run_checks_error_is_not_fail():
     c = Criterion(id=uuid.uuid4(), key="x", title="x", max_points=1, check_class="formal",
                   checks=[CheckSpec(kind="no_such_primitive")])
     assert run_checks(repo(), c).status == "error"
+
+
+def test_go_build_on_tiny_module():
+    import shutil
+
+    import pytest
+
+    if not shutil.which("go"):
+        pytest.skip("go недоступен")
+    from prereview.checks.gobuild import go_build
+
+    ok = Work("zip", "application/zip", [WorkFile("go.mod", "module tiny\n\ngo 1.22\n", "gomod"),
+                                         WorkFile("main.go", "package main\n\nfunc main() {}\n", "go")])
+    r = go_build(ok, timeout=120)
+    assert r.available and r.build_ok is True and r.vet_ok is True
+    bad = Work("zip", "application/zip", [WorkFile("go.mod", "module tiny\n\ngo 1.22\n", "gomod"),
+                                          WorkFile("main.go", "package main\n\nfunc main() { undefinedCall() }\n", "go")])
+    r2 = go_build(bad, timeout=120)
+    assert r2.build_ok is False and r2.errors and r2.errors[0].path == "main.go" and r2.errors[0].line == 3

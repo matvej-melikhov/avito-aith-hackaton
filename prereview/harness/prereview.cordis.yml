@@ -1,6 +1,10 @@
 # Патч профиля headless DeepSeek Harness для роли «исследователь снимка работы».
 # Только чтение: файловые инструменты и поиск. Ни shell, ни записи, ни сети, ни субагентов.
 # Применяется: dsh --profile headless --patch prereview/harness/prereview.cordis.yml "<задача>"
+- id: llm-deepseek
+  config:
+    thinking: disabled
+    reasoningEffort: 'off'
 - id: agent-default-model
   config:
     provider: deepseek-official
