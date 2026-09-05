@@ -13,6 +13,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from review_platform.application.audit import AuditError, AuditRecorder
 from review_platform.application.auth_guards.membership import UserMembershipAuthGuard
 from review_platform.application.authorization import AuthorizationDenied, Authorizer
 from review_platform.application.ports.providers import (
@@ -34,6 +35,7 @@ from review_platform.application.services.artifact_preflight import (
     ArtifactProviderName,
 )
 from review_platform.domain.primitives import require_utc, sanitize_error, utc_now, uuid7
+from review_platform.infrastructure.db.adapters import SqlAppendOnlyAuditRepository
 from review_platform.infrastructure.db.models.identity import ExternalCredential
 from review_platform.infrastructure.db.models.operations import (
     Operation,
@@ -63,9 +65,11 @@ from review_platform.infrastructure.object_storage.promotions import (
     ArtifactPromotionError,
     BoundedContentFetcher,
     CleanupResult,
+    PromotionAuditPort,
     PromotionNotClaimed,
     S3ArtifactStaging,
     S3PromotionObjects,
+    SqlArtifactPromotionAuditRecorder,
     StagedObjectCandidate,
     StagedObjectInventory,
     StalePromotionLease,
@@ -99,6 +103,7 @@ class ArtifactTaskRuntime:
     promotion_lease_seconds: int = 60
     promotion_retry_seconds: int = 60
     recovery_batch_size: int = 100
+    promotion_audit_factory: Callable[[str], PromotionAuditPort] | None = None
 
     def __post_init__(self) -> None:
         if set(self.providers).difference({"github", "google_docs"}):
@@ -150,13 +155,12 @@ class ArtifactCaptureTaskHandler:
                 organization_id=organization_uuid,
                 operation_id=operation.id,
                 actor=actor,
+                message_id=message_uuid,
                 runtime=self._runtime,
             )
             provider = self._runtime.providers.get(command.provider)
             if provider is None:
-                raise ArtifactTaskError(
-                    f"artifact provider {command.provider!r} is not configured"
-                )
+                raise ArtifactTaskError(f"artifact provider {command.provider!r} is not configured")
             repository = SqlArtifactCaptureRepository(id_factory=self._runtime.id_factory)
             service = ArtifactCaptureService(
                 repository=repository,
@@ -173,6 +177,11 @@ class ArtifactCaptureTaskHandler:
                     max_attempts=command.max_promotion_attempts,
                 ),
                 provider=provider,
+                audit=AuditRecorder(
+                    SqlAppendOnlyAuditRepository(),
+                    event_id_factory=self._runtime.id_factory,
+                    clock=self._runtime.clock,
+                ),
                 id_factory=self._runtime.id_factory,
                 clock=self._runtime.clock,
             )
@@ -182,12 +191,20 @@ class ArtifactCaptureTaskHandler:
                 # Revoked work must roll back without manufacturing a durable
                 # result under authority that no longer exists.
                 raise
+            except AuditError:
+                raise
             except Exception as error:
                 result = await self._record_unhandled_failure(
                     repository=repository,
                     command=command,
                     operation=operation,
                     error=error,
+                    transaction=session,
+                )
+                await service.record_audit(
+                    command,
+                    result,
+                    reference_revision=None,
                     transaction=session,
                 )
                 await self._guard.lock_and_revalidate(actor=actor, transaction=session)
@@ -247,9 +264,7 @@ class ArtifactCaptureTaskHandler:
             ),
             attempt_metadata={
                 "provider": command.provider,
-                "credential_binding_id": str(
-                    command.credential_binding.credential_binding_id
-                ),
+                "credential_binding_id": str(command.credential_binding.credential_binding_id),
                 "credential_binding_version": (
                     command.credential_binding.credential_binding_version
                 ),
@@ -300,6 +315,7 @@ class ArtifactPromotionTaskHandler:
         coordinator = ArtifactPromotionCoordinator(
             repository=self._repository,
             objects=S3PromotionObjects(self._runtime.storage),
+            audit=self._promotion_audit(),
             owner=self._owner,
             token_factory=self._runtime.id_factory,
             clock=self._runtime.clock,
@@ -359,6 +375,7 @@ class ArtifactPromotionTaskHandler:
                 promoted = await ArtifactPromotionCoordinator(
                     repository=self._repository,
                     objects=S3PromotionObjects(self._runtime.storage),
+                    audit=self._promotion_audit(),
                     owner=self._owner,
                     token_factory=self._runtime.id_factory,
                     clock=self._runtime.clock,
@@ -385,6 +402,15 @@ class ArtifactPromotionTaskHandler:
                     }
                 )
         return tuple(results)
+
+    def _promotion_audit(self) -> PromotionAuditPort:
+        if self._runtime.promotion_audit_factory is not None:
+            return self._runtime.promotion_audit_factory(self._owner)
+        return SqlArtifactPromotionAuditRecorder(
+            worker_identity=self._owner,
+            id_factory=self._runtime.id_factory,
+            clock=self._runtime.clock,
+        )
 
 
 class ArtifactCleanupTaskHandler:
@@ -499,8 +525,7 @@ async def _lock_capture_scope(
             SubmissionVersion.capture_operation_id == operation_id,
             SubmissionVersion.course_run_id == _required_uuid(payload, "course_run_id"),
             SubmissionVersion.homework_id == _required_uuid(payload, "homework_id"),
-            SubmissionVersion.homework_version_id
-            == _required_uuid(payload, "homework_version_id"),
+            SubmissionVersion.homework_version_id == _required_uuid(payload, "homework_version_id"),
         )
         .with_for_update()
     )
@@ -581,8 +606,7 @@ async def _capture_duplicate(
             .where(
                 ArtifactVersion.organization_id == organization_id,
                 ArtifactVersion.id == submission_version.artifact_version_id,
-                ArtifactVersion.artifact_reference_id
-                == submission_version.artifact_reference_id,
+                ArtifactVersion.artifact_reference_id == submission_version.artifact_reference_id,
                 ArtifactPromotion.operation_id == operation.id,
             )
         )
@@ -621,8 +645,7 @@ async def _apply_capture_result(
             select(ArtifactVersion.id).where(
                 ArtifactVersion.organization_id == result.organization_id,
                 ArtifactVersion.id == result.artifact_version_id,
-                ArtifactVersion.artifact_reference_id
-                == submission_version.artifact_reference_id,
+                ArtifactVersion.artifact_reference_id == submission_version.artifact_reference_id,
             )
         )
         if exists is None:
@@ -715,6 +738,7 @@ def _capture_command(
     organization_id: UUID,
     operation_id: UUID,
     actor: RequestActor,
+    message_id: UUID,
     runtime: ArtifactTaskRuntime,
 ) -> ArtifactCaptureCommand:
     provider_value = _required_string(payload, "provider")
@@ -737,6 +761,8 @@ def _capture_command(
         ),
         limits=runtime.capture_limits,
         actor=actor,
+        request_id=operation_id,
+        trace_id=message_id,
         max_promotion_attempts=runtime.capture_max_attempts,
     )
 
@@ -805,9 +831,7 @@ def _actor(payload: Mapping[str, JsonValue], *, organization_id: UUID) -> Reques
     if not isinstance(raw, Mapping) or raw.get("type") != "user":
         raise ArtifactTaskError("artifact capture requires user actor provenance")
     roles_value = raw.get("roles")
-    if not isinstance(roles_value, list) or not all(
-        isinstance(role, str) for role in roles_value
-    ):
+    if not isinstance(roles_value, list) or not all(isinstance(role, str) for role in roles_value):
         raise ArtifactTaskError("artifact capture actor roles are invalid")
     roles = cast(list[Role], roles_value)
     if "student" not in roles:

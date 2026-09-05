@@ -17,11 +17,26 @@ import rfc8785
 SHA256_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
 _SAFE_IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 _BEARER = re.compile(r"(?i)\bbearer\s+[^\s,;]+")
+_JWT = re.compile(
+    r"(?<![A-Za-z0-9_-])"
+    r"eyJ[A-Za-z0-9_-]{2,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"
+    r"(?![A-Za-z0-9_-])"
+)
+_EMAIL_PII = re.compile(
+    r"(?<![A-Z0-9.!#$%&'*+/=?^_`{|}~-])"
+    r"[A-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@"
+    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}"
+    r"(?![A-Z0-9-])",
+    re.IGNORECASE,
+)
 _SECRET_ASSIGNMENT = re.compile(
     r"(?i)\b(access[_-]?token|refresh[_-]?token|password|client[_-]?secret|api[_-]?key)"
     r"\s*[:=]\s*[^\s,;]+"
 )
-_MAGIC_LINK = re.compile(r"(?i)https?://[^\s]+/(?:invite|magic|callback)/[^\s]+")
+_MAGIC_LINK = re.compile(
+    r"https?://\S*(?:magic|invite|invitation|callback|token)\S*",
+    re.IGNORECASE,
+)
 _SENSITIVE_KEYS = {
     "authorization",
     "cookie",
@@ -42,7 +57,17 @@ _SENSITIVE_KEYS = {
     "request_body",
     "body",
     "artifact_content",
+    "provider_body",
 }
+_PROVIDER_CONTAINERS = {
+    "provider_error",
+    "provider_payload",
+    "provider_raw",
+    "provider_request",
+    "provider_response",
+    "provider_result",
+}
+_PROVIDER_BODY_KEYS = {"body", "content", "raw", "request", "response"}
 
 type JsonScalar = str | int | float | bool | None
 type JsonValue = JsonScalar | list[JsonValue] | dict[str, JsonValue]
@@ -209,7 +234,7 @@ def sanitize_error(
     else:
         source = error
 
-    sanitized = _sanitize_mapping(source)
+    sanitized = _sanitize_mapping(source, provider_container=False)
     for key in ("code", "action"):
         value = sanitized.get(key)
         if isinstance(value, str) and _SAFE_IDENTIFIER.fullmatch(value) is None:
@@ -232,35 +257,47 @@ def sanitize_error(
 sanitize_details = sanitize_error
 
 
-def _sanitize_mapping(source: Mapping[str, Any]) -> dict[str, JsonValue]:
+def _sanitize_mapping(
+    source: Mapping[str, Any],
+    *,
+    provider_container: bool,
+) -> dict[str, JsonValue]:
     result: dict[str, JsonValue] = {}
     for raw_key, value in source.items():
         key = str(raw_key)
         normalized = key.lower().replace("-", "_")
         if normalized in _SENSITIVE_KEYS or normalized.endswith("_secret"):
             continue
-        sanitized = _sanitize_value(value)
+        if provider_container and normalized in _PROVIDER_BODY_KEYS:
+            continue
+        nested_provider = provider_container or normalized in _PROVIDER_CONTAINERS
+        sanitized = _sanitize_value(value, provider_container=nested_provider)
         if sanitized is not None or value is None:
-            result[key] = sanitized
+            result[_redact_string(key)] = sanitized
     return result
 
 
-def _sanitize_value(value: Any) -> JsonValue:
+def _sanitize_value(value: Any, *, provider_container: bool) -> JsonValue:
     if value is None or isinstance(value, bool | int | float):
         return value
     if isinstance(value, str):
         return _redact_string(value)
     if isinstance(value, Mapping):
-        return _sanitize_mapping(value)
+        return _sanitize_mapping(value, provider_container=provider_container)
     if isinstance(value, list | tuple):
-        return [_sanitize_value(item) for item in value]
+        return [
+            _sanitize_value(item, provider_container=provider_container)
+            for item in value
+        ]
     return _redact_string(str(value))
 
 
 def _redact_string(value: str) -> str:
     redacted = _BEARER.sub("Bearer [REDACTED]", value)
     redacted = _SECRET_ASSIGNMENT.sub(lambda match: f"{match.group(1)}=[REDACTED]", redacted)
-    return _MAGIC_LINK.sub("[REDACTED_LINK]", redacted)
+    redacted = _JWT.sub("[REDACTED]", redacted)
+    redacted = _MAGIC_LINK.sub("[REDACTED_LINK]", redacted)
+    return _EMAIL_PII.sub("[REDACTED_EMAIL]", redacted)
 
 
 def _encoded_size(value: Mapping[str, JsonValue]) -> int:

@@ -564,27 +564,54 @@ async def test_course_import_replay_has_one_operation_outbox_and_roster(
     assert completed["state"] == "succeeded"
 
     async with session_scope(us1_harness.session_factory) as session:
-        assert await session.scalar(
-            select(func.count()).select_from(Operation).where(Operation.id == UUID(operation_id))
-        ) == 1
-        assert await session.scalar(
-            select(func.count())
-            .select_from(OutboxMessage)
-            .where(
-                OutboxMessage.aggregate_id == UUID(operation_id),
-                OutboxMessage.event_type == "CourseImportRequested",
+        assert (
+            await session.scalar(
+                select(func.count())
+                .select_from(Operation)
+                .where(Operation.id == UUID(operation_id))
             )
-        ) == 1
-        assert await session.scalar(
-            select(func.count()).select_from(CourseMembership).where(
-                CourseMembership.organization_id == ORGANIZATION_ID,
-                CourseMembership.source == "imported",
+            == 1
+        )
+        assert (
+            await session.scalar(
+                select(func.count())
+                .select_from(OutboxMessage)
+                .where(
+                    OutboxMessage.aggregate_id == UUID(operation_id),
+                    OutboxMessage.event_type == "CourseImportRequested",
+                )
             )
-        ) == 1
+            == 1
+        )
+        assert (
+            await session.scalar(
+                select(func.count())
+                .select_from(CourseMembership)
+                .where(
+                    CourseMembership.organization_id == ORGANIZATION_ID,
+                    CourseMembership.source == "imported",
+                )
+            )
+            == 1
+        )
+        import_audits = (
+            await session.scalars(
+                select(AuditEvent).where(
+                    AuditEvent.organization_id == ORGANIZATION_ID,
+                    AuditEvent.action == "start_course_import",
+                    AuditEvent.entity_id == UUID(operation_id),
+                )
+            )
+        ).all()
+        assert len(import_audits) == 1
+        assert (
+            import_audits[0].actor_user_id,
+            import_audits[0].before_revision,
+            import_audits[0].after_revision,
+            import_audits[0].outcome,
+        ) == (USER_ID, None, 0, "succeeded")
     course_run_id = cast(Sequence[str], completed["course_run_ids"])[0]
-    roster = await us1_harness.client.get(
-        f"/api/v1/course-runs/{course_run_id}/memberships"
-    )
+    roster = await us1_harness.client.get(f"/api/v1/course-runs/{course_run_id}/memberships")
     assert roster.status_code == 200, roster.text
     assert len(roster.json()["items"]) == 1
 
@@ -607,9 +634,12 @@ async def test_archive_restore_preserves_course_and_run_history(
     assert archive_course.status_code == 204, archive_course.text
     archived = await us1_harness.client.get("/api/v1/courses")
     assert archived.status_code == 200
-    assert next(
-        item for item in archived.json()["items"] if item["id"] == str(SEEDED_COURSE_ID)
-    )["status"] == "archived"
+    assert (
+        next(item for item in archived.json()["items"] if item["id"] == str(SEEDED_COURSE_ID))[
+            "status"
+        ]
+        == "archived"
+    )
 
     restore_course = await us1_harness.client.post(
         f"/api/v1/courses/{SEEDED_COURSE_ID}/restore",
@@ -655,9 +685,15 @@ async def test_archive_restore_preserves_course_and_run_history(
     history = await us1_harness.client.get("/api/v1/courses")
     runs = await us1_harness.client.get("/api/v1/course-runs")
     assert history.status_code == runs.status_code == 200
-    assert next(
-        item for item in history.json()["items"] if item["id"] == str(SEEDED_COURSE_ID)
-    )["status"] == "active"
-    assert next(
-        item for item in runs.json()["items"] if item["id"] == str(SEEDED_COURSE_RUN_ID)
-    )["status"] == "active"
+    assert (
+        next(item for item in history.json()["items"] if item["id"] == str(SEEDED_COURSE_ID))[
+            "status"
+        ]
+        == "active"
+    )
+    assert (
+        next(item for item in runs.json()["items"] if item["id"] == str(SEEDED_COURSE_RUN_ID))[
+            "status"
+        ]
+        == "active"
+    )

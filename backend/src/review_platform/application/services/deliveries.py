@@ -125,6 +125,28 @@ class DeliveryScheduler(Protocol):
     async def schedule(self, delivery: DeliveryRecord, *, transaction: object) -> None: ...
 
 
+@dataclass(frozen=True, slots=True)
+class DeliveryAuditDraft:
+    """Sanitized worker/system audit facts persisted in the caller transaction."""
+
+    organization_id: UUID
+    action: str
+    delivery_id: UUID
+    before_revision: int
+    after_revision: int
+    outcome: str
+    details: Mapping[str, object]
+
+
+class DeliveryAuditPort(Protocol):
+    async def record(
+        self,
+        draft: DeliveryAuditDraft,
+        *,
+        transaction: object,
+    ) -> None: ...
+
+
 class DeliveryService:
     def __init__(
         self,
@@ -133,6 +155,7 @@ class DeliveryService:
         scheduler: DeliveryScheduler,
         authorizer: Authorizer,
         audit: AuditRecorder,
+        system_audit: DeliveryAuditPort | None = None,
         clock: Callable[[], datetime] = utc_now,
         retry_delay: Callable[[int], timedelta] = lambda attempt: timedelta(
             seconds=60 * 2 ** max(attempt - 1, 0)
@@ -141,7 +164,8 @@ class DeliveryService:
         self._repository = repository
         self._scheduler = scheduler
         self._authorizer = authorizer
-        self._audit = audit
+        self._human_audit = audit
+        self._audit = system_audit
         self._clock = clock
         self._retry_delay = retry_delay
 
@@ -156,13 +180,22 @@ class DeliveryService:
             max_attempts=delivery.max_attempts,
             reconciliation_observed=delivery.state != "unknown_outcome",
         )
-        return await self._repository.transition(
+        result = await self._repository.transition(
             delivery,
             target_state=cast(DeliveryState, target),
             next_attempt_at=None,
             error=None,
             transaction=transaction,
         )
+        await self._record_system_audit(
+            delivery,
+            result,
+            action="claim_delivery",
+            outcome="succeeded",
+            details={"attempt_number": result.attempt_count},
+            transaction=transaction,
+        )
+        return result
 
     async def begin_reconciliation(
         self, *, organization_id: UUID, delivery_id: UUID, transaction: object
@@ -175,13 +208,14 @@ class DeliveryService:
             max_attempts=delivery.max_attempts,
             reconciliation_observed=False,
         )
-        return await self._repository.transition(
+        result = await self._repository.transition(
             delivery,
             target_state="reconciling",
             next_attempt_at=None,
             error=None,
             transaction=transaction,
         )
+        return result
 
     async def record_worker_result(
         self,
@@ -207,13 +241,23 @@ class DeliveryService:
             if outcome == "retryable_failed"
             else None
         )
-        return await self._repository.transition(
+        sanitized = sanitize_error(error) if error is not None else None
+        result = await self._repository.transition(
             delivery,
             target_state=outcome,
             next_attempt_at=retry_at,
-            error=sanitize_error(error) if error is not None else None,
+            error=sanitized,
             transaction=transaction,
         )
+        await self._record_system_audit(
+            delivery,
+            result,
+            action="record_delivery_result",
+            outcome="succeeded",
+            details={"delivery_outcome": outcome, "error": sanitized},
+            transaction=transaction,
+        )
+        return result
 
     async def apply_reconciliation(
         self,
@@ -243,13 +287,23 @@ class DeliveryService:
             if target == "retryable_failed"
             else None
         )
-        return await self._repository.transition(
+        sanitized = sanitize_error(error) if error is not None else None
+        result = await self._repository.transition(
             delivery,
             target_state=target,
             next_attempt_at=retry_at,
-            error=sanitize_error(error) if error is not None else None,
+            error=sanitized,
             transaction=transaction,
         )
+        await self._record_system_audit(
+            delivery,
+            result,
+            action="reconcile_delivery",
+            outcome="succeeded",
+            details={"reconciliation_outcome": outcome, "error": sanitized},
+            transaction=transaction,
+        )
+        return result
 
     async def manual_recovery(
         self,
@@ -277,7 +331,7 @@ class DeliveryService:
         else:
             await self._scheduler.schedule(delivery, transaction=transaction)
             result = delivery
-        await self._audit.record(
+        await self._human_audit.record(
             AuditEventDraft(
                 organization_id=organization_id,
                 actor=actor,
@@ -307,11 +361,45 @@ class DeliveryService:
             max_attempts=delivery.max_attempts,
             reconciliation_observed=delivery.state == "reconciling",
         )
-        return await self._repository.transition(
+        result = await self._repository.transition(
             delivery,
             target_state="superseded",
             next_attempt_at=None,
             error=None,
+            transaction=transaction,
+        )
+        await self._record_system_audit(
+            delivery,
+            result,
+            action="supersede_delivery",
+            outcome="succeeded",
+            details={"previous_state": delivery.state},
+            transaction=transaction,
+        )
+        return result
+
+    async def _record_system_audit(
+        self,
+        before: DeliveryRecord,
+        after: DeliveryRecord,
+        *,
+        action: str,
+        outcome: str,
+        details: Mapping[str, object],
+        transaction: object,
+    ) -> None:
+        if self._audit is None:
+            raise DeliveryServiceError("delivery system audit port is required")
+        await self._audit.record(
+            DeliveryAuditDraft(
+                organization_id=before.organization_id,
+                action=action,
+                delivery_id=before.delivery_id,
+                before_revision=before.revision,
+                after_revision=after.revision,
+                outcome=outcome,
+                details=details,
+            ),
             transaction=transaction,
         )
 
@@ -327,6 +415,8 @@ class DeliveryService:
 
 
 __all__ = [
+    "DeliveryAuditDraft",
+    "DeliveryAuditPort",
     "DeliveryProvenance",
     "DeliveryRecord",
     "DeliveryRepository",

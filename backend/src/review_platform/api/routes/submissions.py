@@ -23,8 +23,10 @@ from review_platform.application.idempotency import IdempotencyCoordinator, Idem
 from review_platform.application.ports.providers import ArtifactProvider
 from review_platform.application.request_context import RequestActor
 from review_platform.application.services.artifact_preflight import (
+    ArtifactCapabilityResult,
     ArtifactCredentialBinding,
     ArtifactKindNotAllowed,
+    ArtifactPreflightAuditPort,
     ArtifactPreflightError,
     ArtifactPreflightService,
     provider_for_artifact_url,
@@ -128,6 +130,52 @@ class _ReviewAudit(ReviewIterationAuditPort):
         )
 
 
+class _PreflightAudit(ArtifactPreflightAuditPort):
+    def __init__(self, runtime: FoundationRuntime) -> None:
+        self._recorder = AuditRecorder(
+            SqlAppendOnlyAuditRepository(),
+            event_id_factory=runtime.id_factory,
+            clock=runtime.clock,
+        )
+
+    async def record_preflight(
+        self,
+        *,
+        actor: RequestActor,
+        result: ArtifactCapabilityResult,
+        course_run_homework_id: UUID,
+        expected_revision: int,
+        request_id: UUID,
+        trace_id: UUID,
+        transaction: object,
+    ) -> None:
+        await self._recorder.record(
+            AuditEventDraft(
+                organization_id=actor.organization_id,
+                actor=actor,
+                action="preflight_submission",
+                entity_type=(
+                    "artifact_reference"
+                    if result.artifact_reference_id is not None
+                    else "submission"
+                ),
+                entity_id=result.artifact_reference_id or result.submission_id,
+                before_revision=expected_revision,
+                after_revision=expected_revision,
+                request_id=request_id,
+                trace_id=trace_id,
+                outcome="succeeded",
+                details={
+                    "provider": result.provider,
+                    "read_capability": result.read_capability,
+                    "feedback_capability": result.feedback_capability,
+                    "course_run_homework_id": str(course_run_homework_id),
+                },
+            ),
+            transaction=transaction,
+        )
+
+
 @router.post(
     "/v1/course-run-homeworks/{courseRunHomeworkId}/submissions/preflight",
     operation_id="preflightSubmission",
@@ -158,6 +206,7 @@ async def preflight_submission(
                     provider=provider,
                     archived_guard=SqlArtifactPreflightArchiveGuard(),
                     authorizer=Authorizer(runtime.user_auth_guard, clock=runtime.clock),
+                    audit=_PreflightAudit(runtime),
                     id_factory=runtime.id_factory,
                     clock=runtime.clock,
                 ).preflight(
@@ -168,6 +217,8 @@ async def preflight_submission(
                     artifact_url=payload.artifact_url,
                     credential_binding=binding,
                     actor=actor,
+                    request_id=command.request_id,
+                    trace_id=runtime.id_factory(),
                 )
                 response_payload = {
                     "provider": result.provider,

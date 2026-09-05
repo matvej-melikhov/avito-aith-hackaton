@@ -92,6 +92,8 @@ from review_platform.infrastructure.db.repositories.operations import OutboxMess
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 from review_platform.infrastructure.object_storage.promotions import (
     ArtifactPromotionRepository,
+    PromotionAuditCallback,
+    PromotionAuditDraft,
     PromotionFailure,
     PromotionLease,
 )
@@ -852,7 +854,14 @@ class SqlArtifactPromotionRepository:
                 max_attempts=promotion.max_attempts,
             )
 
-    async def complete(self, lease: PromotionLease, *, now: datetime) -> bool:
+    async def complete(
+        self,
+        lease: PromotionLease,
+        *,
+        now: datetime,
+        audit: PromotionAuditCallback,
+        recovered_existing_final: bool,
+    ) -> bool:
         async with session_scope(self._session_factory) as session:
             promotion = await _locked_promotion(session, lease)
             if not _active_promotion_lease(promotion, lease, now=now):
@@ -861,6 +870,7 @@ class SqlArtifactPromotionRepository:
             operation = await _locked_promotion_operation(session, lease)
             if operation is None:
                 raise SubmissionPersistenceConflict("promotion Operation provenance changed")
+            before_revision = promotion.revision
             attempt_number = await _next_attempt_number(
                 session,
                 lease.organization_id,
@@ -893,6 +903,22 @@ class SqlArtifactPromotionRepository:
             operation.error_code = None
             operation.sanitized_error = None
             operation.revision += 1
+            await audit(
+                PromotionAuditDraft(
+                    organization_id=lease.organization_id,
+                    promotion_id=lease.promotion_id,
+                    artifact_version_id=lease.artifact_version_id,
+                    operation_id=lease.operation_id,
+                    before_revision=before_revision,
+                    after_revision=promotion.revision,
+                    outcome="succeeded",
+                    details={
+                        "attempt_number": lease.attempts,
+                        "recovered_existing_final": recovered_existing_final,
+                    },
+                ),
+                session,
+            )
             await session.flush()
             return True
 
@@ -903,6 +929,7 @@ class SqlArtifactPromotionRepository:
         error: Mapping[str, object],
         available_at: datetime,
         exhausted: bool,
+        audit: PromotionAuditCallback,
     ) -> PromotionFailure | None:
         now = self._clock()
         async with session_scope(self._session_factory) as session:
@@ -913,6 +940,7 @@ class SqlArtifactPromotionRepository:
             operation = await _locked_promotion_operation(session, lease)
             if operation is None:
                 raise SubmissionPersistenceConflict("promotion Operation provenance changed")
+            before_revision = promotion.revision
             bounded = sanitize_error(cast(Mapping[str, Any], error))
             state = "action_required" if exhausted else "db_committed"
             attempt_state = "action_required" if exhausted else "retryable_failed"
@@ -953,6 +981,22 @@ class SqlArtifactPromotionRepository:
             operation.error_code = promotion.error_code
             operation.sanitized_error = bounded
             operation.revision += 1
+            await audit(
+                PromotionAuditDraft(
+                    organization_id=lease.organization_id,
+                    promotion_id=lease.promotion_id,
+                    artifact_version_id=lease.artifact_version_id,
+                    operation_id=lease.operation_id,
+                    before_revision=before_revision,
+                    after_revision=promotion.revision,
+                    outcome=attempt_state,
+                    details={
+                        "attempt_number": lease.attempts,
+                        "error": bounded,
+                    },
+                ),
+                session,
+            )
             await session.flush()
             return PromotionFailure(
                 state=state,

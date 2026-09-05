@@ -28,6 +28,7 @@ from review_platform.infrastructure.db.models.identity import (
 )
 from review_platform.infrastructure.db.models.learning import Course, CourseRun
 from review_platform.infrastructure.db.models.operations import (
+    AuditEvent,
     Operation,
     OperationAttempt,
     OutboxMessage,
@@ -46,6 +47,7 @@ from review_platform.infrastructure.db.session import AsyncSessionFactory, sessi
 from review_platform.infrastructure.object_storage.promotions import (
     ArtifactPromotionRepository,
     FetchedArtifactContent,
+    PromotionAuditDraft,
     StagedObjectCandidate,
 )
 from review_platform.infrastructure.object_storage.s3 import S3ObjectStorage
@@ -96,6 +98,13 @@ class Clock:
 
     def __call__(self) -> datetime:
         return self.now
+
+
+async def _ignore_promotion_audit(
+    draft: PromotionAuditDraft,
+    transaction: object,
+) -> None:
+    del draft, transaction
 
 
 class Provider:
@@ -469,6 +478,24 @@ async def test_capture_bundle_promotes_and_duplicate_message_is_idempotent(
         assert version.status == "ready"
         assert operation is not None and operation.state == "succeeded"
         assert [attempt.outcome for attempt in attempts] == ["succeeded", "succeeded"]
+        promotion_audit = await session.scalar(
+            select(AuditEvent).where(
+                AuditEvent.organization_id == ORG,
+                AuditEvent.action == "promote_artifact",
+            )
+        )
+        assert promotion_audit is not None
+        assert (
+            promotion_audit.actor_type,
+            promotion_audit.entity_type,
+            promotion_audit.entity_id,
+            promotion_audit.outcome,
+        ) == (
+            "worker",
+            "artifact_promotion",
+            UUID(str(promoted["promotion_id"])),
+            "succeeded",
+        )
 
 
 async def test_promotion_recovers_existing_final_and_sql_stale_lease_loses_cas(
@@ -533,7 +560,15 @@ async def test_promotion_recovers_existing_final_and_sql_stale_lease_loses_cas(
         lease_seconds=30,
     )
     assert second is not None
-    assert await repository.complete(first, now=clock.now) is False
+    assert (
+        await repository.complete(
+            first,
+            now=clock.now,
+            audit=_ignore_promotion_audit,
+            recovered_existing_final=False,
+        )
+        is False
+    )
     async with foundation_session_factory() as session:
         expired_attempts = (
             await session.scalars(

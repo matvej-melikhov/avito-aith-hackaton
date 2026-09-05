@@ -7,6 +7,7 @@ from uuid import UUID
 
 import pytest
 
+from review_platform.application.audit import AuditEvent, AuditRecorder
 from review_platform.application.ports.providers import ProviderPayload
 from review_platform.application.request_context import RequestActor
 from review_platform.application.services.artifact_capture import (
@@ -48,6 +49,15 @@ CONTENT = b"artifact"
 DIGEST = sha256_digest(CONTENT)
 OTHER_DIGEST = "sha256:" + "b" * 64
 TRANSACTION = object()
+
+
+class Audits:
+    def __init__(self) -> None:
+        self.events: list[AuditEvent] = []
+
+    async def append(self, event: AuditEvent, *, transaction: object) -> None:
+        assert transaction is TRANSACTION
+        self.events.append(event)
 
 
 class Provider:
@@ -329,6 +339,8 @@ def _service(
     authorization = Authorization()
     outbox = Outbox()
     provider = Provider(result or _success_result())
+    audits = Audits()
+    repository.audits = audits
     return (
         ArtifactCaptureService(
             repository=repository,
@@ -337,6 +349,11 @@ def _service(
             authorization=authorization,
             outbox=outbox,
             provider=provider,
+            audit=AuditRecorder(
+                audits,
+                event_id_factory=lambda: UUID(int=999),
+                clock=lambda: NOW,
+            ),
             id_factory=_ids(),
             clock=lambda: NOW,
         ),
@@ -359,6 +376,15 @@ async def test_success_stages_bounded_bytes_then_records_one_atomic_db_bundle_an
     assert result.operation_id == OPERATION
     assert result.state == "db_committed"
     assert result.replayed is False
+    assert len(repository.audits.events) == 1
+    audit = repository.audits.events[0]
+    assert (audit.action, audit.actor_user_id, audit.before_revision, audit.after_revision) == (
+        "capture_artifact",
+        USER,
+        2,
+        2,
+    )
+    assert audit.outcome == "db_committed"
     assert len(provider.requests) == len(staging.requests) == len(repository.successes) == 1
     request = provider.requests[0]
     assert request["credential_binding_id"] == str(CREDENTIAL)

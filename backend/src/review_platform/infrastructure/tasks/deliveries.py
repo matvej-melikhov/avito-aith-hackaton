@@ -13,8 +13,11 @@ from uuid import UUID
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from review_platform.application.audit import sanitize_shared_value
 from review_platform.application.ports.providers import DeliveryProvider, JsonValue
 from review_platform.application.services.deliveries import (
+    DeliveryAuditDraft,
+    DeliveryAuditPort,
     DeliveryRecord,
     DeliveryScheduler,
 )
@@ -47,6 +50,7 @@ from review_platform.infrastructure.db.models.delivery import (
 from review_platform.infrastructure.db.models.identity import ExternalCredential
 from review_platform.infrastructure.db.models.learning import DestinationBinding
 from review_platform.infrastructure.db.models.operations import (
+    AuditEvent,
     Operation,
     OperationAttempt,
     OutboxMessage,
@@ -57,7 +61,10 @@ from review_platform.infrastructure.db.repositories.deliveries import (
     ReconciliationObservationDraft,
     SqlDeliveryRepository,
 )
-from review_platform.infrastructure.db.repositories.operations import OutboxMessageRepository
+from review_platform.infrastructure.db.repositories.operations import (
+    AuditEventRepository,
+    OutboxMessageRepository,
+)
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 
 from .registry import task_handler
@@ -84,6 +91,7 @@ class DeliveryTaskRuntime:
     max_attempts: int = 5
     lease_seconds: int = 300
     retry_seconds: int = 60
+    audit_factory: Callable[[str], DeliveryAuditPort] | None = None
 
     def __post_init__(self) -> None:
         if set(self.providers) != {"stepik", "github"}:
@@ -98,6 +106,55 @@ class DeliveryTaskRuntime:
             raise ValueError("delivery max attempts must be between 1 and 10")
         if not 1 <= self.lease_seconds <= 3600 or self.retry_seconds < 1:
             raise ValueError("delivery lease/retry configuration is invalid")
+
+
+class SqlDeliveryWorkerAuditRecorder:
+    """Persist delivery worker actions inside the state-change transaction."""
+
+    def __init__(
+        self,
+        *,
+        worker_identity: str,
+        id_factory: Callable[[], UUID] = uuid7,
+        clock: Callable[[], datetime] = utc_now,
+    ) -> None:
+        if not worker_identity or len(worker_identity) > 255:
+            raise ValueError("delivery audit worker identity must contain 1..255 characters")
+        self._worker_identity = worker_identity
+        self._id_factory = id_factory
+        self._clock = clock
+
+    async def record(
+        self,
+        draft: DeliveryAuditDraft,
+        *,
+        transaction: object,
+    ) -> None:
+        session = _session(transaction)
+        details = sanitize_shared_value(
+            {**dict(draft.details), "worker_identity": self._worker_identity}
+        )
+        await AuditEventRepository(session).append(
+            AuditEvent(
+                id=self._id_factory(),
+                organization_id=draft.organization_id,
+                actor_type="worker",
+                actor_user_id=None,
+                installation_operator_id=None,
+                agent_id=None,
+                agent_authorization_id=None,
+                action=draft.action,
+                entity_type="external_delivery",
+                entity_id=draft.delivery_id,
+                before_revision=draft.before_revision,
+                after_revision=draft.after_revision,
+                request_id=draft.delivery_id,
+                trace_id=self._id_factory(),
+                outcome=draft.outcome,
+                sanitized_details=dict(details),
+                occurred_at=require_utc(self._clock()),
+            )
+        )
 
 
 class SqlReviewDeliveryScheduler(ReviewDeliveryScheduler):
@@ -482,6 +539,18 @@ async def _claim_delivery(
     operation.finished_at = None
     operation.updated_at = require_utc(runtime.clock())
     operation.revision += 1
+    await _delivery_audit(runtime, stable_identity).record(
+        DeliveryAuditDraft(
+            organization_id=organization_id,
+            action="claim_delivery",
+            delivery_id=delivery.id,
+            before_revision=record.revision,
+            after_revision=processing.revision,
+            outcome="succeeded",
+            details={"attempt_number": attempt.attempt_number},
+        ),
+        transaction=session,
+    )
     await session.flush()
     return _WorkerClaim(
         organization_id,
@@ -536,7 +605,7 @@ async def _finish_delivery(
     )
     if record is None:
         raise StaleDeliveryClaim("delivery claim disappeared")
-    await _repository(runtime).transition(
+    transitioned = await _repository(runtime).transition(
         record,
         target_state=cast(Any, target),
         next_attempt_at=retry_at,
@@ -572,6 +641,18 @@ async def _finish_delivery(
             available_at=retry_at,
             runtime=runtime,
         )
+    await _delivery_audit(runtime, attempt.worker_identity).record(
+        DeliveryAuditDraft(
+            organization_id=claim.organization_id,
+            action="record_delivery_result",
+            delivery_id=claim.delivery_id,
+            before_revision=record.revision,
+            after_revision=transitioned.revision,
+            outcome="succeeded",
+            details={"delivery_outcome": str(target), "error": error},
+        ),
+        transaction=session,
+    )
     await session.flush()
     return delivery
 
@@ -723,6 +804,7 @@ async def _finish_reconciliation(
         if target == "retryable_failed"
         else None
     )
+    before_revision = delivery.revision
     await _transition_reconciled_delivery(
         session,
         delivery,
@@ -761,6 +843,18 @@ async def _finish_reconciliation(
             available_at=require_utc(runtime.clock()) + timedelta(seconds=runtime.retry_seconds),
             runtime=runtime,
         )
+    await _delivery_audit(runtime, operation_attempt.worker_identity).record(
+        DeliveryAuditDraft(
+            organization_id=claim.organization_id,
+            action="reconcile_delivery",
+            delivery_id=claim.delivery_id,
+            before_revision=before_revision,
+            after_revision=delivery.revision,
+            outcome="succeeded",
+            details={"reconciliation_outcome": result.outcome, "error": error},
+        ),
+        transaction=session,
+    )
     await session.flush()
     return target
 
@@ -1282,6 +1376,16 @@ def _session(transaction: object) -> AsyncSession:
     return transaction
 
 
+def _delivery_audit(runtime: DeliveryTaskRuntime, worker_identity: str) -> DeliveryAuditPort:
+    if runtime.audit_factory is not None:
+        return runtime.audit_factory(worker_identity)
+    return SqlDeliveryWorkerAuditRecorder(
+        worker_identity=worker_identity,
+        id_factory=runtime.id_factory,
+        clock=runtime.clock,
+    )
+
+
 def load_delivery_task_runtime() -> DeliveryTaskRuntime:
     specification = os.environ.get(DELIVERY_TASK_RUNTIME_FACTORY_ENV)
     if not specification:
@@ -1344,6 +1448,9 @@ async def handle_external_delivery_reconciliation(
 
 _scheduler_protocol: ReviewDeliveryScheduler = SqlReviewDeliveryScheduler()
 _manual_scheduler_protocol: DeliveryScheduler = SqlManualDeliveryScheduler()
+_delivery_audit_protocol: DeliveryAuditPort = SqlDeliveryWorkerAuditRecorder(
+    worker_identity="delivery-worker-protocol-check"
+)
 
 
 __all__ = [

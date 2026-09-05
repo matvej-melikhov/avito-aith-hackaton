@@ -22,6 +22,7 @@ type SanitizedValue = (
 _SENSITIVE_KEYS = frozenset(
     {
         "authorization",
+        "artifact_content",
         "cookie",
         "set_cookie",
         "password",
@@ -43,16 +44,29 @@ _SENSITIVE_KEYS = frozenset(
 )
 _PROVIDER_CONTAINERS = frozenset(
     {
+        "provider_error",
         "provider_request",
         "provider_response",
         "provider_payload",
         "provider_raw",
+        "provider_result",
     }
 )
 _PROVIDER_BODY_KEYS = frozenset({"body", "content", "raw", "request", "response"})
 _BEARER_PATTERN = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")
-_JWT_PATTERN = re.compile(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b")
+_JWT_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9_-])"
+    r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"
+    r"(?![A-Za-z0-9_-])"
+)
 _MAGIC_URL_PATTERN = re.compile(r"https?://\S*(?:magic|invite|invitation|token)\S*", re.IGNORECASE)
+_EMAIL_PII_PATTERN = re.compile(
+    r"(?<![A-Z0-9.!#$%&'*+/=?^_`{|}~-])"
+    r"[A-Z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@"
+    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}"
+    r"(?![A-Z0-9-])",
+    re.IGNORECASE,
+)
 
 
 class AuditError(RuntimeError):
@@ -197,6 +211,7 @@ def _sanitize(value: object, *, provider_container: bool) -> SanitizedValue:
         redacted = _BEARER_PATTERN.sub("[REDACTED]", value)
         redacted = _JWT_PATTERN.sub("[REDACTED]", redacted)
         redacted = _MAGIC_URL_PATTERN.sub("[REDACTED]", redacted)
+        redacted = _EMAIL_PII_PATTERN.sub("[REDACTED_EMAIL]", redacted)
         return _truncate_utf8(redacted)
     if isinstance(value, Mapping):
         sanitized: dict[str, SanitizedValue] = {}
@@ -208,7 +223,8 @@ def _sanitize(value: object, *, provider_container: bool) -> SanitizedValue:
             if provider_container and normalized_key in _PROVIDER_BODY_KEYS:
                 continue
             nested_provider = provider_container or normalized_key in _PROVIDER_CONTAINERS
-            sanitized[_truncate_utf8(key)] = _sanitize(
+            safe_key = _EMAIL_PII_PATTERN.sub("[REDACTED_EMAIL]", key)
+            sanitized[_truncate_utf8(safe_key)] = _sanitize(
                 item,
                 provider_container=nested_provider,
             )

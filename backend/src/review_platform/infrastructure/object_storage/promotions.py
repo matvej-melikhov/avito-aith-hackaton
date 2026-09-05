@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from tempfile import SpooledTemporaryFile
 from typing import BinaryIO, Protocol, cast
 from uuid import UUID
 
+from review_platform.application.audit import sanitize_shared_value
 from review_platform.application.services.artifact_capture import (
     ArtifactContentMismatch,
     ArtifactStageRequest,
@@ -17,6 +18,8 @@ from review_platform.application.services.artifact_capture import (
     StagedArtifact,
 )
 from review_platform.domain.primitives import require_utc, sanitize_error, utc_now, uuid7
+from review_platform.infrastructure.db.models.operations import AuditEvent
+from review_platform.infrastructure.db.repositories.operations import AuditEventRepository
 from review_platform.infrastructure.object_storage.s3 import (
     ObjectDigestMismatch,
     ObjectSizeLimitExceeded,
@@ -125,6 +128,30 @@ class PromotionFailure:
     error: Mapping[str, object]
 
 
+@dataclass(frozen=True, slots=True)
+class PromotionAuditDraft:
+    organization_id: UUID
+    promotion_id: UUID
+    artifact_version_id: UUID
+    operation_id: UUID
+    before_revision: int
+    after_revision: int
+    outcome: str
+    details: Mapping[str, object]
+
+
+class PromotionAuditPort(Protocol):
+    async def record(
+        self,
+        draft: PromotionAuditDraft,
+        *,
+        transaction: object,
+    ) -> None: ...
+
+
+type PromotionAuditCallback = Callable[[PromotionAuditDraft, object], Awaitable[None]]
+
+
 class ArtifactPromotionRepository(Protocol):
     async def claim(
         self,
@@ -137,7 +164,14 @@ class ArtifactPromotionRepository(Protocol):
         lease_seconds: int,
     ) -> PromotionLease | None: ...
 
-    async def complete(self, lease: PromotionLease, *, now: datetime) -> bool: ...
+    async def complete(
+        self,
+        lease: PromotionLease,
+        *,
+        now: datetime,
+        audit: PromotionAuditCallback,
+        recovered_existing_final: bool,
+    ) -> bool: ...
 
     async def fail(
         self,
@@ -146,6 +180,7 @@ class ArtifactPromotionRepository(Protocol):
         error: Mapping[str, object],
         available_at: datetime,
         exhausted: bool,
+        audit: PromotionAuditCallback,
     ) -> PromotionFailure | None: ...
 
     async def has_live_staged_intent(self, organization_id: UUID, staged_key: str) -> bool: ...
@@ -209,12 +244,70 @@ class PromotionResult:
     staged_deleted: bool
 
 
+class SqlArtifactPromotionAuditRecorder:
+    """Append worker audit in the promotion repository's mutation transaction."""
+
+    def __init__(
+        self,
+        *,
+        worker_identity: str,
+        id_factory: Callable[[], UUID] = uuid7,
+        clock: Callable[[], datetime] = utc_now,
+    ) -> None:
+        if not worker_identity or len(worker_identity) > 255:
+            raise ValueError("promotion audit worker identity is invalid")
+        self._worker_identity = worker_identity
+        self._id_factory = id_factory
+        self._clock = clock
+
+    async def record(
+        self,
+        draft: PromotionAuditDraft,
+        *,
+        transaction: object,
+    ) -> None:
+        from sqlalchemy.ext.asyncio import AsyncSession
+
+        if not isinstance(transaction, AsyncSession):
+            raise TypeError("promotion audit transaction must be an AsyncSession")
+        details = sanitize_shared_value(
+            {
+                **dict(draft.details),
+                "artifact_version_id": str(draft.artifact_version_id),
+                "operation_id": str(draft.operation_id),
+                "worker_identity": self._worker_identity,
+            }
+        )
+        await AuditEventRepository(transaction).append(
+            AuditEvent(
+                id=self._id_factory(),
+                organization_id=draft.organization_id,
+                actor_type="worker",
+                actor_user_id=None,
+                installation_operator_id=None,
+                agent_id=None,
+                agent_authorization_id=None,
+                action="promote_artifact",
+                entity_type="artifact_promotion",
+                entity_id=draft.promotion_id,
+                before_revision=draft.before_revision,
+                after_revision=draft.after_revision,
+                request_id=draft.operation_id,
+                trace_id=self._id_factory(),
+                outcome=draft.outcome,
+                sanitized_details=dict(details),
+                occurred_at=require_utc(self._clock()),
+            )
+        )
+
+
 class ArtifactPromotionCoordinator:
     def __init__(
         self,
         *,
         repository: ArtifactPromotionRepository,
         objects: S3PromotionObjects,
+        audit: PromotionAuditPort,
         owner: str,
         token_factory: Callable[[], UUID] = uuid7,
         clock: Callable[[], datetime] = utc_now,
@@ -225,6 +318,7 @@ class ArtifactPromotionCoordinator:
             raise ValueError("promotion owner/lease/retry configuration is invalid")
         self._repository = repository
         self._objects = objects
+        self._audit = audit
         self._owner = owner
         self._token_factory = token_factory
         self._clock = clock
@@ -281,7 +375,11 @@ class ArtifactPromotionCoordinator:
                             raise ArtifactContentMismatch(
                                 "final object identity or size mismatched"
                             ) from None
-            if not await self._repository.complete(lease, now=require_utc(self._clock())):
+            if not await self._complete(
+                lease,
+                now=require_utc(self._clock()),
+                recovered_existing_final=recovered,
+            ):
                 raise StalePromotionLease("promotion lease completion lost CAS")
         except StalePromotionLease:
             raise
@@ -318,9 +416,30 @@ class ArtifactPromotionCoordinator:
             error=bounded,
             available_at=require_utc(self._clock()) + timedelta(seconds=self._retry_seconds),
             exhausted=exhausted,
+            audit=self._audit_callback(),
         )
         if result is None:
             raise StalePromotionLease("promotion failure lost lease CAS") from error
+
+    async def _complete(
+        self,
+        lease: PromotionLease,
+        *,
+        now: datetime,
+        recovered_existing_final: bool,
+    ) -> bool:
+        return await self._repository.complete(
+            lease,
+            now=now,
+            audit=self._audit_callback(),
+            recovered_existing_final=recovered_existing_final,
+        )
+
+    def _audit_callback(self) -> PromotionAuditCallback:
+        async def append(draft: PromotionAuditDraft, transaction: object) -> None:
+            await self._audit.record(draft, transaction=transaction)
+
+        return append
 
     @staticmethod
     def _validate_lease(
@@ -457,6 +576,9 @@ __all__ = [
     "BoundedContentFetcher",
     "CleanupResult",
     "FetchedArtifactContent",
+    "PromotionAuditCallback",
+    "PromotionAuditDraft",
+    "PromotionAuditPort",
     "PromotionFailure",
     "PromotionLease",
     "PromotionNotClaimed",
@@ -464,6 +586,7 @@ __all__ = [
     "PromotionResult",
     "S3ArtifactStaging",
     "S3PromotionObjects",
+    "SqlArtifactPromotionAuditRecorder",
     "StagedObjectCandidate",
     "StagedObjectInventory",
     "StalePromotionLease",

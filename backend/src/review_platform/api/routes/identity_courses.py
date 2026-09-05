@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from review_platform.application.audit import AuditRecorder
+from review_platform.application.audit import AuditEventDraft, AuditRecorder
 from review_platform.application.authorization import AuthorizationError, Authorizer
 from review_platform.application.foundation_runtime import FoundationRuntime
 from review_platform.application.idempotency import IdempotencyCoordinator, IdempotencyError
@@ -83,13 +83,9 @@ async def start_stepik_authentication(request: Request) -> Response:
             result = await service.start_stepik_oauth(
                 organization_id=organization_id,
                 credential_binding_id=_state_uuid(request, "stepik_credential_binding_id"),
-                credential_binding_version=_state_int(
-                    request, "stepik_credential_binding_version"
-                ),
+                credential_binding_version=_state_int(request, "stepik_credential_binding_version"),
                 redirect_uri=_state_str(request, "stepik_redirect_uri"),
-                pkce_verifier_ciphertext=_state_str(
-                    request, "stepik_pkce_verifier_ciphertext"
-                ),
+                pkce_verifier_ciphertext=_state_str(request, "stepik_pkce_verifier_ciphertext"),
             )
         location = _state_str(request, "stepik_authorization_url")
         separator = "&" if "?" in location else "?"
@@ -155,9 +151,7 @@ async def get_current_session(
         secret = _require_session_secret(session_secret)
         runtime = _runtime(request)
         async with runtime.transaction() as transaction:
-            view = await _authentication_service(
-                request, transaction, runtime
-            ).current_session(
+            view = await _authentication_service(request, transaction, runtime).current_session(
                 organization_id=_installation_organization_id(request),
                 session_secret=secret,
             )
@@ -175,9 +169,7 @@ async def revoke_current_session(
         secret = _require_session_secret(session_secret)
         runtime = _runtime(request)
         async with runtime.transaction() as transaction:
-            await _authentication_service(
-                request, transaction, runtime
-            ).logout_current_session(
+            await _authentication_service(request, transaction, runtime).logout_current_session(
                 organization_id=_installation_organization_id(request),
                 session_secret=secret,
             )
@@ -268,9 +260,9 @@ async def list_organization_memberships(request: Request) -> Response:
         runtime = _runtime(request)
         await runtime.user_auth_guard.revalidate(actor=actor)
         async with runtime.transaction() as transaction:
-            memberships = await OrganizationMembershipRepository(
-                transaction
-            ).list_for_organization(actor.organization_id)
+            memberships = await OrganizationMembershipRepository(transaction).list_for_organization(
+                actor.organization_id
+            )
         return JSONResponse({"items": [_organization_membership_json(row) for row in memberships]})
     except _BUSINESS_ERRORS as error:
         return _error_response(error)
@@ -387,9 +379,7 @@ async def start_course_import(request: Request, body: Mapping[str, Any]) -> Resp
                 actor=actor,
                 command=command,
                 payload=payload,
-                credential_binding_id=_state_uuid(
-                    request, "course_import_credential_binding_id"
-                ),
+                credential_binding_id=_state_uuid(request, "course_import_credential_binding_id"),
                 credential_binding_version=_state_int(
                     request, "course_import_credential_binding_version"
                 ),
@@ -412,9 +402,7 @@ async def list_course_run_memberships(courseRunId: UUID, request: Request) -> Re
         actor = _methodologist_actor(request)
         runtime = _runtime(request)
         async with runtime.transaction() as transaction:
-            memberships = await _course_service(
-                request, transaction, runtime
-            ).read_roster(
+            memberships = await _course_service(request, transaction, runtime).read_roster(
                 organization_id=actor.organization_id,
                 actor=actor,
                 course_run_id=courseRunId,
@@ -425,16 +413,12 @@ async def list_course_run_memberships(courseRunId: UUID, request: Request) -> Re
         return _error_response(error)
 
 
-@router.post(
-    "/v1/courses/{courseId}/archive", operation_id="archiveCourse", status_code=204
-)
+@router.post("/v1/courses/{courseId}/archive", operation_id="archiveCourse", status_code=204)
 async def archive_course(courseId: UUID, request: Request, body: Mapping[str, Any]) -> Response:
     return await _change_course(request, body, course_id=courseId, restore=False)
 
 
-@router.post(
-    "/v1/courses/{courseId}/restore", operation_id="restoreCourse", status_code=204
-)
+@router.post("/v1/courses/{courseId}/restore", operation_id="restoreCourse", status_code=204)
 async def restore_course(courseId: UUID, request: Request, body: Mapping[str, Any]) -> Response:
     return await _change_course(request, body, course_id=courseId, restore=True)
 
@@ -597,9 +581,7 @@ async def _require_organization_revision(
     expected_revision: int,
 ) -> None:
     result = await transaction.execute(
-        select(Organization.revision)
-        .where(Organization.id == organization_id)
-        .with_for_update()
+        select(Organization.revision).where(Organization.id == organization_id).with_for_update()
     )
     current_revision = result.scalar_one_or_none()
     if current_revision is None:
@@ -714,6 +696,27 @@ async def _reserve_course_import(
             available_at=now,
             max_attempts=runtime.settings.provider_max_attempts,
         )
+    )
+    await _audit(runtime).record(
+        AuditEventDraft(
+            organization_id=actor.organization_id,
+            actor=actor,
+            action="start_course_import",
+            entity_type="operation",
+            entity_id=operation_id,
+            before_revision=None,
+            after_revision=0,
+            request_id=command.request_id,
+            trace_id=runtime.id_factory(),
+            outcome="succeeded",
+            details={
+                "provider": payload.provider,
+                "credential_binding_id": str(credential_binding_id),
+                "credential_binding_version": credential_binding_version,
+                "idempotency_disposition": reservation.disposition,
+            },
+        ),
+        transaction=transaction,
     )
     return operation
 

@@ -64,9 +64,7 @@ class ArtifactCredentialBinding:
 
     def __post_init__(self) -> None:
         if self.credential_binding_version < 1:
-            raise InvalidArtifactCredentialBinding(
-                "credential binding version must be positive"
-            )
+            raise InvalidArtifactCredentialBinding("credential binding version must be positive")
 
 
 @dataclass(frozen=True, slots=True)
@@ -178,6 +176,20 @@ class ArtifactPreflightArchiveGuard(Protocol):
     ) -> None: ...
 
 
+class ArtifactPreflightAuditPort(Protocol):
+    async def record_preflight(
+        self,
+        *,
+        actor: RequestActor,
+        result: ArtifactCapabilityResult,
+        course_run_homework_id: UUID,
+        expected_revision: int,
+        request_id: UUID,
+        trace_id: UUID,
+        transaction: object,
+    ) -> None: ...
+
+
 class ArtifactPreflightService:
     """Authorize, validate provider capability, and persist opaque identities."""
 
@@ -189,6 +201,7 @@ class ArtifactPreflightService:
         provider: ArtifactProvider,
         archived_guard: ArtifactPreflightArchiveGuard,
         authorizer: Authorizer,
+        audit: ArtifactPreflightAuditPort,
         registry: ContractRegistry | None = None,
         id_factory: Callable[[], UUID] = uuid7,
         clock: Callable[[], datetime] = utc_now,
@@ -198,6 +211,7 @@ class ArtifactPreflightService:
         self._provider = provider
         self._archived_guard = archived_guard
         self._authorizer = authorizer
+        self._audit = audit
         self._registry = registry or ContractRegistry()
         self._id_factory = id_factory
         self._clock = clock
@@ -212,6 +226,8 @@ class ArtifactPreflightService:
         artifact_url: str,
         credential_binding: ArtifactCredentialBinding,
         actor: RequestActor,
+        request_id: UUID | None = None,
+        trace_id: UUID | None = None,
     ) -> ArtifactCapabilityResult:
         if actor.user_id is None:
             raise StudentNotEnrolled("preflight requires represented student identity")
@@ -233,9 +249,7 @@ class ArtifactPreflightService:
             transaction=transaction,
         )
         if context is None:
-            raise PreflightTargetNotFound(
-                "CourseRunHomework is missing or its revision is stale"
-            )
+            raise PreflightTargetNotFound("CourseRunHomework is missing or its revision is stale")
         self._validate_context(
             context,
             organization_id=organization_id,
@@ -273,18 +287,14 @@ class ArtifactPreflightService:
         if read_capability == "available":
             locator = provider_result.get("locator")
             if not isinstance(locator, Mapping):
-                raise ArtifactProviderContractViolation(
-                    "available provider result omitted locator"
-                )
+                raise ArtifactProviderContractViolation("available provider result omitted locator")
             reference = await self._repository.upsert_available_reference(
                 ArtifactReferenceRecord(
                     organization_id=organization_id,
                     artifact_reference_id=self._id_factory(),
                     provider=provider_name,
                     credential_binding_id=credential_binding.credential_binding_id,
-                    credential_binding_version=(
-                        credential_binding.credential_binding_version
-                    ),
+                    credential_binding_version=(credential_binding.credential_binding_version),
                     original_url=artifact_url,
                     locator=_string_mapping(locator),
                     read_capability=read_capability,
@@ -312,8 +322,7 @@ class ArtifactPreflightService:
             error = cast(Mapping[str, object], sanitize_error(provider_error))
             reference_id = None
 
-        await self._authorizer.revalidate_for_commit(grant, transaction=transaction)
-        return ArtifactCapabilityResult(
+        result = ArtifactCapabilityResult(
             provider=provider_name,
             read_capability=read_capability,
             feedback_capability=feedback_capability,
@@ -322,6 +331,17 @@ class ArtifactPreflightService:
             artifact_reference_id=reference_id,
             error=error,
         )
+        await self._audit.record_preflight(
+            actor=actor,
+            result=result,
+            course_run_homework_id=course_run_homework_id,
+            expected_revision=expected_revision,
+            request_id=request_id or submission.submission_id,
+            trace_id=trace_id or course_run_homework_id,
+            transaction=transaction,
+        )
+        await self._authorizer.revalidate_for_commit(grant, transaction=transaction)
+        return result
 
     async def _provider_preflight(
         self,
@@ -389,10 +409,7 @@ class ArtifactPreflightService:
             raise StudentNotEnrolled("student is not enrolled in this CourseRun")
         if context.status != "active":
             raise ArchivedPreflightDenied("CourseRunHomework is not active")
-        if (
-            context.current_publication_id is None
-            or context.current_homework_version_id is None
-        ):
+        if context.current_publication_id is None or context.current_homework_version_id is None:
             raise HomeworkNotPublished("CourseRunHomework has no current publication")
         if provider not in context.allowed_artifact_kinds:
             raise ArtifactKindNotAllowed(
@@ -431,8 +448,7 @@ class ArtifactPreflightService:
             reference.organization_id != organization_id
             or reference.provider != provider
             or reference.credential_binding_id != binding.credential_binding_id
-            or reference.credential_binding_version
-            != binding.credential_binding_version
+            or reference.credential_binding_version != binding.credential_binding_version
             or reference.original_url != artifact_url
             or reference.read_capability != "available"
         ):
@@ -468,6 +484,7 @@ __all__ = [
     "ArtifactCredentialBindingPort",
     "ArtifactKindNotAllowed",
     "ArtifactPreflightArchiveGuard",
+    "ArtifactPreflightAuditPort",
     "ArtifactPreflightError",
     "ArtifactPreflightRepository",
     "ArtifactPreflightService",

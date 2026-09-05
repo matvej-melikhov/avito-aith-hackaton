@@ -82,6 +82,14 @@ class Guard:
         return _snapshot(actor)
 
 
+class Audit:
+    def __init__(self) -> None:
+        self.events: list[dict[str, object]] = []
+
+    async def record_preflight(self, **values: object) -> None:
+        self.events.append(dict(values))
+
+
 class Repository:
     def __init__(self, contexts: tuple[CourseRunHomeworkPreflightContext, ...]) -> None:
         self.contexts = {
@@ -89,9 +97,7 @@ class Repository:
             for context in contexts
         }
         self.submissions: dict[tuple[UUID, UUID, UUID, UUID], SubmissionRecord] = {}
-        self.references: dict[
-            tuple[UUID, str, str, UUID, int], ArtifactReferenceRecord
-        ] = {}
+        self.references: dict[tuple[UUID, str, str, UUID, int], ArtifactReferenceRecord] = {}
 
     async def lock_context(
         self,
@@ -365,6 +371,8 @@ def _service(
     guard = Guard(actor)
     credential_port = credentials or Credentials()
     archive_guard = archive or ArchiveGuard()
+    audit = Audit()
+    repository.audit = audit
     return (
         ArtifactPreflightService(
             repository=repository,
@@ -372,6 +380,7 @@ def _service(
             provider=provider or FixtureArtifactProvider(),
             archived_guard=archive_guard,
             authorizer=Authorizer(guard, clock=lambda: NOW),
+            audit=audit,
             id_factory=IdFactory(),
             clock=lambda: NOW,
         ),
@@ -436,6 +445,9 @@ async def test_available_fixture_replays_submission_and_reference_but_isolates_r
         credential_binding=_binding(),
         actor=actor,
     )
+    assert len(repository.audit.events) == 3
+    assert all(event["actor"] is actor for event in repository.audit.events)
+    assert all(event["expected_revision"] == 1 for event in repository.audit.events)
 
     assert first.submission_id == replay.submission_id
     assert first.artifact_reference_id == replay.artifact_reference_id
@@ -490,9 +502,7 @@ async def test_same_locator_with_two_active_bindings_never_collapses_provenance(
 
 @pytest.mark.anyio
 async def test_repository_cannot_silently_reuse_reference_from_another_binding() -> None:
-    repository = CollapsingRepository(
-        (_context(RELATION_A, RUN_A, PUBLICATION_A),)
-    )
+    repository = CollapsingRepository((_context(RELATION_A, RUN_A, PUBLICATION_A),))
     actor = _actor()
     service, _, _, _ = _service(
         repository,

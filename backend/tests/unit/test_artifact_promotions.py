@@ -21,6 +21,8 @@ from review_platform.infrastructure.object_storage.promotions import (
     ArtifactPromotionError,
     ArtifactPromotionRepository,
     FetchedArtifactContent,
+    PromotionAuditCallback,
+    PromotionAuditDraft,
     PromotionFailure,
     PromotionLease,
     PromotionObjectNotFound,
@@ -124,7 +126,14 @@ class FixturePromotionRepository:
             attempts=self.attempts,
         )
 
-    async def complete(self, lease: PromotionLease, *, now: datetime) -> bool:
+    async def complete(
+        self,
+        lease: PromotionLease,
+        *,
+        now: datetime,
+        audit: PromotionAuditCallback,
+        recovered_existing_final: bool,
+    ) -> bool:
         if self.stale_on_complete:
             self.active_token = STALE_TOKEN
         if (
@@ -134,6 +143,19 @@ class FixturePromotionRepository:
             or self.active_expiry <= now
         ):
             return False
+        await audit(
+            PromotionAuditDraft(
+                organization_id=lease.organization_id,
+                promotion_id=lease.promotion_id,
+                artifact_version_id=lease.artifact_version_id,
+                operation_id=lease.operation_id,
+                before_revision=self.attempts,
+                after_revision=self.attempts + 1,
+                outcome="succeeded",
+                details={"recovered_existing_final": recovered_existing_final},
+            ),
+            object(),
+        )
         self.state = "promoted"
         self.completed += 1
         self.live_keys.discard((lease.organization_id, lease.staged_key))
@@ -146,11 +168,26 @@ class FixturePromotionRepository:
         error: Mapping[str, object],
         available_at: datetime,
         exhausted: bool,
+        audit: PromotionAuditCallback,
     ) -> PromotionFailure | None:
         del available_at
         if self.state != "promoting" or self.active_token != lease.token:
             return None
-        self.state = "action_required" if exhausted else "db_committed"
+        state = "action_required" if exhausted else "db_committed"
+        await audit(
+            PromotionAuditDraft(
+                organization_id=lease.organization_id,
+                promotion_id=lease.promotion_id,
+                artifact_version_id=lease.artifact_version_id,
+                operation_id=lease.operation_id,
+                before_revision=self.attempts,
+                after_revision=self.attempts + 1,
+                outcome="action_required" if exhausted else "retryable_failed",
+                details={"error": error},
+            ),
+            object(),
+        )
+        self.state = state
         self.failure = PromotionFailure(
             state=self.state,
             attempts=lease.attempts,
@@ -173,6 +210,18 @@ class FixtureInventory:
     async def list_staged(self, *, older_than: datetime) -> list[StagedObjectCandidate]:
         self.cutoffs.append(older_than)
         return list(self.candidates)
+
+
+class FixturePromotionAudit:
+    def __init__(self, *, fail: bool = False) -> None:
+        self.fail = fail
+        self.events: list[PromotionAuditDraft] = []
+
+    async def record(self, draft: PromotionAuditDraft, *, transaction: object) -> None:
+        del transaction
+        if self.fail:
+            raise RuntimeError("audit unavailable")
+        self.events.append(draft)
 
 
 def _storage(runtime: FoundationRuntime) -> S3ObjectStorage:
@@ -298,9 +347,11 @@ async def test_promotion_moves_verified_bytes_then_completes_and_deletes_staged(
     request = _request(artifact_version_id=UUID("00000000-0000-7000-8000-000000000111"))
     await S3ArtifactStaging(storage=storage, fetcher=FixtureFetcher()).stage(request)
     repository = FixturePromotionRepository(_lease(request))
+    audit = FixturePromotionAudit()
     coordinator = ArtifactPromotionCoordinator(
         repository=repository,
         objects=S3PromotionObjects(storage),
+        audit=audit,
         owner="worker-1",
         token_factory=lambda: TOKEN,
         clock=lambda: NOW,
@@ -315,8 +366,33 @@ async def test_promotion_moves_verified_bytes_then_completes_and_deletes_staged(
     assert result.recovered_existing_final is False
     assert result.staged_deleted is True
     assert repository.completed == 1
+    assert len(audit.events) == 1
+    assert audit.events[0].outcome == "succeeded"
+    assert audit.events[0].organization_id == ORG
     assert _assert_exists(storage, _lease(request), request.final_key) == CONTENT
     _assert_missing(storage, _lease(request), request.staged_key)
+
+
+async def test_promotion_audit_failure_keeps_terminal_db_mutation_uncommitted(
+    foundation_runtime: FoundationRuntime,
+) -> None:
+    storage = _storage(foundation_runtime)
+    request = _request(artifact_version_id=UUID("00000000-0000-7000-8000-000000000119"))
+    await S3ArtifactStaging(storage=storage, fetcher=FixtureFetcher()).stage(request)
+    repository = FixturePromotionRepository(_lease(request))
+
+    with pytest.raises(RuntimeError, match="audit unavailable"):
+        await ArtifactPromotionCoordinator(
+            repository=repository,
+            objects=S3PromotionObjects(storage),
+            audit=FixturePromotionAudit(fail=True),
+            owner="worker-1",
+            token_factory=lambda: TOKEN,
+            clock=lambda: NOW,
+        ).promote(organization_id=ORG, promotion_id=PROMOTION)
+
+    assert repository.state == "promoting"
+    assert repository.completed == 0
 
 
 async def test_promotion_recovers_when_final_exists_after_crash(
@@ -336,6 +412,7 @@ async def test_promotion_recovers_when_final_exists_after_crash(
     result = await ArtifactPromotionCoordinator(
         repository=repository,
         objects=S3PromotionObjects(storage),
+        audit=FixturePromotionAudit(),
         owner="recovery-worker",
         token_factory=lambda: TOKEN,
         clock=lambda: NOW,
@@ -365,6 +442,7 @@ async def test_digest_failure_is_sanitized_bounded_and_exhausts_attempts(
         await ArtifactPromotionCoordinator(
             repository=repository,
             objects=S3PromotionObjects(storage),
+            audit=FixturePromotionAudit(),
             owner="worker-1",
             token_factory=lambda: TOKEN,
             clock=lambda: NOW,
@@ -394,6 +472,7 @@ async def test_tenant_mismatch_and_stale_completion_cannot_mutate_intent(
     coordinator = ArtifactPromotionCoordinator(
         repository=mismatched_repository,
         objects=S3PromotionObjects(storage),
+        audit=FixturePromotionAudit(),
         owner="worker-1",
         token_factory=lambda: TOKEN,
         clock=lambda: NOW,
@@ -410,6 +489,7 @@ async def test_tenant_mismatch_and_stale_completion_cannot_mutate_intent(
         await ArtifactPromotionCoordinator(
             repository=stale_repository,
             objects=S3PromotionObjects(storage),
+            audit=FixturePromotionAudit(),
             owner="worker-1",
             token_factory=lambda: TOKEN,
             clock=lambda: NOW,

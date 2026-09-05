@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import func, select, text
 
 from review_platform.application.ports.providers import ProviderPayload
+from review_platform.application.services.deliveries import DeliveryAuditDraft
 from review_platform.application.services.review_publication import (
     DestinationSnapshot,
     ExternalDeliveryIntent,
@@ -34,6 +35,7 @@ from review_platform.infrastructure.db.models.learning import (
     DestinationBinding,
 )
 from review_platform.infrastructure.db.models.operations import (
+    AuditEvent,
     Operation,
     OperationAttempt,
     OutboxMessage,
@@ -614,6 +616,16 @@ async def test_unknown_delivery_reconciles_found_with_exact_attempt_history(
         ).all()
         delivery_attempt = await session.scalar(select(DeliveryAttempt))
         observation = await session.scalar(select(DeliveryReconciliationObservation))
+        audits = (
+            await session.scalars(
+                select(AuditEvent)
+                .where(
+                    AuditEvent.organization_id == ORG,
+                    AuditEvent.entity_id == DELIVERY_A,
+                )
+                .order_by(AuditEvent.id)
+            )
+        ).all()
         assert delivery is not None and delivery.state == "succeeded"
         assert delivery.external_id == "external-result-1"
         assert [attempt.outcome for attempt in attempts] == [
@@ -623,6 +635,13 @@ async def test_unknown_delivery_reconciles_found_with_exact_attempt_history(
         assert delivery_attempt is not None
         assert str(STEP_CREDENTIAL) in delivery_attempt.worker_identity
         assert observation is not None and observation.outcome == "succeeded"
+        assert [event.action for event in audits] == [
+            "claim_delivery",
+            "record_delivery_result",
+            "reconcile_delivery",
+        ]
+        assert all(event.actor_type == "worker" for event in audits)
+        assert all(event.outcome == "succeeded" for event in audits)
 
 
 class RevokingProvider(FixtureDeliveryProvider):
@@ -656,6 +675,48 @@ class TimeoutProvider:
     async def reconcile(self, request: ProviderPayload) -> ProviderPayload:
         del request
         raise AssertionError("timeout delivery must enqueue reconciliation first")
+
+
+class FailingDeliveryAudit:
+    async def record(self, draft: DeliveryAuditDraft, *, transaction: object) -> None:
+        del draft, transaction
+        raise RuntimeError("audit unavailable")
+
+
+async def test_claim_audit_failure_rolls_back_delivery_claim(
+    foundation_session_factory: AsyncSessionFactory,
+) -> None:
+    await _seed_parents(foundation_session_factory)
+    ids = IDs(21400)
+    message_id = await _schedule(foundation_session_factory, ids)
+    provider = FixtureDeliveryProvider()
+    runtime = DeliveryTaskRuntime(
+        session_factory=foundation_session_factory,
+        providers={"stepik": provider, "github": provider},
+        id_factory=ids,
+        clock=lambda: NOW,
+        max_attempts=3,
+        lease_seconds=60,
+        retry_seconds=30,
+        audit_factory=lambda worker_identity: FailingDeliveryAudit(),
+    )
+
+    with pytest.raises(RuntimeError, match="audit unavailable"):
+        await DeliveryTaskHandler(runtime, worker_identity="delivery-worker")(
+            organization_id=str(ORG),
+            message_id=str(message_id),
+        )
+
+    async with foundation_session_factory() as session:
+        delivery = await session.get(ExternalDelivery, DELIVERY_A)
+        assert delivery is not None
+        assert (delivery.state, delivery.attempt_count, delivery.revision) == (
+            "pending",
+            0,
+            0,
+        )
+        assert await session.scalar(select(func.count()).select_from(DeliveryAttempt)) == 0
+        assert await session.scalar(select(func.count()).select_from(AuditEvent)) == 0
 
 
 async def test_transport_timeout_becomes_sanitized_unknown_outcome(

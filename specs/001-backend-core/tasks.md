@@ -278,10 +278,10 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Purpose**: Test the accumulated system only after every referenced model, transport, worker, and provider boundary exists.
 
-- [ ] T162 [P] Add the full two-tenant matrix for DB/composite FKs, REST/MCP reads/writes/body limits, queued/claimed jobs/concurrency caps, outbox, Redis/cache, S3/signed URLs, credentials, provider batches/errors, audit, promotion, delivery, and cleanup in `backend/tests/isolation/test_tenant_boundary_matrix.py`
-- [ ] T163 [P] Add full-system redaction tests for REST/MCP, logs, attempts, outbox, audit, AI, delivery, provider bodies, artifact content, bearer secrets, PII, and magic links in `backend/tests/isolation/test_secret_redaction.py`
-- [ ] T164 [P] Add enumerated audit coverage for every review, score, role, course/archive, agent, responsibility, publication, artifact, and delivery mutation in `backend/tests/isolation/test_audit_coverage.py`
-- [ ] T165 [P] Add measurable backend latency tests for sub-1-second mutations, sub-2-second recommendation, and sub-5-second operation visibility in `backend/tests/integration/test_performance_targets.py`
+- [X] T162 [P] Add the full two-tenant matrix for DB/composite FKs, REST/MCP reads/writes/body limits, queued/claimed jobs/concurrency caps, outbox, Redis/cache, S3/signed URLs, credentials, provider batches/errors, audit, promotion, delivery, and cleanup in `backend/tests/isolation/test_tenant_boundary_matrix.py`
+- [X] T163 [P] Add full-system redaction tests for REST/MCP, logs, attempts, outbox, audit, AI, delivery, provider bodies, artifact content, bearer secrets, PII, and magic links in `backend/tests/isolation/test_secret_redaction.py`
+- [X] T164 [P] Add enumerated audit coverage for every review, score, role, course/archive, agent, responsibility, publication, artifact, and delivery mutation in `backend/tests/isolation/test_audit_coverage.py`
+- [X] T165 [P] Add measurable backend latency tests for sub-1-second mutations, sub-2-second recommendation, and sub-5-second operation visibility in `backend/tests/integration/test_performance_targets.py`
 - [ ] T166 Write failing retention tests for explicit tombstones, preserved digests/provenance/successor history, audited purge, no dangling references, and dry-run deletion in `backend/tests/state/test_retention_policy.py`
 - [ ] T167 Implement and register tenant-safe retention scheduling, dry-run metrics, deletion claims, and audit in `backend/src/review_platform/infrastructure/tasks/retention.py` and `backend/src/review_platform/infrastructure/tasks/registry.py`
 - [ ] T168 Create provider-specific live tests and a durable NOT_RUN/BLOCKED/PASS/FAIL ledger without invoking providers by default in `backend/tests/live/test_provider_gates.py` and `backend/tests/live/gates.json`

@@ -10,6 +10,7 @@ from uuid import UUID
 
 from jsonschema import ValidationError as JsonSchemaValidationError
 
+from review_platform.application.audit import AuditEventDraft, AuditRecorder
 from review_platform.application.ports.providers import (
     ArtifactProvider,
     JsonValue,
@@ -99,6 +100,8 @@ class ArtifactCaptureCommand:
     credential_binding: ArtifactCredentialBinding
     limits: ArtifactCaptureLimits
     actor: RequestActor
+    request_id: UUID | None = None
+    trace_id: UUID | None = None
     worker_identity: str = "artifact-capture-worker"
     max_promotion_attempts: int = 5
 
@@ -320,6 +323,7 @@ class ArtifactCaptureService:
         authorization: ArtifactCaptureAuthorizationPort,
         outbox: ArtifactPromotionOutbox,
         provider: ArtifactProvider,
+        audit: AuditRecorder,
         registry: ContractRegistry | None = None,
         id_factory: Callable[[], UUID] = uuid7,
         clock: Callable[[], datetime] = utc_now,
@@ -330,6 +334,7 @@ class ArtifactCaptureService:
         self._authorization = authorization
         self._outbox = outbox
         self._provider = provider
+        self._audit = audit
         self._registry = registry or ContractRegistry()
         self._id_factory = id_factory
         self._clock = clock
@@ -353,6 +358,7 @@ class ArtifactCaptureService:
             transaction=transaction,
         )
         self._validate_reference(command, reference)
+        reference_record = cast(ArtifactReferenceCaptureRecord, reference)
         await self._credential_bindings.require_exact_active(
             command.organization_id,
             command.credential_binding,
@@ -360,11 +366,11 @@ class ArtifactCaptureService:
         )
         input_version = self._input_version(
             command,
-            cast(ArtifactReferenceCaptureRecord, reference),
+            reference_record,
         )
         provider_result = await self._provider_capture(
             command,
-            cast(ArtifactReferenceCaptureRecord, reference),
+            reference_record,
         )
         if provider_result["outcome"] == "failed":
             failure = await self._record_provider_failure(
@@ -373,8 +379,13 @@ class ArtifactCaptureService:
                 input_version=input_version,
                 transaction=transaction,
             )
-            await self._authorization.revalidate_for_commit(grant, transaction=transaction)
-            return _failure_result(command, failure)
+            return await self._complete(
+                command,
+                _failure_result(command, failure),
+                grant=grant,
+                reference_revision=reference_record.revision,
+                transaction=transaction,
+            )
 
         provider_version, download_url, media_type, reported_size, reported_digest = (
             self._success_content(provider_result)
@@ -389,8 +400,13 @@ class ArtifactCaptureService:
         )
         if replay is not None:
             self._validate_bundle(command, replay, expected_digest=reported_digest)
-            await self._authorization.revalidate_for_commit(grant, transaction=transaction)
-            return _bundle_result(replay, replayed=True)
+            return await self._complete(
+                command,
+                _bundle_result(replay, replayed=True),
+                grant=grant,
+                reference_revision=reference_record.revision,
+                transaction=transaction,
+            )
 
         now = require_utc(self._clock())
         artifact_version_id = self._id_factory()
@@ -420,8 +436,13 @@ class ArtifactCaptureService:
                 input_version=input_version,
                 transaction=transaction,
             )
-            await self._authorization.revalidate_for_commit(grant, transaction=transaction)
-            return _failure_result(command, failure)
+            return await self._complete(
+                command,
+                _failure_result(command, failure),
+                grant=grant,
+                reference_revision=reference_record.revision,
+                transaction=transaction,
+            )
         self._validate_staged(
             command,
             staged,
@@ -489,8 +510,65 @@ class ArtifactCaptureService:
                 ),
                 transaction=transaction,
             )
+        return await self._complete(
+            command,
+            _bundle_result(bundle, replayed=bundle.replayed),
+            grant=grant,
+            reference_revision=reference_record.revision,
+            transaction=transaction,
+        )
+
+    async def record_audit(
+        self,
+        command: ArtifactCaptureCommand,
+        result: ArtifactCaptureResult,
+        *,
+        reference_revision: int | None,
+        transaction: object,
+    ) -> None:
+        await self._audit.record(
+            AuditEventDraft(
+                organization_id=command.organization_id,
+                actor=command.actor,
+                action="capture_artifact",
+                entity_type="artifact_reference",
+                entity_id=command.artifact_reference_id,
+                before_revision=reference_revision,
+                after_revision=reference_revision,
+                request_id=command.request_id or command.operation_id,
+                trace_id=command.trace_id or command.operation_id,
+                outcome=result.state,
+                details={
+                    "operation_id": str(result.operation_id),
+                    "artifact_version_id": (
+                        str(result.artifact_version_id)
+                        if result.artifact_version_id is not None
+                        else None
+                    ),
+                    "attempt_number": result.attempt_number,
+                    "replayed": result.replayed,
+                },
+            ),
+            transaction=transaction,
+        )
+
+    async def _complete(
+        self,
+        command: ArtifactCaptureCommand,
+        result: ArtifactCaptureResult,
+        *,
+        grant: object,
+        reference_revision: int,
+        transaction: object,
+    ) -> ArtifactCaptureResult:
+        await self.record_audit(
+            command,
+            result,
+            reference_revision=reference_revision,
+            transaction=transaction,
+        )
         await self._authorization.revalidate_for_commit(grant, transaction=transaction)
-        return _bundle_result(bundle, replayed=bundle.replayed)
+        return result
 
     def _validate_command(self, command: ArtifactCaptureCommand) -> None:
         if command.actor.organization_id != command.organization_id:
@@ -550,10 +628,9 @@ class ArtifactCaptureService:
             raise ArtifactCaptureBoundaryViolation(
                 "artifact capture request/result violates frozen schema"
             ) from error
-        if (
-            result.get("organization_id") != str(command.organization_id)
-            or result.get("artifact_reference_id") != str(command.artifact_reference_id)
-        ):
+        if result.get("organization_id") != str(command.organization_id) or result.get(
+            "artifact_reference_id"
+        ) != str(command.artifact_reference_id):
             raise ArtifactCaptureBoundaryViolation("artifact provider result provenance mismatched")
         return result
 
@@ -686,9 +763,7 @@ class ArtifactCaptureService:
             "provider": command.provider,
             "credential_binding_id": str(command.credential_binding.credential_binding_id),
             "credential_binding_version": command.credential_binding.credential_binding_version,
-            "provider_version": (
-                result.get("provider_version") if result is not None else None
-            ),
+            "provider_version": (result.get("provider_version") if result is not None else None),
         }
 
     @staticmethod
@@ -704,9 +779,7 @@ class ArtifactCaptureService:
                 "reference_revision": reference.revision,
                 "provider": command.provider,
                 "locator": dict(reference.locator),
-                "credential_binding_id": str(
-                    command.credential_binding.credential_binding_id
-                ),
+                "credential_binding_id": str(command.credential_binding.credential_binding_id),
                 "credential_binding_version": (
                     command.credential_binding.credential_binding_version
                 ),

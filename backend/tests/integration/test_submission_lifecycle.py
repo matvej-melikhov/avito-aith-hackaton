@@ -29,6 +29,7 @@ from review_platform.application.request_context import RequestActor
 from review_platform.application.services.artifact_capture import ArtifactCaptureLimits
 from review_platform.infrastructure.db.base import Base
 from review_platform.infrastructure.db.models import (
+    AuditEvent,
     Course,
     CourseMembership,
     CourseRun,
@@ -233,8 +234,7 @@ async def submission_harness(
     session_factory = create_session_factory(engine)
     await _seed_published_homework(session_factory)
     endpoint = (
-        f"http://{minio_container.get_container_host_ip()}:"
-        f"{minio_container.get_exposed_port(9000)}"
+        f"http://{minio_container.get_container_host_ip()}:{minio_container.get_exposed_port(9000)}"
     )
     s3_client = boto3.client(
         "s3",
@@ -553,6 +553,21 @@ async def test_unavailable_preflight_returns_no_usable_artifact_reference(
     body = response.json()
     assert body["read_capability"] == "unavailable"
     assert body["artifact_reference_id"] is None
+    async with submission_harness.session_factory() as session:
+        audit = await session.scalar(
+            select(AuditEvent).where(
+                AuditEvent.organization_id == ORGANIZATION_ID,
+                AuditEvent.action == "preflight_submission",
+                AuditEvent.entity_id == UUID(body["submission_id"]),
+            )
+        )
+    assert audit is not None
+    assert (
+        audit.actor_user_id,
+        audit.before_revision,
+        audit.after_revision,
+        audit.outcome,
+    ) == (USER_ID, 1, 1, "succeeded")
     assert body["error"]["action"] == "grant_read_access"
 
 
@@ -560,12 +575,14 @@ async def test_submission_capture_replacement_late_open_and_promotion_recovery(
     submission_harness: SubmissionHarness,
 ) -> None:
     fixture = FrozenFixtureStore().load("artifact-provider-v1.1.0.json")
-    assert await FixtureArtifactProvider().preflight(
-        fixture["preflight_request"]
-    ) == fixture["available_result"]
-    assert await FixtureArtifactProvider().capture(
-        fixture["capture_request"]
-    ) == fixture["success_result"]
+    assert (
+        await FixtureArtifactProvider().preflight(fixture["preflight_request"])
+        == fixture["available_result"]
+    )
+    assert (
+        await FixtureArtifactProvider().capture(fixture["capture_request"])
+        == fixture["success_result"]
+    )
 
     preflight = await _preflight(
         submission_harness,
@@ -624,13 +641,17 @@ async def test_submission_capture_replacement_late_open_and_promotion_recovery(
     assert {"artifact_promotion", "artifact_version", "submission_version"} <= set(tables)
     async with session_scope(submission_harness.session_factory) as session:
         promotion = (
-            await session.execute(
-                select(tables["artifact_promotion"]).where(
-                    tables["artifact_promotion"].c.operation_id
-                    == UUID(second["capture_operation_id"])
+            (
+                await session.execute(
+                    select(tables["artifact_promotion"]).where(
+                        tables["artifact_promotion"].c.operation_id
+                        == UUID(second["capture_operation_id"])
+                    )
                 )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         assert promotion["state"] in {"staged", "db_committed", "promoting"}
         assert promotion["staged_key"] and promotion["final_key"]
 
@@ -699,7 +720,10 @@ async def test_submission_capture_replacement_late_open_and_promotion_recovery(
         dry_run=False,
     )
     assert cleanup_after_recovery.deleted == ()
-    assert submission_harness.s3_client.head_object(
-        Bucket=BUCKET,
-        Key=promotion["final_key"],
-    )["ContentLength"] <= 128
+    assert (
+        submission_harness.s3_client.head_object(
+            Bucket=BUCKET,
+            Key=promotion["final_key"],
+        )["ContentLength"]
+        <= 128
+    )
