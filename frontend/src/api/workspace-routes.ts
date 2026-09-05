@@ -58,6 +58,10 @@ export const workspaceRoutes = {
     "path": "/v2/homeworks/{identity}/editor-draft",
     "method": "POST"
   },
+  "update_workspace_homework": {
+    "path": "/v2/homeworks/{identity}/title",
+    "method": "POST"
+  },
   "read_notification": {
     "path": "/v2/notifications/{identity}/read",
     "method": "POST"
@@ -133,6 +137,7 @@ create_export: W<'ExportInput'>;
 save_private_homework: W<'PrivateHomeworkInput'>;
 publish_workspace_homework: W<'PublishWithPolicyInput'>;
 save_editor_draft: W<'EditorDraftInput'>;
+update_workspace_homework: W<'HomeworkTitleInput'>;
 read_notification: W<'EmptyInput'>;
 retry_review_assist: W<'EmptyInput'>;
 save_preferences: W<'PreferencesInput'>;
@@ -162,6 +167,7 @@ create_export: W<'ExportView'>;
 save_private_homework: W<'PrivateHomeworkView'>;
 publish_workspace_homework: W<'PublishedWorkspaceHomework'>;
 save_editor_draft: W<'EditorDraftView'>;
+update_workspace_homework: W<'ResourceResult'>;
 read_notification: W<'ResourceResult'>;
 retry_review_assist: W<'ReviewAssistView'>;
 save_preferences: W<'PreferencesView'>;

@@ -68,6 +68,7 @@ from review_platform.application.services.reviewer_course_selections import (
     ReviewerCourseSelectionService,
     ReviewerSelectionError,
 )
+from review_platform.application.workspace.common import WorkspaceFailure
 from review_platform.contracts.commands import (
     CreateReviewCorrectionPayload,
     MigrateReviewRequirementsPayload,
@@ -121,7 +122,6 @@ async def dispatch_review_mutation(
     actor: RequestActor,
     command: WireCommand,
     transaction: AsyncSession,
-    score_adjustment: Decimal = Decimal("0"),
 ) -> Mapping[str, Any] | None:
     """Map one already validated exact command to its implemented US5 service."""
 
@@ -131,9 +131,8 @@ async def dispatch_review_mutation(
             actor=actor,
             command=command,
             transaction=transaction,
-            score_adjustment=score_adjustment,
         )
-    except _COMPOSITION_ERRORS as error:
+    except (*_COMPOSITION_ERRORS, WorkspaceFailure) as error:
         raise ReviewCompositionError(str(error)) from error
     except (IntegrityError, OperationalError) as error:
         if _mysql_error_code(error) in _MYSQL_CONCURRENCY_CODES:
@@ -147,7 +146,6 @@ async def _dispatch_review_mutation(
     actor: RequestActor,
     command: WireCommand,
     transaction: AsyncSession,
-    score_adjustment: Decimal = Decimal("0"),
 ) -> Mapping[str, Any] | None:
     authorizer = Authorizer(runtime.user_auth_guard, clock=runtime.clock)
     audit = AuditRecorder(
@@ -323,9 +321,7 @@ async def _dispatch_review_mutation(
                 organization_id=actor.organization_id,
                 predecessor_iteration_id=command.target_id,
                 expected_predecessor_revision=command.expected_revision,
-                published_review_revision_id=(
-                    correction_payload.published_review_revision_id
-                ),
+                published_review_revision_id=(correction_payload.published_review_revision_id),
                 reason=correction_payload.reason,
                 request_id=command.request_id,
                 trace_id=trace_id,
@@ -370,6 +366,29 @@ async def _dispatch_review_mutation(
 
     if name == "publish_review":
         publication_payload = cast(PublishReviewPayload, command.payload)
+        from review_platform.application.workspace.grading import grade_preview
+        from review_platform.application.workspace.reviews import lock_review_rows
+        from review_platform.infrastructure.db.models.workspace import (
+            ReviewOutcome,
+            WorkspacePublishedGrade,
+        )
+
+        iteration = await lock_review_rows(transaction, actor.organization_id, command.target_id)
+        grade = await grade_preview(transaction, actor.organization_id, iteration)
+        outcome = await transaction.scalar(
+            select(ReviewOutcome).where(
+                ReviewOutcome.organization_id == actor.organization_id,
+                ReviewOutcome.id == iteration.id,
+            )
+        )
+        if outcome and grade.pass_score is not None:
+            if outcome.decision == "passed" and grade.final_score < grade.pass_score:
+                raise WorkspaceFailure("outcome_conflict", "Итоговый балл ниже порога зачёта.", 422)
+            if outcome.decision == "failed" and grade.final_score >= grade.pass_score:
+                raise WorkspaceFailure(
+                    "outcome_conflict", "Итоговый балл достигает порога зачёта.", 422
+                )
+
         publication_result = await ReviewPublicationService(
             repository=publications,
             scheduler=SqlReviewDeliveryScheduler(
@@ -393,8 +412,26 @@ async def _dispatch_review_mutation(
             ),
             actor=actor,
             transaction=transaction,
-            score_adjustment=score_adjustment,
+            score_adjustment=Decimal(str(grade.penalty)),
         )
+        transaction.add(
+            WorkspacePublishedGrade(
+                id=publication_result.publication_id,
+                organization_id=actor.organization_id,
+                details=grade.model_dump(mode="json"),
+            )
+        )
+        if outcome is None and grade.pass_score is not None:
+            transaction.add(
+                ReviewOutcome(
+                    id=iteration.id,
+                    organization_id=actor.organization_id,
+                    revision=0,
+                    decision="passed" if grade.final_score >= grade.pass_score else "failed",
+                    reason="Опубликованная оценка по порогу задания",
+                    revision_deadline=None,
+                )
+            )
         assert actor.user_id is not None
         return {
             "id": str(publication_result.publication_id),
@@ -473,8 +510,7 @@ async def read_review_detail_response(
                     artifact_version_id=str(artifact_version_id),
                     requested_by_organization_id=str(actor.organization_id),
                 ),
-                expires_at=now
-                + timedelta(seconds=runtime.settings.ai_signed_url_ttl_seconds),
+                expires_at=now + timedelta(seconds=runtime.settings.ai_signed_url_ttl_seconds),
             )
 
         result = await read_review_detail(

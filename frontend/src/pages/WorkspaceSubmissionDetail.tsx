@@ -1,15 +1,49 @@
 import { useState } from "react";
+import type { Role } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { Card, Empty, Resource, Status, date, useResource } from "../ui";
 import { ScreenTitle, SelfReviewResult } from "../workspace-ui";
 import { ArtifactLink } from "./WorkspaceReview";
 
+export function newestSelfReviews(values: readonly W<"SelfReviewView">[]) {
+  return [...values].sort(
+    (a, b) =>
+      Date.parse(b.created_at) - Date.parse(a.created_at) ||
+      b.id.localeCompare(a.id),
+  );
+}
 const verdicts: Record<string, string> = {
   passed: "зачтена",
   failed: "не зачтена",
   needs_changes: "нужны правки",
   published: "результат опубликован",
 };
+export function SubmittedStudentWork({
+  ws,
+  attempt,
+}: {
+  ws: WorkspaceClient;
+  attempt: W<"SubmissionAttemptView">;
+}) {
+  return (
+    <div className="submitted-attempt">
+      <div className="rubric-row">
+        <strong>Отправленная работа</strong>
+        {attempt.artifact_id ? (
+          <ArtifactLink ws={ws} id={attempt.artifact_id} />
+        ) : (
+          <span className="muted">Снимок недоступен</span>
+        )}
+      </div>
+      {attempt.comment && (
+        <>
+          <p className="label">Комментарий к сдаче</p>
+          <p className="preserve small">{attempt.comment}</p>
+        </>
+      )}
+    </div>
+  );
+}
 export function PublishedStudentReview({
   value,
   hideFeedback = false,
@@ -33,6 +67,13 @@ export function PublishedStudentReview({
                 {c.max_points.toLocaleString("ru-RU")}
               </span>
             </summary>
+            {c.description && (
+              <p className="preserve small">
+                <span className="label">Выполнено, если</span>
+                <br />
+                {c.description}
+              </p>
+            )}
             {c.reason && <p className="preserve small">{c.reason}</p>}
           </details>
         ))}
@@ -53,6 +94,13 @@ export function PublishedStudentReview({
                   {c.max_points.toLocaleString("ru-RU")}
                 </span>
               </div>
+              {c.description && (
+                <p className="preserve small">
+                  <span className="label">Выполнено, если</span>
+                  <br />
+                  {c.description}
+                </p>
+              )}
               {c.reason && <p className="preserve small">{c.reason}</p>}
             </div>
           ))}
@@ -111,17 +159,22 @@ export function PublishedStudentReview({
 export function WorkspaceSubmissionDetail({
   ws,
   id,
+  role = "student",
 }: {
   ws: WorkspaceClient;
   id: string;
+  role?: Role;
 }) {
   const r = useResource(() => ws.submission(id), id, 5000);
   const [tab, setTab] = useState<"human" | "ai">("human");
   const context = useResource(
     () =>
-      r.data ? ws.studentContext(r.data.publication_id) : Promise.resolve(null),
-    r.data?.publication_id ?? "no-context",
+      r.data && role === "student"
+        ? ws.studentContext(r.data.publication_id)
+        : Promise.resolve(null),
+    `${role}:${r.data?.publication_id ?? "no-context"}`,
   );
+  const selfReviews = newestSelfReviews(context.data?.self_reviews ?? []);
   const current = r.data?.reviews.find(
     (v) => v.id === r.data?.current_publication_id,
   );
@@ -157,7 +210,9 @@ export function WorkspaceSubmissionDetail({
             <a className="crumbs__back" href="#/works" aria-label="Назад">
               ←
             </a>
-            <a href="#/works">Мои домашки</a>
+            <a href="#/works">
+              {role === "student" ? "Мои домашки" : "Домашки"}
+            </a>
             <span>/</span>
             <span className="cur">{r.data.title}</span>
           </div>
@@ -172,12 +227,14 @@ export function WorkspaceSubmissionDetail({
                 className="tabs"
                 style={{ padding: "var(--s-2) var(--s-5) 0", marginBottom: 0 }}
               >
-                <button
-                  aria-pressed={tab === "ai"}
-                  onClick={() => setTab("ai")}
-                >
-                  ИИ-ревью
-                </button>
+                {role === "student" && (
+                  <button
+                    aria-pressed={tab === "ai"}
+                    onClick={() => setTab("ai")}
+                  >
+                    ИИ-ревью
+                  </button>
+                )}
                 <button
                   aria-pressed={tab === "human"}
                   onClick={() => setTab("human")}
@@ -188,17 +245,17 @@ export function WorkspaceSubmissionDetail({
               <div className="card-body">
                 {tab === "ai" ? (
                   <Resource value={context}>
-                    {context.data?.self_reviews.length ? (
-                      context.data.self_reviews.map((value, index) => (
+                    {selfReviews.length ? (
+                      selfReviews.map((value, index) => (
                         <details
                           className="acc"
                           key={value.id}
-                          open={index === context.data!.self_reviews.length - 1}
+                          open={index === 0}
                         >
                           <summary className="acc__h">
                             Проверка от {date(value.created_at)}
                           </summary>
-                          <SelfReviewResult value={value} />
+                          <SelfReviewResult showHeading={false} value={value} />
                         </details>
                       ))
                     ) : (
@@ -227,27 +284,7 @@ export function WorkspaceSubmissionDetail({
                           )}
                         </summary>
                         <div style={{ paddingBottom: "var(--s-4)" }}>
-                          <div className="submitted-attempt">
-                            <div className="rubric-row">
-                              <strong>Отправленная работа</strong>
-                              {attempt.artifact_id ? (
-                                <ArtifactLink
-                                  ws={ws}
-                                  id={attempt.artifact_id}
-                                />
-                              ) : (
-                                <span className="muted">Снимок недоступен</span>
-                              )}
-                            </div>
-                            {attempt.comment && (
-                              <>
-                                <p className="label">Комментарий к сдаче</p>
-                                <p className="preserve small">
-                                  {attempt.comment}
-                                </p>
-                              </>
-                            )}
-                          </div>
+                          <SubmittedStudentWork ws={ws} attempt={attempt} />
                           {latest ? (
                             <PublishedStudentReview value={latest} />
                           ) : (
@@ -281,7 +318,7 @@ export function WorkspaceSubmissionDetail({
               </div>
             </section>
             <aside>
-              <Card title="История">
+              <Card title="История" bodyClassName="card__body--tight">
                 {events.length ? (
                   events.map((event) => (
                     <div className="rubric-row" key={event.id}>

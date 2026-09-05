@@ -1,0 +1,184 @@
+[
+  {
+    "code": "К1",
+    "width": 1600,
+    "file": "coord-final-К1-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К1а",
+    "width": 1600,
+    "file": "coord-final-К1а-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К2",
+    "width": 1600,
+    "file": "coord-final-К2-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К3",
+    "width": 1600,
+    "file": "coord-final-К3-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К4",
+    "width": 1600,
+    "file": "coord-final-К4-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    },
+    "dateValidation": {
+      "invalidEarlierEnd": true,
+      "validOrderedDates": true
+    }
+  },
+  {
+    "code": "К5",
+    "width": 1600,
+    "file": "coord-final-К5-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К6",
+    "width": 1600,
+    "file": "coord-final-К6-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К7",
+    "width": 1600,
+    "file": "coord-final-К7-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К8",
+    "width": 1600,
+    "file": "coord-final-К8-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600,
+      "search": 200
+    }
+  },
+  {
+    "code": "К9",
+    "width": 1600,
+    "file": "coord-final-К9-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600
+    }
+  },
+  {
+    "code": "К10",
+    "width": 1600,
+    "file": "coord-final-К10-1600.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 1600,
+      "viewport": 1600,
+      "search": 200
+    }
+  },
+  {
+    "code": "К4",
+    "width": 390,
+    "file": "coord-final-К4-390.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 390,
+      "viewport": 390
+    },
+    "dateValidation": {
+      "invalidEarlierEnd": true,
+      "validOrderedDates": true
+    }
+  },
+  {
+    "code": "К6",
+    "width": 390,
+    "file": "coord-final-К6-390.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 390,
+      "viewport": 390
+    }
+  },
+  {
+    "code": "К7",
+    "width": 390,
+    "file": "coord-final-К7-390.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 390,
+      "viewport": 390
+    }
+  },
+  {
+    "code": "К8",
+    "width": 390,
+    "file": "coord-final-К8-390.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 390,
+      "viewport": 390,
+      "search": 200
+    }
+  },
+  {
+    "code": "К10",
+    "width": 390,
+    "file": "coord-final-К10-390.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 390,
+      "viewport": 390,
+      "search": 200
+    }
+  },
+  {
+    "code": "К6",
+    "width": 320,
+    "file": "coord-final-К6-320.png",
+    "errors": [],
+    "bounds": {
+      "bodyWidth": 320,
+      "viewport": 320
+    }
+  }
+]

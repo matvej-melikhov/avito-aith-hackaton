@@ -77,6 +77,11 @@ class SelfReviewService:
             self.session, CourseRunHomework, actor.organization_id, publication_id, lock=True
         )
         await course_scope(self.session, actor, publication.course_run_id, write=True)
+        from review_platform.application.workspace.source_policy import require_publication_source
+
+        await require_publication_source(
+            self.session, publication, payload.artifact_url, payload.upload_id
+        )
         draft = await self.session.scalar(
             select(WorkDraft)
             .where(

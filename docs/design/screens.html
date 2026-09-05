@@ -120,6 +120,7 @@
 
   /* --- Размеры управляющих элементов -------------------------------------- */
   --ctl-l: 48px; --ctl-m: 40px; --ctl-s: 32px;
+  --review-score-w: 136px; /* общая колонка оценки и предпросмотр шкалы */
   --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px;
 
   /* --- Замечание ---------------------------------------------------------- */
@@ -412,9 +413,9 @@ a:hover { border-bottom-color: var(--ink); }
 .seg > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
 
 /* Шкала оценки требования: значения из конфигурации задания                 */
-.scale { display: inline-flex; padding: 2px; border: var(--bw-hair) solid var(--line-2);
+.scale { display: inline-flex; min-width: var(--review-score-w); padding: 2px; border: var(--bw-hair) solid var(--line-2);
          border-radius: var(--r-pill); background: var(--surface); }
-.scale > * { min-width: 32px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+.scale > * { flex: 1; min-width: var(--ctl-s); height: var(--ctl-s); display: inline-flex; align-items: center; justify-content: center;
              font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
              border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
 /* Выбранное значение — залитая пилюля внутри пилюли, углы обоих полные:
@@ -653,6 +654,7 @@ a.step { border: 0; }
 .overlay--wide { width: 720px; }
 
 .modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
+.modal.overlay--wide { width: min(720px, calc(100% - 2 * var(--gutter))); max-width: 720px; }
 /* Поле поиска. Лупа нарисована в разметке, а не шрифтом: значка поиска нет
    ни в одной из трёх наших гарнитур, а эмодзи в интерфейсе мы не ставим.    */
 .srch { position: relative; display: inline-flex; align-items: center; }
@@ -682,6 +684,51 @@ a.step { border: 0; }
          font-size: var(--small-size); font-weight: var(--w-medium); }
 .toast--ok  { background: var(--brand-green); color: var(--ink); }
 .toast--bad { background: var(--brand-red); color: var(--ink-inv); }
+
+/* Сдача: пояснение переносится вместе с кнопкой ИИ-ревью.                  */
+.submission-actions { display: flex; align-items: flex-start; gap: var(--s-6); flex-wrap: wrap; width: 100%; }
+.submission-actions__precheck { flex: 1; min-width: min(240px, 100%); display: grid;
+                                justify-items: start; gap: var(--s-2); }
+.submission-actions__precheck .caption { max-width: 48ch; }
+.submission-comment { min-height: 80px; height: auto; }
+
+/* Разбор: общая сетка для редактирования и просмотра без смены режима.    */
+.review-layout > * { min-width: 0; }
+.acc__h--score { display: grid; grid-template-columns: 21px minmax(0, 1fr) var(--review-score-w) 16px;
+                 column-gap: var(--s-3); padding: var(--s-4) 0; }
+.acc__h--score .acc__t { min-width: 0; overflow-wrap: anywhere; }
+.acc__h--score .acc__t > .pill { margin-left: var(--s-2); vertical-align: middle; }
+.acc__h--score .scale { width: var(--review-score-w); justify-self: end; }
+.acc__h--score > .mono { grid-column: 3; justify-self: end; white-space: nowrap; }
+.acc__h--score > .acc__chev { grid-column: 4; }
+.review-criteria .finding__src { flex-wrap: wrap; }
+.review-criteria .code { overflow-x: auto; }
+.card__head--review { align-items: flex-start; flex-direction: column; gap: var(--s-2); }
+.card__head--response { display: grid; grid-template-columns: 1fr; gap: var(--s-3); }
+.card__head--response > .btn { justify-self: start; }
+.decision-actions { display: grid; grid-template-columns: 1fr; gap: var(--s-2); }
+.decision-actions .btn { width: 100%; }
+
+/* Настройка критериев: тип, балл и стрелка стоят в общих колонках.          */
+.criteria-editor .acc__h { display: grid; grid-template-columns: 16px minmax(0, 1fr) 180px 32px 16px; }
+.criteria-editor .acc__t, .criteria-editor .caption { min-width: 0; overflow-wrap: anywhere; }
+.criteria-editor .acc__chev { grid-column: 5; }
+.criterion-condition { min-height: 96px; height: auto; line-height: var(--body-lh); }
+
+.date-range { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-3); }
+.date-range > .field { min-width: 0; margin-bottom: 0; }
+.decision-event { display: block; padding: var(--s-4) 0; }
+.decision-event > span { display: block; }
+.decision-event > .caption { margin-top: var(--s-2); white-space: nowrap; }
+.export-context { color: var(--ink); font-size: var(--body-size); line-height: var(--body-lh); overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+  .date-range { grid-template-columns: 1fr; }
+  .acc__h--score { grid-template-columns: 21px minmax(0, 1fr) 16px; }
+  .acc__h--score .scale { grid-column: 2; grid-row: 2; justify-self: start; margin-top: var(--s-2); }
+  .acc__h--score > .mono { grid-column: 2; grid-row: 2; justify-self: start; }
+  .acc__h--score > .acc__chev { grid-column: 3; grid-row: 1; }
+}
 
 @media (max-width: 1100px) {
   .row-side, .row-rev, .row-2 { grid-template-columns: 1fr; }
@@ -733,6 +780,11 @@ a.step { border: 0; }
   .vp .row-2   { grid-template-columns: 1fr 1fr; }
   .vp .row-side{ grid-template-columns: 1fr 336px; }
   .vp .row-rev { grid-template-columns: 384px 1fr; }
+  .vp .date-range { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .vp .acc__h--score { grid-template-columns: 21px minmax(0, 1fr) var(--review-score-w) 16px; }
+  .vp .acc__h--score .scale { grid-column: 3; grid-row: 1; justify-self: end; margin-top: 0; }
+  .vp .acc__h--score > .mono { grid-column: 3; grid-row: 1; justify-self: end; }
+  .vp .acc__h--score > .acc__chev { grid-column: 4; grid-row: 1; }
 </style>
 </head>
 <body>
@@ -846,15 +898,18 @@ a.step { border: 0; }
                 </label>
                 <label class="field">
                   <span class="field__lbl">Комментарий к сдаче, необязательно</span>
-                  <input class="inp" placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками">
+                  <textarea class="inp inp--area submission-comment" rows="2" aria-describedby="submission-comment-hint"></textarea>
+                  <span class="field__hint" id="submission-comment-hint">Например: какие части делали с помощью ИИ и что дорабатывали руками</span>
                 </label>
               </div>
               <div class="card__foot">
-                <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
+                <div class="submission-actions">
                   <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
-                  <span class="btn" style="flex:none">ИИ-ревью</span>
-                  <span class="caption">Результат ИИ-ревью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
-                </span>
+                  <div class="submission-actions__precheck">
+                    <span class="btn" style="flex:none">ИИ-ревью</span>
+                    <span class="caption">Результат ИИ-ревью видит ревьюер и учитывает при оценке. Осталось 3 попытки из 3.</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -938,13 +993,13 @@ a.step { border: 0; }
                   <div class="acc">
                     <div class="acc__h"><span class="acc__t" style="flex:none">Проверка от 17.02, 14:20</span><span class="pill">последняя</span><span class="acc__chev" style="margin-left:auto">▲</span></div>
                     <div class="acc__b" style="padding-left:0">
-                      <p class="small" style="margin:0 0 var(--s-3)"><b>К отправке не готово.</b> Два места стоит поправить до отправки.</p>
+                      <p class="small" style="margin:0 0 var(--s-3)"><b>Есть замечания перед отправкой.</b> Два места стоит поправить до отправки.</p>
                       <ul class="small" style="margin:0 0 var(--s-4);padding-left:1.1em;color:var(--ink-2);line-height:1.6">
                         <li>договорённости между внутренними сервисами описаны слабее внешнего интерфейса: добавьте входы и выходы для внутренних вызовов,</li>
                         <li>разбора связности компонентов в работе нет, а задание его требует.</li>
                       </ul>
-                      <div class="callout callout--human"><span class="callout__mark">?</span><p>ИИ-ревью не гарантирует, что работу примут. Верно и обратное: замечания не означают, что работу отклонят. Итоговое решение принимает ревьюер.</p></div>
-                      <div class="caption" style="margin-top:var(--s-3)">Доработайте работу и прикрепите новую ссылку в форме ниже. Осталось проверок: 2 из 3.</div>
+                      <div class="callout callout--human"><span class="callout__mark">?</span><p>Можно отправить работу сейчас или сначала внести правки. Решение принимает ревьюер.</p></div>
+                      <div class="caption" style="margin-top:var(--s-3)">Доработайте работу и проверьте ссылку в форме ниже. Осталось проверок: 2 из 3.</div>
                     </div>
                   </div>
                 </div>
@@ -963,15 +1018,18 @@ a.step { border: 0; }
                 </label>
                 <label class="field">
                   <span class="field__lbl">Комментарий к сдаче, необязательно</span>
-                  <input class="inp" placeholder="Например: какие части делали с помощью ИИ и что дорабатывали руками">
+                  <textarea class="inp inp--area submission-comment" rows="2" aria-describedby="submission-comment-hint-c2"></textarea>
+                  <span class="field__hint" id="submission-comment-hint-c2">Например: какие части делали с помощью ИИ и что дорабатывали руками</span>
                 </label>
               </div>
               <div class="card__foot">
-                <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
+                <div class="submission-actions">
                   <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
-                  <span class="btn" style="flex:none">ИИ-ревью</span>
-                  <span class="caption">Проверено ИИ-ревью 17 февраля в 14:20, осталось 2 попытки. Результат видит ревьюер.</span>
-                </span>
+                  <div class="submission-actions__precheck">
+                    <span class="btn" style="flex:none">ИИ-ревью</span>
+                    <span class="caption">Проверено ИИ-ревью 17 февраля в 14:20, осталось 2 попытки. Результат видит ревьюер.</span>
+                  </div>
+                </div>
               </div>
             </div>
             </div>
@@ -1064,7 +1122,7 @@ a.step { border: 0; }
                         <span style="color:var(--ink);font-weight:var(--w-medium)">Итого</span><span style="color:var(--ink);font-weight:var(--w-semi)">3,0 из 6</span>
                       </div>
                       <div class="kv" style="border-bottom:0;padding-top:var(--s-1)">
-                        <span style="color:var(--ink)">Вердикт</span><span style="color:var(--bad);font-weight:var(--w-semi)">не прошла проверку</span>
+                        <span style="color:var(--ink)">Вердикт</span><span style="color:var(--late);font-weight:var(--w-semi)">Нужны правки</span>
                       </div>
                       <div class="label" style="margin:var(--s-5) 0 var(--s-2)">Комментарий ревьюера, rev-2214</div>
                       <div class="small" style="color:var(--ink-2);line-height:1.65">Привет! Декомпозиция и интерфейсы в порядке, диаграмма последовательностей читается. Четыре вещи мешают зачёту: нет диаграмм C4, внутренние вызовы описаны без входов и выходов, нет анализа связности, по границам компонентов не хватает обоснования. Остальное принято. Пришлите правки до 23 февраля.</div>
@@ -1074,20 +1132,27 @@ a.step { border: 0; }
               </div>
 
               <div class="card card--hard">
-                <div class="card__head"><h4>Ваша работа</h4><div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div></div>
+                <div class="card__head"><h4>Исправленная работа</h4><div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div></div>
               <div class="card__body card__body--compact">
                 <label class="field">
                   <span class="field__lbl">Ссылка на репозиторий</span>
                   <input class="inp inp--mono" value="https://github.com/username/wardrobe-service">
                   <span class="field__hint">Версия попытки 1 сохранится в истории, ревьюер увидит обе.</span>
                 </label>
+                <label class="field">
+                  <span class="field__lbl">Комментарий к сдаче, необязательно</span>
+                  <textarea class="inp inp--area submission-comment" rows="2" aria-describedby="submission-comment-hint-c3"></textarea>
+                  <span class="field__hint" id="submission-comment-hint-c3">Например: какие части делали с помощью ИИ и что дорабатывали руками</span>
+                </label>
               </div>
                 <div class="card__foot">
-                  <span style="display:flex;align-items:center;gap:var(--s-4);min-width:0;flex-wrap:wrap">
-                    <span class="btn btn--pri" style="flex:none">Отправить на ревью</span>
-                    <span class="btn" style="flex:none">ИИ-ревью</span>
-                    <span class="caption">ИИ-ревью по новой версии ещё не запускали</span>
-                  </span>
+                  <div class="submission-actions">
+                    <span class="btn btn--pri" style="flex:none">Отправить исправления</span>
+                    <div class="submission-actions__precheck">
+                      <span class="btn" style="flex:none">ИИ-ревью</span>
+                      <span class="caption">ИИ-ревью по новой версии ещё не запускали</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1283,8 +1348,7 @@ a.step { border: 0; }
         <nav class="menu">
           <a class="is-on" href="#">Мои работы<span class="c">5</span></a>
           <a href="#">Пул<span class="c">12</span></a>
-          <a href="#">Статистика</a>
-          <a href="#">Настройки</a>
+          <a href="#">Кабинет</a>
         </nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
@@ -1296,7 +1360,7 @@ a.step { border: 0; }
         <div class="main">
           <div class="stack">
             <div class="card">
-              <div class="card__head"><h4>Активные</h4></div>
+              <div class="card__head"><h4>Мои работы</h4></div>
               <div class="card__body card__body--flush">
                 <table class="tbl">
                   <thead><tr><th>Студент</th><th>Задание</th><th>Статус</th><th class="n">Взята</th><th class="n">Проверить до</th><th class="r"></th></tr></thead>
@@ -1546,7 +1610,7 @@ a.step { border: 0; }
           </div>
         </div>
         <div class="main">
-          <div class="row-rev">
+          <div class="row-rev review-layout">
             <div class="stack">
               <div class="card">
                 <div class="card__head"><h4>Работа</h4></div>
@@ -1580,7 +1644,7 @@ a.step { border: 0; }
               </div>
 
               <div class="card">
-                <div class="card__head"><div><h4>Ответ студенту</h4><div class="card__sub">Уходит вместе с вердиктом</div></div><span class="btn btn--s btn--quiet">Собрать заново</span></div>
+                <div class="card__head card__head--response"><div><h4>Ответ студенту</h4><div class="card__sub">Уходит вместе с вердиктом</div></div><span class="btn btn--s btn--quiet">Собрать заново</span></div>
                 <div class="card__body">
                   <textarea class="inp inp--area" style="min-height:172px;line-height:1.6">Привет! Диаграммы и декомпозиция в порядке. Что поправить: опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe, добавь раздел с анализом связности, укажи в работе, пользовался ли ты ИИ.</textarea>
                 </div>
@@ -1597,7 +1661,7 @@ a.step { border: 0; }
                 </div>
                 <div class="card__foot" style="display:block">
                   <div style="color:var(--bad);margin-bottom:var(--s-3)">Ниже порога зачёта, нужно 4 из 6. Выберите, что делать дальше.</div>
-                  <div class="btn-row">
+                  <div class="btn-row decision-actions">
                     <span class="btn btn--dark" style="flex:1;justify-content:center">Вернуть на доработку</span>
                     <span class="btn btn--pri" style="flex:1;justify-content:center">Зачесть</span>
                   </div>
@@ -1607,21 +1671,21 @@ a.step { border: 0; }
 
             <div class="stack">
               <div class="card">
-                <div class="card__head">
+                <div class="card__head card__head--review">
                   <h4>Предварительное ревью от модели</h4>
-                  <span class="btn btn--s">Принять все</span>
+                  <span class="caption">Баллы можно изменить перед отправкой решения</span>
                 </div>
-                <div class="card__body">
+                <div class="card__body review-criteria">
                   <div class="acc">
-                    <div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Декомпозиция по двум и более признакам</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▲</span></div>
+                    <div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Декомпозиция по двум и более признакам</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▲</span></div>
                     <div class="acc__b"><div class="acc__empty">Нарушений не найдено</div></div>
                   </div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc">
-                    <div class="acc__h">
+                    <div class="acc__h acc__h--score">
                       <span class="ck ck--n">✕</span>
                       <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
                       
@@ -1654,22 +1718,21 @@ a.step { border: 0; }
                     </div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Анализ связности компонентов</span><span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span></span><span class="acc__chev">▼</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--n">✕</span><span class="acc__t">Анализ связности компонентов</span><span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Предложены способы снижения связности</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc">
-                    <div class="acc__h">
-                      <span class="ck ck--h">?</span><span class="acc__t">Обосновано соблюдение SRP</span>
-                      <span class="pill pill--human">оценочное</span>
+                    <div class="acc__h acc__h--score">
+                      <span class="ck ck--h">?</span><span class="acc__t">Обосновано соблюдение SRP <span class="pill pill--human">оценочное</span></span>
                       <span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▲</span>
                     </div>
                     <div class="acc__b"><div class="quote quote--human">Модель рекомендует 0,5: принцип назван и применён к двум компонентам из четырёх. Оценочное требование, решение принимает ревьюер.</div></div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации</span><span class="pill pill--human">оценочное</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации <span class="pill pill--human">оценочное</span></span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">▼</span></div></div>
 
                   <div class="acc" style="background:var(--surface-2);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
-                    <div class="acc__h">
+                    <div class="acc__h acc__h--score">
                       <span class="ck ck--q">＋</span><span class="acc__t">Своё требование</span>
                       <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
                     </div>
@@ -1729,7 +1792,7 @@ a.step { border: 0; }
             <span class="tab is-on">Попытка 2</span>
             <span class="tab">Попытка 1</span>
           </div>
-          <div class="row-rev">
+          <div class="row-rev review-layout">
             <div class="stack">
               <div class="card">
                 <div class="card__head"><h4>Работа</h4></div>
@@ -1761,7 +1824,7 @@ a.step { border: 0; }
               </div>
 
               <div class="card">
-                <div class="card__head"><div><h4>Ответ студенту</h4><div class="card__sub">Уходит вместе с вердиктом</div></div><span class="btn btn--s btn--quiet">Собрать заново</span></div>
+                <div class="card__head card__head--response"><div><h4>Ответ студенту</h4><div class="card__sub">Уходит вместе с вердиктом</div></div><span class="btn btn--s btn--quiet">Собрать заново</span></div>
                 <div class="card__body">
                   <textarea class="inp inp--area" style="min-height:150px;line-height:1.6">Контракты теперь описаны полностью, спасибо. Анализ связности так и не появился, но остальное закрыто, поэтому засчитываю. Разбери связность в лабораторной 2, там она понадобится.</textarea>
                 </div>
@@ -1779,7 +1842,7 @@ a.step { border: 0; }
                 </div>
                 <div class="card__foot" style="display:block">
                   <div style="color:var(--ink-2);margin-bottom:var(--s-3)">Порог зачёта пройден, нужно было 4 из 6.</div>
-                  <div class="btn-row">
+                  <div class="btn-row decision-actions">
                     <span class="btn btn--dark" style="flex:1;justify-content:center">Вернуть на доработку</span>
                     <span class="btn btn--pri" style="flex:1;justify-content:center">Зачесть</span>
                   </div>
@@ -1789,18 +1852,18 @@ a.step { border: 0; }
 
             <div class="stack">
               <div class="card">
-                <div class="card__head">
+                <div class="card__head card__head--review">
                   <h4>Предварительное ревью от модели</h4>
-                  <span class="btn btn--s">Принять все</span>
+                  <span class="caption">Баллы можно изменить перед отправкой решения</span>
                 </div>
-                <div class="card__body">
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">&#10003;</span><span class="acc__t">Декомпозиция по двум и более признакам</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">&#9660;</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">&#10003;</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">&#9660;</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">&#10003;</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">&#10003;</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
+                <div class="card__body review-criteria">
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">&#10003;</span><span class="acc__t">Декомпозиция по двум и более признакам</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">&#9660;</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">&#10003;</span><span class="acc__t">Диаграмма C4, контекст и компоненты</span><span class="scale scale--max"><span>0</span><span class="is-on">1</span></span><span class="acc__chev">&#9660;</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">&#10003;</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">&#10003;</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
 
                   <div class="acc">
-                    <div class="acc__h">
+                    <div class="acc__h acc__h--score">
                       <span class="ck ck--y">&#10003;</span>
                       <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
                       <span class="scale scale--max"><span>0</span><span>0,5</span><span class="is-on">1</span></span>
@@ -1810,7 +1873,7 @@ a.step { border: 0; }
                   </div>
 
                   <div class="acc">
-                    <div class="acc__h">
+                    <div class="acc__h acc__h--score">
                       <span class="ck ck--n">&#10005;</span>
                       <span class="acc__t">Анализ связности компонентов</span>
                       <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span></span>
@@ -1821,9 +1884,9 @@ a.step { border: 0; }
                     </div>
                   </div>
 
-                  <div class="acc"><div class="acc__h"><span class="ck ck--y">&#10003;</span><span class="acc__t">Предложены способы снижения связности</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="pill pill--human">оценочное</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
-                  <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации</span><span class="pill pill--human">оценочное</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">&#10003;</span><span class="acc__t">Предложены способы снижения связности</span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--h">?</span><span class="acc__t">Обосновано соблюдение SRP <span class="pill pill--human">оценочное</span></span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
+                  <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации <span class="pill pill--human">оценочное</span></span><span class="scale scale--max"><span>0</span><span class="is-on">0,5</span></span><span class="acc__chev">&#9660;</span></div></div>
 
                   <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:var(--s-5)">
                     <span style="color:var(--ink)">Сумма по требованиям</span><span style="color:var(--ink);font-weight:var(--w-semi)">5,5 из 6</span>
@@ -2151,9 +2214,9 @@ a.step { border: 0; }
         <div class="card__head"><h4>Новый поток</h4><span class="btn btn--icon btn--s btn--quiet">✕</span></div>
         <div class="card__body">
           <label class="field"><span class="field__lbl">Курс</span><input class="inp" value="Системный дизайн"></label>
-          <div class="field">
-            <span class="field__lbl">Даты</span>
-            <div style="display:flex;gap:var(--s-3)"><input class="inp" value="2 февраля 2026"><input class="inp" value="30 марта 2026"></div>
+          <div class="field date-range">
+            <label class="field"><span class="field__lbl">Дата начала</span><input class="inp" value="2 февраля 2026"></label>
+            <label class="field"><span class="field__lbl">Дата окончания</span><input class="inp" value="30 марта 2026"></label>
           </div>
           <label class="field">
             <span class="field__lbl">ID потока</span>
@@ -2291,7 +2354,7 @@ a.step { border: 0; }
                   <h4>Критерии</h4>
                   <span class="btn btn--s btn--dark">Добавить критерий</span>
                 </div>
-                <div class="card__body">
+                <div class="card__body criteria-editor">
                   <div class="crit">
                     <div class="crit__top">
                       <span class="drag"></span>
@@ -2304,7 +2367,7 @@ a.step { border: 0; }
                     </label>
                     <label class="field">
                       <span class="field__lbl">Выполнено, если</span>
-                      <input class="inp" value="в работе есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они">
+                      <textarea class="inp inp--area criterion-condition" rows="3">в работе есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они</textarea>
                       <span class="field__hint">По этой формулировке работают и модель, и ревьюер. Студент видит её после проверки.</span>
                     </label>
                     <div class="field">
@@ -2596,7 +2659,7 @@ a.step { border: 0; }
           </div>
         </div>
         <div class="main">
-          <div class="row-rev">
+          <div class="row-rev review-layout">
             <div class="stack">
               <div class="card">
                 <div class="card__head"><h4>Работа</h4></div>
@@ -2612,10 +2675,10 @@ a.step { border: 0; }
               <div class="card">
                 <div class="card__head"><div><h4>История решений</h4><div class="card__sub">Что предложила модель и что изменил человек</div></div></div>
                 <div class="card__body card__body--tight">
-                  <div class="kv"><span style="color:var(--ink)">Модель предложила разбор по 9 требованиям</span><span>18 фев, 16:29</span></div>
-                  <div class="kv"><span style="color:var(--ink)">Ревьюер изменил «Анализ связности» с 0 на 0,5</span><span>18 фев, 16:36</span></div>
-                  <div class="kv"><span style="color:var(--ink)">Ревьюер добавил своё требование, без баллов</span><span>18 фев, 16:38</span></div>
-                  <div class="kv"><span style="color:var(--ink)">Ревьюер подтвердил итог 5,0 и отправил студенту</span><span>18 фев, 16:40</span></div>
+                  <div class="kv decision-event"><span style="color:var(--ink)">Модель предложила разбор по 9 требованиям</span><span class="caption">18 фев, 16:29</span></div>
+                  <div class="kv decision-event"><span style="color:var(--ink)">Ревьюер изменил «Анализ связности» с 0 на 0,5</span><span class="caption">18 фев, 16:36</span></div>
+                  <div class="kv decision-event"><span style="color:var(--ink)">Ревьюер добавил своё требование, без баллов</span><span class="caption">18 фев, 16:38</span></div>
+                  <div class="kv decision-event"><span style="color:var(--ink)">Ревьюер подтвердил итог 5,0 и отправил студенту</span><span class="caption">18 фев, 16:40</span></div>
                 </div>
                 
               </div>
@@ -2625,13 +2688,13 @@ a.step { border: 0; }
               <div class="card__head">
                 <h4>Разбор по требованиям</h4>
               </div>
-              <div class="card__body">
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Выполнена декомпозиция по двум и более признакам</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">1 из 1</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Построена диаграмма C4: контекст и компоненты</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">1 из 1</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
+              <div class="card__body review-criteria">
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Выполнена декомпозиция по двум и более признакам</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">1 из 1</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Построена диаграмма C4: контекст и компоненты</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">1 из 1</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Диаграмма последовательностей для основного сценария</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Интерфейсы между компонентами описаны</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc">
-                  <div class="acc__h">
+                  <div class="acc__h acc__h--score">
                     <span class="ck ck--n">✕</span><span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
                     <span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 1</span><span class="acc__chev">▲</span>
                   </div>
@@ -2648,14 +2711,13 @@ a.step { border: 0; }
                     </div>
                   </div>
                 </div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Проведён анализ связности компонентов</span><span class="pill pill--human">изменено ревьюером</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--n">✕</span><span class="acc__t">Предложены способы снижения связности</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0 из 0,5</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--y">✓</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
-                <div class="acc"><div class="acc__h"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Проведён анализ связности компонентов <span class="pill pill--human">изменено ревьюером</span></span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--n">✕</span><span class="acc__t">Предложены способы снижения связности</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0 из 0,5</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--y">✓</span><span class="acc__t">Обосновано соблюдение SRP</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
+                <div class="acc"><div class="acc__h acc__h--score"><span class="ck ck--h">?</span><span class="acc__t">Структура и оформление документации</span><span class="mono" style="color:var(--ink);font-weight:var(--w-semi)">0,5 из 0,5</span><span class="acc__chev">▼</span></div></div>
                 <div class="acc" style="background:var(--violet-wash);margin:0 calc(-1 * var(--s-5));padding:0 var(--s-5)">
-                  <div class="acc__h">
-                    <span class="ck ck--q">＋</span><span class="acc__t">Читаемость диаграмм без пояснений в тексте</span>
-                    <span class="pill pill--human">добавил ревьюер, без баллов</span><span class="acc__chev">▲</span>
+                  <div class="acc__h acc__h--score">
+                    <span class="ck ck--q">＋</span><span class="acc__t">Читаемость диаграмм без пояснений в тексте <span class="pill pill--human">добавил ревьюер, без баллов</span></span><span class="acc__chev">▲</span>
                   </div>
                   <div class="acc__b" style="padding-bottom:var(--s-4)">
                     <div class="small" style="color:var(--ink-2)">Диаграммы понятны без сопроводительного текста, это заметно лучше среднего по потоку. Мест нарушения нет, требование добавлено как отметка.</div>
@@ -2717,11 +2779,11 @@ a.step { border: 0; }
       <div class="modal overlay overlay--wide">
         <div class="card__head"><h4>Выгрузка результатов</h4><span class="btn btn--icon btn--s btn--quiet">✕</span></div>
         <div class="card__body">
-          <label class="field">
-            <span class="field__lbl">Что выгружаем</span>
-            <input class="inp" value="Лабораторная 1. Декомпозиция сервиса, поток «Февраль 2026»">
+          <div class="field">
+            <div class="field__lbl">Что выгружаем</div>
+            <div class="export-context">Лабораторная 1. Декомпозиция сервиса, поток «Февраль 2026»</div>
             <span class="field__hint">Дедлайн прошёл 19 февраля. Проверено 47 работ из 88.</span>
-          </label>
+          </div>
           <div class="field">
             <span class="field__lbl">Кому выгружаем</span>
             <div class="seg"><span class="is-on">Команде, внутренняя ведомость</span><span>Студентам, копия без ПДн</span></div>

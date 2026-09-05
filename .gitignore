@@ -19,3 +19,5 @@ node_modules/
 Thumbs.db
 data/
 experiments/
+.cache/design-references/
+frontend/.cache/design-references/

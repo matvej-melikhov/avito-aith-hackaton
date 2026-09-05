@@ -82,7 +82,13 @@ export class WorkspaceClient {
     this.core.request<W<"AssignmentsView">>(
       `/v2/course-runs/${id}/assignments`,
     );
-  works = (params: Record<string, string | number | undefined> = {}) =>
+  insights = (run: string, homework?: string) =>
+    this.core.request<W<"WorkspaceInsightsView">>(
+      `/v2/course-runs/${run}/insights${homework ? `?homework_id=${encodeURIComponent(homework)}` : ""}`,
+    );
+  works = (
+    params: Record<string, string | number | boolean | undefined> = {},
+  ) =>
     this.core.request<W<"WorkList">>(
       `/v2/works?${new URLSearchParams(
         Object.entries(params)

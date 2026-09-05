@@ -155,31 +155,36 @@ class WorkspaceQueries:
                 HomeworkPrivateDetails.organization_id == actor.organization_id,
             )
         )
-        return StudentContext(
-            material_upload_ids=[UUID(value) for value in (private.material_upload_ids or [])]
-            if private
-            else [],
-            course_title=course.title,
-            run_title=run.title,
-            max_score=float(homework.max_score),
-            submission_id=submission_id,
-            publication_id=publication.id,
-            homework_id=homework.homework_id,
-            homework_version_id=homework.id,
-            course_run_id=publication.course_run_id,
-            title=title.title,
-            student_text=homework.student_text,
-            criteria=[
-                PublicCriterion(
-                    id=c.id, key=c.stable_key, title=c.title, max_points=float(c.max_points)
-                )
-                for c in criteria
-            ],
-            submission_deadline=published.submission_deadline,
-            draft=draft_view(draft) if draft else None,
-            quota=quota,
-            self_reviews=views,
-            policy=PublicationPolicyInput.model_validate(policy.policy) if policy else None,
+        return StudentContext.model_validate(
+            dict(
+                allowed_sources=private.allowed_sources
+                if private and private.allowed_sources is not None
+                else ["upload", "github", "google_docs"],
+                material_upload_ids=[UUID(value) for value in (private.material_upload_ids or [])]
+                if private
+                else [],
+                course_title=course.title,
+                run_title=run.title,
+                max_score=float(homework.max_score),
+                submission_id=submission_id,
+                publication_id=publication.id,
+                homework_id=homework.homework_id,
+                homework_version_id=homework.id,
+                course_run_id=publication.course_run_id,
+                title=title.title,
+                student_text=homework.student_text,
+                criteria=[
+                    PublicCriterion(
+                        id=c.id, key=c.stable_key, title=c.title, max_points=float(c.max_points)
+                    )
+                    for c in criteria
+                ],
+                submission_deadline=published.submission_deadline,
+                draft=draft_view(draft) if draft else None,
+                quota=quota,
+                self_reviews=views,
+                policy=PublicationPolicyInput.model_validate(policy.policy) if policy else None,
+            )
         )
 
     async def works(
@@ -193,9 +198,27 @@ class WorkspaceQueries:
         state: str = "",
         view: str = "all",
         priority: str | None = None,
+        stuck: bool = False,
+        submission_ids: list[UUID] | None = None,
         offset: int = 0,
         limit: int = 30,
     ) -> WorkList:
+        if "methodologist" in actor.roles and view == "all":
+            from review_platform.application.workspace.registry import registry_works
+
+            return await registry_works(
+                self.runtime,
+                self.session,
+                actor,
+                run_id=run_id,
+                homework_id=homework_id,
+                search=search,
+                search_student_only=search_student_only,
+                state=state,
+                stuck=stuck,
+                offset=offset,
+                limit=limit,
+            )
         org = actor.organization_id
         # Immutable latest submitted version and latest published iteration are
         # ranked independently. An unpublished correction cannot hide a grade.
@@ -261,6 +284,19 @@ class WorkspaceQueries:
         current = aliased(ReviewIteration)
         revision = aliased(ReviewRevision)
         publication_history = aliased(CourseRunHomeworkPublication)
+        legacy_deadline = (
+            select(CourseRunHomeworkPublication.review_deadline)
+            .where(
+                CourseRunHomeworkPublication.organization_id == org,
+                CourseRunHomeworkPublication.course_run_homework_id
+                == Submission.course_run_homework_id,
+                CourseRunHomeworkPublication.published_at <= version.submitted_at,
+            )
+            .order_by(CourseRunHomeworkPublication.publication_sequence.desc())
+            .limit(1)
+            .correlate(Submission, version)
+            .scalar_subquery()
+        )
         status = case(
             (
                 and_(
@@ -289,10 +325,11 @@ class WorkspaceQueries:
                 revision,
                 StudentReviewerAssignment.reviewer_id,
                 published.c.published_by,
-                publication_history.review_deadline,
+                legacy_deadline,
                 status.label("workspace_status"),
                 Course.title,
                 publication_history.submission_deadline,
+                CourseRun.timezone,
                 published.c.publication_id,
             )
             .join(User, User.id == Submission.student_id)
@@ -390,6 +427,8 @@ class WorkspaceQueries:
                 CourseMembership.status == "active",
             )
             query = query.where(Submission.course_run_id.in_(allowed))
+        if submission_ids is not None:
+            query = query.where(Submission.id.in_(submission_ids))
         if run_id:
             query = query.where(Submission.course_run_id == run_id)
         if homework_id:
@@ -399,15 +438,30 @@ class WorkspaceQueries:
             uuid_query = escaped.replace("-", "")
             student_match = student_identifier(Submission.student_id).ilike(
                 f"%{escaped}%", escape="\\"
-            ) | sql_cast(Submission.student_id, String).ilike(
-                f"%{uuid_query}%", escape="\\"
-            )
+            ) | sql_cast(Submission.student_id, String).ilike(f"%{uuid_query}%", escape="\\")
             query = query.where(
                 student_match
                 if search_student_only
                 else Homework.title.ilike(f"%{escaped}%", escape="\\") | student_match
             )
-        if state == "in_progress":
+        if stuck:
+            from datetime import timedelta
+
+            from review_platform.application.workspace.insights import has_active_participant
+
+            query = query.where(
+                version.submitted_at < self.runtime.clock() - timedelta(days=3),
+                ~has_active_participant(org, current.id),
+            )
+        if state == "reviewing":
+            query = query.where(status.in_(["in_review", "ready_to_publish"]))
+        elif state == "repeat_review":
+            query = query.where(version.sequence > 1, status.in_(["in_review", "ready_to_publish"]))
+        elif state == "in_review":
+            query = query.where(
+                version.sequence <= 1, status.in_(["in_review", "ready_to_publish"])
+            )
+        elif state == "in_progress":
             query = query.where(status.not_in(["passed", "failed", "published"]))
         elif state == "completed":
             query = query.where(status.in_(["passed", "failed", "published"]))
@@ -446,7 +500,7 @@ class WorkspaceQueries:
                 if not saved.show_pool or absent:
                     query = query.where(false())
             # Absence and priorities affect recommendations only, never access.
-            if not absent and priority != "deadline":
+            if not absent and priority != "deadline" and view != "active":
                 assigned_policy = (
                     (func.coalesce(WorkspaceRunSettings.priority, "assigned") == "assigned")
                     if priority is None
@@ -467,13 +521,48 @@ class WorkspaceQueries:
         total = await self.session.scalar(
             select(func.count()).select_from(query.order_by(None).subquery())
         )
-        query = (
-            query.order_by(
-                publication_history.review_deadline, Submission.created_at, Submission.id
+        if view == "active":
+            from review_platform.application.workspace.insights import review_deadline
+
+            candidate_rows = (
+                await self.session.execute(
+                    query.with_only_columns(current.id, CourseRun.timezone)
+                    .order_by(None)
+                    .distinct()
+                )
+            ).all()
+            zones = {identity: timezone for identity, timezone in candidate_rows if identity}
+            first_events = (
+                await self.session.execute(
+                    select(
+                        ReviewResponsibility.review_iteration_id,
+                        func.min(ReviewResponsibility.occurred_at),
+                    )
+                    .where(
+                        ReviewResponsibility.organization_id == org,
+                        ReviewResponsibility.review_iteration_id.in_(zones),
+                        ReviewResponsibility.action.in_(["started", "joined"]),
+                    )
+                    .group_by(ReviewResponsibility.review_iteration_id)
+                )
+            ).all()
+            deadlines = {
+                identity: review_deadline(timestamp, zones[identity])
+                for identity, timestamp in first_events
+                if identity and timestamp
+            }
+            # Compute calendar semantics before LIMIT; page ordering matches displayed deadlines.
+            due = (
+                case(deadlines, value=current.id, else_=legacy_deadline)
+                if deadlines
+                else legacy_deadline
             )
-            .offset(offset)
-            .limit(limit)
-        )
+            query = query.order_by(due, Submission.id)
+        elif view == "pool":
+            query = query.order_by(version.submitted_at, Submission.id)
+        else:
+            query = query.order_by(legacy_deadline, Submission.created_at, Submission.id)
+        query = query.offset(offset).limit(limit)
         entries = (await self.session.execute(query)).all()
         grades = await published_grades(
             self.session, org, [entry[-1] for entry in entries if entry[-1] is not None]
@@ -497,6 +586,16 @@ class WorkspaceQueries:
             if event.action in {"started", "joined"}:
                 taken.setdefault(event.review_iteration_id, event.occurred_at)
             participants.setdefault(event.review_iteration_id, {})[event.reviewer_id] = event.action
+        staff_ids = {
+            entry[6].responsible_reviewer_id
+            for entry in entries
+            if entry[6] and entry[6].responsible_reviewer_id
+        }
+        staff_ids.update(entry[9] for entry in entries if entry[9])
+        staff = (await self.session.scalars(select(User).where(User.id.in_(staff_ids)))).all()
+        staff_names = {person.id: person.display_name for person in staff}
+        from review_platform.application.workspace.insights import review_deadline
+
         items = []
         for (
             sub,
@@ -513,10 +612,21 @@ class WorkspaceQueries:
             item_status,
             course_title,
             submission_deadline,
+            timezone,
             publication_id,
         ) in entries:
             items.append(
                 WorkItem(
+                    reviewer_name=staff_names.get(
+                        iteration.responsible_reviewer_id
+                        if iteration and iteration.responsible_reviewer_id
+                        else published_by
+                    ),
+                    updated_at=max(
+                        [sub.updated_at]
+                        + ([ver.updated_at] if ver else [])
+                        + ([iteration.updated_at] if iteration else [])
+                    ),
                     course_title=course_title,
                     submission_deadline=submission_deadline,
                     taken_at=taken.get(iteration.id) if iteration else None,
@@ -558,7 +668,9 @@ class WorkspaceQueries:
                     else None,
                     feedback=pub_revision.feedback if pub_revision else None,
                     published_by=published_by,
-                    review_deadline=deadline,
+                    review_deadline=review_deadline(taken[iteration.id], timezone)
+                    if iteration and iteration.id in taken
+                    else deadline,
                 )
             )
         return WorkList(items=items, total=total or 0, offset=offset, limit=limit)
@@ -673,7 +785,10 @@ class WorkspaceQueries:
             if snapshot
             else "Снимок работы"
         )
+        from review_platform.application.workspace.insights import decision_history
+
         return ReviewContext(
+            decision_history=await decision_history(self.session, actor.organization_id, iteration),
             submission_id=submitted.submission_id,
             latest_review_iteration_id=case.current_iteration_id,
             artifact_label=label,

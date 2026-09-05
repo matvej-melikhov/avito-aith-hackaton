@@ -6,7 +6,6 @@ import {
   ErrorBox,
   Resource,
   Status,
-  date,
   go,
   useAction,
   useResource,
@@ -102,6 +101,7 @@ function QueueSection({
   const action = useAction();
   const session = useResource(() => ws.core.session(), "reviewer-actor");
   async function open(w: W<"WorkItem">) {
+    if (!w.submission_id || !w.submission_version_id) return;
     const closed = ["published", "passed", "failed", "needs_changes"].includes(
       w.status,
     );
@@ -185,20 +185,24 @@ function QueueSection({
                               </small>
                             )}
                           </td>
-                          <td>{w.taken_at ? date(w.taken_at) : "—"}</td>
+                          <td>{w.taken_at ? queueDate(w.taken_at) : "—"}</td>
                         </>
                       ) : (
                         <>
                           <td>{w.course_title}</td>
-                          <td>{date(w.submitted_at)}</td>
+                          <td>
+                            {w.submitted_at ? queueDate(w.submitted_at) : "—"}
+                          </td>
                         </>
                       )}
                       <td>
                         {view === "active"
                           ? w.review_deadline
-                            ? date(w.review_deadline)
+                            ? queueDate(w.review_deadline)
                             : "—"
-                          : `${Math.max(0, Math.floor((Date.now() - Date.parse(w.submitted_at)) / 86400000))} дн.`}
+                          : w.submitted_at
+                            ? `${Math.max(0, Math.floor((Date.now() - Date.parse(w.submitted_at)) / 86400000))} дн.`
+                            : "—"}
                       </td>
                       <td>
                         <div className="actions">
@@ -225,6 +229,9 @@ function QueueSection({
                                 : "Начать проверку"}
                           </button>
                           {view === "active" &&
+                            w.participant_ids?.includes(
+                              session.data?.user_id ?? "",
+                            ) &&
                             w.review_iteration_id &&
                             ![
                               "published",
@@ -288,4 +295,11 @@ function QueueSection({
       </Resource>
     </Card>
   );
+}
+
+function queueDate(value: string) {
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+  });
 }

@@ -40,11 +40,20 @@ async def lock_review_scope(
     session: AsyncSession, actor: RequestActor, identity: UUID
 ) -> ReviewIteration:
     current = await row(session, ReviewIteration, actor.organization_id, identity)
-    run = await course_scope(session, actor, current.course_run_id, write=True)
-    await row(session, Course, actor.organization_id, run.course_id, lock=True)
-    await row(session, CourseRun, actor.organization_id, run.id, lock=True)
-    await row(session, ReviewCase, actor.organization_id, current.review_case_id, lock=True)
-    return await row(session, ReviewIteration, actor.organization_id, identity, lock=True)
+    await course_scope(session, actor, current.course_run_id, write=True)
+    return await lock_review_rows(session, actor.organization_id, identity)
+
+
+async def lock_review_rows(
+    session: AsyncSession, organization_id: UUID, identity: UUID
+) -> ReviewIteration:
+    """Acquire the shared lock order; callers enforce their route authorization."""
+    current = await row(session, ReviewIteration, organization_id, identity)
+    run = await row(session, CourseRun, organization_id, current.course_run_id)
+    await row(session, Course, organization_id, run.course_id, lock=True)
+    await row(session, CourseRun, organization_id, run.id, lock=True)
+    await row(session, ReviewCase, organization_id, current.review_case_id, lock=True)
+    return await row(session, ReviewIteration, organization_id, identity, lock=True)
 
 
 async def add_requirement(
@@ -143,6 +152,7 @@ async def add_requirement(
                 id=version.id,
                 organization_id=actor.organization_id,
                 revision=0,
+                allowed_sources=private.allowed_sources,
                 reviewer_guidance=private.reviewer_guidance,
                 reference_upload_id=private.reference_upload_id,
                 material_upload_ids=private.material_upload_ids,

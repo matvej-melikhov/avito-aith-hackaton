@@ -5,11 +5,53 @@ import { App } from "../src/App";
 import { ApiClient } from "../src/api/client";
 import { createDemoTransport } from "../src/mocks/transport";
 import { ids } from "../src/mocks/fixtures";
-it("opens the recommended work and requires a saved draft plus human confirmation", async () => {
+function firstDraftTransport() {
+  const demo = createDemoTransport();
+  let submitted = false;
+  return async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (
+      init?.body &&
+      JSON.parse(String(init.body)).command_name === "submit_work_draft"
+    )
+      submitted = true;
+    const response = await demo(input, init);
+    if (String(input).includes("/student-context") && !submitted) {
+      const context = await response.json();
+      return new Response(JSON.stringify({ ...context, submission_id: null }), {
+        status: response.status,
+      });
+    }
+    return response;
+  };
+}
+it("autofills the review, allows a human override, and requires saved draft plus confirmation", async () => {
   const user = userEvent.setup();
   const demo = createDemoTransport();
   const commandNames: string[] = [];
   const api = new ApiClient(async (input, init) => {
+    if (String(input).endsWith("/assist") && !init?.method)
+      return new Response(
+        JSON.stringify({
+          id: crypto.randomUUID(),
+          revision: 1,
+          status: "succeeded",
+          created_at: new Date().toISOString(),
+          error_code: null,
+          result: {
+            feedback_draft: "Предварительный отзыв",
+            suggestions: [
+              {
+                criterion_id: ids.criterion,
+                status: "suggested",
+                proposed_points: 5,
+                reason: "Предварительное обоснование",
+                confidence: "high",
+              },
+            ],
+          },
+        }),
+        { headers: { "content-type": "application/json" } },
+      );
     if (init?.body)
       commandNames.push(JSON.parse(String(init.body)).command_name);
     return demo(input, init);
@@ -20,7 +62,13 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
     name: "Сохранить черновик",
   });
   const publish = screen.getByRole("button", { name: "Зачесть" });
-  expect(save).toBeDisabled();
+  await waitFor(() => expect(save).toBeEnabled());
+  expect(
+    screen.getByLabelText("Баллы: HTTP API и обработка ошибок"),
+  ).toHaveValue(5);
+  expect(
+    screen.queryByRole("button", { name: "Принять все" }),
+  ).not.toBeInTheDocument();
   expect(publish).toBeDisabled();
   await user.clear(screen.getByLabelText("Баллы: HTTP API и обработка ошибок"));
   await user.type(
@@ -51,7 +99,7 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
 });
 it("submits the latest saved source without requiring a self-review", async () => {
   const user = userEvent.setup();
-  const demo = createDemoTransport();
+  const demo = firstDraftTransport();
   const transport = vi.fn(demo);
   const api = new ApiClient(transport);
   window.location.hash = `/submit/${ids.run}/${ids.publication}`;
@@ -158,14 +206,19 @@ it("keeps the coordinator review screen read-only even when the API permits edit
   });
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} />);
-  await screen.findByLabelText("Обоснование");
-  expect(screen.getByLabelText("Обоснование")).toBeDisabled();
+  const edit = await screen.findByRole("button", {
+    name: "Редактировать проверку",
+  });
+  expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+  expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Зачесть" }),
   ).not.toBeInTheDocument();
   expect(
-    screen.queryByRole("button", { name: "Взять в работу" }),
+    screen.queryByRole("button", { name: "Присоединиться" }),
   ).not.toBeInTheDocument();
+  await userEvent.click(edit);
+  expect(await screen.findByLabelText("Обоснование")).toBeEnabled();
 });
 it("expires a resource session once without an automatic authentication retry loop", async () => {
   const demo = createDemoTransport();
@@ -184,14 +237,17 @@ it("expires a resource session once without an automatic authentication retry lo
   );
   render(<App api={new ApiClient(transport)} />);
   await screen.findByRole("heading", { name: "Войти в рабочее пространство" });
-  expect(
-    transport.mock.calls.filter(([url]) => String(url).includes("/v2/works")),
-  ).toHaveLength(1);
+  const workRequests = transport.mock.calls
+    .map(([url]) => String(url))
+    .filter((url) => url.includes("/v2/works"));
+  // The list and sidebar counters can start together; none retries after expiry.
+  expect(workRequests.length).toBeGreaterThan(0);
+  expect(new Set(workRequests).size).toBe(workRequests.length);
 });
 
 it("prepares the first URL draft before self-review and updates server quota without submitting", async () => {
   const user = userEvent.setup();
-  const demo = createDemoTransport();
+  const demo = firstDraftTransport();
   let saved = false;
   const commandNames: string[] = [];
   const transport = vi.fn(
@@ -221,7 +277,7 @@ it("prepares the first URL draft before self-review and updates server quota wit
   window.location.hash = `/prepare/${ids.publication}`;
   render(<App api={api} />);
   const check = await screen.findByRole("button", {
-    name: "Проверить перед сдачей",
+    name: "ИИ-ревью",
   });
   expect(check).toBeEnabled();
   await user.type(
@@ -244,4 +300,62 @@ it("prepares the first URL draft before self-review and updates server quota wit
   expect(commandNames).not.toContain("submit_work_draft");
   expect(commandNames).not.toContain("submit_work");
   expect(window.location.hash).toBe(`#/prepare/${ids.publication}`);
+});
+
+it("autosaves a valid submission comment and keeps its permanent hint and action order", async () => {
+  const user = userEvent.setup();
+  const transport = vi.fn(firstDraftTransport());
+  const api = new ApiClient(transport);
+  const session = await api.session();
+  vi.spyOn(api, "session").mockResolvedValue({
+    ...session,
+    roles: ["student"],
+  });
+  window.location.hash = `/prepare/${ids.publication}`;
+  render(<App api={api} />);
+  const source = await screen.findByLabelText(
+    "Ссылка на репозиторий или Google Docs",
+  );
+  const comment = screen.getByLabelText("Комментарий к сдаче, необязательно");
+  expect(comment).toHaveAttribute("rows", "2");
+  expect(comment).not.toHaveAttribute("placeholder");
+  expect(comment).toHaveAccessibleDescription(
+    "Например: какие части делали с помощью ИИ и что дорабатывали руками",
+  );
+  await user.type(source, "https://github.com/example/comment-draft");
+  await user.type(comment, "Проверил граничные случаи вручную.");
+  await waitFor(
+    () => {
+      const drafts = transport.mock.calls
+        .filter(([, init]) => init?.body)
+        .map(([, init]) => JSON.parse(String(init!.body)))
+        .filter((command) => command.command_name === "save_work_draft");
+      expect(drafts.at(-1)?.payload.comment).toBe(
+        "Проверил граничные случаи вручную.",
+      );
+    },
+    { timeout: 3500 },
+  );
+  expect(comment).toHaveValue("Проверил граничные случаи вручную.");
+  const send = screen.getByRole("button", { name: "Отправить на ревью" });
+  const check = screen
+    .getAllByRole("button", { name: "ИИ-ревью" })
+    .find((button) => button.closest(".submission-actions__precheck"))!;
+  expect(
+    send.compareDocumentPosition(check) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+  expect(check.closest(".submission-actions__precheck")).toHaveTextContent(
+    "Результат ИИ-ревью видит ревьюер",
+  );
+  await waitFor(() => expect(check).toBeEnabled());
+  await user.click(check);
+  await screen.findAllByText(
+    "Можно отправить работу сейчас или сначала внести правки. Решение принимает ревьюер.",
+    {},
+    { timeout: 5000 },
+  );
+  expect(comment).toHaveValue("Проверил граничные случаи вручную.");
+  expect(
+    screen.getByLabelText("Ссылка на репозиторий или Google Docs"),
+  ).toHaveValue("https://github.com/example/comment-draft");
 });

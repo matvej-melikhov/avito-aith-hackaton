@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     environment: str = "test"
     contract_version: str = "1.1.0"
     live_providers_enabled: bool = False
+    workspace_public_base_url: str | None = None
     workspace_enabled: bool = False
     workspace_fixtures: bool = False
     workspace_ai_url: str | None = None

@@ -1,18 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
-import {
-  Card,
-  Resource,
-  Status,
-  date,
-  go,
-  useAction,
-  useResource,
-} from "../ui";
+import { Card, Resource, date, go, useAction, useResource } from "../ui";
 import { Quota, SelfReviewResult, useDirtyGuard } from "../workspace-ui";
 import { ArtifactLink } from "./WorkspaceReview";
-import { PublishedStudentReview } from "./WorkspaceSubmissionDetail";
+import {
+  PublishedStudentReview,
+  newestSelfReviews,
+  SubmittedStudentWork,
+} from "./WorkspaceSubmissionDetail";
 
 type StudentContext = W<"StudentContext">;
 export function WorkspaceSubmit({
@@ -43,12 +39,36 @@ function DraftForm({
   session: Model<"Session">;
 }) {
   const [data, setData] = useState(initial);
+  const commentHintId = useId();
   const [url, setUrl] = useState(initial.draft?.artifact_url ?? "");
   const [comment, setComment] = useState(initial.draft?.comment ?? "");
   const [file, setFile] = useState<File>();
-  const [source, setSource] = useState<"url" | "file">(
+  const [selectedSource, setSource] = useState<"url" | "file">(
     initial.draft?.upload_id ? "file" : "url",
   );
+  const allowedSources = data.allowed_sources ?? [
+    "upload",
+    "github",
+    "google_docs",
+  ];
+  const canFile = allowedSources.includes("upload");
+  const canGitHub = allowedSources.includes("github");
+  const canDocs = allowedSources.includes("google_docs");
+  const canLink = canGitHub || canDocs;
+  const source =
+    selectedSource === "file"
+      ? canFile
+        ? "file"
+        : "url"
+      : canLink
+        ? "url"
+        : "file";
+  const sourceLabel =
+    canGitHub && canDocs
+      ? "Ссылка на репозиторий или Google Docs"
+      : canGitHub
+        ? "Ссылка на репозиторий GitHub"
+        : "Ссылка на Google Docs";
   const [saved, setSaved] = useState(initial.draft);
   const [dirty, setDirty] = useState(false);
   const [run, setRun] = useState(initial.quota?.active_run_id ?? undefined);
@@ -59,9 +79,19 @@ function DraftForm({
       !!initial.quota?.active_run_id,
   );
   const [stage, setStage] = useState("");
+  const [rubricCollapsed, setRubricCollapsed] = useState(false);
   const [reviewTab, setReviewTab] = useState<"ai" | "human">(
     initial.submission_id ? "human" : "ai",
   );
+  useEffect(() => {
+    if (
+      (selectedSource === "file" && !canFile && canLink) ||
+      (selectedSource === "url" && !canLink && canFile)
+    ) {
+      setSource(canLink ? "url" : "file");
+      setDirty(true);
+    }
+  }, [selectedSource, canFile, canLink]);
   const action = useAction();
   const mounted = useRef(true);
   useEffect(() => {
@@ -77,11 +107,31 @@ function DraftForm({
   const current = history.data?.reviews.find(
     (v) => v.id === history.data?.current_publication_id,
   );
-  const revision = current?.decision === "needs_changes";
-  const activeResult = result ?? data.self_reviews.at(-1);
+  const latestAttempt = history.data?.attempts.at(-1);
+  const revision =
+    current?.decision === "needs_changes" &&
+    current.submission_version_id === latestAttempt?.id;
+  const canSubmit =
+    !data.submission_id ||
+    (!history.loading && !history.error && (!latestAttempt || revision));
+  const submittedStatus = latestAttempt
+    ? latestAttempt.status === "passed"
+      ? "Зачтена"
+      : latestAttempt.status === "failed"
+        ? "Не зачтена"
+        : latestAttempt.sequence > 1
+          ? "На повторном ревью"
+          : "На ревью"
+    : "Черновик";
+  const selfReviews = newestSelfReviews([
+    ...data.self_reviews.filter((value) => value.id !== result?.id),
+    ...(result ? [result] : []),
+  ]);
+  const activeResult = selfReviews[0];
   useDirtyGuard(dirty);
-  async function save() {
-    let uploadId = saved?.upload_id ?? null;
+  function validateSource() {
+    if (!canFile && !canLink)
+      throw new Error("Для задания не настроены способы сдачи.");
     if (source === "url") {
       let parsed: URL;
       try {
@@ -89,9 +139,23 @@ function DraftForm({
       } catch {
         throw new Error("Укажите полную ссылку на работу.");
       }
-      if (!["http:", "https:"].includes(parsed.protocol))
-        throw new Error("Нужна ссылка HTTP или HTTPS.");
+      if (parsed.protocol !== "https:") throw new Error("Нужна ссылка HTTPS.");
+      if (
+        !(canGitHub && parsed.hostname === "github.com") &&
+        !(canDocs && parsed.hostname === "docs.google.com")
+      )
+        throw new Error(
+          `Для этого задания доступна: ${sourceLabel.toLowerCase()}.`,
+        );
     }
+  }
+  async function save() {
+    if (!canSubmit)
+      throw new Error(
+        "Новая сдача доступна после возврата работы на доработку.",
+      );
+    validateSource();
+    let uploadId = saved?.upload_id ?? null;
     if (source === "file" && file)
       uploadId = (await uploadFile(ws, file, session.user_id)).id;
     if (source === "file" && !uploadId) throw new Error("Выберите файл.");
@@ -115,7 +179,7 @@ function DraftForm({
     return draft;
   }
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty || !canSubmit) return;
     if (source === "url") {
       try {
         const parsed = new URL(url);
@@ -130,8 +194,13 @@ function DraftForm({
       });
     }, 1200);
     return () => clearTimeout(timer);
-  }, [dirty, url, comment, file, source]);
+  }, [dirty, url, comment, file, source, canSubmit]);
   async function prepare() {
+    if (!canSubmit)
+      throw new Error(
+        "Новая сдача доступна после возврата работы на доработку.",
+      );
+    validateSource();
     const draft = dirty || !saved ? await save() : saved;
     setStage("Проверяем доступ и сохраняем снимок работы…");
     let preparation = await ws.command(
@@ -195,7 +264,11 @@ function DraftForm({
                 {revision ? "Прислать исправления до" : "Сдать до"}
               </span>
               <span>
-                {date(current?.revision_deadline ?? data.submission_deadline)}
+                {date(
+                  revision
+                    ? (current?.revision_deadline ?? data.submission_deadline)
+                    : data.submission_deadline,
+                )}
               </span>
             </div>
             {data.max_score !== undefined && (
@@ -210,7 +283,16 @@ function DraftForm({
                 </span>
               </div>
             )}
-            {revision && <Status value="needs_changes" />}
+            {(latestAttempt || revision || activeResult || run) && (
+              <div>
+                <span className="caption">Статус</span>
+                <span
+                  style={{ color: revision ? "var(--late)" : "var(--ink)" }}
+                >
+                  {revision ? "Нужны правки" : submittedStatus}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -218,26 +300,26 @@ function DraftForm({
       {history.error && <Resource value={history}>{null}</Resource>}
       <div className="student-grid">
         <div className="stack">
-          <Card
-            title="Задание"
-            actions={
+          <section className="card">
+            <div className="card-head card__head">
+              <h2>Задание</h2>
               <button
+                className="btn btn--s btn--link"
                 aria-expanded={!collapsed}
-                onClick={() => setCollapsed((v) => !v)}
+                onClick={() => setCollapsed((value) => !value)}
               >
                 {collapsed ? "Развернуть" : "Свернуть"}
               </button>
-            }
-          >
+            </div>
             {!collapsed && (
-              <>
+              <div className="card-body card__body">
                 <p className="preserve">{data.student_text}</p>
                 {(data.material_upload_ids ?? []).map((id) => (
                   <ArtifactLink key={id} ws={ws} id={id} />
                 ))}
-              </>
+              </div>
             )}
-          </Card>
+          </section>
           {(run || activeResult || history.data?.attempts.length) && (
             <section className="card student-review-tabs">
               <div
@@ -260,20 +342,6 @@ function DraftForm({
               <div className="card-body">
                 {reviewTab === "ai" ? (
                   <>
-                    {data.self_reviews
-                      .filter(
-                        (value) =>
-                          value.id !== run &&
-                          (!!run || value.id !== activeResult?.id),
-                      )
-                      .map((value) => (
-                        <details className="acc" key={value.id}>
-                          <summary className="acc__h">
-                            Проверка от {date(value.created_at)}
-                          </summary>
-                          <SelfReviewResult value={value} />
-                        </details>
-                      ))}
                     {run ? (
                       <details className="acc" open>
                         <summary className="acc__h">Текущая проверка</summary>
@@ -307,11 +375,28 @@ function DraftForm({
                             к сохранённому снимку.
                           </p>
                         )}
-                        <SelfReviewResult value={activeResult} />
+                        <SelfReviewResult
+                          showHeading={false}
+                          value={activeResult}
+                        />
                       </details>
                     ) : (
                       <p>Самопроверка не запускалась.</p>
                     )}
+                    {selfReviews
+                      .filter(
+                        (value) =>
+                          value.id !== run &&
+                          (!!run || value.id !== activeResult?.id),
+                      )
+                      .map((value) => (
+                        <details className="acc" key={value.id}>
+                          <summary className="acc__h">
+                            Проверка от {date(value.created_at)}
+                          </summary>
+                          <SelfReviewResult showHeading={false} value={value} />
+                        </details>
+                      ))}
                   </>
                 ) : history.data?.attempts.length ? (
                   history.data.attempts.map((attempt, index) => {
@@ -335,6 +420,7 @@ function DraftForm({
                           )}
                         </summary>
                         <div style={{ paddingBottom: "var(--s-4)" }}>
+                          <SubmittedStudentWork ws={ws} attempt={attempt} />
                           {latest ? (
                             <PublishedStudentReview value={latest} />
                           ) : (
@@ -368,41 +454,55 @@ function DraftForm({
             </section>
           )}
           <Card
-            title={revision ? "Исправленная версия" : "Ваша работа"}
+            title={revision ? "Исправленная работа" : "Ваша работа"}
+            headClassName="submission-head"
+            bodyClassName="card__body--compact"
             actions={
-              <div className="actions">
-                <button
-                  disabled={action.busy}
-                  aria-pressed={source === "url"}
-                  onClick={() => {
-                    setSource("url");
-                    setDirty(true);
-                  }}
-                >
-                  Ссылка
-                </button>
-                <button
-                  disabled={action.busy}
-                  aria-pressed={source === "file"}
-                  onClick={() => {
-                    setSource("file");
-                    setDirty(true);
-                  }}
-                >
-                  Файлы
-                </button>
+              <div className="seg">
+                {canLink && (
+                  <button
+                    disabled={action.busy || !canSubmit}
+                    aria-pressed={source === "url"}
+                    className={source === "url" ? "is-on" : undefined}
+                    onClick={() => {
+                      setSource("url");
+                      setDirty(true);
+                    }}
+                  >
+                    Ссылка
+                  </button>
+                )}
+                {canFile && (
+                  <button
+                    disabled={action.busy || !canSubmit}
+                    aria-pressed={source === "file"}
+                    className={source === "file" ? "is-on" : undefined}
+                    onClick={() => {
+                      setSource("file");
+                      setDirty(true);
+                    }}
+                  >
+                    Файлы
+                  </button>
+                )}
               </div>
             }
           >
-            <fieldset disabled={action.busy}>
-              {source === "url" ? (
+            <fieldset disabled={action.busy || !canSubmit}>
+              {!canFile && !canLink ? (
+                <p>Для задания не настроены способы сдачи.</p>
+              ) : source === "url" ? (
                 <label>
-                  Ссылка на репозиторий или Google Docs
+                  {sourceLabel}
                   <input
                     type="url"
-                    aria-label="Ссылка на репозиторий или Google Docs"
+                    aria-label={sourceLabel}
                     value={url}
-                    placeholder="https://github.com/username/project"
+                    placeholder={
+                      canGitHub
+                        ? "https://github.com/username/project"
+                        : "https://docs.google.com/document/d/..."
+                    }
                     onChange={(e) => {
                       setUrl(e.target.value);
                       setDirty(true);
@@ -432,13 +532,20 @@ function DraftForm({
               <label>
                 Комментарий к сдаче, необязательно
                 <textarea
+                  className="inp inp--area submission-comment"
+                  rows={2}
+                  aria-label="Комментарий к сдаче, необязательно"
+                  aria-describedby={commentHintId}
                   value={comment}
-                  placeholder="Что доработали и что стоит учесть при проверке"
                   onChange={(e) => {
                     setComment(e.target.value);
                     setDirty(true);
                   }}
                 />
+                <span className="field__hint" id={commentHintId}>
+                  Например: какие части делали с помощью ИИ и что дорабатывали
+                  руками
+                </span>
               </label>
               <small>
                 {dirty
@@ -449,10 +556,16 @@ function DraftForm({
               </small>
             </fieldset>
             <div className="student-form-actions">
-              <div className="actions">
+              {!canSubmit && !history.loading && (
+                <p className="caption">
+                  Работа уже отправлена. Новую версию можно отправить после
+                  возврата на доработку.
+                </p>
+              )}
+              <div className="submission-actions">
                 <button
                   className="primary"
-                  disabled={action.busy}
+                  disabled={action.busy || !canSubmit || (!canFile && !canLink)}
                   onClick={() =>
                     void action.run(async () => {
                       try {
@@ -463,76 +576,97 @@ function DraftForm({
                     })
                   }
                 >
-                  {revision
-                    ? "Отправить исправленную версию"
-                    : "Отправить на ревью"}
+                  {revision ? "Отправить исправления" : "Отправить на ревью"}
                 </button>
-                <button
-                  disabled={
-                    action.busy ||
-                    (data.quota
-                      ? data.quota.remaining === 0
-                      : !data.policy || data.policy.self_review_limit === 0) ||
-                    !!run
-                  }
-                  onClick={() =>
-                    void action.run(async () => {
-                      try {
-                        const d = await prepare();
-                        if (!d) return;
-                        setStage("Запускаем самопроверку…");
-                        const started = await ws.command(
-                          "start_self_review",
-                          d.id,
-                          d.revision,
-                          {},
-                        );
-                        setReviewTab("ai");
-                        setCollapsed(true);
-                        setRun(started.id);
-                        setResult(started);
-                      } finally {
-                        setStage("");
-                      }
-                    })
-                  }
-                >
-                  {activeResult
-                    ? "Проверить повторно"
-                    : "Проверить перед сдачей"}
-                </button>
+                <div className="submission-actions__precheck">
+                  <button
+                    disabled={
+                      action.busy ||
+                      !canSubmit ||
+                      (!canFile && !canLink) ||
+                      (data.quota
+                        ? data.quota.remaining === 0
+                        : !data.policy ||
+                          data.policy.self_review_limit === 0) ||
+                      !!run
+                    }
+                    onClick={() =>
+                      void action.run(async () => {
+                        try {
+                          const d = await prepare();
+                          if (!d) return;
+                          setStage("Запускаем самопроверку…");
+                          const started = await ws.command(
+                            "start_self_review",
+                            d.id,
+                            d.revision,
+                            {},
+                          );
+                          setReviewTab("ai");
+                          setCollapsed(true);
+                          setRun(started.id);
+                          setResult(started);
+                        } finally {
+                          setStage("");
+                        }
+                      })
+                    }
+                  >
+                    ИИ-ревью
+                  </button>
+                  <div className="caption">
+                    Результат ИИ-ревью видит ревьюер и учитывает при оценке.
+                    Самопроверка необязательна.{" "}
+                    {data.quota || !data.policy ? (
+                      <Quota
+                        compact
+                        value={run ? (result?.quota ?? data.quota) : data.quota}
+                      />
+                    ) : (
+                      <span>
+                        Доступные попытки уточнятся после сохранения работы.
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               {stage && <p role="status">{stage}</p>}
-              {!run &&
-                (data.quota || !data.policy ? (
-                  <Quota value={data.quota} />
-                ) : (
-                  <p className="caption">
-                    Доступные попытки уточнятся после сохранения работы.
-                  </p>
-                ))}
-              <p className="muted">
-                Самопроверка необязательна. Результат и число запусков видит
-                ревьюер. Оценку выставляет человек.
-              </p>
             </div>
           </Card>
         </div>
         <aside className="stack">
-          <Card title="Что будут проверять">
-            {data.criteria.map((c) => (
-              <div className="rubric-row" key={c.id}>
-                <span>{c.title}</span>
-                {"max_points" in c && typeof c.max_points === "number" && (
-                  <span className="points">{c.max_points} б.</span>
+          <Card
+            title="Что будут проверять"
+            bodyClassName="card__body--tight"
+            actions={
+              <button
+                className="btn btn--s btn--link"
+                aria-expanded={!rubricCollapsed}
+                onClick={() => setRubricCollapsed((value) => !value)}
+              >
+                {rubricCollapsed ? "Развернуть" : "Свернуть"}
+              </button>
+            }
+          >
+            {!rubricCollapsed && (
+              <>
+                {data.criteria.map((c) => (
+                  <div className="rubric-row" key={c.id}>
+                    <span>{c.title}</span>
+                    {"max_points" in c && typeof c.max_points === "number" && (
+                      <span className="pill pill--mono">
+                        {c.max_points.toLocaleString("ru-RU")} б.
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {data.max_score !== undefined && (
+                  <div className="rubric-row">
+                    <span>Всего</span>
+                    <span className="points">{data.max_score} баллов</span>
+                  </div>
                 )}
-              </div>
-            ))}
-            {data.max_score !== undefined && (
-              <div className="rubric-row">
-                <span>Всего</span>
-                <span className="points">{data.max_score} баллов</span>
-              </div>
+              </>
             )}
           </Card>
           {data.policy && data.policy.penalty_per_day > 0 && (
@@ -574,8 +708,7 @@ function StudentSelfReview({
       <Resource value={r}>
         {r.data && (
           <>
-            <Quota value={r.data.quota} />
-            <SelfReviewResult value={r.data} />
+            <SelfReviewResult showHeading={false} value={r.data} />
           </>
         )}
       </Resource>

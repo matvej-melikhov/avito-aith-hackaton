@@ -20,8 +20,13 @@
 - [x] P18 Scoped CSV/XLSX export with browser-safe filenames.
 - [x] P19 End-to-end scenarios and browser QA across all roles and screen states.
 - [x] P20 AI handoff package; external component compatibility remains an external gate.
+- [ ] P21 Resolve the design-pack auto-enrollment rule versus the agreed imported/admitted-student rule. No enrollment authority was silently expanded.
 
-## Implementation checkpoint — 2026-09-05
+## Current acceptance — f44e570
+
+The current design baseline is `f44e57095ec9241056ea5348fd4fcdff505b43fc`. See [acceptance.md](acceptance.md) and its screenshot/measurement manifest for the current evidence and explicit limitations. The full backend regression now passes: **907 passed, 9 gated skips**. Screen coverage distinguishes real local-server states from intercepted read-only C1/C3 design fixtures. P21 remains an unresolved product decision, so this is not an unconditional claim that every behavior described in the design pack is complete.
+
+## Earlier checkpoint — superseded by the acceptance above
 
 Implementation is in the `backend` checkout. The frontend follows the design pack from `matvej` at `e473d01464975f3d9b5739e26b19d4b9499a8699` and the screen flows, with the agreed authentication, numeric scoring and nonexclusive review changes. The updated pack includes repeated-review, search and course-directory states in addition to the original 19-screen matrix.
 

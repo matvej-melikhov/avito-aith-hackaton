@@ -15,9 +15,13 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
   const homeworks = result?.homeworks ?? [];
   const destinations = [
     ...students.map((work) =>
-      work.review_iteration_id
+      work.submission_id &&
+      work.review_iteration_id &&
+      work.review_submission_version_id === work.submission_version_id
         ? `#/reviews/${work.review_iteration_id}`
-        : `#/submissions/${work.submission_id}`,
+        : work.submission_id
+          ? `#/submissions/${work.submission_id}`
+          : `#/registry?run=${work.course_run_id}&draft=${work.draft_id}`,
     ),
     ...homeworks.map(
       (homework) => `#/homework/${homework.id}?run=${homework.course_run_id}`,
@@ -131,7 +135,7 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
             <a
               className={`pop__row ${selected === index ? "is-on" : ""}`}
               href={destinations[index]}
-              key={work.submission_id}
+              key={work.submission_id ?? work.draft_id}
               onMouseEnter={() => setSelected(index)}
               onClick={() => setOpen(false)}
             >

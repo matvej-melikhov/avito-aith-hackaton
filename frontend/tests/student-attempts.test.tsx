@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { ApiClient } from "../src/api/client";
 import { WorkspaceClient } from "../src/api/workspace";
 import { ids } from "../src/mocks/fixtures";
@@ -8,6 +8,10 @@ import { createDemoTransport } from "../src/mocks/transport";
 import { WorkspaceSubmissionDetail } from "../src/pages/WorkspaceSubmissionDetail";
 
 it("shows the immutable artifact and comment inside every submission attempt", async () => {
+  const objectUrl = `blob:${window.location.origin}/${crypto.randomUUID()}`;
+  const createObjectURL = vi
+    .spyOn(URL, "createObjectURL")
+    .mockReturnValue(objectUrl);
   const api = new ApiClient(createDemoTransport());
   const ws = new WorkspaceClient(api);
   const draft = await ws.command("save_work_draft", ids.publication, 0, {
@@ -33,4 +37,9 @@ it("shows the immutable artifact and comment inside every submission attempt", a
 
   await userEvent.setup().click(screen.getByText(/^Попытка 1,/));
   expect(await screen.findByRole("link", { name: "work.md ↗" })).toBeVisible();
+  expect(screen.getByRole("link", { name: "attempt-2.md ↗" })).toHaveAttribute(
+    "href",
+    objectUrl,
+  );
+  createObjectURL.mockRestore();
 });

@@ -25,6 +25,7 @@ from review_platform.application.workspace.ports import (
     ArtifactPreparer,
     DefinitivePreparationFailure,
 )
+from review_platform.application.workspace.source_policy import require_publication_source
 from review_platform.contracts.workspace import PreparationView
 from review_platform.infrastructure.db.models import (
     CourseMembership,
@@ -54,6 +55,9 @@ class PreparationService:
         await course_scope(self.session, actor, publication.course_run_id, write=True)
         draft = await row(self.session, WorkDraft, actor.organization_id, identity, lock=True)
         revision(draft.revision, expected)
+        await require_publication_source(
+            self.session, publication, draft.artifact_url, draft.upload_id
+        )
         if not publication.current_publication_id:
             raise WorkspaceFailure("not_published", "Задание ещё не опубликовано.")
         current = await self.session.scalar(
@@ -113,6 +117,8 @@ class PreparationService:
 
 
 async def prepared_artifact(session: AsyncSession, draft: WorkDraft) -> UUID:
+    publication = await row(session, CourseRunHomework, draft.organization_id, draft.publication_id)
+    await require_publication_source(session, publication, draft.artifact_url, draft.upload_id)
     if draft.upload_id:
         return draft.upload_id
     value = await session.scalar(
@@ -180,6 +186,13 @@ class PreparationWorker:
             )
             if membership is None or "student" not in membership.roles or not enrolled:
                 value.status, value.error_code = "failed", "access_revoked"
+                return True
+            try:
+                await require_publication_source(
+                    session, publication, source, None
+                )
+            except WorkspaceFailure as error:
+                value.status, value.error_code = "failed", error.code
                 return True
             membership_revision, auth_epoch, run_id = (
                 membership.revision,

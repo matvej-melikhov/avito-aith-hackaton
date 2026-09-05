@@ -176,6 +176,7 @@ class StudentReviewerAssignment(TenantEntityMixin, RevisionMixin, TimestampMixin
 
 
 class HomeworkPrivateDetails(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
+    allowed_sources: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     criterion_settings: Mapped[dict[str, JsonValue] | None] = mapped_column(JSON, nullable=True)
     material_upload_ids: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     __tablename__ = "homework_private_details"

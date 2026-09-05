@@ -1,0 +1,426 @@
+{
+  "captured_at": "2026-09-05T18:02:04.224Z",
+  "backend_mutations": [],
+  "note": "No fixture work mutations. Cookies and session contents excluded. FIXTURE screenshots override read responses only; actual snapshots use live local fixture server.",
+  "cases": [
+    {
+      "name": "FIXTURE-C1",
+      "route": "prepare/7782054e-15f3-5dc9-967f-d181b77ae7d3",
+      "override": "C1",
+      "scope": "intercepted read-only design state",
+      "transformations": [
+        {
+          "endpoint": "/api/v2/course-run-homeworks/7782054e-15f3-5dc9-967f-d181b77ae7d3/student-context",
+          "fields": {
+            "submission_id": null,
+            "draft": null,
+            "self_reviews": [],
+            "quota": "preserve identity; limit=publication policy limit, used=0,reserved=0,remaining=limit,active_run_id=null"
+          }
+        }
+      ],
+      "errors": [],
+      "records": [
+        {
+          "screenshot": "student-FIXTURE-C1-1600.png",
+          "viewport": 1600,
+          "documentWidth": 1600,
+          "mainX": 0,
+          "headingX": 160,
+          "gridX": 160,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 882,
+              "disabled": false,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить на ревью",
+              "disabled": false,
+              "x": 181,
+              "right": 373.171875
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": false,
+              "x": 397.171875,
+              "right": 514.125
+            }
+          ],
+          "hasSentWork": false
+        },
+        {
+          "screenshot": "student-FIXTURE-C1-760.png",
+          "viewport": 760,
+          "documentWidth": 760,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 686,
+              "disabled": false,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить на ревью",
+              "disabled": false,
+              "x": 37,
+              "right": 229.171875
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": false,
+              "x": 253.171875,
+              "right": 370.125
+            }
+          ],
+          "hasSentWork": false
+        },
+        {
+          "screenshot": "student-FIXTURE-C1-320.png",
+          "viewport": 320,
+          "documentWidth": 320,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 246,
+              "disabled": false,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить на ревью",
+              "disabled": false,
+              "x": 37,
+              "right": 229.171875
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": false,
+              "x": 37,
+              "right": 153.953125
+            }
+          ],
+          "hasSentWork": false
+        }
+      ]
+    },
+    {
+      "name": "FIXTURE-C3",
+      "route": "prepare/7782054e-15f3-5dc9-967f-d181b77ae7d3",
+      "override": "C3",
+      "scope": "intercepted read-only design state",
+      "transformations": [
+        {
+          "endpoint": "/api/v2/submissions/01a07191-3c35-771e-8bd6-9ade1822c7ab",
+          "fields": {
+            "attempts": "filter to current published needs_changes submission_version_id 01a07191-3c3c-7b02-8cd9-16c3071ed127"
+          },
+          "preserved": "Published review, score, criterion descriptions, artifact, comment, draft, quota are original local server data."
+        }
+      ],
+      "errors": [],
+      "records": [
+        {
+          "screenshot": "student-FIXTURE-C3-1600.png",
+          "viewport": 1600,
+          "documentWidth": 1600,
+          "mainX": 0,
+          "headingX": 160,
+          "gridX": 160,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 882,
+              "disabled": false,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить исправления",
+              "disabled": false,
+              "x": 181,
+              "right": 401.09375
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": true,
+              "x": 425.09375,
+              "right": 542.046875
+            }
+          ],
+          "hasSentWork": true
+        },
+        {
+          "screenshot": "student-FIXTURE-C3-760.png",
+          "viewport": 760,
+          "documentWidth": 760,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 686,
+              "disabled": false,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить исправления",
+              "disabled": false,
+              "x": 37,
+              "right": 257.09375
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": true,
+              "x": 281.09375,
+              "right": 398.046875
+            }
+          ],
+          "hasSentWork": true
+        },
+        {
+          "screenshot": "student-FIXTURE-C3-320.png",
+          "viewport": 320,
+          "documentWidth": 320,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 246,
+              "disabled": false,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить исправления",
+              "disabled": false,
+              "x": 37,
+              "right": 257.09375
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": true,
+              "x": 37,
+              "right": 153.953125
+            }
+          ],
+          "hasSentWork": true
+        }
+      ]
+    },
+    {
+      "name": "ACTUAL-C2-result-panel",
+      "route": "prepare/7782054e-15f3-5dc9-967f-d181b77ae7d3",
+      "ai": true,
+      "scope": "actual local fixture server state",
+      "transformations": [],
+      "errors": [],
+      "records": [
+        {
+          "screenshot": "student-ACTUAL-C2-result-panel-1600.png",
+          "viewport": 1600,
+          "documentWidth": 1600,
+          "mainX": 0,
+          "headingX": 160,
+          "gridX": 160,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 882,
+              "disabled": true,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить на ревью",
+              "disabled": true,
+              "x": 181,
+              "right": 373.171875
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": true,
+              "x": 397.171875,
+              "right": 514.125
+            }
+          ],
+          "hasSentWork": false
+        },
+        {
+          "screenshot": "student-ACTUAL-C2-result-panel-760.png",
+          "viewport": 760,
+          "documentWidth": 760,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 686,
+              "disabled": true,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить на ревью",
+              "disabled": true,
+              "x": 37,
+              "right": 229.171875
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": true,
+              "x": 253.171875,
+              "right": 370.125
+            }
+          ],
+          "hasSentWork": false
+        },
+        {
+          "screenshot": "student-ACTUAL-C2-result-panel-320.png",
+          "viewport": 320,
+          "documentWidth": 320,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "bandX": 0,
+          "textarea": [
+            {
+              "rows": 2,
+              "width": 246,
+              "disabled": true,
+              "hint": "Например: какие части делали с помощью ИИ и что дорабатывали руками"
+            }
+          ],
+          "actions": [
+            {
+              "label": "Отправить на ревью",
+              "disabled": true,
+              "x": 37,
+              "right": 229.171875
+            },
+            {
+              "label": "ИИ-ревью",
+              "disabled": true,
+              "x": 37,
+              "right": 153.953125
+            }
+          ],
+          "hasSentWork": false
+        }
+      ],
+      "note": "Existing consumed self-review panel; surrounding current work is pending resubmission, not pristine C2."
+    },
+    {
+      "name": "ACTUAL-C4",
+      "route": "works",
+      "scope": "actual local fixture server state",
+      "transformations": [],
+      "errors": [],
+      "records": [
+        {
+          "screenshot": "student-ACTUAL-C4-1600.png",
+          "viewport": 1600,
+          "documentWidth": 1600,
+          "mainX": 0,
+          "headingX": 28,
+          "textarea": [],
+          "actions": [],
+          "hasSentWork": false
+        },
+        {
+          "screenshot": "student-ACTUAL-C4-760.png",
+          "viewport": 760,
+          "documentWidth": 760,
+          "mainX": 0,
+          "headingX": 16,
+          "textarea": [],
+          "actions": [],
+          "hasSentWork": false
+        },
+        {
+          "screenshot": "student-ACTUAL-C4-320.png",
+          "viewport": 320,
+          "documentWidth": 320,
+          "mainX": 0,
+          "headingX": 16,
+          "textarea": [],
+          "actions": [],
+          "hasSentWork": false
+        }
+      ]
+    },
+    {
+      "name": "ACTUAL-C5",
+      "route": "submissions/01a07191-3c35-771e-8bd6-9ade1822c7ab",
+      "scope": "actual local fixture server state",
+      "transformations": [],
+      "errors": [],
+      "records": [
+        {
+          "screenshot": "student-ACTUAL-C5-1600.png",
+          "viewport": 1600,
+          "documentWidth": 1600,
+          "mainX": 0,
+          "headingX": 28,
+          "gridX": 28,
+          "textarea": [],
+          "actions": [],
+          "hasSentWork": true
+        },
+        {
+          "screenshot": "student-ACTUAL-C5-760.png",
+          "viewport": 760,
+          "documentWidth": 760,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "textarea": [],
+          "actions": [],
+          "hasSentWork": true
+        },
+        {
+          "screenshot": "student-ACTUAL-C5-320.png",
+          "viewport": 320,
+          "documentWidth": 320,
+          "mainX": 0,
+          "headingX": 16,
+          "gridX": 16,
+          "textarea": [],
+          "actions": [],
+          "hasSentWork": true
+        }
+      ],
+      "note": "Latest attempt pending; historical published decision preserved in collapsed previous attempt."
+    }
+  ]
+}

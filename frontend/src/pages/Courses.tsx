@@ -137,9 +137,9 @@ export function CoursePage({
             </div>
           </div>
           {action.feedback}
-          <Card title="Задания">
+          <Card title="Задания" bodyClassName="card__body--flush">
             <div className="table-wrap">
-              <table>
+              <table className="tbl">
                 <thead>
                   <tr>
                     <th>Задание</th>

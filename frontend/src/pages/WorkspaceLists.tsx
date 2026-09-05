@@ -1,6 +1,6 @@
 import { StudentWorks } from "./StudentWorks";
 import { ReviewerQueue } from "./ReviewerQueue";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Role } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import {
@@ -44,186 +44,365 @@ function WorksList({
   const [search, setSearch] = useState(initial.get("q") ?? "");
   const [run, setRun] = useState(initial.get("run") ?? "");
   const [state, setState] = useState(initial.get("state") ?? "");
+  const [homeworkId, setHomeworkId] = useState(initial.get("homework") ?? "");
   const [offset, setOffset] = useState(0);
+  const [stuck, setStuck] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [reminding, setReminding] = useState(false);
+  const [draftPreview, setDraftPreview] = useState<W<"WorkItem">>();
   const params = {
     q: search,
     course_run_id: run || undefined,
+    homework_id: homeworkId || undefined,
     state:
       coordinatorPool &&
       !["pending_review", "in_review", "ready_to_publish"].includes(state)
         ? ""
         : state,
     view: coordinatorPool ? "pool" : "all",
+    stuck: coordinatorPool && stuck ? "true" : undefined,
     offset,
     limit: 20,
   };
   const r = useResource(() => ws.works(params), JSON.stringify(params));
+  const draftFromLink = initial.get("draft");
+  useEffect(() => {
+    if (draftFromLink && r.data)
+      setDraftPreview(
+        r.data.items.find((work) => work.draft_id === draftFromLink),
+      );
+  }, [draftFromLink, r.data]);
   const catalog = useResource(() => ws.catalog(), "catalog");
-  const action = useAction();
+  useEffect(() => {
+    if (!run && catalog.data?.course_runs.length)
+      setRun(
+        catalog.data.course_runs.find((value) => value.status === "active")
+          ?.id ?? catalog.data.course_runs[0].id,
+      );
+  }, [run, catalog.data]);
+  const insights = useResource(
+    () =>
+      run ? ws.insights(run, homeworkId || undefined) : Promise.resolve(null),
+    `${run}:${homeworkId}`,
+  );
+  const homeworks = useResource(async () => {
+    if (!run) return null;
+    const selected = (await ws.catalog()).course_runs.find(
+      (value) => value.id === run,
+    );
+    return selected ? ws.courseHomeworks(selected.course_id) : null;
+  }, run);
   const close = useCallback(() => {
     setExporting(false);
     setReminding(false);
+    setDraftPreview(undefined);
   }, []);
-  async function open(work: W<"WorkItem">) {
+  const selectedRun = catalog.data?.course_runs.find(
+    (value) => value.id === run,
+  );
+  const courseTitle = catalog.data?.courses.find(
+    (value) => value.id === selectedRun?.course_id,
+  )?.title;
+  const homeworkFilter = (
+    <select
+      className="btn btn--s btn--quiet"
+      aria-label="Задание"
+      disabled={!run}
+      value={homeworkId}
+      onChange={(event) => {
+        setHomeworkId(event.target.value);
+        setOffset(0);
+      }}
+    >
+      <option value="">Задание: все</option>
+      {homeworks.data?.items.map((item) => (
+        <option key={item.id} value={item.id}>
+          {item.title}
+        </option>
+      ))}
+    </select>
+  );
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSearch(query);
+      setOffset(0);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+  function open(work: W<"WorkItem">) {
+    if (!work.submission_id) {
+      setDraftPreview(work);
+      return;
+    }
     if (
       work.review_iteration_id &&
       work.review_submission_version_id === work.submission_version_id
-    ) {
+    )
       go(`/reviews/${work.review_iteration_id}`);
-      return;
-    }
-    if (!work.submission_version_id) {
-      go(`/submissions/${work.submission_id}`);
-      return;
-    }
-    const result = await ws.command(
-      "open_work",
-      work.submission_id,
-      work.submission_revision,
-      { submission_version_id: work.submission_version_id },
-    );
-    go(`/reviews/${result.id}`);
+    else go(`/submissions/${work.submission_id}`);
   }
   return (
     <>
       <ScreenTitle
         code={coordinatorPool ? "К7" : "К8"}
-        title={coordinatorPool ? "Пул проверок" : "Домашки"}
+        title={coordinatorPool ? "Пул проверок" : "Домашки потока"}
+        breadcrumbs={
+          <>
+            <a
+              href="#/dashboard"
+              className="crumbs__back"
+              aria-label="Назад к потокам"
+            >
+              ←
+            </a>
+            <a href="#/courses">Курсы</a>
+            <span>/</span>
+            <span>{courseTitle ?? "Курс"}</span>
+            <span>/</span>
+            <span className="coordinator-compact-filters">
+              <select
+                className="btn btn--s btn--quiet"
+                aria-label="Поток"
+                value={run}
+                onChange={(event) => {
+                  setRun(event.target.value);
+                  setHomeworkId("");
+                  setOffset(0);
+                }}
+              >
+                {!run && <option value="">Выберите поток</option>}
+                {catalog.data?.course_runs.map((value) => (
+                  <option key={value.id} value={value.id}>
+                    {value.title}
+                  </option>
+                ))}
+              </select>
+            </span>
+          </>
+        }
+        leading={
+          !coordinatorPool ? (
+            <input
+              className="inp inp--s coordinator-header-search"
+              aria-label="Поиск"
+              placeholder="Поиск по ID студента"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          ) : undefined
+        }
       >
         {coordinatorPool ? (
-          <button disabled={!run} onClick={() => setReminding(true)}>
+          <button
+            className="btn btn--s btn--dark"
+            disabled={!run}
+            onClick={() => setReminding(true)}
+          >
             Напомнить ревьюерам
           </button>
         ) : (
-          <button disabled={!run} onClick={() => setExporting(true)}>
+          <button
+            disabled={
+              !run ||
+              (!!homeworkId &&
+                !homeworks.data?.items.some((item) => item.id === homeworkId))
+            }
+            className="btn btn--s btn--dark"
+            onClick={() => setExporting(true)}
+          >
             Выгрузить
           </button>
         )}
       </ScreenTitle>
-      <p className="muted">
-        {coordinatorPool
-          ? "Работы, ожидающие проверки и находящиеся на ревью. Здесь можно открыть проверку и напомнить ревьюерам."
-          : "Все домашние работы: от черновика до опубликованного результата, с баллами, историей и выгрузкой."}
-      </p>
-      {action.feedback}
-      <form
-        className="filters"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSearch(query);
-          setOffset(0);
-        }}
-      >
-        <label>
-          Поиск
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="ID студента или задание"
-          />
-        </label>
-        <label>
-          Поток
-          <select
-            value={run}
-            onChange={(e) => {
-              setRun(e.target.value);
+      {coordinatorPool && (
+        <Resource value={insights}>
+          {insights.data && (
+            <div className="tiles">
+              <div className="tile">
+                <div className="n">{insights.data.pool_metrics.waiting}</div>
+                <div className="l">работ ждут ревьюера</div>
+                <div className="d">
+                  из {insights.data.pool_metrics.submitted} сданных
+                </div>
+              </div>
+              <div className="tile tile--alert">
+                <div className="n">{insights.data.pool_metrics.stuck}</div>
+                <div className="l">ждут больше 3 дней</div>
+              </div>
+              <div className="tile">
+                <div className="n">
+                  {insights.data.pool_metrics.active_reviewers} из{" "}
+                  {insights.data.pool_metrics.total_reviewers}
+                </div>
+                <div className="l">ревьюеров участвуют в проверках</div>
+              </div>
+              <div className="tile">
+                <div className="n">
+                  {insights.data.pool_metrics.average_wait_minutes === null
+                    ? "Нет данных"
+                    : `${(insights.data.pool_metrics.average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дня`}
+                </div>
+                <div className="l">среднее ожидание проверки</div>
+              </div>
+            </div>
+          )}
+        </Resource>
+      )}
+      {!coordinatorPool && state === "reviewing" && (
+        <div className="actions" aria-label="Дополнительный фильтр">
+          <span className="pill">На проверке</span>
+          <button
+            type="button"
+            onClick={() => {
+              setState("");
               setOffset(0);
             }}
           >
-            <option value="">Все потоки</option>
-            {catalog.data?.course_runs.map((run) => (
-              <option key={run.id} value={run.id}>
-                {run.title}
-              </option>
+            Сбросить фильтр
+          </button>
+        </div>
+      )}
+      {!coordinatorPool && (
+        <Resource value={insights}>
+          <nav className="tabs" aria-label="Статусы домашних работ">
+            {(
+              [
+                ["all", "Все"],
+                ["draft", "Черновик"],
+                ["pending_review", "Сдана"],
+                ["in_review", "На ревью"],
+                ["needs_changes", "Нужны правки"],
+                ["repeat_review", "Повторное ревью"],
+                ["passed", "Зачтена"],
+                ["failed", "Не зачтена"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                type="button"
+                key={value}
+                aria-pressed={(state || "all") === value}
+                onClick={() => {
+                  setState(value === "all" ? "" : value);
+                  setOffset(0);
+                }}
+              >
+                {label}{" "}
+                <span>{insights.data?.status_counts[value] ?? "—"}</span>
+              </button>
             ))}
-          </select>
-        </label>
-        <label>
-          Статус
-          <select
-            value={params.state}
-            onChange={(e) => {
-              setState(e.target.value);
-              setOffset(0);
-            }}
-          >
-            <option value="">
-              {coordinatorPool ? "Все незавершённые" : "Все статусы"}
-            </option>
-            {(coordinatorPool
-              ? ["pending_review", "in_review", "ready_to_publish"]
-              : [
-                  "draft",
-                  "pending_review",
-                  "in_review",
-                  "ready_to_publish",
-                  "needs_changes",
-                  "passed",
-                  "failed",
-                  "published",
-                ]
-            ).map((value) => (
-              <option key={value} value={value}>
-                {
-                  {
-                    draft: "Черновик",
-                    pending_review: "Ожидает проверки",
-                    in_review: "На ревью",
-                    ready_to_publish: "Готово к публикации",
-                    needs_changes: "Нужны правки",
-                    passed: "Зачтена",
-                    failed: "Не зачтена",
-                    published: "Опубликована",
-                  }[value]
-                }
-              </option>
-            ))}
-          </select>
-        </label>
-        <button>Найти</button>
-      </form>
+            <span
+              className="coordinator-compact-filters"
+              style={{ marginLeft: "auto" }}
+            >
+              {homeworkFilter}
+            </span>
+          </nav>
+        </Resource>
+      )}
       <Resource value={r}>
         {r.data && (
           <Card
             title={`${coordinatorPool ? "Незавершённые проверки" : "Домашние работы"} · ${r.data.total}`}
+            bodyClassName="card__body--flush"
+            subtitle={
+              coordinatorPool
+                ? "Ожидают проверки или находятся на ревью"
+                : "Все статусы и опубликованные результаты"
+            }
+            actions={
+              coordinatorPool ? (
+                <div className="btn-row coordinator-compact-filters">
+                  {homeworkFilter}
+                  <label className="check btn btn--s btn--quiet">
+                    <input
+                      type="checkbox"
+                      checked={stuck}
+                      onChange={(event) => {
+                        setStuck(event.target.checked);
+                        setOffset(0);
+                      }}
+                    />
+                    Только зависшие
+                  </label>
+                </div>
+              ) : undefined
+            }
           >
             <div className="table-wrap">
-              <table>
+              <table className="tbl">
                 <thead>
                   <tr>
                     <th>Студент</th>
                     <th>Задание</th>
                     <th>Статус</th>
-                    <th>Срок проверки</th>
-                    <th>
-                      {coordinatorPool
-                        ? "Участие ревьюеров"
-                        : "Опубликованный балл"}
+                    {coordinatorPool ? (
+                      <>
+                        <th>Сдана</th>
+                        <th>Срок проверки</th>
+                      </>
+                    ) : (
+                      <>
+                        <th>Ревьюер</th>
+                        <th>Попытка</th>
+                        <th>Сдана</th>
+                        <th>Обновлена</th>
+                      </>
+                    )}
+                    <th
+                      aria-label={
+                        coordinatorPool
+                          ? "Участие ревьюеров"
+                          : "Опубликованный балл"
+                      }
+                    >
+                      {coordinatorPool ? "Участие ревьюеров" : "Балл"}
                     </th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {r.data.items.map((work) => (
-                    <tr key={work.submission_id}>
+                    <tr key={work.submission_id ?? work.draft_id}>
                       <td>{work.student_name}</td>
                       <td>
                         <strong>{work.title}</strong>
                         <small>
-                          {work.course_run_title} · Попытка {work.attempt}
+                          {work.course_run_title} · Попытка{" "}
+                          {work.submission_id ? work.attempt : 1}
                         </small>
                       </td>
                       <td>
                         <Status value={work.status} attempt={work.attempt} />
                       </td>
-                      <td>
-                        {work.review_deadline
-                          ? date(work.review_deadline)
-                          : "—"}
-                      </td>
+                      {coordinatorPool ? (
+                        <>
+                          <td>
+                            {work.submitted_at
+                              ? shortWorkDate(work.submitted_at)
+                              : "—"}
+                          </td>
+                          <td>
+                            {work.review_deadline
+                              ? shortWorkDate(work.review_deadline)
+                              : "—"}
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>{work.reviewer_name ?? "—"}</td>
+                          <td>{work.submission_id ? work.attempt : 1}</td>
+                          <td>
+                            {work.submitted_at
+                              ? shortWorkDate(work.submitted_at)
+                              : "—"}
+                          </td>
+                          <td>
+                            {work.updated_at
+                              ? shortWorkDate(work.updated_at)
+                              : "—"}
+                          </td>
+                        </>
+                      )}
                       <td>
                         {coordinatorPool
                           ? work.participant_ids?.length
@@ -238,14 +417,14 @@ function WorksList({
                       <td>
                         <div className="actions">
                           <button
-                            disabled={action.busy}
-                            onClick={() => void action.run(() => open(work))}
+                            className="btn btn--s btn--link"
+                            onClick={() => open(work)}
                           >
                             {coordinatorPool
                               ? "Открыть проверку"
                               : "Открыть работу"}
                           </button>
-                          {!coordinatorPool && (
+                          {!coordinatorPool && work.submission_id && (
                             <a href={`#/submissions/${work.submission_id}`}>
                               История и результат
                             </a>
@@ -285,11 +464,45 @@ function WorksList({
           </Card>
         )}
       </Resource>
+      {coordinatorPool && insights.data && run && (
+        <TypicalFailures
+          key={`${run}:${homeworkId}`}
+          ws={ws}
+          runId={run}
+          failures={insights.data.typical_failures}
+        />
+      )}
+      {draftPreview && (
+        <Modal title="Черновик работы" close={close}>
+          <dl>
+            <dt>Студент</dt>
+            <dd>{draftPreview.student_name}</dd>
+            <dt>Задание</dt>
+            <dd>{draftPreview.title}</dd>
+            <dt>Поток</dt>
+            <dd>{draftPreview.course_run_title}</dd>
+            <dt>Статус</dt>
+            <dd>Черновик · ещё не сдана</dd>
+            <dt>Следующая попытка</dt>
+            <dd>{Math.max(1, draftPreview.attempt)}</dd>
+            <dt>Обновлена</dt>
+            <dd>
+              {draftPreview.updated_at ? date(draftPreview.updated_at) : "—"}
+            </dd>
+          </dl>
+        </Modal>
+      )}
       {exporting && !coordinatorPool && run && catalog.data && (
-        <Modal title="К10 · Выгрузка" close={close}>
+        <Modal title="Выгрузка" close={close} wide>
           <ExportForm
             ws={ws}
             run={catalog.data.course_runs.find((value) => value.id === run)!}
+            close={close}
+            homeworkId={homeworkId || undefined}
+            homeworkTitle={
+              homeworks.data?.items.find((item) => item.id === homeworkId)
+                ?.title
+            }
           />
         </Modal>
       )}
@@ -299,6 +512,118 @@ function WorksList({
         </Modal>
       )}
     </>
+  );
+}
+function TypicalFailures({
+  ws,
+  runId,
+  failures,
+}: {
+  ws: WorkspaceClient;
+  runId: string;
+  failures: Awaited<
+    ReturnType<WorkspaceClient["insights"]>
+  >["typical_failures"];
+}) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const action = useAction();
+  return (
+    <Card
+      title="Типичные ошибки потока"
+      subtitle="По завершённым проверкам"
+      bodyClassName="card__body--flush"
+      actions={
+        <button
+          disabled={action.busy || !selected.length}
+          onClick={() =>
+            void action.run(async () => {
+              const catalog = await ws.catalog();
+              const run = catalog.course_runs.find(
+                (value) => value.id === runId,
+              );
+              const course = catalog.courses.find(
+                (value) => value.id === run?.course_id,
+              );
+              if (!course) throw new Error("Курс недоступен.");
+              const summary = failures
+                .filter((value) => selected.includes(value.criterion_id))
+                .map(
+                  (value) =>
+                    `• ${value.title}: не выполнили ${value.failed} из ${value.reviewed}.`,
+                )
+                .join("\n");
+              await ws.command("update_course", course.id, course.revision, {
+                title: course.title,
+                owner_id: course.owner_id,
+                stepik_url: course.stepik_url ?? null,
+                description: `${course.description}${course.description ? "\n\n" : ""}Типичные ошибки потока «${run!.title}»:\n${summary}`,
+              });
+              setSelected([]);
+            }, "Выбранные ошибки добавлены в описание курса.")
+          }
+        >
+          Добавить в описание курса
+        </button>
+      }
+    >
+      {action.feedback}
+      <div className="table-wrap">
+        <table className="tbl">
+          <thead>
+            <tr>
+              <th>Требование</th>
+              <th className="n">Не выполнили</th>
+              <th>Доля</th>
+            </tr>
+          </thead>
+          <tbody>
+            {failures.map((value) => (
+              <tr key={value.criterion_id}>
+                <td>
+                  <label className="check">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(value.criterion_id)}
+                      onChange={(event) =>
+                        setSelected(
+                          event.target.checked
+                            ? [...selected, value.criterion_id]
+                            : selected.filter(
+                                (id) => id !== value.criterion_id,
+                              ),
+                        )
+                      }
+                    />
+                    {value.title}
+                  </label>
+                </td>
+                <td>
+                  {value.failed} из {value.reviewed}
+                </td>
+                <td>
+                  <div
+                    className="meter coordinator-failure-meter"
+                    aria-label={`${Math.round(value.ratio * 100)}%`}
+                  >
+                    <i
+                      className={value.ratio > 0.5 ? "is-low" : ""}
+                      style={{
+                        width: `${Math.min(100, Math.max(0, value.ratio * 100))}%`,
+                      }}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {!failures.length && (
+        <Empty>
+          Для типичных ошибок пока недостаточно завершённых проверок.
+        </Empty>
+      )}
+    </Card>
   );
 }
 function PoolReminder({
@@ -381,9 +706,15 @@ function PoolReminder({
 function ExportForm({
   ws,
   run,
+  close,
+  homeworkId,
+  homeworkTitle,
 }: {
   ws: WorkspaceClient;
   run: W<"CourseRunView">;
+  close: () => void;
+  homeworkId?: string;
+  homeworkTitle?: string;
 }) {
   const [audience, setAudience] = useState<"team" | "students">("team");
   const [format, setFormat] = useState<"csv" | "xlsx">("csv");
@@ -391,6 +722,7 @@ function ExportForm({
     "student_id",
     "score",
     "status",
+    "attempt",
   ]);
   const [unfinished, setUnfinished] = useState(false);
   const [job, setJob] = useState<string>();
@@ -400,8 +732,10 @@ function ExportForm({
     ["score", "Итоговый балл"],
     ["status", "Статус"],
     ["attempt", "Номер попытки"],
-    ["feedback", "Опубликованный отзыв"],
+    ["criterion_points", "Баллы по каждому критерию"],
+    ["feedback", "Комментарий ревьюера"],
     ["reviewer_id", "ID ревьюера"],
+    ["artifact_url", "Ссылка на работу"],
   ] as const;
   return (
     <>
@@ -416,6 +750,7 @@ function ExportForm({
               run.revision,
               {
                 course_run_id: run.id,
+                homework_id: homeworkId,
                 audience,
                 columns,
                 include_unpublished: unfinished,
@@ -426,66 +761,113 @@ function ExportForm({
           });
         }}
       >
-        <label>
-          Получатель
-          <select
-            value={audience}
-            onChange={(e) => {
-              const a = e.target.value as typeof audience;
-              setAudience(a);
-              if (a === "students")
-                setColumns(["student_id", "score", "status"]);
-            }}
-          >
-            <option value="team">Внутренняя ведомость</option>
-            <option value="students">Студенческая копия</option>
-          </select>
-        </label>
-        <fieldset disabled={action.busy}>
-          {options
-            .filter(
-              ([key]) =>
-                audience === "team" ||
-                ["student_id", "score", "status"].includes(key),
-            )
-            .map(([key, label]) => (
-              <label className="check" key={key}>
-                <input
-                  type="checkbox"
-                  checked={columns.includes(key)}
-                  onChange={(e) =>
-                    setColumns(
-                      e.target.checked
-                        ? [...columns, key]
-                        : columns.filter((c) => c !== key),
-                    )
-                  }
-                />
+        <div className="field">
+          <div className="field__lbl">Что выгружаем</div>
+          <div className="export-context">
+            {homeworkId
+              ? (homeworkTitle ?? "Выбранное задание")
+              : "Все задания"}
+            , поток «{run.title}»
+          </div>
+        </div>
+        <div className="field">
+          <span className="field__lbl">Кому выгружаем</span>
+          <div className="seg">
+            {(
+              [
+                ["team", "Команде, внутренняя ведомость"],
+                ["students", "Студентам, копия"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                type="button"
+                key={value}
+                className={audience === value ? "is-on" : ""}
+                aria-pressed={audience === value}
+                onClick={() => {
+                  setAudience(value);
+                  if (value === "students")
+                    setColumns(["student_id", "score", "status"]);
+                }}
+              >
                 {label}
-              </label>
+              </button>
             ))}
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={unfinished}
-              onChange={(e) => setUnfinished(e.target.checked)}
-            />
-            Включить незакрытые работы с пустым баллом
-          </label>
-          <label>
-            Формат
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value as typeof format)}
+          </div>
+          <small>В студенческой копии только ID студента, балл и статус.</small>
+        </div>
+        <fieldset disabled={action.busy}>
+          <legend>Колонки</legend>
+          <div className="date-range">
+            {options
+              .filter(
+                ([key]) =>
+                  audience === "team" ||
+                  ["student_id", "score", "status"].includes(key),
+              )
+              .map(([key, label]) => (
+                <label className="check" key={key}>
+                  <input
+                    type="checkbox"
+                    checked={columns.includes(key)}
+                    onChange={(e) =>
+                      setColumns(
+                        e.target.checked
+                          ? [...columns, key]
+                          : columns.filter((c) => c !== key),
+                      )
+                    }
+                  />
+                  {label}
+                </label>
+              ))}
+          </div>
+        </fieldset>
+        <fieldset disabled={action.busy}>
+          <legend>Что делать с незакрытыми работами</legend>
+          <div className="seg">
+            <button
+              type="button"
+              className={!unfinished ? "is-on" : ""}
+              aria-pressed={!unfinished}
+              onClick={() => setUnfinished(false)}
             >
-              <option>csv</option>
-              <option>xlsx</option>
-            </select>
-          </label>
-          <button className="primary" disabled={!columns.length}>
+              Не выгружать
+            </button>
+            <button
+              type="button"
+              className={unfinished ? "is-on" : ""}
+              aria-pressed={unfinished}
+              onClick={() => setUnfinished(true)}
+            >
+              Выгрузить с пустым баллом
+            </button>
+          </div>
+        </fieldset>
+        <fieldset disabled={action.busy}>
+          <legend>Формат</legend>
+          <div className="seg">
+            {(["csv", "xlsx"] as const).map((value) => (
+              <button
+                type="button"
+                key={value}
+                className={format === value ? "is-on" : ""}
+                aria-pressed={format === value}
+                onClick={() => setFormat(value)}
+              >
+                {value.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <div className="card__foot actions">
+          <button type="button" onClick={close}>
+            Отмена
+          </button>
+          <button className="primary" disabled={action.busy || !columns.length}>
             Подготовить файл
           </button>
-        </fieldset>
+        </div>
       </form>
       {job && <ExportMonitor ws={ws} id={job} />}
     </>
@@ -502,32 +884,30 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
   return (
     <>
       <ScreenTitle code="Р4" title="Кабинет">
-        <div className="actions">
-          <label>
-            Поток
-            <select
-              value={courseRun}
-              onChange={(e) => setCourseRun(e.target.value)}
-            >
-              <option value="">Все потоки</option>
-              {catalog.data?.course_runs.map((run) => (
-                <option key={run.id} value={run.id}>
-                  {run.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Период
-            <select
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-            >
-              <option value={7}>7 дней</option>
-              <option value={30}>30 дней</option>
-              <option value={90}>90 дней</option>
-            </select>
-          </label>
+        <div className="btn-row coordinator-compact-filters">
+          <select
+            aria-label="Поток"
+            className="btn btn--s btn--quiet"
+            value={courseRun}
+            onChange={(event) => setCourseRun(event.target.value)}
+          >
+            <option value="">Все потоки</option>
+            {catalog.data?.course_runs.map((run) => (
+              <option key={run.id} value={run.id}>
+                {run.title}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Период"
+            className="btn btn--s btn--quiet"
+            value={days}
+            onChange={(event) => setDays(Number(event.target.value))}
+          >
+            <option value={7}>7 дней</option>
+            <option value={30}>30 дней</option>
+            <option value={90}>90 дней</option>
+          </select>
         </div>
       </ScreenTitle>
       <nav className="tabs">
@@ -600,12 +980,13 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
               </div>
             </div>
             <div className="two-col">
-              <Card title="Где вы чаще правите модель">
-                <p className="muted">
-                  Доля работ, где вы изменили предложенную оценку
-                </p>
+              <Card
+                title="Где вы чаще правите модель"
+                subtitle="Доля работ, где вы изменили предложенную оценку"
+                bodyClassName="card__body--flush"
+              >
                 <div className="table-wrap">
-                  <table>
+                  <table className="tbl">
                     <thead>
                       <tr>
                         <th>Требование</th>
@@ -638,11 +1019,10 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
                   </table>
                 </div>
               </Card>
-              <Card title="Расхождение с другими ревьюерами">
-                <p className="muted">
-                  По одинаковым требованиям на одинаковых работах. Сравнений:{" "}
-                  {r.data.peer_comparison?.sample_count}.
-                </p>
+              <Card
+                title="Расхождение с другими ревьюерами"
+                subtitle={`По одинаковым требованиям на одинаковых работах. Сравнений: ${r.data.peer_comparison?.sample_count ?? 0}.`}
+              >
                 {r.data.peer_comparison?.divergence_percent == null ? (
                   <Empty>Данные для сравнения пока недоступны.</Empty>
                 ) : (
@@ -686,4 +1066,11 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
       </Resource>
     </>
   );
+}
+
+function shortWorkDate(value: string) {
+  return new Date(value).toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "short",
+  });
 }

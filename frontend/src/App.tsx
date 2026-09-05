@@ -154,7 +154,7 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
   else if (section === "submit" && activeRole === "student" && id && subId)
     page = <WorkspaceSubmit ws={ws} id={subId} session={session} />;
   else if (section === "submissions" && id)
-    page = <WorkspaceSubmissionDetail ws={ws} id={id} />;
+    page = <WorkspaceSubmissionDetail ws={ws} id={id} role={activeRole} />;
   else if (section === "homework" && id && activeRole === "methodologist")
     page = (
       <WorkspaceHomework
@@ -286,22 +286,12 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
             </span>
             Авито Ревью
           </a>
-          <nav>
-            {nav.map(([link, label]) => (
-              <a
-                key={link}
-                href={`#/${link}`}
-                aria-current={
-                  section === link ||
-                  (link === "preferences" && section === "statistics")
-                    ? "page"
-                    : undefined
-                }
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
+          <SidebarNavigation
+            ws={ws}
+            role={activeRole}
+            items={nav}
+            section={section}
+          />
         </aside>
       )}
       <div className="main-area">
@@ -349,6 +339,67 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         {activeRole !== "student" && <WorkspaceNotifications ws={ws} />}
       </div>
     </div>
+  );
+}
+
+function SidebarNavigation({
+  ws,
+  role,
+  items,
+  section,
+}: {
+  ws: WorkspaceClient;
+  role: Role;
+  items: string[][];
+  section: string;
+}) {
+  const counts = useResource<Record<string, number>>(
+    async (): Promise<Record<string, number>> => {
+      if (role === "reviewer") {
+        const [active, pool] = await Promise.all([
+          ws.works({ view: "active", limit: 1 }),
+          ws.works({ view: "pool", limit: 1 }),
+        ]);
+        return { works: active.total, pool: pool.total };
+      }
+      const [catalog, pool, all] = await Promise.all([
+        ws.catalog(),
+        ws.works({ view: "pool", limit: 1 }),
+        ws.works({ view: "all", limit: 1 }),
+      ]);
+      const homeworks = await Promise.all(
+        catalog.courses.map((c) => ws.courseHomeworks(c.id)),
+      );
+      return {
+        courses: catalog.courses.length,
+        homeworks: homeworks.reduce((sum, h) => sum + h.items.length, 0),
+        "coord-pool": pool.total,
+        registry: all.total,
+      };
+    },
+    role,
+    15000,
+  );
+  return (
+    <nav>
+      {items.map(([link, label]) => (
+        <a
+          key={link}
+          href={`#/${link}`}
+          aria-current={
+            section === link ||
+            (link === "preferences" && section === "statistics")
+              ? "page"
+              : undefined
+          }
+        >
+          {label}
+          {counts.data?.[link] !== undefined && (
+            <span className="nav-count">{counts.data[link]}</span>
+          )}
+        </a>
+      ))}
+    </nav>
   );
 }
 function Login({

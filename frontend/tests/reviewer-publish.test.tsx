@@ -20,6 +20,15 @@ it.each([false, true])(
     const original = await api.review(ids.review);
     const context = await ws.reviewContext(ids.review);
     const session = await api.session();
+    vi.spyOn(ws, "gradePreview").mockResolvedValue({
+      final_score: 4,
+      raw_score: 5,
+      penalty: 1,
+      penalty_days: 1,
+      penalty_rate: 1,
+      pass_score: 4,
+      policy_revision: 1,
+    });
     const revisionId = crypto.randomUUID();
     const detail = { ...original, current_review_revision_id: revisionId };
     vi.spyOn(ws, "reviewDetail").mockResolvedValue({
@@ -54,6 +63,9 @@ it.each([false, true])(
         screen.getByRole("button", { name: "Подтвердить публикацию" }),
       ).toBeEnabled(),
     );
+    expect(
+      screen.queryByLabelText("Применить просрочку"),
+    ).not.toBeInTheDocument();
     await userEvent.click(
       screen.getByRole("button", { name: "Подтвердить публикацию" }),
     );
@@ -177,5 +189,48 @@ it("hides join for an already participating reviewer", async () => {
   ).not.toBeInTheDocument();
   expect(
     screen.queryByText(/Коллеги могут подключаться/),
+  ).not.toBeInTheDocument();
+});
+it("shows persisted decision history in coordinator read-only review", async () => {
+  const api = new ApiClient(createDemoTransport());
+  const ws = new WorkspaceClient(api);
+  const detail = await api.review(ids.review);
+  const original = await ws.reviewContext(ids.review);
+  const session = await api.session();
+  const context = {
+    ...original,
+    decision_history: [
+      {
+        timestamp: "2026-09-05T12:00:00Z",
+        text: "Ревьюер изменил оценку",
+        actor: "Ирина",
+      },
+    ],
+  };
+  render(
+    <ReviewEditor
+      api={api}
+      ws={ws}
+      detail={detail}
+      context={context}
+      session={session}
+      readOnly
+      version={{
+        id: context.homework_version_id,
+        criteria: context.criteria,
+        max_score: context.max_score,
+        student_text: context.student_text,
+      }}
+      refresh={() => {}}
+    />,
+  );
+  expect(
+    screen.getByRole("heading", { name: "История решений" }),
+  ).toBeInTheDocument();
+  expect(screen.getByText("Ревьюер изменил оценку")).toBeInTheDocument();
+  expect(screen.getByText("Ирина")).toBeInTheDocument();
+  expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", { name: "Ответ студенту" }),
   ).not.toBeInTheDocument();
 });

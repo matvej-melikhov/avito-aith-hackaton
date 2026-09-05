@@ -1,0 +1,200 @@
+{
+  "design_commit": "f44e57095ec9241056ea5348fd4fcdff505b43fc",
+  "design_screens_sha256": "4dac293a0b1fc3d6112c4883c3dc4ad455873eb6719fb15c46a4a87603ff8cbd",
+  "scope": "Local fixture server; C1/C3 read responses explicitly overridden as recorded in student.json. No real AI/provider verification.",
+  "pixel_comparison": "Manual visual comparison at equal viewport; no automated pixel-equality assertion. Content differs from source examples. See acceptance.md for approved differences and unresolved admission policy.",
+  "files": [
+    {
+      "path": "coord-final-К1-1600.png",
+      "sha256": "9f7a4f7cbee83ed2fb99a3aa4acce72ff9f611b1e3738d1208f16305095805d3"
+    },
+    {
+      "path": "coord-final-К10-1600.png",
+      "sha256": "62415e680427569f23ddaa3b6b3927666fab3664082de2fc74d515f2ec834ed7"
+    },
+    {
+      "path": "coord-final-К10-390.png",
+      "sha256": "41cfca77f5ad8ea034cf02d432568b3f40e7698d3bfc7e1b5ee2a490c3380c78"
+    },
+    {
+      "path": "coord-final-К1а-1600.png",
+      "sha256": "b6b44af7c6c80dc466e467cdd5336592b204bd61b2c9fb13db368253102f7644"
+    },
+    {
+      "path": "coord-final-К2-1600.png",
+      "sha256": "d44d40729dae582c66ebb78c793b443d5dc091ff279d880f5d57e5ad1a34156a"
+    },
+    {
+      "path": "coord-final-К3-1600.png",
+      "sha256": "7ff20446db864c1d7a82cd95345e97b63d7265db5971d4eb05ad908f8ec9a1a0"
+    },
+    {
+      "path": "coord-final-К4-1600.png",
+      "sha256": "3129be5b6045374b4beb8a8e3a90926c286ec3feb35d717a1ca2dc2bea84f3a3"
+    },
+    {
+      "path": "coord-final-К4-390.png",
+      "sha256": "002f1c8448123408609c84cf549a090c53692db1cde5a62ada4a813e1865a0b4"
+    },
+    {
+      "path": "coord-final-К5-1600.png",
+      "sha256": "d2a339f7806a2dcb609708c77690296282179abd2061ff3f625bdbfb9a5c067d"
+    },
+    {
+      "path": "coord-final-К6-1600.png",
+      "sha256": "e3fc7fd9a054c37ad6e907a47584829392309220dab57655c5fe71c7fc3727af"
+    },
+    {
+      "path": "coord-final-К6-320.png",
+      "sha256": "8a02785a00bb0e03373386384ec6c076485ba301ab94e039bc9ac38432e27c64"
+    },
+    {
+      "path": "coord-final-К6-390.png",
+      "sha256": "034aa1958956405085562cbd059d12f507e86409540c08cb643f53423a52ab9c"
+    },
+    {
+      "path": "coord-final-К7-1600.png",
+      "sha256": "c09354a662adde0c4d6033d8166b0edde887d39b1a693eed5a255b7dbc770936"
+    },
+    {
+      "path": "coord-final-К7-390.png",
+      "sha256": "f212dd43687d8f7ea954482499c7579071574f3ae6d804b37cc27dba469b3617"
+    },
+    {
+      "path": "coord-final-К8-1600.png",
+      "sha256": "8166df5ad850f6086d165265fea17a696dc34a4eaa755107b7d2de1d9a760a5c"
+    },
+    {
+      "path": "coord-final-К8-390.png",
+      "sha256": "13b955248976edf3f5a1ec3c518454bdffeb72702f6af6045ba82ab295ef5579"
+    },
+    {
+      "path": "coord-final-К9-1600.png",
+      "sha256": "9c551bd5a4b71d57ab22eb182e049a094da35b7114c3368c672a4c9d282c3bca"
+    },
+    {
+      "path": "coordinator.json",
+      "sha256": "d9c51022412efc7d5b753c7d7ed89f9e2ab04af1c799b0a068019cd4705c5c05"
+    },
+    {
+      "path": "login.png",
+      "sha256": "1bd51fdd14c7add764fc8bf4df6f68137e8e8ac33a676c3eeb447ea939439afa"
+    },
+    {
+      "path": "review-final-1600.png",
+      "sha256": "c91a2231c2c64803476c049e801f8dbfb57c9d405d4808fd5f29509418c904af"
+    },
+    {
+      "path": "review-final-320.png",
+      "sha256": "49ce4e738ab1ade904af932469d609487caa852d425c7d6f138aa78f2bd0c5bb"
+    },
+    {
+      "path": "review-final-768.png",
+      "sha256": "ac30a6630acc315a8f0c600b47714e6c6276189a0d66a0a353ed852f755169e0"
+    },
+    {
+      "path": "review-first-final-1600.png",
+      "sha256": "f72a81fda4bb350a0f58a9f39b404d56ed30eedcea62c6367c27c070a5216d82"
+    },
+    {
+      "path": "review-first-final-320.png",
+      "sha256": "9b445e8938f8f56942d5f3d7b877253e01f3440080a41ca3fa0676614c6b0bdb"
+    },
+    {
+      "path": "review-first-final-768.png",
+      "sha256": "76d41ba6e3045a28effebdb8f03eceeeb23c5c5a0844790bcc9ff8729d5ff4ce"
+    },
+    {
+      "path": "review-first-responsive-bounded.json",
+      "sha256": "c0332609738fddfe3636fac01ddd589cd4da867448db5a1053be9fb834c12456"
+    },
+    {
+      "path": "review-responsive-bounded.json",
+      "sha256": "9904c15dcd12f3bcc3b086ad6c6853a45f21cea22b6423e2c8f47b7beeb5f925"
+    },
+    {
+      "path": "review-usability-bounded.json",
+      "sha256": "e02ead9fe163a022ad5a49fc5e2cb0506737bd8a9a7cd6ef88be7b89ad799903"
+    },
+    {
+      "path": "reviewer-pool-final-bounded.png",
+      "sha256": "6529118c3a9c238152590f84a6bf9652e518d775494f53ce931504be8a613d19"
+    },
+    {
+      "path": "reviewer-preferences-final.png",
+      "sha256": "d64bdb2b96fc75ad08365942f99d1c27afa5e328bb9dc09be073c4c1dd7b9723"
+    },
+    {
+      "path": "reviewer-statistics-final.png",
+      "sha256": "09d022fbfe2d21b3de5332ce18491376b2bc23b7dcc562c4f5afde09827157f5"
+    },
+    {
+      "path": "reviewer-works-final.png",
+      "sha256": "e87a9e142e5bcc0016fa6a817c7845a102d37416cc80d0337598e7ca6b36bc57"
+    },
+    {
+      "path": "student-ACTUAL-C2-result-panel-1600.png",
+      "sha256": "0b93c1c12ac68fbeb5d8145494acaf77056c7b94c9b902046071ead3f8b15e06"
+    },
+    {
+      "path": "student-ACTUAL-C2-result-panel-320.png",
+      "sha256": "3e1d8e1f79293b1a04cdfdf9f07423e44472844a337dcba4fe0dbdc3b1046a3f"
+    },
+    {
+      "path": "student-ACTUAL-C2-result-panel-760.png",
+      "sha256": "9a7bc6837e57d645760af2eef2f0ffc27a515c112728c34559b2617445091110"
+    },
+    {
+      "path": "student-ACTUAL-C4-1600.png",
+      "sha256": "5300268a73d9496efa24b0c02efdb4ef50de32de86aa182034b7842186a588c7"
+    },
+    {
+      "path": "student-ACTUAL-C4-320.png",
+      "sha256": "f5bf8e3bf01d6aa19c81c60f710a62548919a522b36c6fc8fcd50984e0586310"
+    },
+    {
+      "path": "student-ACTUAL-C4-760.png",
+      "sha256": "9c25b281a016753fad2b82aecf4e53ada8c248461b19215a04f75616fcf802cc"
+    },
+    {
+      "path": "student-ACTUAL-C5-1600.png",
+      "sha256": "dc441fcc0cae5a603fb5aedde60b88ca533452af430b57c1554aea8ae9cb5a38"
+    },
+    {
+      "path": "student-ACTUAL-C5-320.png",
+      "sha256": "27bb2b5a77cd50cd6c52bf97c357d65ae9b8b73f5a05e4ff62bbc2d132abfa5b"
+    },
+    {
+      "path": "student-ACTUAL-C5-760.png",
+      "sha256": "908b98d97961f0a60db4e4001223b150c18b31a28676c8b1ce222970b6abb8e7"
+    },
+    {
+      "path": "student-FIXTURE-C1-1600.png",
+      "sha256": "5dca60739448b128d863b2a6386dec8ee4f7974308fa280fc8ca8109178d3120"
+    },
+    {
+      "path": "student-FIXTURE-C1-320.png",
+      "sha256": "6920af6b9802902ba6f98707aa3901a713160bbac1037cce721a532040d8c634"
+    },
+    {
+      "path": "student-FIXTURE-C1-760.png",
+      "sha256": "04011da1dac6b0a237f525950e89005f508cc5f2cfb8f09208086e5e4e9e5d62"
+    },
+    {
+      "path": "student-FIXTURE-C3-1600.png",
+      "sha256": "452534c644a2181d9758bd021e94549a29b827efd5f7e836b47d64caada43a45"
+    },
+    {
+      "path": "student-FIXTURE-C3-320.png",
+      "sha256": "c1bba0ad0dbd552a835c4f5d4e29d1570749492b430c635ae8af6e6e26d2f70f"
+    },
+    {
+      "path": "student-FIXTURE-C3-760.png",
+      "sha256": "e2c1186b0f944b319a7b13e0dec303cdab6617cfd6fcb482d42539da14fd0bcd"
+    },
+    {
+      "path": "student.json",
+      "sha256": "7653221f0bca410563b3dff08092513849197889a315c37705a36675a0f60142"
+    }
+  ]
+}

@@ -21,10 +21,12 @@ export function Modal({
   title,
   children,
   close,
+  wide = false,
 }: {
   title: string;
   children: ReactNode;
   close: () => void;
+  wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -41,7 +43,11 @@ export function Modal({
     };
   }, [close]);
   return (
-    <dialog ref={ref} className="workspace-modal" aria-label={title}>
+    <dialog
+      ref={ref}
+      className={`workspace-modal modal${wide ? " overlay--wide" : ""}`}
+      aria-label={title}
+    >
       <div className="card-head">
         <h2>{title}</h2>
         <button type="button" aria-label="Закрыть" onClick={close}>
@@ -61,15 +67,20 @@ export function ScreenTitle({
   title,
   children,
   leading,
+  breadcrumbs,
 }: {
   code: string;
   title: string;
   leading?: ReactNode;
+  breadcrumbs?: ReactNode;
   children?: ReactNode;
 }) {
   return (
     <div className="page-heading" data-screen={code}>
       <div className="page-heading-main">
+        {breadcrumbs && (
+          <div className="crumbs page-heading-crumbs">{breadcrumbs}</div>
+        )}
         <h1>{title}</h1>
         {leading}
       </div>
@@ -80,7 +91,21 @@ export function ScreenTitle({
     </div>
   );
 }
-export function Quota({ value }: { value: W<"QuotaView"> | null }) {
+export function Quota({
+  value,
+  compact = false,
+}: {
+  value: W<"QuotaView"> | null;
+  compact?: boolean;
+}) {
+  if (compact)
+    return (
+      <span role="status">
+        {value
+          ? `Осталось ${value.remaining} из ${value.limit}. Получено результатов: ${value.used}${value.reserved > 0 ? ` · Выполняется: ${value.reserved}` : ""}.`
+          : "Координатор ещё не настроил лимит самопроверок."}
+      </span>
+    );
   return value ? (
     <div className="quota" role="status">
       <strong>
@@ -97,7 +122,13 @@ export function Quota({ value }: { value: W<"QuotaView"> | null }) {
     </p>
   );
 }
-export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
+export function SelfReviewResult({
+  value,
+  showHeading = true,
+}: {
+  value: W<"SelfReviewView">;
+  showHeading?: boolean;
+}) {
   const findings = value.result?.findings ?? [];
   const attention = findings.some((f) => f.status === "needs_attention");
   const checked = findings.some(
@@ -105,10 +136,12 @@ export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
   );
   return (
     <article className="self-review-result" data-screen="С2">
-      <div className="row">
-        <strong>Проверка от {date(value.created_at)}</strong>
-        <Status value={value.status} />
-      </div>
+      {showHeading && (
+        <div className="row">
+          <strong>Проверка от {date(value.created_at)}</strong>
+          <Status value={value.status} />
+        </div>
+      )}
       {findings.length > 0 && (
         <>
           <p>
@@ -128,10 +161,13 @@ export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
               </li>
             ))}
           </ul>
-          <p className="notice">
-            ИИ-ревью не гарантирует, что работу примут. Замечания не означают,
-            что её отклонят. Итоговое решение принимает ревьюер.
-          </p>
+          <div className="callout callout--human">
+            <span className="callout__mark">?</span>
+            <p>
+              Можно отправить работу сейчас или сначала внести правки. Решение
+              принимает ревьюер.
+            </p>
+          </div>
         </>
       )}
       {value.error_code && (

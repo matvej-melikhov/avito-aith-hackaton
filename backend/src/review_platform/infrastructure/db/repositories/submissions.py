@@ -230,6 +230,11 @@ class SqlArtifactPreflightRepository:
             .limit(1)
         )
         kinds = tuple(version.artifact_kinds) if version is not None else ()
+        if version is not None:
+            from review_platform.application.workspace.source_policy import allowed_sources
+
+            permitted = await allowed_sources(session, organization_id, version.id)
+            kinds = tuple(kind for kind in kinds if kind in permitted)
         if any(kind not in {"github", "google_docs"} for kind in kinds):
             raise SubmissionPersistenceConflict("HomeworkVersion has unknown artifact kind")
         return CourseRunHomeworkPreflightContext(
@@ -327,8 +332,7 @@ class SqlArtifactPreflightRepository:
             .where(
                 ExternalCredential.organization_id == candidate.organization_id,
                 ExternalCredential.id == candidate.credential_binding_id,
-                ExternalCredential.binding_version
-                == candidate.credential_binding_version,
+                ExternalCredential.binding_version == candidate.credential_binding_version,
                 ExternalCredential.provider == candidate.provider,
                 ExternalCredential.status == "active",
             )
@@ -343,8 +347,7 @@ class SqlArtifactPreflightRepository:
             .where(
                 ArtifactReference.organization_id == candidate.organization_id,
                 ArtifactReference.provider == candidate.provider,
-                ArtifactReference.credential_binding_id
-                == candidate.credential_binding_id,
+                ArtifactReference.credential_binding_id == candidate.credential_binding_id,
                 ArtifactReference.credential_binding_version
                 == candidate.credential_binding_version,
                 ArtifactReference.original_url == candidate.original_url,
@@ -970,9 +973,7 @@ class SqlArtifactPromotionRepository:
             # retryable db_committed intent, the cleared lease expiry is the
             # earliest next claim time.
             promotion.lease_expires_at = None if exhausted else available_at
-            promotion.error_code = str(
-                bounded.get("code") or "artifact_promotion_failed"
-            )
+            promotion.error_code = str(bounded.get("code") or "artifact_promotion_failed")
             promotion.sanitized_error = bounded
             promotion.revision += 1
             operation.state = attempt_state
@@ -1294,6 +1295,18 @@ class SqlSubmissionRepository:
         )
         if reference is None:
             raise SubmissionPersistenceConflict("usable tenant ArtifactReference was not found")
+        from review_platform.application.workspace.source_policy import allowed_sources
+
+        provider = await session.scalar(
+            select(ArtifactReference.provider).where(
+                ArtifactReference.organization_id == version.organization_id,
+                ArtifactReference.id == version.artifact_reference_id,
+            )
+        )
+        if provider not in await allowed_sources(
+            session, version.organization_id, version.homework_version_id
+        ):
+            raise SubmissionScopeDenied("artifact source is not allowed for the homework version")
         session.add(
             SubmissionVersion(
                 id=version.version_id,
@@ -1517,10 +1530,8 @@ class SqlCaptureScheduler:
                 ArtifactReference.organization_id == request.organization_id,
                 ArtifactReference.id == request.artifact_reference_id,
                 ArtifactReference.provider == request.provider,
-                ArtifactReference.credential_binding_id
-                == request.credential_binding_id,
-                ArtifactReference.credential_binding_version
-                == request.credential_binding_version,
+                ArtifactReference.credential_binding_id == request.credential_binding_id,
+                ArtifactReference.credential_binding_version == request.credential_binding_version,
             )
             .with_for_update()
         )
@@ -1529,8 +1540,7 @@ class SqlCaptureScheduler:
             .where(
                 ExternalCredential.organization_id == request.organization_id,
                 ExternalCredential.id == request.credential_binding_id,
-                ExternalCredential.binding_version
-                == request.credential_binding_version,
+                ExternalCredential.binding_version == request.credential_binding_version,
                 ExternalCredential.provider == request.provider,
                 ExternalCredential.status == "active",
             )
@@ -2261,9 +2271,9 @@ _capture_authorization_protocol: Callable[[Authorizer], ArtifactCaptureAuthoriza
     SqlArtifactCaptureAuthorization
 )
 _promotion_outbox_protocol: ArtifactPromotionOutbox = SqlArtifactPromotionOutbox()
-_promotion_repository_protocol: Callable[
-    [AsyncSessionFactory], ArtifactPromotionRepository
-] = SqlArtifactPromotionRepository
+_promotion_repository_protocol: Callable[[AsyncSessionFactory], ArtifactPromotionRepository] = (
+    SqlArtifactPromotionRepository
+)
 _submission_protocol: SubmissionRepository = SqlSubmissionRepository()
 _submission_scope_protocol: SubmissionScopeAuthorization = SqlSubmissionScopeAuthorization()
 _capture_scheduler_protocol: CaptureScheduler = SqlCaptureScheduler()

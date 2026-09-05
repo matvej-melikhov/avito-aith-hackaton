@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 import csv
 import re
+from dataclasses import dataclass, field
 from datetime import timedelta
 from io import BytesIO, StringIO
+from urllib.parse import urlsplit
 from uuid import UUID
 from xml.sax.saxutils import escape
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -24,8 +26,19 @@ from review_platform.application.workspace.common import (
 )
 from review_platform.application.workspace.projections import WorkspaceQueries
 from review_platform.contracts.workspace import DownloadView, ExportInput, ExportView, WorkItem
-from review_platform.infrastructure.db.models import OrganizationMembership
-from review_platform.infrastructure.db.models.workspace import WorkspaceArtifact, WorkspaceExport
+from review_platform.infrastructure.db.models import (
+    Criterion,
+    OrganizationMembership,
+    ReviewCriterionDecision,
+    ReviewIteration,
+    ReviewPublication,
+    SubmissionVersion,
+)
+from review_platform.infrastructure.db.models.workspace import (
+    ReviewOutcome,
+    WorkspaceArtifact,
+    WorkspaceExport,
+)
 
 STUDENT_COLUMNS = {"student_id", "score", "status"}
 LABELS = {
@@ -35,15 +48,140 @@ LABELS = {
     "attempt": "Попытка",
     "feedback": "Отзыв",
     "reviewer_id": "ID ревьюера",
+    "artifact_url": "Снимок работы",
+    "criterion_points": "Баллы по критериям",
 }
 
 
-def export_rows(options: ExportInput, items: list[WorkItem]) -> list[list[str | float | int]]:
+@dataclass
+class ExportDetails:
+    artifact_url: str = ""
+    attempt: int = 0
+    status: str | None = None
+    criteria: dict[str, tuple[str, float]] = field(default_factory=dict)
+
+
+async def export_details(
+    session: AsyncSession, org: UUID, items: list[WorkItem], public_base_url: str = ""
+) -> dict[UUID, ExportDetails]:
+    publications = (
+        await session.execute(
+            select(ReviewPublication, ReviewIteration)
+            .join(
+                ReviewIteration,
+                (ReviewIteration.id == ReviewPublication.review_iteration_id)
+                & (ReviewIteration.organization_id == org),
+            )
+            .where(
+                ReviewPublication.organization_id == org,
+                ReviewPublication.status == "published",
+                ReviewIteration.review_case_id.in_(
+                    [i.review_case_id for i in items if i.review_case_id]
+                ),
+            )
+            .order_by(ReviewPublication.published_at.desc(), ReviewPublication.id.desc())
+        )
+    ).all()
+    by_case: dict[UUID, tuple[ReviewPublication, ReviewIteration]] = {}
+    for publication, iteration in publications:
+        by_case.setdefault(iteration.review_case_id, (publication, iteration))
+    outcomes = {
+        outcome.id: outcome.decision
+        for outcome in (
+            await session.scalars(
+                select(ReviewOutcome).where(
+                    ReviewOutcome.organization_id == org,
+                    ReviewOutcome.id.in_([iteration.id for _, iteration in by_case.values()]),
+                )
+            )
+        ).all()
+    }
+    revision_ids = [publication.review_revision_id for publication, _ in by_case.values()]
+    decisions = (
+        await session.execute(
+            select(ReviewCriterionDecision, Criterion)
+            .join(
+                Criterion,
+                (Criterion.id == ReviewCriterionDecision.criterion_id)
+                & (Criterion.organization_id == org),
+            )
+            .where(
+                ReviewCriterionDecision.organization_id == org,
+                ReviewCriterionDecision.review_revision_id.in_(revision_ids),
+            )
+            .order_by(Criterion.position, Criterion.id)
+        )
+    ).all()
+    by_revision: dict[UUID, dict[str, tuple[str, float]]] = {}
+    for decision, criterion in decisions:
+        by_revision.setdefault(decision.review_revision_id, {})[str(criterion.id)] = (
+            f"{criterion.title} [{str(criterion.id)[:8]}]",
+            float(decision.points),
+        )
+    chosen = {
+        item.submission_id: (
+            by_case[item.review_case_id][1].submission_version_id
+            if item.score is not None and item.review_case_id in by_case
+            else item.submission_version_id
+        )
+        for item in items
+        if item.submission_id is not None
+    }
+    versions = {
+        version.id: version
+        for version in (
+            await session.scalars(
+                select(SubmissionVersion).where(
+                    SubmissionVersion.organization_id == org,
+                    SubmissionVersion.id.in_([v for v in chosen.values() if v]),
+                )
+            )
+        ).all()
+    }
+    result = {}
+    for item in items:
+        if item.submission_id is None:
+            continue
+        version_id = chosen[item.submission_id]
+        version = versions.get(version_id) if version_id else None
+        publication = (
+            by_case[item.review_case_id][0]
+            if item.score is not None and item.review_case_id in by_case
+            else None
+        )
+        result[item.submission_id] = ExportDetails(
+            artifact_url=f"{public_base_url.rstrip('/')}/api/v2/artifacts/{version.artifact_version_id}/open"
+            if version and version.artifact_version_id
+            else "",
+            attempt=version.sequence if version else item.attempt,
+            status=outcomes.get(publication.review_iteration_id, "published")
+            if publication
+            else None,
+            criteria=by_revision.get(publication.review_revision_id, {}) if publication else {},
+        )
+    return result
+
+
+def export_rows(
+    options: ExportInput, items: list[WorkItem], details: dict[UUID, ExportDetails] | None = None
+) -> list[list[str | float | int]]:
     if options.audience == "students" and not set(options.columns) <= STUDENT_COLUMNS:
         raise WorkspaceFailure(
             "private_columns", "Для студенческой копии доступны только ID, балл и статус.", 422
         )
-    rows: list[list[str | float | int]] = [[LABELS[c] for c in options.columns]]
+    details = details or {}
+    criterion_labels = {
+        identity: value[0]
+        for item in items
+        if item.submission_id is not None
+        for identity, value in details.get(item.submission_id, ExportDetails()).criteria.items()
+    }
+    header: list[str | float | int] = []
+    for column in options.columns:
+        header.extend(
+            [f"Критерий: {label}" for label in criterion_labels.values()] or [LABELS[column]]
+        ) if column == "criterion_points" else header.append(LABELS[column])
+    rows: list[list[str | float | int]] = [header]
     for item in items:
         if item.course_run_id != options.course_run_id or (
             options.homework_id is not None and item.homework_id != options.homework_id
@@ -51,15 +189,33 @@ def export_rows(options: ExportInput, items: list[WorkItem]) -> list[list[str | 
             raise WorkspaceFailure("export_scope", "Работа не входит в область экспорта.", 403)
         if item.score is None and not options.include_unpublished:
             continue
+        extra = (
+            details.get(item.submission_id, ExportDetails(attempt=item.attempt))
+            if item.submission_id
+            else ExportDetails()
+        )
         values: dict[str, str | float | int] = {
             "student_id": str(item.student_id),
             "score": item.score if item.score is not None else "",
-            "status": item.status,
-            "attempt": item.attempt,
+            "status": extra.status or item.status,
+            "attempt": extra.attempt,
             "feedback": item.feedback or "",
             "reviewer_id": str(item.published_by) if item.published_by else "",
+            "artifact_url": extra.artifact_url,
         }
-        rows.append([values[c] for c in options.columns])
+        cells: list[str | float | int] = []
+        for column in options.columns:
+            if column == "criterion_points":
+                cells.extend(
+                    [
+                        extra.criteria[key][1] if key in extra.criteria else ""
+                        for key in criterion_labels
+                    ]
+                    or [""]
+                )
+            else:
+                cells.append(values[column])
+        rows.append(cells)
     return rows
 
 
@@ -243,7 +399,25 @@ class ExportWorker:
                     offset += len(page.items)
                     if offset >= page.total or not page.items:
                         break
-                rows = export_rows(options, items)
+                public_base = self.runtime.settings.workspace_public_base_url or ""
+                if "artifact_url" in options.columns:
+                    parsed_base = urlsplit(public_base)
+                    if (
+                        parsed_base.scheme not in {"http", "https"}
+                        or not parsed_base.netloc
+                        or parsed_base.username
+                        or parsed_base.password
+                        or parsed_base.query
+                        or parsed_base.fragment
+                    ):
+                        raise WorkspaceFailure(
+                            "configuration_required",
+                            "Для ссылок экспорта настройте публичный адрес приложения.",
+                            503,
+                        )
+                rows = export_rows(
+                    options, items, await export_details(session, org, items, public_base)
+                )
                 data = csv_bytes(rows) if options.format == "csv" else xlsx_bytes(rows)
                 media = (
                     "text/csv"

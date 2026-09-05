@@ -235,7 +235,38 @@ class CriterionSettings(StrictModel):
     evaluate_quality: bool = False
 
 
-class PrivateHomeworkInput(StrictModel):
+SubmissionSource = Literal["upload", "github", "google_docs"]
+
+
+def default_submission_sources() -> list[SubmissionSource]:
+    return ["upload", "github", "google_docs"]
+
+
+class SourcePolicyInput(StrictModel):
+    allowed_sources: list[SubmissionSource] = Field(
+        default_factory=default_submission_sources, min_length=1, max_length=3
+    )
+
+    @field_validator("allowed_sources")
+    @classmethod
+    def distinct_sources(cls, value: list[SubmissionSource]) -> list[SubmissionSource]:
+        if len(set(value)) != len(value):
+            raise ValueError("submission sources must be distinct")
+        return value
+
+
+class HomeworkTitleInput(StrictModel):
+    title: str = Field(min_length=1, max_length=512)
+
+    @field_validator("title")
+    @classmethod
+    def nonblank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("title must not be blank")
+        return value.strip()
+
+
+class PrivateHomeworkInput(SourcePolicyInput):
     criterion_settings: dict[str, CriterionSettings] = Field(default_factory=dict)
     material_upload_ids: list[UUID] = Field(default_factory=list, max_length=50)
     reviewer_guidance: str = Field(default="", max_length=50000)
@@ -263,7 +294,18 @@ class ExportInput(StrictModel):
     course_run_id: UUID
     homework_id: UUID | None = None
     audience: Literal["team", "students"]
-    columns: list[Literal["student_id", "score", "status", "attempt", "feedback", "reviewer_id"]]
+    columns: list[
+        Literal[
+            "student_id",
+            "score",
+            "status",
+            "attempt",
+            "feedback",
+            "reviewer_id",
+            "criterion_points",
+            "artifact_url",
+        ]
+    ]
     include_unpublished: bool = False
     format: Literal["csv", "xlsx"]
 
@@ -351,11 +393,14 @@ class AssignmentsView(StrictModel):
 
 
 class WorkItem(StrictModel):
+    reviewer_name: str | None = None
+    updated_at: datetime | None = None
     taken_at: datetime | None = None
     participant_ids: list[UUID] = Field(default_factory=list)
     course_title: str = ""
     submission_deadline: datetime | None = None
-    submission_id: UUID
+    draft_id: UUID | None = None
+    submission_id: UUID | None
     submission_revision: Nonnegative
     review_submission_version_id: UUID | None
     publication_id: UUID
@@ -365,7 +410,7 @@ class WorkItem(StrictModel):
     course_run_title: str
     student_id: UUID
     student_name: str
-    submitted_at: datetime
+    submitted_at: datetime | None
     submission_version_id: UUID | None
     attempt: Nonnegative
     review_case_id: UUID | None
@@ -392,7 +437,7 @@ class DraftList(StrictModel):
     items: list[DraftView]
 
 
-class StudentContext(StrictModel):
+class StudentContext(SourcePolicyInput):
     material_upload_ids: list[UUID] = Field(default_factory=list)
     course_title: str = ""
     run_title: str = ""
@@ -478,7 +523,14 @@ class ReviewCriterionView(PublicCriterion):
     position: Nonnegative
 
 
+class ReviewDecisionEvent(StrictModel):
+    timestamp: datetime
+    text: str
+    actor: str | None = None
+
+
 class ReviewContext(StrictModel):
+    decision_history: list[ReviewDecisionEvent] = Field(default_factory=list)
     submission_id: UUID | None = None
     latest_review_iteration_id: UUID | None = None
     artifact_label: str = "Снимок работы"
@@ -549,6 +601,7 @@ class SubmissionAttemptView(StrictModel):
 
 
 class PublishedCriterionView(StrictModel):
+    description: str
     title: str
     points: float
     max_points: float
@@ -609,7 +662,7 @@ class EditorCriterion(StrictModel):
     check_class: Literal["formal", "content", "judgement"] = "content"
 
 
-class EditorDraftInput(StrictModel):
+class EditorDraftInput(SourcePolicyInput):
     material_upload_ids: list[UUID] = Field(default_factory=list, max_length=50)
     course_run_id: UUID
     student_text: str = Field(default="", max_length=100000)
@@ -627,6 +680,8 @@ class EditorDraftInput(StrictModel):
 
 
 class EditorDraftView(StrictModel):
+    homework_title: str = ""
+    homework_revision: Nonnegative = 0
     revision: Nonnegative
     value: EditorDraftInput | None
 
@@ -870,3 +925,37 @@ class StudentHomeworkList(StrictModel):
     total: Nonnegative
     offset: Nonnegative
     limit: Annotated[int, Field(ge=1, le=100)]
+
+
+class WorkspaceStatusCounts(StrictModel):
+    all: Nonnegative = 0
+    draft: Nonnegative = 0
+    pending_review: Nonnegative = 0
+    in_review: Nonnegative = 0
+    needs_changes: Nonnegative = 0
+    repeat_review: Nonnegative = 0
+    passed: Nonnegative = 0
+    failed: Nonnegative = 0
+
+
+class WorkspacePoolMetrics(StrictModel):
+    waiting: Nonnegative
+    submitted: Nonnegative
+    stuck: Nonnegative
+    active_reviewers: Nonnegative
+    total_reviewers: Nonnegative
+    average_wait_minutes: float | None
+
+
+class TypicalCriterionFailure(StrictModel):
+    criterion_id: UUID
+    title: str
+    failed: Nonnegative
+    reviewed: Nonnegative
+    ratio: float
+
+
+class WorkspaceInsightsView(StrictModel):
+    status_counts: WorkspaceStatusCounts
+    pool_metrics: WorkspacePoolMetrics
+    typical_failures: list[TypicalCriterionFailure]

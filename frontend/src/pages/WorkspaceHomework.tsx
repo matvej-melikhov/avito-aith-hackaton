@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
 import { Card, Resource, date, useAction, useResource } from "../ui";
@@ -61,6 +61,7 @@ function versionContent(value: W<"EditorDraftInput">) {
     value.max_score,
     value.estimated_review_minutes,
     value.artifact_kinds,
+    value.allowed_sources ?? ["upload", "github", "google_docs"],
     value.criteria?.map((c) => [
       c.key,
       c.title,
@@ -92,6 +93,11 @@ function HomeworkWizard({
     max_score: data.latest?.max_score ?? 0,
     estimated_review_minutes: data.latest?.estimated_review_minutes ?? 30,
     artifact_kinds: data.latest?.artifact_kinds ?? ["github", "google_docs"],
+    allowed_sources: data.privateDetails?.allowed_sources ?? [
+      "upload",
+      "github",
+      "google_docs",
+    ],
     criteria:
       data.latest?.criteria.map((c) => ({
         key: c.key,
@@ -133,14 +139,16 @@ function HomeworkWizard({
       evaluate_quality: c.evaluate_quality ?? false,
     })),
   });
+  const [title, setTitle] = useState(data.editor.homework_title);
+  const titleRef = useRef(title);
+  titleRef.current = title;
+  const savedTitle = useRef(data.editor.homework_title);
   const editorRevision = useRef(data.editor.revision);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const draftRef = useRef(draft);
   draftRef.current = draft;
   const [autoStatus, setAutoStatus] = useState("");
-  const [homeworkRevision, setHomeworkRevision] = useState(
-    data.history.homework_revision,
-  );
+  const homeworkRevision = useRef(data.editor.homework_revision);
   const [version, setVersion] = useState(data.latest);
   const [savedContent, setSavedContent] = useState(
     data.latest
@@ -150,6 +158,11 @@ function HomeworkWizard({
           max_score: data.latest.max_score,
           estimated_review_minutes: data.latest.estimated_review_minutes,
           artifact_kinds: data.latest.artifact_kinds,
+          allowed_sources: data.privateDetails?.allowed_sources ?? [
+            "upload",
+            "github",
+            "google_docs",
+          ],
           criteria: data.latest.criteria.map((c) => ({
             key: c.key,
             title: c.title,
@@ -238,6 +251,18 @@ function HomeworkWizard({
     const pending = saveQueue.current.then(async () => {
       let next = draftRef.current;
       const original = next;
+      const currentTitle = titleRef.current.trim();
+      if (!currentTitle) throw new Error("Заполните название задания.");
+      if (currentTitle !== savedTitle.current) {
+        const renamed = await ws.command(
+          "update_workspace_homework",
+          data.history.homework_id,
+          homeworkRevision.current,
+          { title: currentTitle },
+        );
+        homeworkRevision.current = renamed.revision;
+        savedTitle.current = currentTitle;
+      }
       setAutoStatus("Сохраняется…");
       if (referenceRef.current) {
         const file = await uploadFile(
@@ -286,7 +311,10 @@ function HomeworkWizard({
         next,
       );
       editorRevision.current = saved.revision;
-      if (JSON.stringify(draftRef.current) === JSON.stringify(next)) {
+      if (
+        JSON.stringify(draftRef.current) === JSON.stringify(next) &&
+        titleRef.current.trim() === savedTitle.current
+      ) {
         setDirty(false);
         setAutoStatus("Изменения сохранены");
       } else setAutoStatus("Ожидает сохранения…");
@@ -317,9 +345,9 @@ function HomeworkWizard({
         );
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [draft, dirty, reference, materials]);
+  }, [draft, title, dirty, reference, materials]);
   async function saveVersion() {
-    const value = draft;
+    const value = await saveDraft();
     if (!value.student_text.trim())
       throw new Error("Заполните условие задания.");
     if (!value.artifact_kinds?.length)
@@ -353,11 +381,11 @@ function HomeworkWizard({
       throw new Error("Укажите положительный шаг каждого критерия.");
     if (!value.criteria?.length || value.criteria.some((c) => !c.title?.trim()))
       throw new Error("Добавьте критерии и заполните их названия.");
-    const savedDraft = await saveDraft();
+    const savedDraft = value;
     const created = await ws.core.command(
       "create_homework_version",
       data.history.homework_id,
-      homeworkRevision,
+      homeworkRevision.current,
       {
         student_text: value.student_text ?? "",
         max_score: value.max_score ?? 0,
@@ -373,6 +401,11 @@ function HomeworkWizard({
     );
     await ws.command("save_private_homework", created.id, 0, {
       reviewer_guidance: value.reviewer_guidance ?? "",
+      allowed_sources: savedDraft.allowed_sources ?? [
+        "upload",
+        "github",
+        "google_docs",
+      ],
       reference_upload_id: savedDraft.reference_upload_id ?? null,
       material_upload_ids: savedDraft.material_upload_ids ?? [],
       criterion_settings: Object.fromEntries(
@@ -389,7 +422,7 @@ function HomeworkWizard({
       ),
     });
     const history = await ws.core.homework(data.history.homework_id);
-    setHomeworkRevision(history.homework_revision);
+    homeworkRevision.current = history.homework_revision;
     setVersion(history.versions.find((v) => v.id === created.id));
     setSavedContent(versionContent(savedDraft));
     setFurthestStep(2);
@@ -415,20 +448,28 @@ function HomeworkWizard({
         <a href="#/courses">Курсы</a> /{" "}
         <a href={`#/courses/${run}`}>Задания потока</a> / Настройка задания
       </p>
-      <ScreenTitle code={step === 0 ? "К5" : "К6"} title="Настройка задания" />
+      <ScreenTitle
+        code={step === 0 ? "К5" : "К6"}
+        title={title || "Новое задание"}
+      />
       {action.feedback}
       {autoStatus && <small role="status">{autoStatus}</small>}
       <div className="steps">
         {["Для студента", "Критерии ревью", "Публикация"].map((label, i) => (
-          <button
-            key={label}
-            aria-current={step === i ? "step" : undefined}
-            disabled={i > furthestStep}
-            className={`step ${step === i ? "is-on" : i < furthestStep ? "is-done" : ""}`}
-            onClick={() => setStep(i)}
-          >
-            {i + 1}. {label}
-          </button>
+          <Fragment key={label}>
+            <button
+              type="button"
+              aria-label={`${i + 1}. ${label}`}
+              aria-current={step === i ? "step" : undefined}
+              disabled={i > furthestStep}
+              className={`step ${step === i ? "is-on" : i < furthestStep ? "is-done" : "step--next"}`}
+              onClick={() => setStep(i)}
+            >
+              <span className="n">{i < step ? "✓" : i + 1}</span>
+              {label}
+            </button>
+            {i < 2 && <span className="bar" />}
+          </Fragment>
         ))}
       </div>
       {step === 0 && (
@@ -442,8 +483,21 @@ function HomeworkWizard({
             });
           }}
         >
-          <div className="two-col">
+          <div className="row-side">
             <Card title="Условие для студента">
+              <label>
+                Название
+                <input
+                  required
+                  maxLength={512}
+                  value={title}
+                  onChange={(event) => {
+                    setTitle(event.target.value);
+                    setDirty(true);
+                    setAutoStatus("Ожидает сохранения…");
+                  }}
+                />
+              </label>
               <label>
                 Условие
                 <textarea
@@ -499,28 +553,69 @@ function HomeworkWizard({
                   </button>
                 </div>
               ))}
-              <div className="actions">
-                {(["github", "google_docs"] as const).map((kind) => (
-                  <label className="check" key={kind}>
-                    <input
-                      type="checkbox"
-                      checked={draft.artifact_kinds?.includes(kind) ?? false}
-                      onChange={(e) =>
-                        change({
-                          artifact_kinds: e.target.checked
-                            ? [...(draft.artifact_kinds ?? []), kind]
-                            : (draft.artifact_kinds ?? []).filter(
-                                (v) => v !== kind,
-                              ),
-                        })
-                      }
-                    />
-                    {kind === "github" ? "GitHub" : "Google Docs"}
-                  </label>
-                ))}
+              <div className="field">
+                <span className="field__lbl">Что сдаём</span>
+                <div className="seg">
+                  {(
+                    [
+                      [
+                        "both",
+                        "Ссылка или файлы",
+                        ["upload", "github", "google_docs"],
+                      ],
+                      ["link", "Только ссылка", ["github", "google_docs"]],
+                      ["upload", "Только файлы", ["upload"]],
+                    ] as const
+                  ).map(([value, label, sources]) => {
+                    const current = draft.allowed_sources ?? [
+                      "upload",
+                      "github",
+                      "google_docs",
+                    ];
+                    const chosen = current.includes("upload")
+                      ? current.length === 1
+                        ? "upload"
+                        : "both"
+                      : "link";
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        className={chosen === value ? "is-on" : ""}
+                        aria-pressed={chosen === value}
+                        onClick={() =>
+                          change({ allowed_sources: [...sources] })
+                        }
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <small>
+                  Студент выбирает разрешённый способ на странице сдачи.
+                </small>
               </div>
             </Card>
-            <Card title="Правила задания">
+            <Card title="Сроки и правила задания">
+              <label>
+                Срок сдачи
+                <input
+                  type="datetime-local"
+                  value={localDate(draft.submission_deadline)}
+                  onChange={(event) =>
+                    change({
+                      submission_deadline: event.target.value
+                        ? new Date(event.target.value).toISOString()
+                        : null,
+                    })
+                  }
+                />
+                <small>
+                  Срок относится к выбранному потоку; перед публикацией его
+                  можно уточнить.
+                </small>
+              </label>
               <label>
                 Лимит AI-самопроверок на студента
                 <input
@@ -530,7 +625,7 @@ function HomeworkWizard({
                   step={1}
                   value={draft.policy?.self_review_limit ?? ""}
                   onChange={(e) =>
-                    policy({ self_review_limit: e.target.valueAsNumber })
+                    policy({ self_review_limit: Number(e.target.value) })
                   }
                 />
               </label>
@@ -560,7 +655,7 @@ function HomeworkWizard({
                     step="any"
                     value={draft.policy?.penalty_per_day ?? 0}
                     onChange={(e) =>
-                      policy({ penalty_per_day: e.target.valueAsNumber })
+                      policy({ penalty_per_day: Number(e.target.value) })
                     }
                   />
                 </label>
@@ -577,7 +672,7 @@ function HomeworkWizard({
                   max={365}
                   value={draft.policy?.revision_days ?? 7}
                   onChange={(e) =>
-                    policy({ revision_days: e.target.valueAsNumber })
+                    policy({ revision_days: Number(e.target.value) })
                   }
                 />
               </label>
@@ -588,14 +683,14 @@ function HomeworkWizard({
                   min={0}
                   value={draft.policy?.max_resubmissions ?? 3}
                   onChange={(e) =>
-                    policy({ max_resubmissions: e.target.valueAsNumber })
+                    policy({ max_resubmissions: Number(e.target.value) })
                   }
                 />
               </label>
             </Card>
           </div>
           <div className="btn-row">
-            <button className="primary" disabled={action.busy}>
+            <button className="btn btn--dark" disabled={action.busy}>
               Дальше: критерии
             </button>
           </div>
@@ -612,6 +707,7 @@ function HomeworkWizard({
             <div className="stack">
               <Card
                 title="Критерии"
+                bodyClassName="criteria-editor"
                 actions={
                   <button
                     type="button"
@@ -669,6 +765,7 @@ function HomeworkWizard({
                       <label className="field">
                         Выполнено, если
                         <textarea
+                          className="criterion-condition"
                           value={c.description}
                           onChange={(e) =>
                             edit({ description: e.target.value })
@@ -740,7 +837,7 @@ function HomeworkWizard({
                               Number.isFinite(c.max_points) ? c.max_points : ""
                             }
                             onChange={(e) =>
-                              edit({ max_points: e.target.valueAsNumber })
+                              edit({ max_points: Number(e.target.value) })
                             }
                           />
                         </label>
@@ -755,7 +852,7 @@ function HomeworkWizard({
                               Number.isFinite(c.score_step) ? c.score_step : ""
                             }
                             onChange={(e) =>
-                              edit({ score_step: e.target.valueAsNumber })
+                              edit({ score_step: Number(e.target.value) })
                             }
                           />
                         </label>
@@ -870,7 +967,7 @@ function HomeworkWizard({
                     step="any"
                     value={draft.policy?.pass_score ?? 0}
                     onChange={(e) =>
-                      policy({ pass_score: e.target.valueAsNumber })
+                      policy({ pass_score: Number(e.target.value) })
                     }
                   />
                   <span>баллов из {draft.max_score} возможных</span>
@@ -927,7 +1024,7 @@ function HomeworkWizard({
           </div>
           <div className="btn-row">
             <button
-              className="primary"
+              className="btn btn--dark"
               disabled={action.busy || !draft.criteria?.length}
             >
               Дальше: публикация

@@ -33,7 +33,7 @@ export function WorkspaceCatalog({
   const close = useCallback(() => setModal(undefined), []);
   const action = useAction();
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("");
   return (
     <>
       <ScreenTitle
@@ -45,7 +45,17 @@ export function WorkspaceCatalog({
           Создать курс
         </button>
         {mode === "overview" && (
-          <button className="btn btn--dark" onClick={() => setModal("run")}>
+          <button
+            className="btn btn--dark"
+            disabled={r.loading}
+            onClick={() => {
+              setSelectedCourse(
+                r.data?.courses.find((course) => course.status === "active")
+                  ?.id ?? "",
+              );
+              setModal("run");
+            }}
+          >
             Создать поток
           </button>
         )}
@@ -56,34 +66,41 @@ export function WorkspaceCatalog({
         {r.data && mode === "overview" && (
           <Card
             title="Потоки"
+            bodyClassName="card__body--flush"
             actions={
-              <div className="filters">
-                <label>
-                  Найти курс или поток
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </label>
-                <label>
-                  Состояние
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    <option value="active">Активные</option>
-                    <option value="archived">Архив</option>
-                    <option value="">Все</option>
-                  </select>
-                </label>
+              <div className="btn-row coordinator-compact-filters">
+                <select
+                  className="btn btn--s btn--quiet"
+                  aria-label="Курс"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                >
+                  <option value="">Курс: все</option>
+                  {r.data?.courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="btn btn--s btn--quiet"
+                  aria-label="Состояние"
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value)}
+                >
+                  <option value="">Статус: все</option>
+                  <option value="active">Активные</option>
+                  <option value="archived">Архив</option>
+                </select>
               </div>
             }
           >
             <div className="table-wrap">
-              <table>
+              <table className="tbl">
                 <thead>
                   <tr>
-                    <th>Курс / поток</th>
+                    <th>Курс</th>
+                    <th>Поток</th>
                     <th>Студенты</th>
                     <th>Ревьюеры</th>
                     <th>Ближайший срок</th>
@@ -98,9 +115,7 @@ export function WorkspaceCatalog({
                     .filter(
                       (run) =>
                         (!status || run.status === status) &&
-                        `${run.title} ${r.data!.courses.find((c) => c.id === run.course_id)?.title}`
-                          .toLowerCase()
-                          .includes(search.toLowerCase()),
+                        (!search || run.course_id === search),
                     )
                     .map((run) => (
                       <RunSummary
@@ -118,98 +133,110 @@ export function WorkspaceCatalog({
             </div>
           </Card>
         )}
+        {r.data && mode === "overview" && (
+          <OverviewAttention ws={ws} runs={r.data.course_runs} />
+        )}
         {r.data && mode === "courses" && (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Курс</th>
-                  <th>Заданий</th>
-                  <th>Потоков</th>
-                  <th>Активных</th>
-                  <th>Курс в Stepik</th>
-                  <th>Состояние</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {r.data.courses.map((c) => (
-                  <tr key={c.id}>
-                    <td>
-                      <button
-                        className="link-button"
-                        onClick={() => {
-                          setEditCourse(c);
-                          setModal("edit-course");
-                        }}
-                      >
-                        {c.title}
-                      </button>
-                      <small>{c.description}</small>
-                    </td>
-                    <td>
-                      <HomeworkCount ws={ws} courseId={c.id} />
-                    </td>
-                    <td>
-                      {
-                        r.data!.course_runs.filter(
-                          (run) => run.course_id === c.id,
-                        ).length
-                      }
-                    </td>
-                    <td>
-                      {
-                        r.data!.course_runs.filter(
-                          (run) =>
-                            run.course_id === c.id && run.status === "active",
-                        ).length
-                      }
-                    </td>
-                    <td>
-                      {c.stepik_url ? (
-                        <a href={c.stepik_url} target="_blank" rel="noreferrer">
-                          {c.stepik_url.replace("https://", "")}
-                        </a>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td>
-                      <Status value={c.status} />
-                    </td>
-                    <td>
-                      <button
-                        disabled={action.busy}
-                        onClick={() =>
-                          void action.run(async () => {
-                            if (c.status === "archived")
-                              await ws.core.command(
-                                "restore_course",
-                                c.id,
-                                c.revision,
-                                {},
-                              );
-                            else
-                              await ws.core.command(
-                                "archive_course",
-                                c.id,
-                                c.revision,
-                                { reason: "Архивирование координатором" },
-                              );
-                            r.refresh();
-                          })
-                        }
-                      >
-                        {c.status === "archived"
-                          ? "Восстановить"
-                          : "Архивировать"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <section className="card">
+            <div className="card__body card__body--flush">
+              <div className="table-wrap">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Курс</th>
+                      <th>Заданий</th>
+                      <th>Потоков</th>
+                      <th>Активных</th>
+                      <th>Курс в Stepik</th>
+                      <th>Состояние</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {r.data.courses.map((c) => (
+                      <tr key={c.id}>
+                        <td>
+                          <button
+                            className="link-button"
+                            onClick={() => {
+                              setEditCourse(c);
+                              setModal("edit-course");
+                            }}
+                          >
+                            {c.title}
+                          </button>
+                          <small>{c.description}</small>
+                        </td>
+                        <td>
+                          <HomeworkCount ws={ws} courseId={c.id} />
+                        </td>
+                        <td>
+                          {
+                            r.data!.course_runs.filter(
+                              (run) => run.course_id === c.id,
+                            ).length
+                          }
+                        </td>
+                        <td>
+                          {
+                            r.data!.course_runs.filter(
+                              (run) =>
+                                run.course_id === c.id &&
+                                run.status === "active",
+                            ).length
+                          }
+                        </td>
+                        <td>
+                          {c.stepik_url ? (
+                            <a
+                              href={c.stepik_url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {c.stepik_url.replace("https://", "")}
+                            </a>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td>
+                          <Status value={c.status} />
+                        </td>
+                        <td>
+                          <button
+                            disabled={action.busy}
+                            onClick={() =>
+                              void action.run(async () => {
+                                if (c.status === "archived")
+                                  await ws.core.command(
+                                    "restore_course",
+                                    c.id,
+                                    c.revision,
+                                    {},
+                                  );
+                                else
+                                  await ws.core.command(
+                                    "archive_course",
+                                    c.id,
+                                    c.revision,
+                                    { reason: "Архивирование координатором" },
+                                  );
+                                r.refresh();
+                              })
+                            }
+                          >
+                            {c.status === "archived"
+                              ? "Восстановить"
+                              : "Архивировать"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
         )}
         {r.data?.courses.length === 0 && (
           <Empty>Создайте курс или импортируйте его из Stepik.</Empty>
@@ -275,7 +302,7 @@ function OverviewMetrics({ ws }: { ws: WorkspaceClient }) {
   const r = useResource(async () => {
     const [all, active, pool, catalog] = await Promise.all([
       ws.works({ limit: 1 }),
-      ws.works({ state: "in_review", limit: 1 }),
+      ws.works({ state: "reviewing", limit: 1 }),
       ws.works({ state: "pending_review", limit: 1 }),
       ws.catalog(),
     ]);
@@ -308,7 +335,7 @@ function OverviewMetrics({ ws }: { ws: WorkspaceClient }) {
             <div className="n">{r.data.all}</div>
             <div className="l">домашек в потоках</div>
           </a>
-          <a className="tile" href="#/registry?state=in_review">
+          <a className="tile" href="#/registry?state=reviewing">
             <div className="n">{r.data.active}</div>
             <div className="l">у ревьюеров прямо сейчас</div>
           </a>
@@ -342,7 +369,7 @@ function RunSummary({
       [
         ws.works({ course_run_id: run.id, limit: 1 }),
         ws.works({ course_run_id: run.id, state: "pending_review", limit: 1 }),
-        ws.works({ course_run_id: run.id, state: "in_review", limit: 1 }),
+        ws.works({ course_run_id: run.id, state: "reviewing", limit: 1 }),
         ws.works({ course_run_id: run.id, state: "passed", limit: 1 }),
         ws.assignments(run.id),
         ws.core.homeworks(run.id),
@@ -366,8 +393,8 @@ function RunSummary({
   );
   return (
     <tr>
+      <td>{course}</td>
       <td>
-        <small>{course}</small>
         <div className="flow-heading">
           <a href={`#/courses/${run.id}`}>{run.title}</a>
           <Status value={run.status} />
@@ -380,7 +407,7 @@ function RunSummary({
           <td>{r.data.deadline ? date(r.data.deadline) : "Нет предстоящих"}</td>
           <td>{link(r.data.all)}</td>
           <td>{link(r.data.pool, "pending_review")}</td>
-          <td>{link(r.data.review, "in_review")}</td>
+          <td>{link(r.data.review, "reviewing")}</td>
           <td>{link(r.data.accepted, "passed")}</td>
         </>
       ) : (
@@ -581,12 +608,14 @@ function CourseForm({
             ))}
         </select>
       </label>
-      <button type="button" onClick={done}>
-        Отмена
-      </button>
-      <button className="primary" disabled={action.busy}>
-        {course ? "Сохранить курс" : "Создать курс"}
-      </button>
+      <div className="btn-row modal-form-actions">
+        <button type="button" onClick={done}>
+          Отмена
+        </button>
+        <button className="primary" disabled={action.busy}>
+          {course ? "Сохранить курс" : "Создать курс"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -601,13 +630,10 @@ function RunForm({
   done: () => void;
   run?: W<"CourseRunView">;
 }) {
-  const [title, setTitle] = useState(run?.title ?? "");
   const [start, setStart] = useState(localDate(run?.starts_at));
   const [end, setEnd] = useState(localDate(run?.ends_at));
-  const [zone, setZone] = useState(run?.timezone ?? "Europe/Moscow");
-  const [priority, setPriority] = useState<"assigned" | "deadline">(
-    run?.priority ?? "assigned",
-  );
+  const zone = run?.timezone ?? "Europe/Moscow";
+  const priority = run?.priority ?? "assigned";
   const action = useAction();
   return (
     <form
@@ -619,7 +645,7 @@ function RunForm({
             run?.id ?? course.id,
             run?.revision ?? course.revision,
             {
-              title,
+              title: run?.title ?? `${course.title} · ${start.slice(0, 10)}`,
               starts_at: new Date(start).toISOString(),
               ends_at: new Date(end).toISOString(),
               timezone: zone,
@@ -631,64 +657,51 @@ function RunForm({
       }}
     >
       {action.feedback}
-      <p>Курс: {course.title}</p>
-      <label>
-        Название потока
+      <div className="date-range">
+        <label className="field">
+          <span className="field__lbl">Дата начала</span>
+          <input
+            required
+            type="datetime-local"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span className="field__lbl">Дата окончания</span>
+          <input
+            required
+            type="datetime-local"
+            min={start}
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+          />
+        </label>
+      </div>
+      <label className="field">
+        <span className="field__lbl">ID потока</span>
         <input
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          className="inp inp--mono"
+          disabled
+          value={run?.id ?? "Будет присвоен при создании"}
         />
+        <small>
+          Используется в ссылках для сдачи и выгрузке. После создания не
+          меняется.
+        </small>
       </label>
-      <label>
-        Начало
-        <input
-          required
-          type="datetime-local"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-        />
-      </label>
-      <label>
-        Окончание
-        <input
-          required
-          type="datetime-local"
-          min={start}
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-        />
-      </label>
-      <label>
-        Часовой пояс
-        <input
-          required
-          value={zone}
-          onChange={(e) => setZone(e.target.value)}
-        />
-      </label>
-      <label>
-        Порядок рекомендаций
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value as typeof priority)}
-        >
-          <option value="assigned">Свои студенты сначала</option>
-          <option value="deadline">Ближайший срок сначала</option>
-        </select>
-      </label>
-      <p className="muted">
-        Порядок рекомендаций не ограничивает доступ к общему пулу.
-      </p>
-      <p className="muted">
-        После создания добавьте участников или импортируйте состав из Stepik.
-      </p>
-      <button type="button" onClick={done}>
-        Отмена
-      </button>
-      <button className="primary" disabled={action.busy}>
-        {run ? "Сохранить поток" : "Создать поток"}
-      </button>
+      <div className="callout callout--info">
+        <span className="callout__mark">i</span>
+        <p>После создания настройте состав студентов и ревьюеров в потоке.</p>
+      </div>
+      <div className="btn-row modal-form-actions">
+        <button type="button" onClick={done}>
+          Отмена
+        </button>
+        <button className="primary" disabled={action.busy}>
+          {run ? "Сохранить поток" : "Создать поток"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -935,7 +948,7 @@ function CoursePoolCount({
     runs.map((run) => run.id).join(":"),
   );
   return (
-    <span className="muted">
+    <span className="muted course-pool-count">
       {r.data !== undefined
         ? `в пуле ${r.data} работ`
         : r.error
@@ -982,7 +995,7 @@ export function WorkspaceAssignments({
         {r.data && (
           <>
             <Card title="Основной ревьюер студента">
-              <table>
+              <table className="tbl">
                 <thead>
                   <tr>
                     <th>Студент</th>
@@ -1234,6 +1247,7 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
       <Resource value={r}>
         <Card
           title="Задания курсов"
+          bodyClassName="card__body--flush"
           actions={
             <div className="filters">
               <label>
@@ -1262,7 +1276,7 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
           }
         >
           <div className="table-wrap">
-            <table>
+            <table className="tbl">
               <thead>
                 <tr>
                   <th>Задание</th>
@@ -1430,5 +1444,94 @@ function HomeworkDirectoryRow({
         </div>
       </td>
     </tr>
+  );
+}
+
+function OverviewAttention({
+  ws,
+  runs,
+}: {
+  ws: WorkspaceClient;
+  runs: W<"CourseRunView">[];
+}) {
+  const r = useResource(
+    async () => {
+      const [pending, ...lists] = await Promise.all([
+        ws.works({
+          view: "pool",
+          state: "pending_review",
+          priority: "deadline",
+          limit: 100,
+        }),
+        ...runs
+          .filter((run) => run.status === "active")
+          .map((run) =>
+            ws.core
+              .homeworks(run.id)
+              .then((list) => ({ run, items: list.items })),
+          ),
+      ]);
+      return { pending, lists };
+    },
+    runs.map((run) => `${run.id}:${run.revision}`).join(":"),
+  );
+  return (
+    <Resource value={r}>
+      {r.data && (
+        <div className="row-2">
+          <Card title="Требует внимания" bodyClassName="card__body--tight">
+            {r.data.pending.items
+              .filter(
+                (work) =>
+                  work.review_deadline &&
+                  new Date(work.review_deadline).getTime() < Date.now(),
+              )
+              .slice(0, 3)
+              .map((work) => (
+                <div className="kv" key={work.submission_id}>
+                  <span>{work.title} · срок проверки истёк</span>
+                  <a href={`#/coord-pool?run=${work.course_run_id}`}>
+                    Открыть пул
+                  </a>
+                </div>
+              ))}
+            {!r.data.pending.items.some(
+              (work) =>
+                work.review_deadline &&
+                new Date(work.review_deadline).getTime() < Date.now(),
+            ) && (
+              <Empty>
+                Среди ближайших ожидающих проверок нет просроченных.
+              </Empty>
+            )}
+          </Card>
+          <Card title="Ближайшие дедлайны" bodyClassName="card__body--tight">
+            {r.data.lists
+              .flatMap((list) =>
+                list.items.map((item) => ({ ...item, run: list.run })),
+              )
+              .filter(
+                (item) =>
+                  item.submission_deadline &&
+                  new Date(item.submission_deadline).getTime() >= Date.now(),
+              )
+              .sort((a, b) =>
+                (a.submission_deadline ?? "").localeCompare(
+                  b.submission_deadline ?? "",
+                ),
+              )
+              .slice(0, 3)
+              .map((item) => (
+                <div className="kv" key={item.course_run_homework_id}>
+                  <a href={`#/homework/${item.homework_id}?run=${item.run.id}`}>
+                    {item.run.title} · {item.title}
+                  </a>
+                  <span className="pill">{date(item.submission_deadline)}</span>
+                </div>
+              ))}
+          </Card>
+        </div>
+      )}
+    </Resource>
   );
 }

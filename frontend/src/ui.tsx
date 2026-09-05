@@ -185,18 +185,27 @@ export function Card({
   title,
   children,
   actions,
+  headClassName = "",
+  bodyClassName = "",
+  subtitle,
 }: {
   title: string;
   children: ReactNode;
   actions?: ReactNode;
+  headClassName?: string;
+  bodyClassName?: string;
+  subtitle?: ReactNode;
 }) {
   return (
     <section className="card">
-      <div className="card-head">
-        <h2>{title}</h2>
+      <div className={`card-head card__head ${headClassName}`}>
+        <div>
+          <h2>{title}</h2>
+          {subtitle && <div className="card__sub">{subtitle}</div>}
+        </div>
         {actions}
       </div>
-      <div className="card-body">{children}</div>
+      <div className={`card-body card__body ${bodyClassName}`}>{children}</div>
     </section>
   );
 }

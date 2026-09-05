@@ -255,9 +255,9 @@ a:hover { border-bottom-color: var(--ink); }
 .seg > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
 
 /* Шкала оценки требования: значения из конфигурации задания                 */
-.scale { display: inline-flex; padding: 2px; border: var(--bw-hair) solid var(--line-2);
+.scale { display: inline-flex; min-width: var(--review-score-w); padding: 2px; border: var(--bw-hair) solid var(--line-2);
          border-radius: var(--r-pill); background: var(--surface); }
-.scale > * { min-width: 32px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+.scale > * { flex: 1; min-width: var(--ctl-s); height: var(--ctl-s); display: inline-flex; align-items: center; justify-content: center;
              font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
              border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
 /* Выбранное значение — залитая пилюля внутри пилюли, углы обоих полные:
@@ -496,6 +496,7 @@ a.step { border: 0; }
 .overlay--wide { width: 720px; }
 
 .modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
+.modal.overlay--wide { width: min(720px, calc(100% - 2 * var(--gutter))); max-width: 720px; }
 /* Поле поиска. Лупа нарисована в разметке, а не шрифтом: значка поиска нет
    ни в одной из трёх наших гарнитур, а эмодзи в интерфейсе мы не ставим.    */
 .srch { position: relative; display: inline-flex; align-items: center; }
@@ -525,6 +526,51 @@ a.step { border: 0; }
          font-size: var(--small-size); font-weight: var(--w-medium); }
 .toast--ok  { background: var(--brand-green); color: var(--ink); }
 .toast--bad { background: var(--brand-red); color: var(--ink-inv); }
+
+/* Сдача: пояснение переносится вместе с кнопкой ИИ-ревью.                  */
+.submission-actions { display: flex; align-items: flex-start; gap: var(--s-6); flex-wrap: wrap; width: 100%; }
+.submission-actions__precheck { flex: 1; min-width: min(240px, 100%); display: grid;
+                                justify-items: start; gap: var(--s-2); }
+.submission-actions__precheck .caption { max-width: 48ch; }
+.submission-comment { min-height: 80px; height: auto; }
+
+/* Разбор: общая сетка для редактирования и просмотра без смены режима.    */
+.review-layout > * { min-width: 0; }
+.acc__h--score { display: grid; grid-template-columns: 21px minmax(0, 1fr) var(--review-score-w) 16px;
+                 column-gap: var(--s-3); padding: var(--s-4) 0; }
+.acc__h--score .acc__t { min-width: 0; overflow-wrap: anywhere; }
+.acc__h--score .acc__t > .pill { margin-left: var(--s-2); vertical-align: middle; }
+.acc__h--score .scale { width: var(--review-score-w); justify-self: end; }
+.acc__h--score > .mono { grid-column: 3; justify-self: end; white-space: nowrap; }
+.acc__h--score > .acc__chev { grid-column: 4; }
+.review-criteria .finding__src { flex-wrap: wrap; }
+.review-criteria .code { overflow-x: auto; }
+.card__head--review { align-items: flex-start; flex-direction: column; gap: var(--s-2); }
+.card__head--response { display: grid; grid-template-columns: 1fr; gap: var(--s-3); }
+.card__head--response > .btn { justify-self: start; }
+.decision-actions { display: grid; grid-template-columns: 1fr; gap: var(--s-2); }
+.decision-actions .btn { width: 100%; }
+
+/* Настройка критериев: тип, балл и стрелка стоят в общих колонках.          */
+.criteria-editor .acc__h { display: grid; grid-template-columns: 16px minmax(0, 1fr) 180px 32px 16px; }
+.criteria-editor .acc__t, .criteria-editor .caption { min-width: 0; overflow-wrap: anywhere; }
+.criteria-editor .acc__chev { grid-column: 5; }
+.criterion-condition { min-height: 96px; height: auto; line-height: var(--body-lh); }
+
+.date-range { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-3); }
+.date-range > .field { min-width: 0; margin-bottom: 0; }
+.decision-event { display: block; padding: var(--s-4) 0; }
+.decision-event > span { display: block; }
+.decision-event > .caption { margin-top: var(--s-2); white-space: nowrap; }
+.export-context { color: var(--ink); font-size: var(--body-size); line-height: var(--body-lh); overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+  .date-range { grid-template-columns: 1fr; }
+  .acc__h--score { grid-template-columns: 21px minmax(0, 1fr) 16px; }
+  .acc__h--score .scale { grid-column: 2; grid-row: 2; justify-self: start; margin-top: var(--s-2); }
+  .acc__h--score > .mono { grid-column: 2; grid-row: 2; justify-self: start; }
+  .acc__h--score > .acc__chev { grid-column: 3; grid-row: 1; }
+}
 
 @media (max-width: 1100px) {
   .row-side, .row-rev, .row-2 { grid-template-columns: 1fr; }

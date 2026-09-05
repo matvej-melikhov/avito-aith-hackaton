@@ -1,0 +1,83 @@
+[
+  {
+    "width": 320,
+    "scrollWidth": 320,
+    "bodyWidth": 320,
+    "scores": [
+      {
+        "width": 136,
+        "x": 70,
+        "right": 206
+      },
+      {
+        "width": 136,
+        "x": 70,
+        "right": 206
+      }
+    ],
+    "inputs": [
+      {
+        "width": 73,
+        "value": "2.5"
+      },
+      {
+        "width": 73,
+        "value": "2.5"
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "scrollWidth": 768,
+    "bodyWidth": 768,
+    "scores": [
+      {
+        "width": 136,
+        "x": 555,
+        "right": 691
+      },
+      {
+        "width": 136,
+        "x": 555,
+        "right": 691
+      }
+    ],
+    "inputs": [
+      {
+        "width": 73,
+        "value": "2.5"
+      },
+      {
+        "width": 73,
+        "value": "2.5"
+      }
+    ]
+  },
+  {
+    "width": 1600,
+    "scrollWidth": 1600,
+    "bodyWidth": 1600,
+    "scores": [
+      {
+        "width": 136,
+        "x": 1387,
+        "right": 1523
+      },
+      {
+        "width": 136,
+        "x": 1387,
+        "right": 1523
+      }
+    ],
+    "inputs": [
+      {
+        "width": 73,
+        "value": "2.5"
+      },
+      {
+        "width": 73,
+        "value": "2.5"
+      }
+    ]
+  }
+]

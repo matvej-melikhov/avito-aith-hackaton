@@ -266,6 +266,7 @@ async def student_submission(
     for decision, criterion in decisions:
         by_revision.setdefault(decision.review_revision_id, []).append(
             PublishedCriterionView(
+                description=criterion.description,
                 title=criterion.title,
                 points=float(decision.points),
                 max_points=float(criterion.max_points),
