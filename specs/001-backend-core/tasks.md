@@ -175,7 +175,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T098 [US4] Create the reversible review-spine migration with `down_revision=0004_submissions_and_artifacts` in `backend/migrations/versions/0005_review_spine.py`
 - [X] T099 [US4] Create the reversible AI-review migration with `down_revision=0005_review_spine` in `backend/migrations/versions/0006_ai_review.py`
 - [X] T100 [US4] Implement canonical immutable-input fingerprinting and shared vector verification in `backend/src/review_platform/domain/ai_fingerprint.py`
-- [ ] T101 [US4] Implement generated typed AI request/event/error models plus exact completeness and zero..criterion-max semantic validation for every AI suggestion in `backend/src/review_platform/contracts/ai_review.py`
+- [X] T101 [US4] Implement generated typed AI request/event/error models plus exact completeness and zero..criterion-max semantic validation for every AI suggestion in `backend/src/review_platform/contracts/ai_review.py`
 - [ ] T102 [US4] Implement tenant-scoped draft revision/decision/note repositories with expected-current CAS in `backend/src/review_platform/infrastructure/db/repositories/review_revisions.py`
 - [ ] T103 [US4] Implement tenant-scoped AI run/attempt/event/suggestion/signal repositories in `backend/src/review_platform/infrastructure/db/repositories/ai_reviews.py`
 - [ ] T104 [US4] Implement append-only human draft revision creation used to prove AI cannot overwrite a human edit in `backend/src/review_platform/application/services/review_drafts.py`
