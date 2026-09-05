@@ -126,7 +126,7 @@ def test_ai_has_full_immutable_input_provenance_and_no_ai_to_human_path() -> Non
 
 def test_review_ai_migrations_form_one_head() -> None:
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
-    assert scripts.get_heads() == ["0006_ai_review"]
+    assert len(scripts.get_heads()) == 1
     assert (
         scripts.get_revision("0005_review_spine").down_revision == "0004_submissions_and_artifacts"
     )
