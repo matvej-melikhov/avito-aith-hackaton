@@ -155,7 +155,7 @@ async def submit(kind: str, run_id: str, request: Request, background: Backgroun
     # Ссылка на снимок живёт 15 минут: скачиваем при приёме, до фоновой работы.
     try:
         data = await asyncio.to_thread(fetch_artifact, req.artifact_url, req.artifact_digest,
-                                       max_bytes=settings.max_artifact_bytes)
+                                       max_bytes=settings.max_artifact_bytes, rewrites=settings.url_rewrites)
     except ArtifactError as e:
         event = store.append_event(run_id, req.attempt, _event(req.model_dump(mode="json"), "failed", error_code=e.code))
         store.set_status(run_id, req.attempt, "failed")

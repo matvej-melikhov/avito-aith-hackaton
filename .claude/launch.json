@@ -19,9 +19,13 @@
         "--prefix",
         "frontend",
         "run",
-        "dev"
+        "dev",
+        "--",
+        "--port",
+        "5174"
       ],
-      "port": 5173
+      "port": 5174,
+      "autoPort": false
     }
   ]
 }

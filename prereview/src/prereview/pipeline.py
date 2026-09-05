@@ -104,7 +104,7 @@ def _now() -> str:
 def load_work(artifact_bytes: bytes | None, url: str, digest: str, media_type: str, settings: Settings) -> Work:
     try:
         data = artifact_bytes if artifact_bytes is not None else fetch_artifact(
-            url, digest, max_bytes=settings.max_artifact_bytes)
+            url, digest, max_bytes=settings.max_artifact_bytes, rewrites=settings.url_rewrites)
     except ArtifactError as e:
         raise PipelineError(e.code, str(e)) from e
     try:

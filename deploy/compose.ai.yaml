@@ -13,6 +13,8 @@ services:
       PREREVIEW_HARNESS_ENABLED: ${PREREVIEW_HARNESS_ENABLED:-true}
       PREREVIEW_TOKEN: ${PREREVIEW_TOKEN:-}
       PREREVIEW_USD_RUB: ${PREREVIEW_USD_RUB:-80}
+      # Подписанные ссылки на снимки выписаны на публичный адрес MinIO для браузера; внутри сети compose он недоступен.
+      PREREVIEW_URL_REWRITES: ${PREREVIEW_URL_REWRITES:-http://127.0.0.1:19000=http://minio:9000}
     ports:
       - "127.0.0.1:${AI_PORT:-18100}:8100"
     volumes:
@@ -23,6 +25,7 @@ services:
       REVIEW_PLATFORM_WORKSPACE_AI_URL: http://ai:8100
       REVIEW_PLATFORM_WORKSPACE_AI_TOKEN: ${PREREVIEW_TOKEN:-}
       REVIEW_PLATFORM_PROVIDER_TIMEOUT_SECONDS: "30"
+      REVIEW_PLATFORM_BROWSER_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174
     depends_on:
       ai:
         condition: service_healthy

@@ -25,16 +25,32 @@ def verify_digest(data: bytes, expected: str) -> None:
         raise ArtifactError(f"digest не совпал: ожидали {expected[:20]}…, получили {actual[:20]}…")
 
 
-def fetch_artifact(url: str, expected_digest: str, *, max_bytes: int, timeout: int = 60) -> bytes:
+def rewrite_url(url: str, rewrites: str) -> tuple[str, dict[str, str]]:
+    """Подменяет префикс адреса по правилам "from=to,from=to", сохраняя исходный Host в заголовке."""
+    from urllib.parse import urlsplit
+
+    for rule in [r.strip() for r in (rewrites or "").split(",") if r.strip()]:
+        if "=" not in rule:
+            continue
+        src, dst = rule.split("=", 1)
+        if url.startswith(src):
+            original_host = urlsplit(url).netloc
+            return dst + url[len(src):], {"Host": original_host}
+    return url, {}
+
+
+def fetch_artifact(url: str, expected_digest: str, *, max_bytes: int, timeout: int = 60,
+                   rewrites: str = "") -> bytes:
     if url.startswith("file://"):
         # Локальные прогоны и тесты.
         from pathlib import Path
 
         data = Path(url[len("file://"):]).read_bytes()
     else:
+        url, headers = rewrite_url(url, rewrites)
         try:
             with httpx.Client(timeout=timeout, follow_redirects=False) as client:
-                with client.stream("GET", url) as resp:
+                with client.stream("GET", url, headers=headers) as resp:
                     if resp.status_code != 200:
                         raise ArtifactError(f"ссылка на снимок вернула HTTP {resp.status_code}")
                     chunks: list[bytes] = []

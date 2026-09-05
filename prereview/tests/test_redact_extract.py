@@ -41,3 +41,11 @@ def test_zip_nested_root_is_stripped():
     w = extract(buf.getvalue(), "application/zip")
     assert sorted(f.path for f in w.files) == ["cmd/app/main.go", "go.mod"]
     assert w.meta["root"] == "owner-repo-abc/course-go-student-sha"
+
+
+def test_rewrite_url_keeps_host():
+    from prereview.artifact.fetch import rewrite_url
+
+    url, headers = rewrite_url("http://127.0.0.1:19000/bucket/key?X-Amz-Signature=abc", "http://127.0.0.1:19000=http://minio:9000")
+    assert url == "http://minio:9000/bucket/key?X-Amz-Signature=abc" and headers == {"Host": "127.0.0.1:19000"}
+    assert rewrite_url("https://other/x", "http://127.0.0.1:19000=http://minio:9000") == ("https://other/x", {})
