@@ -203,6 +203,10 @@ a:hover { border-bottom-color: var(--ink); }
 .field:last-child { margin-bottom: 0; }
 .field__lbl { display: block; margin-bottom: var(--s-2); font-size: var(--small-size); font-weight: var(--w-medium); }
 .field__hint { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--ink-3); }
+/* Помечаем необязательное, а не обязательное: звёздочек в форме из трёх полей
+   получается больше, чем полей без них.                                     */
+.field__opt { margin-left: var(--s-2); font-size: var(--caption-size);
+              font-weight: var(--w-regular); color: var(--ink-3); }
 .field__err  { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--bad); font-weight: var(--w-medium); }
 
 .inp {

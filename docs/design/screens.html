@@ -360,6 +360,10 @@ a:hover { border-bottom-color: var(--ink); }
 .field:last-child { margin-bottom: 0; }
 .field__lbl { display: block; margin-bottom: var(--s-2); font-size: var(--small-size); font-weight: var(--w-medium); }
 .field__hint { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--ink-3); }
+/* Помечаем необязательное, а не обязательное: звёздочек в форме из трёх полей
+   получается больше, чем полей без них.                                     */
+.field__opt { margin-left: var(--s-2); font-size: var(--caption-size);
+              font-weight: var(--w-regular); color: var(--ink-3); }
 .field__err  { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--bad); font-weight: var(--w-medium); }
 
 .inp {
@@ -711,8 +715,8 @@ a:hover { border-bottom-color: var(--ink); }
 
   <div class="doc__head">
     <span class="label">Avito AI Reviewer · макеты</span>
-    <h1 class="d2" style="margin-top:var(--s-4);max-width:12ch">Двадцать один <span class="hl">экран</span></h1>
-    <p style="max-width:76ch;color:var(--ink-2);margin-top:var(--s-4)">Все двадцать один экран платформы, пересобранных на дизайн-паке. Правила — в <a href="design-pack.md">design-pack.md</a>, компоненты живьём — в <a href="kit.html">kit.html</a>. Содержание экранов и логика статусов не менялись, источник — <a href="../platform-screens/entities-and-screens.md">реестр экранов</a> и <a href="../platform-screens/flows.md">flows.md</a>.</p>
+    <h1 class="d2" style="margin-top:var(--s-4);max-width:12ch">Двадцать два <span class="hl">экрана</span></h1>
+    <p style="max-width:76ch;color:var(--ink-2);margin-top:var(--s-4)">Все двадцать два экрана платформы, пересобранные на дизайн-паке. Правила — в <a href="design-pack.md">design-pack.md</a>, компоненты живьём — в <a href="kit.html">kit.html</a>. Содержание экранов и логика статусов не менялись, источник — <a href="../platform-screens/entities-and-screens.md">реестр экранов</a> и <a href="../platform-screens/flows.md">flows.md</a>.</p>
     <div class="toc">
       <span class="toc__g">Студент</span>
       <a class="pill" href="#С1">С1 Страница домашки по ссылке, до сдачи</a>
@@ -730,14 +734,15 @@ a:hover { border-bottom-color: var(--ink); }
       <span class="toc__g">Координатор</span>
       <a class="pill" href="#К1">К1 Обзор координатора</a>
       <a class="pill" href="#К1а">К1а Поиск</a>
-      <a class="pill" href="#К2">К2 Новый курс</a>
-      <a class="pill" href="#К3">К3 Новый поток</a>
-      <a class="pill" href="#К4">К4 Задание, шаг 1: что видит студент</a>
-      <a class="pill" href="#К5">К5 Задание, шаг 2: конфигурация ревью</a>
-      <a class="pill" href="#К6">К6 Пул проверок</a>
-      <a class="pill" href="#К7">К7 Реестр домашек курса</a>
-      <a class="pill" href="#К8">К8 Просмотр ревью, только чтение</a>
-      <a class="pill" href="#К9">К9 Выгрузка</a>
+      <a class="pill" href="#К2">К2 Курсы</a>
+      <a class="pill" href="#К3">К3 Новый курс</a>
+      <a class="pill" href="#К4">К4 Новый поток</a>
+      <a class="pill" href="#К5">К5 Задание, шаг 1: что видит студент</a>
+      <a class="pill" href="#К6">К6 Задание, шаг 2: конфигурация ревью</a>
+      <a class="pill" href="#К7">К7 Пул проверок</a>
+      <a class="pill" href="#К8">К8 Реестр домашек курса</a>
+      <a class="pill" href="#К9">К9 Просмотр ревью, только чтение</a>
+      <a class="pill" href="#К10">К10 Выгрузка</a>
     </div>
   </div>
 
@@ -1826,7 +1831,7 @@ a:hover { border-bottom-color: var(--ink); }
 
 <section class="screen" id="К1">
   <div class="screen__head"><span class="screen__id">К1</span><h2>Обзор координатора</h2></div>
-  <p class="screen__note">Точка входа координатора и единственное место, откуда попадаешь во всё остальное. В таблице потоков видно, что сдано, что у ревьюеров и что зависло без проверки. Фильтры стоят в шапке таблицы потоков, а не в шапке экрана: они сужают только её. Завершённые потоки лежат в той же таблице, отдельного показа для них нет. Как работает поиск, показано на К1а.</p>
+  <p class="screen__note">Точка входа координатора и единственное место, откуда попадаешь во всё остальное. В таблице потоков видно, что сдано, что у ревьюеров и что зависло без проверки. Фильтры стоят в шапке таблицы потоков, а не в шапке экрана: они сужают только её. Завершённые потоки лежат в той же таблице, отдельного показа для них нет. Как работает поиск, показано на К1а, справочник курсов — на К2.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Плитки метрик крупными цифрами Unbounded: координатор смотрит на этот экран по несколько раз в день и должен считывать состояние за секунду. Проблемная плитка помечена красной рамкой и красной цифрой, а не восклицательным знаком. Поиск стоит слева при заголовке, а не в ряду кнопок: это поле ввода, а не действие. Справа только то, что создаёт новое. Фильтр живёт рядом с тем, что фильтрует, поэтому «Курс» и «Статус» переехали в шапку карточки потоков.</p>
   <div class="shot" style="height:689px"><div class="vp">
     <div class="app">
@@ -1864,7 +1869,7 @@ a:hover { border-bottom-color: var(--ink); }
         <div class="main">
           <div class="stack">
             <div class="tiles">
-              <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div><div class="d">по 4 курсам</div></div>
+              <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div><div class="d">по 3 курсам</div></div>
               <div class="tile"><div class="n">46</div><div class="l">у ревьюеров прямо сейчас</div><div class="d">средний срок проверки 1,8 дня</div></div>
               <div class="tile tile--alert"><div class="n">12</div><div class="l">в пуле без ревьюера</div><div class="d">ждут в среднем 2,1 дня</div></div>
               <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div><div class="d">на курсах «Системный дизайн» и Tech QA</div></div>
@@ -1904,7 +1909,7 @@ a:hover { border-bottom-color: var(--ink); }
                       <td class="n">64</td><td class="n">7</td><td class="n">0</td><td class="n">57</td>
                     </tr>
                     <tr class="is-done">
-                      <td><div class="who">Data Science</div><div class="sub">3 задания</div></td>
+                      <td><div class="who">Data Science</div><div class="sub">2 задания</div></td>
                       <td>Ноябрь 2025</td><td class="n">54</td>
                       <td class="n">—</td>
                       <td class="n">54</td><td class="n">0</td><td class="n">0</td><td class="n">51</td>
@@ -1991,7 +1996,7 @@ a:hover { border-bottom-color: var(--ink); }
         </div>
         <div class="main">
           <div class="tiles">
-            <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div><div class="d">по 4 курсам</div></div>
+            <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div><div class="d">по 3 курсам</div></div>
             <div class="tile"><div class="n">46</div><div class="l">у ревьюеров прямо сейчас</div><div class="d">средний срок проверки 1,8 дня</div></div>
             <div class="tile tile--alert"><div class="n">12</div><div class="l">в пуле без ревьюера</div><div class="d">ждут в среднем 2,1 дня</div></div>
             <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div><div class="d">на курсах «Системный дизайн» и Tech QA</div></div>
@@ -2003,11 +2008,72 @@ a:hover { border-bottom-color: var(--ink); }
   </div></div>
 </section>
 <section class="screen" id="К2">
-  <div class="screen__head"><span class="screen__id">К2</span><h2>Новый курс</h2></div>
-  <p class="screen__note">Отдельного экрана под это не нужно, полей всего три. Модальное окно поверх обзора. Курс — верхний уровень: внутри него живут задания и потоки, поэтому создаётся один раз на направление.</p>
+  <div class="screen__head"><span class="screen__id">К2</span><h2>Курсы</h2></div>
+  <p class="screen__note">Справочник курсов, пункт «Курсы» в меню. Курс — верхний уровень: внутри него живут задания и потоки, поэтому сам он почти ничего не хранит, кроме названия, описания и необязательной ссылки на курс в Stepik. Отдельной карточки курса нет и не нужно: работа идёт в заданиях и потоках, а клик по строке открывает то же окно, что и создание, только с заполненными полями.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Таблица без шапки карточки: фильтровать четыре строки нечего, а заголовок экрана уже сказал, что это. Ссылка на Stepik набрана моноширинным и синим, как всё внешнее. Там, где ссылки нет, стоит прочерк, а не пустая ячейка: пустая читается как недогруженная.</p>
+  <div class="shot" style="height:366px"><div class="vp">
+    <div class="app">
+      <aside class="aside">
+        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <nav class="menu">
+          <a href="#">Обзор</a><a class="is-on" href="#">Курсы<span class="c">4</span></a>
+          <a href="#">Задания<span class="c">17</span></a><a href="#">Пул проверок<span class="c">12</span></a>
+          <a href="#">Домашки<span class="c">284</span></a>
+        </nav>
+        <div class="menu__sep">Активные потоки</div>
+        <nav class="menu">
+          <a href="#">Системный дизайн, фев</a>
+          <a href="#">Tech QA, фев</a>
+          <a href="#">Go, янв</a>
+        </nav>
+        <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
+      </aside>
+      <div>
+        <div class="topbar" style="align-items:center">
+          <h1>Курсы</h1>
+          <div class="btn-row"><span class="btn btn--s btn--dark">Создать курс</span></div>
+        </div>
+        <div class="main">
+          <div class="card">
+            <div class="card__body card__body--flush">
+              <table class="tbl">
+                <thead><tr><th>Курс</th><th class="n">Заданий</th><th class="n">Потоков</th><th class="n">Активных</th><th>Курс в Stepik</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><div class="who">Системный дизайн</div><div class="sub">Проектирование распределённых систем</div></td>
+                    <td class="n">4</td><td class="n">3</td><td class="n">1</td>
+                    <td><a class="mono" href="#">stepik.org/course/187423</a></td>
+                  </tr>
+                  <tr>
+                    <td><div class="who">Tech QA</div><div class="sub">Тестирование и качество сервисов</div></td>
+                    <td class="n">6</td><td class="n">2</td><td class="n">1</td>
+                    <td><a class="mono" href="#">stepik.org/course/190118</a></td>
+                  </tr>
+                  <tr>
+                    <td><div class="who">Go</div><div class="sub">Бэкенд на Go</div></td>
+                    <td class="n">5</td><td class="n">4</td><td class="n">1</td>
+                    <td><a class="mono" href="#">stepik.org/course/183902</a></td>
+                  </tr>
+                  <tr>
+                    <td><div class="who">Data Science</div><div class="sub">Модели и данные в продакшене</div></td>
+                    <td class="n">2</td><td class="n">2</td><td class="n">0</td>
+                    <td class="mono" style="color:var(--ink-3)">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</section>
+<section class="screen" id="К3">
+  <div class="screen__head"><span class="screen__id">К3</span><h2>Новый курс</h2></div>
+  <p class="screen__note">Отдельного экрана под это не нужно, полей всего четыре. Модальное окно поверх обзора. Курс — верхний уровень: внутри него живут задания и потоки, поэтому создаётся один раз на направление.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Единственное место, где в системе есть тень: модалка физически лежит поверх страницы. Углы у неё прямые, как у любого блока, скруглены только кнопки внизу.</p>
-  <div class="shot" style="height:476px"><div class="vp">
-    <div style="position:relative;min-height:700px">
+  <div class="shot" style="height:572px"><div class="vp">
+    <div style="position:relative;min-height:840px">
       <div class="app">
         <aside class="aside">
           <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2039,6 +2105,7 @@ a:hover { border-bottom-color: var(--ink); }
         <div class="card__body">
           <label class="field"><span class="field__lbl">Название</span><input class="inp" value="Системный дизайн"></label>
           <label class="field"><span class="field__lbl">Короткое описание, видно студентам и ревьюерам</span><textarea class="inp inp--area">Проектирование распределённых систем: декомпозиция, интерфейсы, надёжность</textarea></label>
+          <label class="field"><span class="field__lbl">Ссылка на курс в Stepik <span class="field__opt">необязательно</span></span><input class="inp mono" value="stepik.org/course/187423"><span class="field__hint">Нужна, чтобы открыть курс на Stepik из справочника курсов. На сдачу и проверку не влияет.</span></label>
           <label class="field"><span class="field__lbl">Кто ведёт курс</span><input class="inp" value="Вы и ещё 1 координатор" disabled><span class="field__hint">Задания и потоки внутри курса сможете создавать вы оба.</span></label>
         </div>
         <div class="card__foot" style="justify-content:flex-end"><span class="btn-row"><span class="btn btn--quiet">Отмена</span><span class="btn btn--pri">Создать курс</span></span></div>
@@ -2046,8 +2113,8 @@ a:hover { border-bottom-color: var(--ink); }
     </div>
   </div></div>
 </section>
-<section class="screen" id="К3">
-  <div class="screen__head"><span class="screen__id">К3</span><h2>Новый поток</h2></div>
+<section class="screen" id="К4">
+  <div class="screen__head"><span class="screen__id">К4</span><h2>Новый поток</h2></div>
   <p class="screen__note">Тоже модальное окно. Поток всегда принадлежит курсу, поэтому курс выбирается первым полем. ID не спрашиваем, он собирается из курса и дат. Списка студентов здесь нет: студент попадает в поток сам, перейдя по ссылке со своим Stepik ID.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Поле с ID выключено и набрано моноширинным: сразу видно, что это идентификатор, а не текст для человека, и что менять его нельзя. Объяснение про зачисление вынесено в примечание, чтобы не выглядеть забытым полем.</p>
   <div class="shot" style="height:528px"><div class="vp">
@@ -2098,8 +2165,8 @@ a:hover { border-bottom-color: var(--ink); }
     </div>
   </div></div>
 </section>
-<section class="screen" id="К4">
-  <div class="screen__head"><span class="screen__id">К4</span><h2>Задание, шаг 1: что видит студент</h2></div>
+<section class="screen" id="К5">
+  <div class="screen__head"><span class="screen__id">К5</span><h2>Задание, шаг 1: что видит студент</h2></div>
   <p class="screen__note">Задание принадлежит курсу и заполняется по шагам. Сначала то, что увидит студент: название, условие, формат сдачи, срок и правило штрафа. Критерии на следующем шаге, чтобы не смешивать текст для студента с конфигурацией проверки.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Шаги мастера — круги с номерами, пройденный заливается зелёным. Это единственное место, где заливка вернулась: шагов всего три, и они не повторяются списком.</p>
   <div class="shot" style="height:588px"><div class="vp">
@@ -2191,8 +2258,8 @@ a:hover { border-bottom-color: var(--ink); }
     </div>
   </div></div>
 </section>
-<section class="screen" id="К5">
-  <div class="screen__head"><span class="screen__id">К5</span><h2>Задание, шаг 2: конфигурация ревью</h2></div>
+<section class="screen" id="К6">
+  <div class="screen__head"><span class="screen__id">К6</span><h2>Задание, шаг 2: конфигурация ревью</h2></div>
   <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У каждого критерия своя формулировка, шкала, описание «что считается выполненным» и класс проверки. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Правила этого шага: порядок критериев меняется перетаскиванием и он же определяет порядок в разборе у ревьюера и студента. Рекомендации видят только ревьюеры. Описания «что считается выполненным» студент видит после проверки, до сдачи ему видны только названия критериев и баллы. Уже проверенные работы остаются на своей версии критериев.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг: настройка и результат выглядят как одно и то же решение.</p>
   <div class="shot" style="height:898px"><div class="vp">
@@ -2330,8 +2397,8 @@ a:hover { border-bottom-color: var(--ink); }
     </div>
   </div></div>
 </section>
-<section class="screen" id="К6">
-  <div class="screen__head"><span class="screen__id">К6</span><h2>Пул проверок</h2></div>
+<section class="screen" id="К7">
+  <div class="screen__head"><span class="screen__id">К7</span><h2>Пул проверок</h2></div>
   <p class="screen__note">Что сдано и до сих пор не взято ревьюером. Назначения нет ни в каком виде: зависшие работы никому не раздаются, они лежат в общем пуле и подсвечиваются как горящие после трёх дней. Единственный рычаг координатора — «Напомнить ревьюерам». Колонки статуса здесь нет: в пуле лежат только работы в статусе «Сдана», одинаковое значение во всех строках ничего не сообщает. Сверху те, что лежат дольше всех. Работа уходит из пула, когда её берёт ревьюер. Ниже типичные ошибки потока: требование, которое не выполнила половина группы, стоит разобрать на занятии или переформулировать в задании.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Доля непрошедших требований показана полосой, а не процентом: координатору важно сравнить строки между собой, а не прочитать число. Полоса красная только у первой, где провал больше половины.</p>
   <div class="shot" style="height:747px"><div class="vp">
@@ -2404,8 +2471,8 @@ a:hover { border-bottom-color: var(--ink); }
     </div>
   </div></div>
 </section>
-<section class="screen" id="К7">
-  <div class="screen__head"><span class="screen__id">К7</span><h2>Реестр домашек курса</h2></div>
+<section class="screen" id="К8">
+  <div class="screen__head"><span class="screen__id">К8</span><h2>Реестр домашек курса</h2></div>
   <p class="screen__note">Все домашки выбранного курса и потока, в отличие от пула — со всеми статусами, включая закрытые. Отсюда открывается любое ревью и отсюда же делается выгрузка. Клик по строке открывает ревью в режиме просмотра. Кнопка выгрузки становится активной после дедлайна задания.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Восемь вкладок по статусам — единственное место, где их так много. Счётчик у каждой набран моноширинным, чтобы вкладки не прыгали при обновлении цифр. Фильтр по заданию стоит в той же строке, что и вкладки: оба сужают одну таблицу. Отдельного фильтра по статусу нет, его роль играют вкладки.</p>
   <div class="shot" style="height:639px"><div class="vp">
@@ -2471,8 +2538,8 @@ a:hover { border-bottom-color: var(--ink); }
     </div>
   </div></div>
 </section>
-<section class="screen" id="К8">
-  <div class="screen__head"><span class="screen__id">К8</span><h2>Просмотр ревью, только чтение</h2></div>
+<section class="screen" id="К9">
+  <div class="screen__head"><span class="screen__id">К9</span><h2>Просмотр ревью, только чтение</h2></div>
   <p class="screen__note">Тот же экран, что у ревьюера, с теми же блоками и в том же порядке, но без возможности что-либо менять: шкал нет, вместо них итоговые баллы, полей ввода нет, кнопок действия нет. Нужен для разбора жалоб и выборочного контроля. Журнал решений ведётся по каждой работе и доступен для апелляции.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Режим чтения показан не серым «диммингом» всего экрана, а одной пилюлей в шапке и отсутствием шкал: вместо них моноширинные баллы. Журнал решений слева читается как лента, потому что это и есть доказательство участия человека.</p>
   <div class="shot" style="height:891px"><div class="vp">
@@ -2578,8 +2645,8 @@ a:hover { border-bottom-color: var(--ink); }
     </div>
   </div></div>
 </section>
-<section class="screen" id="К9">
-  <div class="screen__head"><span class="screen__id">К9</span><h2>Выгрузка</h2></div>
+<section class="screen" id="К10">
+  <div class="screen__head"><span class="screen__id">К10</span><h2>Выгрузка</h2></div>
   <p class="screen__note">Выгрузка делается вручную и по требованию, автоматической синхронизации с таблицей нет. Два варианта: внутренняя ведомость для команды и копия без ПДн для студентов. Незакрытые работы можно исключить, чтобы не выгружать промежуточные баллы.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Выбор «кому выгружаем» стоит вторым полем и меняет состав колонок ниже. Про ПДн сказано подсказкой под сегментом, а не предупреждением: это обычный режим работы, а не опасное действие.</p>
   <div class="shot" style="height:645px"><div class="vp">
