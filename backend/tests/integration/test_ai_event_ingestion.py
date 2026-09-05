@@ -91,6 +91,7 @@ async def ingestion_harness(
     # T095 owns the component-token adapter. This server-owned fixture value
     # never enters an event body and never enables a live provider.
     app.state.ai_component_token = COMPONENT_TOKEN
+    app.state.ai_component_organization_id = ORG
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="https://review-platform.test",
@@ -124,6 +125,7 @@ def _ai_tables() -> dict[str, Table]:
         "review_revision",
         "review_criterion_decision",
         "review_note",
+        "review_iteration",
     )
     missing = [name for name in names if name not in Base.metadata.tables]
     assert not missing, f"US4 ingestion persistence tables are missing: {missing}"
@@ -183,7 +185,8 @@ async def test_duplicate_and_out_of_order_sequence_are_rejected_atomically(
     late_second = _partial_event(sequence=2, event_suffix=72)
     duplicate_third = _partial_event(sequence=3, event_suffix=74)
 
-    assert (await _post(ingestion_harness, first)).status_code == 202
+    first_response = await _post(ingestion_harness, first)
+    assert first_response.status_code == 202, first_response.text
     assert (await _post(ingestion_harness, third)).status_code == 202
     assert (await _post(ingestion_harness, late_second)).status_code == 409
     assert (await _post(ingestion_harness, duplicate_third)).status_code == 409
@@ -206,7 +209,8 @@ async def test_old_attempt_is_stored_without_regression_and_stale_input_is_rejec
 ) -> None:
     await _ready(ingestion_harness, current_attempt=2)
     old = _partial_event(sequence=1, event_suffix=81)
-    assert (await _post(ingestion_harness, old)).status_code == 202
+    old_response = await _post(ingestion_harness, old)
+    assert old_response.status_code == 202, old_response.text
     run = await _one(ingestion_harness.session_factory, "ai_review_run", id=AI_RUN_ID)
     assert run["current_attempt_no"] == 2
     assert run["status"] == "running"
@@ -272,7 +276,8 @@ async def test_intervening_human_revision_is_byte_stable_and_ai_rows_remain_sepa
 ) -> None:
     await _ready(ingestion_harness)
     partial = _partial_event(sequence=1, event_suffix=101)
-    assert (await _post(ingestion_harness, partial)).status_code == 202
+    partial_response = await _post(ingestion_harness, partial)
+    assert partial_response.status_code == 202, partial_response.text
     tables = _ai_tables()
     await _insert_human_revision(ingestion_harness.session_factory, tables=tables)
     before = await _human_snapshot(ingestion_harness.session_factory, tables=tables)
@@ -311,6 +316,8 @@ def _partial_event(
     event["sequence"] = sequence
     event["status"] = "partial"
     event["is_final"] = False
+    event["suggestions"] = []
+    event["criterion_coverage"]["reported_criterion_ids"] = []
     event["criterion_coverage"]["complete"] = False
     event["ai_signal"] = None
     event["error"] = None
@@ -398,6 +405,17 @@ async def _seed_run(
                     created_at=NOW,
                     updated_at=NOW,
                     finished_at=NOW,
+                ),
+                Operation(
+                    id=AI_RUN_ID,
+                    organization_id=ORG,
+                    kind="ai_review",
+                    input_version=f"ai-review:1.1.0:{FINGERPRINT}",
+                    state="processing",
+                    revision=1,
+                    created_at=NOW,
+                    updated_at=NOW,
+                    finished_at=None,
                 ),
             ]
         )
@@ -546,8 +564,11 @@ async def _seed_run(
                 "artifact_version_id": ARTIFACT_VERSION_ID,
                 "content_digest": "sha256:" + "0" * 64,
                 "homework_version_id": HOMEWORK_VERSION_ID,
+                "homework_digest": "sha256:" + "1" * 64,
                 "criterion_set_id": CRITERION_SET_ID,
+                "criteria_digest": "sha256:" + "2" * 64,
                 "contract_version": "1.1.0",
+                "fingerprint_algorithm": "jcs-sha256-v1",
                 "status": "running",
                 "current_attempt_no": current_attempt,
                 "created_at": NOW,

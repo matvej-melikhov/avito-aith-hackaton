@@ -11,7 +11,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from review_platform.domain.primitives import sanitize_error
+from review_platform.domain.primitives import sanitize_error, utc_now
 from review_platform.infrastructure.db.models.ai_review import (
     AICriterionSuggestion,
     AIReviewAttempt,
@@ -209,6 +209,11 @@ class AIReviewRepository:
             .values(
                 status=new_status,
                 last_sequence=new_sequence,
+                finished_at=(
+                    utc_now()
+                    if new_status in ATTEMPT_TERMINAL | {"retryable_failed"}
+                    else None
+                ),
                 error_code=(str(sanitized.get("code")) if sanitized is not None else None),
                 sanitized_error=sanitized,
             )
@@ -237,7 +242,11 @@ class AIReviewRepository:
                 AIReviewRun.status == expected_status,
                 AIReviewRun.current_attempt_no == current_attempt_no,
             )
-            .values(status=new_status, revision=expected_revision + 1)
+            .values(
+                status=new_status,
+                revision=expected_revision + 1,
+                finished_at=(utc_now() if new_status in RUN_TERMINAL else None),
+            )
         )
         return result.rowcount == 1
 
