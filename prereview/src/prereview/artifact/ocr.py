@@ -22,7 +22,12 @@ SYSTEM = ("Ты распознаёшь текст со страницы учеб
           "Ничего не добавляй и не оценивай. Если текста на странице нет, ответь: (пустая страница).")
 
 
+MAX_SIDE_PX = 3600  # провайдер отклоняет очень большие картинки; экспорт досок бывает 10000 px в ширину
+MAX_TILES_PER_PAGE = 6
+
+
 def render_pages(data: bytes, max_pages: int, dpi: int = 110) -> list[bytes]:
+    """PNG-картинки страниц. Широкие страницы (экспорт досок) режутся на вертикальные полосы."""
     import pymupdf
 
     out: list[bytes] = []
@@ -30,8 +35,21 @@ def render_pages(data: bytes, max_pages: int, dpi: int = 110) -> list[bytes]:
         for page in doc:
             if len(out) >= max_pages:
                 break
-            pix = page.get_pixmap(dpi=dpi)
-            out.append(pix.tobytes("png"))
+            zoom = dpi / 72
+            w, h = page.rect.width * zoom, page.rect.height * zoom
+            if h > MAX_SIDE_PX:
+                zoom *= MAX_SIDE_PX / h
+                w, h = page.rect.width * zoom, page.rect.height * zoom
+            tiles = min(MAX_TILES_PER_PAGE, max(1, int(w // MAX_SIDE_PX) + (1 if w % MAX_SIDE_PX else 0)))
+            if tiles > 1 and w / tiles > MAX_SIDE_PX:
+                zoom *= MAX_SIDE_PX * tiles / w
+            tile_w = page.rect.width / tiles
+            for i in range(tiles):
+                if len(out) >= max_pages:
+                    break
+                clip = pymupdf.Rect(page.rect.x0 + i * tile_w, page.rect.y0, page.rect.x0 + (i + 1) * tile_w, page.rect.y1)
+                pix = page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), clip=clip)
+                out.append(pix.tobytes("png"))
     return out
 
 
@@ -74,7 +92,25 @@ def transcribe_pdf(data: bytes, settings: Settings, ledger: Ledger) -> tuple[str
         u = Usage.from_api(resp.usage)
         total = Usage(total.prompt_tokens + u.prompt_tokens, total.completion_tokens + u.completion_tokens,
                       total.cache_hit_tokens + u.cache_hit_tokens)
-        texts.append(f"<!-- страница {i} -->\n" + (resp.choices[0].message.content or "").strip())
+        text = (resp.choices[0].message.content or "").strip()
+        if len(text) < 20:
+            # Пустой ответ на непустой полосе бывает; один повтор с прямым вопросом.
+            try:
+                again = client.chat.completions.create(
+                    model=settings.ocr_model, max_tokens=3000, temperature=0,
+                    messages=[{"role": "system", "content": SYSTEM},
+                              {"role": "user", "content": [
+                                  {"type": "text", "text": "На этой картинке есть текст. Перепиши весь текст дословно."},
+                                  {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}}]}])
+                text2 = (again.choices[0].message.content or "").strip()
+                u2 = Usage.from_api(again.usage)
+                total = Usage(total.prompt_tokens + u2.prompt_tokens, total.completion_tokens + u2.completion_tokens,
+                              total.cache_hit_tokens + u2.cache_hit_tokens)
+                if len(text2) > len(text):
+                    text = text2
+            except Exception as e:  # noqa: BLE001
+                log.warning("ocr retry page %d failed: %s", i, e)
+        texts.append(f"<!-- страница {i} -->\n" + text)
     ledger.record("ocr", settings.ocr_model, total, time.time() - started, len(pages), "vision")
     return "\n\n".join(texts), len(pages)
 
