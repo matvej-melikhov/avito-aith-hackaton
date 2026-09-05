@@ -229,9 +229,9 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Independent Test**: Fail one destination ambiguously, reconcile before retry, recover without duplicates, preserve local publication, and reject stale delivery.
 
-- [ ] T133 [P] [US6] Write failing delivery state, destination snapshot, exact credential binding, full provenance, bounded payload/error, retry-cap, and reconciliation contract tests in `backend/tests/state/test_external_delivery.py`
-- [ ] T134 [P] [US6] Write failing timeout/reconciliation/manual-retry/multi-destination acceptance tests in `backend/tests/integration/test_delivery_recovery.py`
-- [ ] T135 [P] [US6] Write failing duplicate-worker, two-bindings-of-one-kind, cross-tenant provider batch, archive-after-durable-intent, and stale-publication ordering tests in `backend/tests/isolation/test_delivery_idempotency.py`
+- [X] T133 [P] [US6] Write failing delivery state, destination snapshot, exact credential binding, full provenance, bounded payload/error, retry-cap, and reconciliation contract tests in `backend/tests/state/test_external_delivery.py`
+- [X] T134 [P] [US6] Write failing timeout/reconciliation/manual-retry/multi-destination acceptance tests in `backend/tests/integration/test_delivery_recovery.py`
+- [X] T135 [P] [US6] Write failing duplicate-worker, two-bindings-of-one-kind, cross-tenant provider batch, archive-after-durable-intent, and stale-publication ordering tests in `backend/tests/isolation/test_delivery_idempotency.py`
 - [ ] T136 [US6] Implement DeliveryAttempt and reconciliation observation tables in `backend/src/review_platform/infrastructure/db/models/delivery.py`
 - [ ] T137 [US6] Create the reversible delivery-recovery migration with `down_revision=0007_human_review` in `backend/migrations/versions/0008_delivery_recovery.py`
 - [ ] T138 [US6] Implement frozen 1.1.0 typed payload/error rendering and full publication provenance fingerprint in `backend/src/review_platform/domain/delivery_payload.py`
