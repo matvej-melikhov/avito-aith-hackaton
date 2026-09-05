@@ -194,13 +194,13 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 
 **Independent Test**: Recommend/open/get a review, save revisions with conflict detection, record participation events, create a harmless publication request, publish as a human, and correct only through a successor iteration.
 
-- [ ] T109 [P] [US5] Write failing exact-command reviewer CourseRun selection, planned-hours, deterministic recommendation ordering, and archive-versus-recommend/open races in `backend/tests/state/test_review_recommendation.py`
-- [ ] T110 [P] [US5] Write failing started/joined/released/completed append-only and non-exclusive concurrency tests in `backend/tests/state/test_review_responsibility.py`
-- [ ] T111 [P] [US5] Write failing human revision completeness, per-criterion score range, total-score equality/upper-bound, expected-revision conflict, archive-versus-publish race, unpublished-successor current-result preservation, and immutable-byte tests in `backend/tests/state/test_human_review_publication.py`
-- [ ] T112 [P] [US5] Write failing idempotent ReviewImpactEvent persistence, affected-review projection, requirements migration, and correction successor race tests that preserve predecessor bytes in `backend/tests/isolation/test_review_successors.py`
-- [ ] T113 [P] [US5] Write failing agent PublicationRequest versus interactive-human publication boundary tests in `backend/tests/isolation/test_publication_authority.py`
-- [ ] T114 [P] [US5] Write failing review-detail tests for immutable inputs, current feedback/score, decisions, notes, AI run/signal, delivery provenance, and revisions in `backend/tests/contract/test_review_detail.py`
-- [ ] T115 [P] [US5] Write failing acceptance test proving a human can edit and publish while the AI component is unavailable in `backend/tests/integration/test_human_review_without_ai.py`
+- [X] T109 [P] [US5] Write failing exact-command reviewer CourseRun selection, planned-hours, deterministic recommendation ordering, and archive-versus-recommend/open races in `backend/tests/state/test_review_recommendation.py`
+- [X] T110 [P] [US5] Write failing started/joined/released/completed append-only and non-exclusive concurrency tests in `backend/tests/state/test_review_responsibility.py`
+- [X] T111 [P] [US5] Write failing human revision completeness, per-criterion score range, total-score equality/upper-bound, expected-revision conflict, archive-versus-publish race, unpublished-successor current-result preservation, and immutable-byte tests in `backend/tests/state/test_human_review_publication.py`
+- [X] T112 [P] [US5] Write failing idempotent ReviewImpactEvent persistence, affected-review projection, requirements migration, and correction successor race tests that preserve predecessor bytes in `backend/tests/isolation/test_review_successors.py`
+- [X] T113 [P] [US5] Write failing agent PublicationRequest versus interactive-human publication boundary tests in `backend/tests/isolation/test_publication_authority.py`
+- [X] T114 [P] [US5] Write failing review-detail tests for immutable inputs, current feedback/score, decisions, notes, AI run/signal, delivery provenance, and revisions in `backend/tests/contract/test_review_detail.py`
+- [X] T115 [P] [US5] Write failing acceptance test proving a human can edit and publish while the AI component is unavailable in `backend/tests/integration/test_human_review_without_ai.py`
 - [ ] T116 [US5] Implement AvailabilityPlan, ReviewerCourseSelection, and append-only ReviewResponsibility tables in `backend/src/review_platform/infrastructure/db/models/review_work.py`
 - [ ] T117 [US5] Implement ReviewIterationRelation, append-only ReviewImpactEvent, ReviewPublication, PublicationRequest, ExternalDelivery intent, and destination snapshot tables in `backend/src/review_platform/infrastructure/db/models/publication.py`
 - [ ] T118 [US5] Create the reversible human-review migration for preferences, selections, responsibility, impacts, successors, and publication with `down_revision=0006_ai_review` in `backend/migrations/versions/0007_human_review.py`
