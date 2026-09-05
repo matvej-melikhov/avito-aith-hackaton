@@ -1,4 +1,5 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Btn, Field, Inp, Area, Chk, Steps, Seg } from "../ds";
+import { useEffect, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
 import { Card, Resource, date, useAction, useResource } from "../ui";
@@ -454,24 +455,17 @@ function HomeworkWizard({
       />
       {action.feedback}
       {autoStatus && <small role="status">{autoStatus}</small>}
-      <div className="steps">
-        {["Для студента", "Критерии ревью", "Публикация"].map((label, i) => (
-          <Fragment key={label}>
-            <button
-              type="button"
-              aria-label={`${i + 1}. ${label}`}
-              aria-current={step === i ? "step" : undefined}
-              disabled={i > furthestStep}
-              className={`step ${step === i ? "is-on" : i < furthestStep ? "is-done" : "step--next"}`}
-              onClick={() => setStep(i)}
-            >
-              <span className="n">{i < step ? "✓" : i + 1}</span>
-              {label}
-            </button>
-            {i < 2 && <span className="bar" />}
-          </Fragment>
-        ))}
-      </div>
+      <Steps
+        steps={["Для студента", "Критерии ревью", "Публикация"].map(
+          (label, i) => ({
+            n: i + 1,
+            label,
+            name: `${i + 1}. ${label}`,
+            state: i === step ? "on" : i <= furthestStep ? "done" : "next",
+            onClick: () => setStep(i),
+          }),
+        )}
+      />
       {step === 0 && (
         <form
           onSubmit={(e) => {
@@ -485,9 +479,8 @@ function HomeworkWizard({
         >
           <div className="row-side">
             <Card title="Условие для студента">
-              <label>
-                Название
-                <input
+              <Field label="Название">
+                <Inp
                   required
                   maxLength={512}
                   value={title}
@@ -497,18 +490,17 @@ function HomeworkWizard({
                     setAutoStatus("Ожидает сохранения…");
                   }}
                 />
-              </label>
-              <label>
-                Условие
-                <textarea
+              </Field>
+              <Field label="Условие">
+                <Area
                   rows={12}
                   value={draft.student_text ?? ""}
                   onChange={(e) => change({ student_text: e.target.value })}
                 />
-              </label>
+              </Field>
               <label>
                 Материалы для студента
-                <input
+                <Inp
                   type="file"
                   multiple
                   accept=".md,.pdf,.docx"
@@ -528,7 +520,7 @@ function HomeworkWizard({
               {(draft.material_upload_ids ?? []).map((id, index) => (
                 <div className="actions" key={id}>
                   <span>Материал {index + 1}</span>
-                  <button
+                  <Btn
                     type="button"
                     onClick={() =>
                       void action.run(async () => {
@@ -538,8 +530,8 @@ function HomeworkWizard({
                     }
                   >
                     Открыть
-                  </button>
-                  <button
+                  </Btn>
+                  <Btn
                     type="button"
                     onClick={() =>
                       change({
@@ -550,57 +542,57 @@ function HomeworkWizard({
                     }
                   >
                     Убрать
-                  </button>
+                  </Btn>
                 </div>
               ))}
-              <div className="field">
-                <span className="field__lbl">Что сдаём</span>
-                <div className="seg">
-                  {(
-                    [
-                      [
-                        "both",
-                        "Ссылка или файлы",
-                        ["upload", "github", "google_docs"],
-                      ],
-                      ["link", "Только ссылка", ["github", "google_docs"]],
-                      ["upload", "Только файлы", ["upload"]],
-                    ] as const
-                  ).map(([value, label, sources]) => {
-                    const current = draft.allowed_sources ?? [
-                      "upload",
-                      "github",
-                      "google_docs",
-                    ];
-                    const chosen = current.includes("upload")
-                      ? current.length === 1
+              <Field
+                label="Что сдаём"
+                group
+                hint="Студент выбирает разрешённый способ на странице сдачи."
+              >
+                <Seg<"both" | "link" | "upload">
+                  label="Что сдаём"
+                  value={
+                    (
+                      draft.allowed_sources ?? [
+                        "upload",
+                        "github",
+                        "google_docs",
+                      ]
+                    ).includes("upload")
+                      ? (
+                          draft.allowed_sources ?? [
+                            "upload",
+                            "github",
+                            "google_docs",
+                          ]
+                        ).length === 1
                         ? "upload"
                         : "both"
-                      : "link";
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        className={chosen === value ? "is-on" : ""}
-                        aria-pressed={chosen === value}
-                        onClick={() =>
-                          change({ allowed_sources: [...sources] })
-                        }
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <small>
-                  Студент выбирает разрешённый способ на странице сдачи.
-                </small>
-              </div>
+                      : "link"
+                  }
+                  options={[
+                    { value: "both", label: "Ссылка или файлы" },
+                    { value: "link", label: "Только ссылка" },
+                    { value: "upload", label: "Только файлы" },
+                  ]}
+                  onChange={(mode) =>
+                    change({
+                      allowed_sources:
+                        mode === "upload"
+                          ? ["upload"]
+                          : mode === "link"
+                            ? ["github", "google_docs"]
+                            : ["upload", "github", "google_docs"],
+                    })
+                  }
+                />
+              </Field>
             </Card>
             <Card title="Сроки и правила задания">
               <label>
                 Срок сдачи
-                <input
+                <Inp
                   type="datetime-local"
                   value={localDate(draft.submission_deadline)}
                   onChange={(event) =>
@@ -616,9 +608,8 @@ function HomeworkWizard({
                   можно уточнить.
                 </small>
               </label>
-              <label>
-                Лимит AI-самопроверок на студента
-                <input
+              <Field label="Лимит AI-самопроверок на студента">
+                <Inp
                   required
                   type="number"
                   min={0}
@@ -628,27 +619,25 @@ function HomeworkWizard({
                     policy({ self_review_limit: Number(e.target.value) })
                   }
                 />
-              </label>
+              </Field>
               <p className="muted">
                 Один лимит на всё задание в этом потоке. Пересдачи его не
                 сбрасывают. Технический сбой не расходует попытку; 0 отключает
                 самопроверку.
               </p>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={penaltyEnabled}
-                  onChange={(e) => {
-                    setPenaltyEnabled(e.target.checked);
-                    policy({ penalty_per_day: 0 });
-                  }}
-                />
+              <Chk
+                type="checkbox"
+                checked={penaltyEnabled}
+                onChange={(e) => {
+                  setPenaltyEnabled(e.target.checked);
+                  policy({ penalty_per_day: 0 });
+                }}
+              >
                 Штраф за просрочку
-              </label>
+              </Chk>
               {penaltyEnabled && (
-                <label>
-                  Баллов за день просрочки
-                  <input
+                <Field label="Баллов за день просрочки">
+                  <Inp
                     required
                     type="number"
                     min={0}
@@ -658,15 +647,14 @@ function HomeworkWizard({
                       policy({ penalty_per_day: Number(e.target.value) })
                     }
                   />
-                </label>
+                </Field>
               )}
               <p className="muted">
                 Штраф применяется по правилам публикации. Итог не может быть
                 меньше нуля.
               </p>
-              <label>
-                Дней на доработку
-                <input
+              <Field label="Дней на доработку">
+                <Inp
                   type="number"
                   min={1}
                   max={365}
@@ -675,10 +663,9 @@ function HomeworkWizard({
                     policy({ revision_days: Number(e.target.value) })
                   }
                 />
-              </label>
-              <label>
-                Максимум пересдач
-                <input
+              </Field>
+              <Field label="Максимум пересдач">
+                <Inp
                   type="number"
                   min={0}
                   value={draft.policy?.max_resubmissions ?? 3}
@@ -686,13 +673,13 @@ function HomeworkWizard({
                     policy({ max_resubmissions: Number(e.target.value) })
                   }
                 />
-              </label>
+              </Field>
             </Card>
           </div>
           <div className="btn-row">
-            <button className="btn btn--dark" disabled={action.busy}>
+            <Btn type="submit" variant="dark" disabled={action.busy}>
               Дальше: критерии
-            </button>
+            </Btn>
           </div>
         </form>
       )}
@@ -709,7 +696,7 @@ function HomeworkWizard({
                 title="Критерии"
                 bodyClassName="criteria-editor"
                 actions={
-                  <button
+                  <Btn
                     type="button"
                     onClick={() => {
                       const key = crypto.randomUUID();
@@ -731,7 +718,7 @@ function HomeworkWizard({
                     }}
                   >
                     Добавить критерий
-                  </button>
+                  </Btn>
                 }
               >
                 {draft.criteria?.map((c, i) => {
@@ -754,70 +741,59 @@ function HomeworkWizard({
                         );
                       }}
                     >
-                      <label className="field">
-                        Название критерия
-                        <input
+                      <Field label="Название критерия" className="field">
+                        <Inp
                           required
                           value={c.title}
                           onChange={(e) => edit({ title: e.target.value })}
                         />
-                      </label>
-                      <label className="field">
-                        Выполнено, если
-                        <textarea
+                      </Field>
+                      <Field
+                        label="Выполнено, если"
+                        hint="По этой формулировке работают и модель, и ревьюер. Студент видит её после проверки."
+                      >
+                        <Area
                           className="criterion-condition"
                           value={c.description}
-                          onChange={(e) =>
-                            edit({ description: e.target.value })
+                          onChange={(event) =>
+                            edit({ description: event.target.value })
                           }
                         />
-                        <small>
-                          По этой формулировке работают и модель, и ревьюер.
-                          Студент видит её после проверки.
-                        </small>
-                      </label>
-                      <div className="field">
-                        <span className="field__lbl">Как проверяем</span>
-                        <div className="seg">
-                          {(
-                            [
-                              ["formal", "формальная"],
-                              ["content", "по смыслу, с цитатой"],
-                              ["judgement", "на усмотрение ревьюера"],
-                            ] as const
-                          ).map(([value, label]) => (
-                            <button
-                              type="button"
-                              key={value}
-                              className={c.check_class === value ? "is-on" : ""}
-                              aria-pressed={c.check_class === value}
-                              onClick={() =>
-                                edit({
-                                  check_class: value,
-                                  evaluate_quality:
-                                    value === "content"
-                                      ? c.evaluate_quality
-                                      : false,
-                                })
-                              }
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      </Field>
+                      <Field label="Как проверяем" group>
+                        <Seg<"formal" | "content" | "judgement">
+                          label="Как проверяем"
+                          value={c.check_class}
+                          options={[
+                            { value: "formal", label: "формальная" },
+                            { value: "content", label: "по смыслу, с цитатой" },
+                            {
+                              value: "judgement",
+                              label: "на усмотрение ревьюера",
+                            },
+                          ]}
+                          onChange={(value) =>
+                            edit({
+                              check_class: value,
+                              evaluate_quality:
+                                value === "content"
+                                  ? c.evaluate_quality
+                                  : false,
+                            })
+                          }
+                        />
+                      </Field>
                       {c.check_class === "content" && (
                         <div className="field">
-                          <label className="check">
-                            <input
-                              type="checkbox"
-                              checked={c.evaluate_quality ?? false}
-                              onChange={(e) =>
-                                edit({ evaluate_quality: e.target.checked })
-                              }
-                            />
+                          <Chk
+                            type="checkbox"
+                            checked={c.evaluate_quality ?? false}
+                            onChange={(e) =>
+                              edit({ evaluate_quality: e.target.checked })
+                            }
+                          >
                             Ещё и оценить качество
-                          </label>
+                          </Chk>
                           <small>
                             Второй шаг после того, как модель нашла и
                             процитировала. Считается только если первый шаг дал
@@ -826,9 +802,8 @@ function HomeworkWizard({
                         </div>
                       )}
                       <div className="actions">
-                        <label>
-                          Баллов за критерий
-                          <input
+                        <Field label="Баллов за критерий">
+                          <Inp
                             type="number"
                             required
                             min={0}
@@ -840,10 +815,9 @@ function HomeworkWizard({
                               edit({ max_points: Number(e.target.value) })
                             }
                           />
-                        </label>
-                        <label>
-                          Шаг
-                          <input
+                        </Field>
+                        <Field label="Шаг">
+                          <Inp
                             type="number"
                             required
                             min={0.000001}
@@ -855,7 +829,7 @@ function HomeworkWizard({
                               edit({ score_step: Number(e.target.value) })
                             }
                           />
-                        </label>
+                        </Field>
                         <div>
                           <span className="field__lbl">Что увидит ревьюер</span>
                           <ScorePreview
@@ -865,7 +839,7 @@ function HomeworkWizard({
                         </div>
                       </div>
                       <div className="actions">
-                        <button
+                        <Btn
                           type="button"
                           disabled={i === 0}
                           aria-label={`Поднять критерий ${i + 1}`}
@@ -876,8 +850,8 @@ function HomeworkWizard({
                           }}
                         >
                           ↑
-                        </button>
-                        <button
+                        </Btn>
+                        <Btn
                           type="button"
                           disabled={i === draft.criteria!.length - 1}
                           aria-label={`Опустить критерий ${i + 1}`}
@@ -888,8 +862,8 @@ function HomeworkWizard({
                           }}
                         >
                           ↓
-                        </button>
-                        <button
+                        </Btn>
+                        <Btn
                           type="button"
                           onClick={() =>
                             change({
@@ -900,13 +874,13 @@ function HomeworkWizard({
                           }
                         >
                           Убрать критерий
-                        </button>
-                        <button
+                        </Btn>
+                        <Btn
                           type="button"
                           onClick={() => setEditingCriterion(undefined)}
                         >
                           Свернуть
-                        </button>
+                        </Btn>
                       </div>
                     </div>
                   ) : (
@@ -953,7 +927,7 @@ function HomeworkWizard({
                 })}
                 <label className="actions">
                   Порог зачёта
-                  <input
+                  <Inp
                     aria-label="Порог зачёта"
                     style={{ width: 80 }}
                     type="number"
@@ -974,23 +948,22 @@ function HomeworkWizard({
                 </label>
               </Card>
               <Card title="Рекомендации ревьюерам">
-                <label>
-                  Внутренние рекомендации
-                  <textarea
+                <Field label="Внутренние рекомендации">
+                  <Area
                     rows={5}
                     value={draft.reviewer_guidance}
                     onChange={(e) =>
                       change({ reviewer_guidance: e.target.value })
                     }
                   />
-                </label>
+                </Field>
               </Card>
             </div>
             <div className="stack">
               <Card title="Эталонное решение">
                 <label className="drop">
                   Перетащите файл или выберите
-                  <input
+                  <Inp
                     type="file"
                     accept=".md,.pdf,.docx"
                     onChange={(e) => {
@@ -1000,7 +973,7 @@ function HomeworkWizard({
                   />
                 </label>
                 {draft.reference_upload_id && (
-                  <button
+                  <Btn
                     type="button"
                     onClick={() => {
                       change({ reference_upload_id: null });
@@ -1008,7 +981,7 @@ function HomeworkWizard({
                     }}
                   >
                     Удалить эталон из новой версии
-                  </button>
+                  </Btn>
                 )}
                 <p className="muted">
                   Используется как пример для модели и ревьюеров при калибровке.
@@ -1023,12 +996,13 @@ function HomeworkWizard({
             </div>
           </div>
           <div className="btn-row">
-            <button
-              className="btn btn--dark"
+            <Btn
+              type="submit"
+              variant="dark"
               disabled={action.busy || !draft.criteria?.length}
             >
               Дальше: публикация
-            </button>
+            </Btn>
           </div>
         </form>
       )}
@@ -1096,9 +1070,8 @@ function HomeworkWizard({
               Лимит самопроверок:{" "}
               {draft.policy?.self_review_limit ?? "не задан"}
             </p>
-            <label>
-              Сдать до
-              <input
+            <Field label="Сдать до">
+              <Inp
                 required
                 type="datetime-local"
                 value={localDate(draft.submission_deadline)}
@@ -1110,10 +1083,9 @@ function HomeworkWizard({
                   })
                 }
               />
-            </label>
-            <label>
-              Проверить до
-              <input
+            </Field>
+            <Field label="Проверить до">
+              <Inp
                 required
                 type="datetime-local"
                 min={localDate(draft.submission_deadline)}
@@ -1126,27 +1098,27 @@ function HomeworkWizard({
                   })
                 }
               />
-            </label>
-            <button
-              className="primary"
+            </Field>
+            <Btn
+              type="submit"
+              variant="pri"
               disabled={
                 action.busy || !version || !draft.policy || versionChanged
               }
             >
               Опубликовать задание
-            </button>
+            </Btn>
           </form>
           {published && (
             <div className="notice ok">
               <p>Задание и лимит опубликованы.</p>
-              <label>
-                Ссылка для Stepik
-                <input
+              <Field label="Ссылка для Stepik">
+                <Inp
                   readOnly
                   value={`${window.location.origin}/#/prepare/${published}`}
                 />
-              </label>
-              <button
+              </Field>
+              <Btn
                 onClick={() =>
                   void navigator.clipboard.writeText(
                     `${window.location.origin}/#/prepare/${published}`,
@@ -1154,7 +1126,7 @@ function HomeworkWizard({
                 }
               >
                 Скопировать ссылку
-              </button>
+              </Btn>
             </div>
           )}
           {data.history.course_run_publications.map((p) => (

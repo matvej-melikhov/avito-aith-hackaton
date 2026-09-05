@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { ApiClient } from "../src/api/client";
 import { WorkspaceClient, type W } from "../src/api/workspace";
@@ -71,7 +72,7 @@ it("opens the newest successful self-review on reload regardless of API ordering
 it.each([
   {
     allowed: ["upload"] as W<"StudentContext">["allowed_sources"],
-    label: "Markdown, PDF или DOCX, до 10 МБ",
+    label: "Файл работы",
     file: true,
   },
   {
@@ -98,7 +99,7 @@ it.each([
       allowed_sources: allowed,
     });
     render(<WorkspaceSubmit ws={ws} id={ids.publication} session={session} />);
-    await screen.findByLabelText(label);
+    await screen.findByLabelText(label, { selector: "input" });
     expect(screen.queryByRole("button", { name: "Файлы" }) !== null).toBe(file);
     expect(screen.queryByRole("button", { name: "Ссылка" }) !== null).toBe(
       !file,
@@ -185,4 +186,56 @@ it("opens a coordinator submission detail without calling student-only context",
   expect(
     screen.queryByRole("button", { name: "ИИ-ревью" }),
   ).not.toBeInTheDocument();
+});
+
+it("validates a picked file before upload and stores the actual file ID with filename feedback", async () => {
+  const user = userEvent.setup({ applyAccept: false });
+  const ws = new WorkspaceClient(new ApiClient(createDemoTransport()));
+  const session = await ws.core.session();
+  const base = await ws.studentContext(ids.publication);
+  vi.spyOn(ws, "studentContext").mockResolvedValue({
+    ...base,
+    submission_id: null,
+    draft: null,
+    self_reviews: [],
+    allowed_sources: ["upload"],
+  });
+  const commands = vi.spyOn(ws, "command");
+  render(<WorkspaceSubmit ws={ws} id={ids.publication} session={session} />);
+  const input = await screen.findByLabelText("Файл работы", {
+    selector: "input",
+  });
+  await user.upload(input, new File(["bad"], "script.exe"));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Подходят Markdown, PDF или DOCX",
+  );
+  expect(commands.mock.calls.some(([name]) => name === "upload_artifact")).toBe(
+    false,
+  );
+  const file = new File(["# Реальная работа"], "solution.md", {
+    type: "text/markdown",
+  });
+  Object.defineProperty(file, "arrayBuffer", {
+    value: async () => new TextEncoder().encode("# Реальная работа").buffer,
+  });
+  await user.upload(input, file);
+  expect(await screen.findByText("solution.md")).toBeInTheDocument();
+  await waitFor(
+    () =>
+      expect(
+        commands.mock.calls.some(([name]) => name === "save_work_draft"),
+      ).toBe(true),
+    { timeout: 3500 },
+  );
+  const draftCall = commands.mock.calls.find(
+    ([name]) => name === "save_work_draft",
+  )!;
+  expect(draftCall[3]).toMatchObject({
+    artifact_url: "",
+    upload_id: expect.any(String),
+  });
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(
+    commands.mock.calls.some(([name]) => name === "submit_work_draft"),
+  ).toBe(false);
 });

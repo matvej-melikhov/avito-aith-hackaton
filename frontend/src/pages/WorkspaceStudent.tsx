@@ -1,7 +1,16 @@
+import { Area, Btn, Drop, Field, Inp, Seg, Tab, Tabs, cx } from "../ds";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
-import { Card, Resource, date, go, useAction, useResource } from "../ui";
+import {
+  Card,
+  Resource,
+  date,
+  go,
+  useAction,
+  useResource,
+  safeUrl,
+} from "../ui";
 import { Quota, SelfReviewResult, useDirtyGuard } from "../workspace-ui";
 import { ArtifactLink } from "./WorkspaceReview";
 import {
@@ -39,7 +48,9 @@ function DraftForm({
   session: Model<"Session">;
 }) {
   const [data, setData] = useState(initial);
-  const commentHintId = useId();
+  const fileInputId = useId();
+  const [fileError, setFileError] = useState<string>();
+  const [dragging, setDragging] = useState(false);
   const [url, setUrl] = useState(initial.draft?.artifact_url ?? "");
   const [comment, setComment] = useState(initial.draft?.comment ?? "");
   const [file, setFile] = useState<File>();
@@ -70,6 +81,11 @@ function DraftForm({
         ? "Ссылка на репозиторий GitHub"
         : "Ссылка на Google Docs";
   const [saved, setSaved] = useState(initial.draft);
+  const uploaded = useResource(
+    () =>
+      saved?.upload_id ? ws.download(saved.upload_id) : Promise.resolve(null),
+    `uploaded:${saved?.upload_id ?? "none"}`,
+  );
   const [dirty, setDirty] = useState(false);
   const [run, setRun] = useState(initial.quota?.active_run_id ?? undefined);
   const [result, setResult] = useState<W<"SelfReviewView">>();
@@ -129,7 +145,23 @@ function DraftForm({
   ]);
   const activeResult = selfReviews[0];
   useDirtyGuard(dirty);
+  function pickFile(next: File | undefined) {
+    if (!next || action.busy || !canSubmit || !canFile) return;
+    if (!/\.(md|pdf|docx)$/i.test(next.name)) {
+      setFileError("Подходят Markdown, PDF или DOCX.");
+      return;
+    }
+    if (next.size > 10_000_000) {
+      setFileError("Файл больше 10 МБ. Выберите файл меньшего размера.");
+      return;
+    }
+    setFileError(undefined);
+    setFile(next);
+    setSource("file");
+    setDirty(true);
+  }
   function validateSource() {
+    if (source === "file" && fileError) throw new Error(fileError);
     if (!canFile && !canLink)
       throw new Error("Для задания не настроены способы сдачи.");
     if (source === "url") {
@@ -179,7 +211,7 @@ function DraftForm({
     return draft;
   }
   useEffect(() => {
-    if (!dirty || !canSubmit) return;
+    if (!dirty || !canSubmit || (source === "file" && fileError)) return;
     if (source === "url") {
       try {
         const parsed = new URL(url);
@@ -194,7 +226,7 @@ function DraftForm({
       });
     }, 1200);
     return () => clearTimeout(timer);
-  }, [dirty, url, comment, file, source, canSubmit]);
+  }, [dirty, url, comment, file, source, canSubmit, fileError]);
   async function prepare() {
     if (!canSubmit)
       throw new Error(
@@ -303,13 +335,14 @@ function DraftForm({
           <section className="card">
             <div className="card-head card__head">
               <h2>Задание</h2>
-              <button
-                className="btn btn--s btn--link"
+              <Btn
+                variant="link"
+                size="s"
                 aria-expanded={!collapsed}
                 onClick={() => setCollapsed((value) => !value)}
               >
                 {collapsed ? "Развернуть" : "Свернуть"}
-              </button>
+              </Btn>
             </div>
             {!collapsed && (
               <div className="card-body card__body">
@@ -322,23 +355,19 @@ function DraftForm({
           </section>
           {(run || activeResult || history.data?.attempts.length) && (
             <section className="card student-review-tabs">
-              <div
-                className="tabs"
+              <Tabs
                 style={{ padding: "var(--s-2) var(--s-5) 0", marginBottom: 0 }}
               >
-                <button
-                  aria-pressed={reviewTab === "ai"}
-                  onClick={() => setReviewTab("ai")}
-                >
+                <Tab on={reviewTab === "ai"} onClick={() => setReviewTab("ai")}>
                   ИИ-ревью
-                </button>
-                <button
-                  aria-pressed={reviewTab === "human"}
+                </Tab>
+                <Tab
+                  on={reviewTab === "human"}
                   onClick={() => setReviewTab("human")}
                 >
                   Ревью
-                </button>
-              </div>
+                </Tab>
+              </Tabs>
               <div className="card-body">
                 {reviewTab === "ai" ? (
                   <>
@@ -458,43 +487,35 @@ function DraftForm({
             headClassName="submission-head"
             bodyClassName="card__body--compact"
             actions={
-              <div className="seg">
-                {canLink && (
-                  <button
-                    disabled={action.busy || !canSubmit}
-                    aria-pressed={source === "url"}
-                    className={source === "url" ? "is-on" : undefined}
-                    onClick={() => {
-                      setSource("url");
-                      setDirty(true);
-                    }}
-                  >
-                    Ссылка
-                  </button>
-                )}
-                {canFile && (
-                  <button
-                    disabled={action.busy || !canSubmit}
-                    aria-pressed={source === "file"}
-                    className={source === "file" ? "is-on" : undefined}
-                    onClick={() => {
-                      setSource("file");
-                      setDirty(true);
-                    }}
-                  >
-                    Файлы
-                  </button>
-                )}
-              </div>
+              <Seg
+                value={source}
+                label="Способ сдачи"
+                disabled={action.busy || !canSubmit}
+                options={[
+                  ...(canLink
+                    ? [{ value: "url" as const, label: "Ссылка" }]
+                    : []),
+                  ...(canFile
+                    ? [{ value: "file" as const, label: "Файлы" }]
+                    : []),
+                ]}
+                onChange={(value) => {
+                  setSource(value);
+                  setDirty(true);
+                }}
+              />
             }
           >
             <fieldset disabled={action.busy || !canSubmit}>
               {!canFile && !canLink ? (
                 <p>Для задания не настроены способы сдачи.</p>
               ) : source === "url" ? (
-                <label>
-                  {sourceLabel}
-                  <input
+                <Field
+                  label={sourceLabel}
+                  hint="Откройте доступ к работе по ссылке. При отправке сохраняется отдельный снимок."
+                >
+                  <Inp
+                    mono
                     type="url"
                     aria-label={sourceLabel}
                     value={url}
@@ -508,45 +529,109 @@ function DraftForm({
                       setDirty(true);
                     }}
                   />
-                  <small>
-                    Откройте доступ к работе по ссылке. При отправке сохраняется
-                    отдельный снимок.
-                  </small>
-                </label>
+                </Field>
               ) : (
-                <label>
-                  Markdown, PDF или DOCX, до 10 МБ
-                  <input
-                    type="file"
-                    accept=".md,.pdf,.docx"
-                    onChange={(e) => {
-                      setFile(e.target.files?.[0]);
-                      setDirty(true);
+                <Field
+                  label="Файл работы"
+                  group
+                  error={fileError}
+                  hint="Markdown, PDF или DOCX, до 10 МБ. Ревьюер и модель получают сохранённый файл."
+                >
+                  <Drop
+                    className={cx(
+                      "upload",
+                      dragging && "upload--over",
+                      fileError && "upload--err",
+                    )}
+                    role="button"
+                    tabIndex={action.busy || !canSubmit ? -1 : 0}
+                    aria-disabled={action.busy || !canSubmit}
+                    title={
+                      file
+                        ? file.name
+                        : saved?.upload_id
+                          ? (uploaded.data?.filename ?? "Файл сохранён")
+                          : dragging
+                            ? "Отпустите файл здесь"
+                            : "Перетащите файл или выберите"
+                    }
+                    hint={
+                      file
+                        ? `${(file.size / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} КБ · ${action.busy ? "Загружаем…" : "Сохраним в черновике"}`
+                        : saved?.upload_id
+                          ? "Загружен в черновик. Нажмите, чтобы заменить."
+                          : "Нажмите, чтобы выбрать файл"
+                    }
+                    onKeyDown={(e) => {
+                      if (
+                        e.target !== e.currentTarget ||
+                        action.busy ||
+                        !canSubmit
+                      )
+                        return;
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.currentTarget
+                          .querySelector<HTMLInputElement>('input[type="file"]')
+                          ?.click();
+                      }
                     }}
-                  />
-                  {saved?.upload_id && !file && (
-                    <small>Ранее загруженный файл сохранён.</small>
-                  )}
-                </label>
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (!action.busy && canSubmit) setDragging(true);
+                    }}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragging(false);
+                      if (action.busy || !canSubmit) return;
+                      if (e.dataTransfer.files.length !== 1) {
+                        setFileError("Выберите один файл.");
+                        return;
+                      }
+                      pickFile(e.dataTransfer.files[0]);
+                    }}
+                  >
+                    <Inp
+                      id={fileInputId}
+                      className="sr-only"
+                      tabIndex={-1}
+                      type="file"
+                      accept=".md,.pdf,.docx"
+                      aria-label="Файл работы"
+                      onChange={(e) => {
+                        pickFile(e.target.files?.[0]);
+                        e.target.value = "";
+                      }}
+                    />
+                    {!file && uploaded.data && (
+                      <a
+                        href={safeUrl(uploaded.data.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Открыть сохранённый файл ↗
+                      </a>
+                    )}
+                  </Drop>
+                </Field>
               )}
-              <label>
-                Комментарий к сдаче, необязательно
-                <textarea
-                  className="inp inp--area submission-comment"
+              <Field
+                label="Комментарий к сдаче, необязательно"
+                hint="Например: какие части делали с помощью ИИ и что дорабатывали руками"
+              >
+                <Area
+                  className="submission-comment"
                   rows={2}
                   aria-label="Комментарий к сдаче, необязательно"
-                  aria-describedby={commentHintId}
                   value={comment}
                   onChange={(e) => {
                     setComment(e.target.value);
                     setDirty(true);
                   }}
                 />
-                <span className="field__hint" id={commentHintId}>
-                  Например: какие части делали с помощью ИИ и что дорабатывали
-                  руками
-                </span>
-              </label>
+              </Field>
               <small>
                 {dirty
                   ? "Сохраняем изменения…"
@@ -563,8 +648,8 @@ function DraftForm({
                 </p>
               )}
               <div className="submission-actions">
-                <button
-                  className="primary"
+                <Btn
+                  variant="pri"
                   disabled={action.busy || !canSubmit || (!canFile && !canLink)}
                   onClick={() =>
                     void action.run(async () => {
@@ -577,9 +662,9 @@ function DraftForm({
                   }
                 >
                   {revision ? "Отправить исправления" : "Отправить на ревью"}
-                </button>
+                </Btn>
                 <div className="submission-actions__precheck">
-                  <button
+                  <Btn
                     disabled={
                       action.busy ||
                       !canSubmit ||
@@ -613,7 +698,7 @@ function DraftForm({
                     }
                   >
                     ИИ-ревью
-                  </button>
+                  </Btn>
                   <div className="caption">
                     Результат ИИ-ревью видит ревьюер и учитывает при оценке.
                     Самопроверка необязательна.{" "}
@@ -639,13 +724,14 @@ function DraftForm({
             title="Что будут проверять"
             bodyClassName="card__body--tight"
             actions={
-              <button
-                className="btn btn--s btn--link"
+              <Btn
+                variant="link"
+                size="s"
                 aria-expanded={!rubricCollapsed}
                 onClick={() => setRubricCollapsed((value) => !value)}
               >
                 {rubricCollapsed ? "Развернуть" : "Свернуть"}
-              </button>
+              </Btn>
             }
           >
             {!rubricCollapsed && (

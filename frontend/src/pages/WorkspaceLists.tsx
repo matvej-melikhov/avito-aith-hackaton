@@ -1,3 +1,16 @@
+import {
+  Sel,
+  Inp,
+  Btn,
+  Chk,
+  Field,
+  Area,
+  Tabs,
+  Tab,
+  CardFoot,
+  BtnRow,
+  Seg,
+} from "../ds";
 import { StudentWorks } from "./StudentWorks";
 import { ReviewerQueue } from "./ReviewerQueue";
 import { useCallback, useEffect, useState } from "react";
@@ -104,7 +117,7 @@ function WorksList({
     (value) => value.id === selectedRun?.course_id,
   )?.title;
   const homeworkFilter = (
-    <select
+    <Sel
       className="btn btn--s btn--quiet"
       aria-label="Задание"
       disabled={!run}
@@ -120,7 +133,7 @@ function WorksList({
           {item.title}
         </option>
       ))}
-    </select>
+    </Sel>
   );
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -160,7 +173,7 @@ function WorksList({
             <span>{courseTitle ?? "Курс"}</span>
             <span>/</span>
             <span className="coordinator-compact-filters">
-              <select
+              <Sel
                 className="btn btn--s btn--quiet"
                 aria-label="Поток"
                 value={run}
@@ -176,13 +189,13 @@ function WorksList({
                     {value.title}
                   </option>
                 ))}
-              </select>
+              </Sel>
             </span>
           </>
         }
         leading={
           !coordinatorPool ? (
-            <input
+            <Inp
               className="inp inp--s coordinator-header-search"
               aria-label="Поиск"
               placeholder="Поиск по ID студента"
@@ -193,25 +206,27 @@ function WorksList({
         }
       >
         {coordinatorPool ? (
-          <button
-            className="btn btn--s btn--dark"
+          <Btn
+            variant="dark"
+            size="s"
             disabled={!run}
             onClick={() => setReminding(true)}
           >
             Напомнить ревьюерам
-          </button>
+          </Btn>
         ) : (
-          <button
+          <Btn
             disabled={
               !run ||
               (!!homeworkId &&
                 !homeworks.data?.items.some((item) => item.id === homeworkId))
             }
-            className="btn btn--s btn--dark"
+            variant="dark"
+            size="s"
             onClick={() => setExporting(true)}
           >
             Выгрузить
-          </button>
+          </Btn>
         )}
       </ScreenTitle>
       {coordinatorPool && (
@@ -251,7 +266,7 @@ function WorksList({
       {!coordinatorPool && state === "reviewing" && (
         <div className="actions" aria-label="Дополнительный фильтр">
           <span className="pill">На проверке</span>
-          <button
+          <Btn
             type="button"
             onClick={() => {
               setState("");
@@ -259,12 +274,12 @@ function WorksList({
             }}
           >
             Сбросить фильтр
-          </button>
+          </Btn>
         </div>
       )}
       {!coordinatorPool && (
         <Resource value={insights}>
-          <nav className="tabs" aria-label="Статусы домашних работ">
+          <Tabs role="navigation" label="Статусы домашних работ">
             {(
               [
                 ["all", "Все"],
@@ -277,18 +292,17 @@ function WorksList({
                 ["failed", "Не зачтена"],
               ] as const
             ).map(([value, label]) => (
-              <button
-                type="button"
+              <Tab
                 key={value}
-                aria-pressed={(state || "all") === value}
+                on={(state || "all") === value}
+                count={insights.data?.status_counts[value] ?? "—"}
                 onClick={() => {
                   setState(value === "all" ? "" : value);
                   setOffset(0);
                 }}
               >
-                {label}{" "}
-                <span>{insights.data?.status_counts[value] ?? "—"}</span>
-              </button>
+                {label}
+              </Tab>
             ))}
             <span
               className="coordinator-compact-filters"
@@ -296,7 +310,7 @@ function WorksList({
             >
               {homeworkFilter}
             </span>
-          </nav>
+          </Tabs>
         </Resource>
       )}
       <Resource value={r}>
@@ -313,17 +327,17 @@ function WorksList({
               coordinatorPool ? (
                 <div className="btn-row coordinator-compact-filters">
                   {homeworkFilter}
-                  <label className="check btn btn--s btn--quiet">
-                    <input
-                      type="checkbox"
-                      checked={stuck}
-                      onChange={(event) => {
-                        setStuck(event.target.checked);
-                        setOffset(0);
-                      }}
-                    />
+                  <Chk
+                    className="btn btn--s btn--quiet"
+                    type="checkbox"
+                    checked={stuck}
+                    onChange={(event) => {
+                      setStuck(event.target.checked);
+                      setOffset(0);
+                    }}
+                  >
                     Только зависшие
-                  </label>
+                  </Chk>
                 </div>
               ) : undefined
             }
@@ -416,14 +430,15 @@ function WorksList({
                       </td>
                       <td>
                         <div className="actions">
-                          <button
-                            className="btn btn--s btn--link"
+                          <Btn
+                            variant="link"
+                            size="s"
                             onClick={() => open(work)}
                           >
                             {coordinatorPool
                               ? "Открыть проверку"
                               : "Открыть работу"}
-                          </button>
+                          </Btn>
                           {!coordinatorPool && work.submission_id && (
                             <a href={`#/submissions/${work.submission_id}`}>
                               История и результат
@@ -444,22 +459,22 @@ function WorksList({
               </Empty>
             )}
             <div className="pagination">
-              <button
+              <Btn
                 disabled={!offset}
                 onClick={() => setOffset(Math.max(0, offset - 20))}
               >
                 Назад
-              </button>
+              </Btn>
               <span>
                 {r.data.total ? offset + 1 : 0}–
                 {Math.min(offset + 20, r.data.total)} из {r.data.total}
               </span>
-              <button
+              <Btn
                 disabled={offset + 20 >= r.data.total}
                 onClick={() => setOffset(offset + 20)}
               >
                 Дальше
-              </button>
+              </Btn>
             </div>
           </Card>
         )}
@@ -533,7 +548,7 @@ function TypicalFailures({
       subtitle="По завершённым проверкам"
       bodyClassName="card__body--flush"
       actions={
-        <button
+        <Btn
           disabled={action.busy || !selected.length}
           onClick={() =>
             void action.run(async () => {
@@ -563,7 +578,7 @@ function TypicalFailures({
           }
         >
           Добавить в описание курса
-        </button>
+        </Btn>
       }
     >
       {action.feedback}
@@ -580,22 +595,19 @@ function TypicalFailures({
             {failures.map((value) => (
               <tr key={value.criterion_id}>
                 <td>
-                  <label className="check">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(value.criterion_id)}
-                      onChange={(event) =>
-                        setSelected(
-                          event.target.checked
-                            ? [...selected, value.criterion_id]
-                            : selected.filter(
-                                (id) => id !== value.criterion_id,
-                              ),
-                        )
-                      }
-                    />
+                  <Chk
+                    type="checkbox"
+                    checked={selected.includes(value.criterion_id)}
+                    onChange={(event) =>
+                      setSelected(
+                        event.target.checked
+                          ? [...selected, value.criterion_id]
+                          : selected.filter((id) => id !== value.criterion_id),
+                      )
+                    }
+                  >
                     {value.title}
-                  </label>
+                  </Chk>
                 </td>
                 <td>
                   {value.failed} из {value.reviewed}
@@ -672,34 +684,37 @@ function PoolReminder({
       {action.feedback}
       <Resource value={r}>
         {r.data?.map((person) => (
-          <label key={person.id} className="check">
-            <input
-              type="checkbox"
-              checked={selected.includes(person.id)}
-              onChange={(event) =>
-                setSelected(
-                  event.target.checked
-                    ? [...selected, person.id]
-                    : selected.filter((id) => id !== person.id),
-                )
-              }
-            />
+          <Chk
+            key={person.id}
+            type="checkbox"
+            checked={selected.includes(person.id)}
+            onChange={(event) =>
+              setSelected(
+                event.target.checked
+                  ? [...selected, person.id]
+                  : selected.filter((id) => id !== person.id),
+              )
+            }
+          >
             {person.display_name}
-          </label>
+          </Chk>
         ))}
         {r.data?.length === 0 && <Empty>В потоке пока нет ревьюеров.</Empty>}
       </Resource>
-      <label>
-        Сообщение
-        <textarea
+      <Field label="Сообщение">
+        <Area
           required
           value={text}
           onChange={(event) => setText(event.target.value)}
         />
-      </label>
-      <button className="primary" disabled={action.busy || !selected.length}>
+      </Field>
+      <Btn
+        type="submit"
+        variant="pri"
+        disabled={action.busy || !selected.length}
+      >
         Отправить напоминание
-      </button>
+      </Btn>
     </form>
   );
 }
@@ -770,32 +785,25 @@ function ExportForm({
             , поток «{run.title}»
           </div>
         </div>
-        <div className="field">
-          <span className="field__lbl">Кому выгружаем</span>
-          <div className="seg">
-            {(
-              [
-                ["team", "Команде, внутренняя ведомость"],
-                ["students", "Студентам, копия"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                type="button"
-                key={value}
-                className={audience === value ? "is-on" : ""}
-                aria-pressed={audience === value}
-                onClick={() => {
-                  setAudience(value);
-                  if (value === "students")
-                    setColumns(["student_id", "score", "status"]);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <small>В студенческой копии только ID студента, балл и статус.</small>
-        </div>
+        <Field
+          label="Кому выгружаем"
+          group
+          hint="В студенческой копии только ID студента, балл и статус."
+        >
+          <Seg<"team" | "students">
+            label="Кому выгружаем"
+            value={audience}
+            options={[
+              { value: "team", label: "Команде, внутренняя ведомость" },
+              { value: "students", label: "Студентам, копия" },
+            ]}
+            onChange={(value) => {
+              setAudience(value);
+              if (value === "students")
+                setColumns(["student_id", "score", "status"]);
+            }}
+          />
+        </Field>
         <fieldset disabled={action.busy}>
           <legend>Колонки</legend>
           <div className="date-range">
@@ -806,68 +814,61 @@ function ExportForm({
                   ["student_id", "score", "status"].includes(key),
               )
               .map(([key, label]) => (
-                <label className="check" key={key}>
-                  <input
-                    type="checkbox"
-                    checked={columns.includes(key)}
-                    onChange={(e) =>
-                      setColumns(
-                        e.target.checked
-                          ? [...columns, key]
-                          : columns.filter((c) => c !== key),
-                      )
-                    }
-                  />
+                <Chk
+                  key={key}
+                  type="checkbox"
+                  checked={columns.includes(key)}
+                  onChange={(e) =>
+                    setColumns(
+                      e.target.checked
+                        ? [...columns, key]
+                        : columns.filter((c) => c !== key),
+                    )
+                  }
+                >
                   {label}
-                </label>
+                </Chk>
               ))}
           </div>
         </fieldset>
-        <fieldset disabled={action.busy}>
-          <legend>Что делать с незакрытыми работами</legend>
-          <div className="seg">
-            <button
-              type="button"
-              className={!unfinished ? "is-on" : ""}
-              aria-pressed={!unfinished}
-              onClick={() => setUnfinished(false)}
+        <Field label="Что делать с незакрытыми работами" group>
+          <Seg<"omit" | "include">
+            label="Что делать с незакрытыми работами"
+            disabled={action.busy}
+            value={unfinished ? "include" : "omit"}
+            options={[
+              { value: "omit", label: "Не выгружать" },
+              { value: "include", label: "Выгрузить с пустым баллом" },
+            ]}
+            onChange={(value) => setUnfinished(value === "include")}
+          />
+        </Field>
+        <Field label="Формат" group>
+          <Seg<"csv" | "xlsx">
+            label="Формат"
+            disabled={action.busy}
+            value={format}
+            options={[
+              { value: "csv", label: "CSV" },
+              { value: "xlsx", label: "XLSX" },
+            ]}
+            onChange={setFormat}
+          />
+        </Field>
+        <CardFoot end>
+          <BtnRow end>
+            <Btn type="button" onClick={close}>
+              Отмена
+            </Btn>
+            <Btn
+              type="submit"
+              variant="pri"
+              disabled={action.busy || !columns.length}
             >
-              Не выгружать
-            </button>
-            <button
-              type="button"
-              className={unfinished ? "is-on" : ""}
-              aria-pressed={unfinished}
-              onClick={() => setUnfinished(true)}
-            >
-              Выгрузить с пустым баллом
-            </button>
-          </div>
-        </fieldset>
-        <fieldset disabled={action.busy}>
-          <legend>Формат</legend>
-          <div className="seg">
-            {(["csv", "xlsx"] as const).map((value) => (
-              <button
-                type="button"
-                key={value}
-                className={format === value ? "is-on" : ""}
-                aria-pressed={format === value}
-                onClick={() => setFormat(value)}
-              >
-                {value.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-        <div className="card__foot actions">
-          <button type="button" onClick={close}>
-            Отмена
-          </button>
-          <button className="primary" disabled={action.busy || !columns.length}>
-            Подготовить файл
-          </button>
-        </div>
+              Подготовить файл
+            </Btn>
+          </BtnRow>
+        </CardFoot>
       </form>
       {job && <ExportMonitor ws={ws} id={job} />}
     </>
@@ -885,7 +886,7 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
     <>
       <ScreenTitle code="Р4" title="Кабинет">
         <div className="btn-row coordinator-compact-filters">
-          <select
+          <Sel
             aria-label="Поток"
             className="btn btn--s btn--quiet"
             value={courseRun}
@@ -897,8 +898,8 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
                 {run.title}
               </option>
             ))}
-          </select>
-          <select
+          </Sel>
+          <Sel
             aria-label="Период"
             className="btn btn--s btn--quiet"
             value={days}
@@ -907,15 +908,15 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
             <option value={7}>7 дней</option>
             <option value={30}>30 дней</option>
             <option value={90}>90 дней</option>
-          </select>
+          </Sel>
         </div>
       </ScreenTitle>
-      <nav className="tabs">
-        <a href="#/preferences">Настройки</a>
-        <a href="#/statistics" aria-current="page">
+      <Tabs role="navigation" label="Кабинет">
+        <Tab href="#/preferences">Настройки</Tab>
+        <Tab href="#/statistics" on>
           Статистика
-        </a>
-      </nav>
+        </Tab>
+      </Tabs>
       <Resource value={r}>
         {r.data && (
           <div className="stack">

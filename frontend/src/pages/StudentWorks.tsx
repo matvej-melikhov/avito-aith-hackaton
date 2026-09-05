@@ -1,3 +1,4 @@
+import { Btn, Seg } from "../ds";
 import { useState } from "react";
 import { WorkspaceClient } from "../api/workspace";
 import { Empty, Resource, Status, useResource } from "../ui";
@@ -11,25 +12,19 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
   return (
     <>
       <ScreenTitle code="С4" title="Мои домашки">
-        <div className="seg" aria-label="Статус домашних работ">
-          {[
-            ["", "Все"],
-            ["in_progress", "В работе"],
-            ["completed", "Завершённые"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              className={state === value ? "is-on" : undefined}
-              aria-pressed={state === value}
-              onClick={() => {
-                setState(value);
-                setOffset(0);
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <Seg
+          label="Статус домашних работ"
+          value={state}
+          options={[
+            { value: "", label: "Все" },
+            { value: "in_progress", label: "В работе" },
+            { value: "completed", label: "Завершённые" },
+          ]}
+          onChange={(value) => {
+            setState(value);
+            setOffset(0);
+          }}
+        />
       </ScreenTitle>
       <Resource value={r}>
         {r.data && (
@@ -113,22 +108,22 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
             </div>
             {r.data.total > r.data.limit && (
               <div className="pagination">
-                <button
+                <Btn
                   disabled={offset === 0}
                   onClick={() => setOffset(Math.max(0, offset - r.data!.limit))}
                 >
                   Назад
-                </button>
+                </Btn>
                 <span>
                   {r.data.offset + 1}–{r.data.offset + r.data.items.length} из{" "}
                   {r.data.total}
                 </span>
-                <button
+                <Btn
                   disabled={r.data.offset + r.data.items.length >= r.data.total}
                   onClick={() => setOffset(offset + r.data!.limit)}
                 >
                   Далее
-                </button>
+                </Btn>
               </div>
             )}
           </>

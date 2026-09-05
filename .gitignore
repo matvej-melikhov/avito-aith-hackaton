@@ -21,3 +21,5 @@ data/
 experiments/
 .cache/design-references/
 frontend/.cache/design-references/
+.cache/usability/
+frontend/.cache/usability/

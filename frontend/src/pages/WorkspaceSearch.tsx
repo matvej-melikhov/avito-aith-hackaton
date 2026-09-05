@@ -1,3 +1,4 @@
+import { Inp, Srch, Pop } from "../ds";
 import { useEffect, useId, useRef, useState } from "react";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { Status } from "../ui";
@@ -9,7 +10,7 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState(0);
-  const root = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLSpanElement>(null);
   const popupId = useId();
   const students = result?.students ?? [];
   const homeworks = result?.homeworks ?? [];
@@ -71,19 +72,8 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
     };
   }, [query, ws]);
   return (
-    <div className="srch" ref={root} data-screen="К1а">
-      <svg
-        className="srch__i"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        aria-hidden="true"
-      >
-        <circle cx="6.8" cy="6.8" r="4.6" />
-        <path d="M10.2 10.2 L14 14" strokeLinecap="round" />
-      </svg>
-      <input
+    <Srch ref={root} data-screen="К1а">
+      <Inp
         className="inp inp--s"
         style={{ width: 280, maxWidth: "100%" }}
         aria-label="ID студента или название задания"
@@ -117,9 +107,8 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
         }}
       />
       {open && !!query.trim() && (
-        <div
+        <Pop
           id={popupId}
-          className="pop"
           style={{
             top: "100%",
             left: 0,
@@ -191,8 +180,8 @@ export function WorkspaceSearch({ ws }: { ws: WorkspaceClient }) {
               </a>
             )}
           </div>
-        </div>
+        </Pop>
       )}
-    </div>
+    </Srch>
   );
 }

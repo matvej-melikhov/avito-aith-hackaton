@@ -1,0 +1,41 @@
+# Use only through scripts/usability/seed_scenarios.py and the fixed study project.
+services:
+  mysql:
+    environment:
+      MYSQL_DATABASE: workspace_usability
+      MYSQL_USER: review_platform
+      MYSQL_PASSWORD: local-dev-only
+      MYSQL_ROOT_PASSWORD: local-dev-root-only
+    ports: !override
+      - "127.0.0.1:13316:3306"
+  redis:
+    ports: !override
+      - "127.0.0.1:16389:6379"
+  minio:
+    environment:
+      MINIO_ROOT_USER: localminio
+      MINIO_ROOT_PASSWORD: local-minio-only
+    ports: !override
+      - "127.0.0.1:19010:9000"
+      - "127.0.0.1:19011:9001"
+  api:
+    environment:
+      REVIEW_PLATFORM_ENVIRONMENT: local
+      REVIEW_PLATFORM_DATABASE_URL: mysql+asyncmy://review_platform:local-dev-only@mysql:3306/workspace_usability
+      REVIEW_PLATFORM_REDIS_URL: redis://redis:6379/0
+      REVIEW_PLATFORM_S3_ENDPOINT_URL: http://minio:9000
+      REVIEW_PLATFORM_S3_ACCESS_KEY_ID: localminio
+      REVIEW_PLATFORM_S3_SECRET_ACCESS_KEY: local-minio-only
+      REVIEW_PLATFORM_S3_BUCKET: workspace-usability-study
+      REVIEW_PLATFORM_S3_PUBLIC_ENDPOINT_URL: http://127.0.0.1:19010
+      REVIEW_PLATFORM_WORKSPACE_PUBLIC_BASE_URL: http://127.0.0.1:5180
+      REVIEW_PLATFORM_WORKSPACE_ENABLED: 'true'
+      REVIEW_PLATFORM_WORKSPACE_FIXTURES: 'true'
+      REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED: 'false'
+      REVIEW_PLATFORM_BROWSER_ORIGINS: http://localhost:5180,http://127.0.0.1:5180
+      WORKSPACE_USABILITY_STUDY: isolated-v1
+    ports: !override
+      - "127.0.0.1:18010:8000"
+    volumes:
+      - ../scripts/usability:/study:ro
+    command: ["sh", "-ec", "alembic upgrade head && exec python -m review_platform.main"]

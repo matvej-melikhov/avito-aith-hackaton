@@ -1,3 +1,5 @@
+import { Btn } from "../ds";
+import { openQueueWork } from "./reviewMode";
 import { useEffect, useState, type ReactNode } from "react";
 import { WorkspaceClient, type W } from "../api/workspace";
 import {
@@ -25,9 +27,9 @@ export function ReviewerQueue({
   return (
     <>
       <ScreenTitle code="Р2" title={mode === "active" ? "Мои работы" : "Пул"}>
-        <a className="button" href="#/preferences">
+        <Btn size="s" href="#/preferences">
           Настройки
-        </a>
+        </Btn>
       </ScreenTitle>
       <div className="stack">
         {mode === "active" ? (
@@ -101,40 +103,8 @@ function QueueSection({
   const action = useAction();
   const session = useResource(() => ws.core.session(), "reviewer-actor");
   async function open(w: W<"WorkItem">) {
-    if (!w.submission_id || !w.submission_version_id) return;
-    const closed = ["published", "passed", "failed", "needs_changes"].includes(
-      w.status,
-    );
-    let reviewId = w.review_iteration_id;
-    if (
-      !reviewId ||
-      w.review_submission_version_id !== w.submission_version_id
-    ) {
-      const result = await ws.command(
-        "open_work",
-        w.submission_id,
-        w.submission_revision,
-        { submission_version_id: w.submission_version_id! },
-      );
-      reviewId = result.id;
-    }
-    if (!closed) {
-      const detail = await ws.core.review(reviewId);
-      const events = detail.responsibility_events.filter(
-        (e) => e.reviewer_id === session.data?.user_id,
-      );
-      const latest = events.at(-1);
-      if (!latest || !["started", "joined"].includes(latest.action))
-        await ws.core.command(
-          "record_review_responsibility",
-          reviewId,
-          detail.revision,
-          {
-            action: detail.responsibility_events.length ? "joined" : "started",
-          },
-        );
-    }
-    go(`/reviews/${reviewId}`);
+    const id = await openQueueWork(ws, w, session.data!.user_id);
+    go(`/reviews/${id}`);
   }
   return (
     <Card title={title} actions={filters}>
@@ -206,7 +176,7 @@ function QueueSection({
                       </td>
                       <td>
                         <div className="actions">
-                          <button
+                          <Btn
                             disabled={
                               action.busy ||
                               session.loading ||
@@ -227,7 +197,7 @@ function QueueSection({
                                   )
                                 ? "Продолжить"
                                 : "Начать проверку"}
-                          </button>
+                          </Btn>
                           {view === "active" &&
                             w.participant_ids?.includes(
                               session.data?.user_id ?? "",
@@ -239,7 +209,7 @@ function QueueSection({
                               "failed",
                               "needs_changes",
                             ].includes(w.status) && (
-                              <button
+                              <Btn
                                 disabled={action.busy}
                                 onClick={() =>
                                   void action.run(async () => {
@@ -254,7 +224,7 @@ function QueueSection({
                                 }
                               >
                                 Вернуть в пул
-                              </button>
+                              </Btn>
                             )}
                         </div>
                       </td>
@@ -272,22 +242,22 @@ function QueueSection({
             )}
             {r.data.total > 20 && (
               <div className="pagination">
-                <button
+                <Btn
                   disabled={offset === 0}
                   onClick={() => setOffset(Math.max(0, offset - 20))}
                 >
                   Назад
-                </button>
+                </Btn>
                 <span>
                   {offset + 1}–{Math.min(offset + 20, r.data.total)} из{" "}
                   {r.data.total}
                 </span>
-                <button
+                <Btn
                   disabled={offset + 20 >= r.data.total}
                   onClick={() => setOffset(offset + 20)}
                 >
                   Дальше
-                </button>
+                </Btn>
               </div>
             )}
           </>

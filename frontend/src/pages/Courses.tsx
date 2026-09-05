@@ -1,3 +1,4 @@
+import { Field, Inp, Btn } from "../ds";
 import { HeaderProfile } from "../workspace-ui";
 import { WorkspaceClient } from "../api/workspace";
 import { WorkspaceRunSettings } from "./WorkspaceCatalog";
@@ -77,19 +78,18 @@ export function CoursesPage({ api, role }: { api: ApiClient; role: Role }) {
               });
             }}
           >
-            <label>
-              Ссылка на курс
-              <input
+            <Field label="Ссылка на курс">
+              <Inp
                 type="url"
                 required
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://stepik.org/course/…"
               />
-            </label>
-            <button className="primary" disabled={action.busy}>
+            </Field>
+            <Btn type="submit" variant="pri" disabled={action.busy}>
               Импортировать
-            </button>
+            </Btn>
           </form>
         </Card>
       )}
@@ -231,18 +231,17 @@ export function CoursePage({
                     });
                   }}
                 >
-                  <label>
-                    Название
-                    <input
+                  <Field label="Название">
+                    <Inp
                       required
                       maxLength={512}
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
-                  </label>
-                  <button disabled={action.busy || !state.data.run}>
+                  </Field>
+                  <Btn type="submit" disabled={action.busy || !state.data.run}>
                     Создать задание
-                  </button>
+                  </Btn>
                 </form>
               </Card>
               <WorkspaceRunSettings ws={new WorkspaceClient(api)} runId={id} />
@@ -293,8 +292,8 @@ export function QueuePage({ api, id }: { api: ApiClient; id: string }) {
         {s.data ? (
           <Card title="Работа готова к проверке">
             <p>{s.data.reason.join(" · ")}</p>
-            <button
-              className="primary"
+            <Btn
+              variant="pri"
               disabled={action.busy}
               onClick={() =>
                 void action.run(async () => {
@@ -310,13 +309,13 @@ export function QueuePage({ api, id }: { api: ApiClient; id: string }) {
               }
             >
               Открыть проверку
-            </button>
+            </Btn>
           </Card>
         ) : (
           <Empty>В этом потоке пока нет подходящих работ.</Empty>
         )}
       </Resource>
-      <button onClick={s.refresh}>Обновить рекомендацию</button>
+      <Btn onClick={s.refresh}>Обновить рекомендацию</Btn>
     </>
   );
 }

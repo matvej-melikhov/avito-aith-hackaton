@@ -1,3 +1,4 @@
+import { Tab, Tabs } from "../ds";
 import { useState } from "react";
 import type { Role } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
@@ -223,25 +224,18 @@ export function WorkspaceSubmissionDetail({
           </ScreenTitle>
           <div className="student-grid">
             <section className="card">
-              <div
-                className="tabs"
+              <Tabs
                 style={{ padding: "var(--s-2) var(--s-5) 0", marginBottom: 0 }}
               >
                 {role === "student" && (
-                  <button
-                    aria-pressed={tab === "ai"}
-                    onClick={() => setTab("ai")}
-                  >
+                  <Tab on={tab === "ai"} onClick={() => setTab("ai")}>
                     ИИ-ревью
-                  </button>
+                  </Tab>
                 )}
-                <button
-                  aria-pressed={tab === "human"}
-                  onClick={() => setTab("human")}
-                >
+                <Tab on={tab === "human"} onClick={() => setTab("human")}>
                   Ревью
-                </button>
-              </div>
+                </Tab>
+              </Tabs>
               <div className="card-body">
                 {tab === "ai" ? (
                   <Resource value={context}>

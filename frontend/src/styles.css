@@ -1,9 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&family=Unbounded:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "../../docs/design/tokens.css";
 @import "../../docs/design/components.css";
+@import "./ds/ds.css";
 
 /* Existing React class names mapped verbatim to the supplied component rules. */
-button,
+button:not(:where(.btn, .tab)),
 .button {
   display: inline-flex;
   align-items: center;
@@ -160,9 +161,9 @@ button[disabled],
   font-size: var(--small-size);
   line-height: var(--small-lh);
 }
-input:not([type="checkbox"]):not([type="radio"]),
-textarea,
-select {
+input:not(:where(.inp)):not([type="checkbox"]):not([type="radio"]),
+textarea:not(:where(.inp)),
+select:not(:where(.inp)) {
   display: block;
   width: 100%;
   min-height: var(--ctl-l);

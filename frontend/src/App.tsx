@@ -1,4 +1,5 @@
 import { HeaderProfileContext } from "./workspace-ui";
+import { Aside, Brand, Btn } from "./ds";
 import { confirmNavigation, consumeProgrammaticNavigation } from "./navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WorkspaceNotifications } from "./WorkspaceNotifications";
@@ -277,36 +278,19 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         Перейти к содержимому
       </a>
       {activeRole !== "student" && (
-        <aside className="sidebar">
-          <a className="brand" href="#/home">
-            <span className="brand-dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            Авито Ревью
-          </a>
-          <SidebarNavigation
-            ws={ws}
-            role={activeRole}
-            items={nav}
-            section={section}
-          />
-        </aside>
+        <SidebarNavigation
+          ws={ws}
+          role={activeRole}
+          items={nav}
+          section={section}
+        />
       )}
       <div className="main-area">
         {activeRole === "student" && (
           <header>
             <div>
               {activeRole === "student" ? (
-                <a className="brand" href="#/home">
-                  <span className="brand-dots" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                  Авито Ревью
-                </a>
+                <Brand href="#/home" flat />
               ) : (
                 <>
                   <span className="muted">Авито Ревью / </span>
@@ -318,9 +302,9 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
               {activeRole === "student" && (
                 <>
                   {["prepare", "submit"].includes(section) && (
-                    <a className="button" href="#/works">
+                    <Btn size="s" href="#/works">
                       Мои домашки
-                    </a>
+                    </Btn>
                   )}
                   {profileMenu}
                 </>
@@ -381,25 +365,17 @@ function SidebarNavigation({
     15000,
   );
   return (
-    <nav>
-      {items.map(([link, label]) => (
-        <a
-          key={link}
-          href={`#/${link}`}
-          aria-current={
-            section === link ||
-            (link === "preferences" && section === "statistics")
-              ? "page"
-              : undefined
-          }
-        >
-          {label}
-          {counts.data?.[link] !== undefined && (
-            <span className="nav-count">{counts.data[link]}</span>
-          )}
-        </a>
-      ))}
-    </nav>
+    <Aside
+      className="sidebar"
+      menu={items.map(([link, label]) => ({
+        href: `#/${link}`,
+        label,
+        on:
+          section === link ||
+          (link === "preferences" && section === "statistics"),
+        count: counts.data?.[link],
+      }))}
+    />
   );
 }
 function Login({

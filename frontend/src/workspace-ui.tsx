@@ -17,6 +17,7 @@ import {
   useResource,
 } from "./ui";
 import type { W, WorkspaceClient } from "./api/workspace";
+import { Modal as DsModal } from "./ds";
 export function Modal({
   title,
   children,
@@ -28,34 +29,10 @@ export function Modal({
   close: () => void;
   wide?: boolean;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const dialog = ref.current!;
-    dialog.showModal();
-    const cancel = (e: Event) => {
-      e.preventDefault();
-      close();
-    };
-    dialog.addEventListener("cancel", cancel);
-    return () => {
-      dialog.removeEventListener("cancel", cancel);
-      dialog.close();
-    };
-  }, [close]);
   return (
-    <dialog
-      ref={ref}
-      className={`workspace-modal modal${wide ? " overlay--wide" : ""}`}
-      aria-label={title}
-    >
-      <div className="card-head">
-        <h2>{title}</h2>
-        <button type="button" aria-label="Закрыть" onClick={close}>
-          ×
-        </button>
-      </div>
-      <div className="card-body">{children}</div>
-    </dialog>
+    <DsModal title={title} close={close} wide={wide}>
+      {children}
+    </DsModal>
   );
 }
 export const HeaderProfileContext = createContext<ReactNode>(null);

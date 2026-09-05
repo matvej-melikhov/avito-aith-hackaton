@@ -1,3 +1,16 @@
+import {
+  Btn,
+  Sel,
+  Field,
+  Inp,
+  Area,
+  Chk,
+  Tabs,
+  Tab,
+  Card as DSCard,
+  CardBody,
+  Tgl,
+} from "../ds";
 import { useCallback, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
@@ -41,12 +54,10 @@ export function WorkspaceCatalog({
         title={mode === "overview" ? "Обзор" : "Курсы"}
         leading={mode === "overview" ? <WorkspaceSearch ws={ws} /> : undefined}
       >
-        <button className="btn" onClick={() => setModal("course")}>
-          Создать курс
-        </button>
+        <Btn onClick={() => setModal("course")}>Создать курс</Btn>
         {mode === "overview" && (
-          <button
-            className="btn btn--dark"
+          <Btn
+            variant="dark"
             disabled={r.loading}
             onClick={() => {
               setSelectedCourse(
@@ -57,7 +68,7 @@ export function WorkspaceCatalog({
             }}
           >
             Создать поток
-          </button>
+          </Btn>
         )}
       </ScreenTitle>
       {action.feedback}
@@ -69,7 +80,7 @@ export function WorkspaceCatalog({
             bodyClassName="card__body--flush"
             actions={
               <div className="btn-row coordinator-compact-filters">
-                <select
+                <Sel
                   className="btn btn--s btn--quiet"
                   aria-label="Курс"
                   value={search}
@@ -81,8 +92,8 @@ export function WorkspaceCatalog({
                       {course.title}
                     </option>
                   ))}
-                </select>
-                <select
+                </Sel>
+                <Sel
                   className="btn btn--s btn--quiet"
                   aria-label="Состояние"
                   value={status}
@@ -91,7 +102,7 @@ export function WorkspaceCatalog({
                   <option value="">Статус: все</option>
                   <option value="active">Активные</option>
                   <option value="archived">Архив</option>
-                </select>
+                </Sel>
               </div>
             }
           >
@@ -137,8 +148,8 @@ export function WorkspaceCatalog({
           <OverviewAttention ws={ws} runs={r.data.course_runs} />
         )}
         {r.data && mode === "courses" && (
-          <section className="card">
-            <div className="card__body card__body--flush">
+          <DSCard>
+            <CardBody flush>
               <div className="table-wrap">
                 <table className="tbl">
                   <thead>
@@ -156,15 +167,15 @@ export function WorkspaceCatalog({
                     {r.data.courses.map((c) => (
                       <tr key={c.id}>
                         <td>
-                          <button
-                            className="link-button"
+                          <Btn
+                            variant="link"
                             onClick={() => {
                               setEditCourse(c);
                               setModal("edit-course");
                             }}
                           >
                             {c.title}
-                          </button>
+                          </Btn>
                           <small>{c.description}</small>
                         </td>
                         <td>
@@ -203,7 +214,7 @@ export function WorkspaceCatalog({
                           <Status value={c.status} />
                         </td>
                         <td>
-                          <button
+                          <Btn
                             disabled={action.busy}
                             onClick={() =>
                               void action.run(async () => {
@@ -228,15 +239,15 @@ export function WorkspaceCatalog({
                             {c.status === "archived"
                               ? "Восстановить"
                               : "Архивировать"}
-                          </button>
+                          </Btn>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
-          </section>
+            </CardBody>
+          </DSCard>
         )}
         {r.data?.courses.length === 0 && (
           <Empty>Создайте курс или импортируйте его из Stepik.</Empty>
@@ -264,9 +275,8 @@ export function WorkspaceCatalog({
             />
           ) : (
             <>
-              <label>
-                Курс
-                <select
+              <Field label="Курс">
+                <Sel
                   value={selectedCourse}
                   onChange={(e) => setSelectedCourse(e.target.value)}
                 >
@@ -278,8 +288,8 @@ export function WorkspaceCatalog({
                         {c.title}
                       </option>
                     ))}
-                </select>
-              </label>
+                </Sel>
+              </Field>
               {selectedCourse && (
                 <RunForm
                   key={selectedCourse}
@@ -469,19 +479,18 @@ export function RunCard({
           });
         }}
       >
-        <label>
-          Приоритет рекомендаций
-          <select
+        <Field label="Приоритет рекомендаций">
+          <Sel
             value={priority}
             onChange={(e) => setPriority(e.target.value as typeof priority)}
           >
             <option value="assigned">Свои студенты сначала</option>
             <option value="deadline">Ближайший срок сначала</option>
-          </select>
-        </label>
-        <button disabled={action.busy || priority === run.priority}>
+          </Sel>
+        </Field>
+        <Btn type="submit" disabled={action.busy || priority === run.priority}>
           Сохранить приоритет
-        </button>
+        </Btn>
       </form>
       {editing && catalog.data && (
         <Modal title="Редактировать поток" close={() => setEditing(false)}>
@@ -497,9 +506,9 @@ export function RunCard({
         </Modal>
       )}
       <div className="actions">
-        <button onClick={() => setEditing(true)}>Редактировать поток</button>
+        <Btn onClick={() => setEditing(true)}>Редактировать поток</Btn>
         <a href={`#/assignments/${run.id}`}>Ревьюеры и студенты</a>
-        <button
+        <Btn
           disabled={action.busy}
           onClick={() =>
             void action.run(async () => {
@@ -527,7 +536,7 @@ export function RunCard({
           {run.status === "archived"
             ? "Восстановить поток"
             : "Архивировать поток"}
-        </button>
+        </Btn>
       </div>
       {action.feedback}
     </article>
@@ -570,34 +579,30 @@ function CourseForm({
       }}
     >
       {action.feedback}
-      <label>
-        Название курса
-        <input
+      <Field label="Название курса">
+        <Inp
           required
           maxLength={512}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
-      </label>
-      <label>
-        Описание
-        <textarea
+      </Field>
+      <Field label="Описание">
+        <Area
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-      </label>
-      <label>
-        Ссылка на курс в Stepik (необязательно)
-        <input
+      </Field>
+      <Field label="Ссылка на курс в Stepik (необязательно)">
+        <Inp
           type="url"
           value={stepikUrl}
           onChange={(e) => setStepikUrl(e.target.value)}
           placeholder="https://stepik.org/course/…"
         />
-      </label>
-      <label>
-        Координатор
-        <select value={owner} onChange={(e) => setOwner(e.target.value)}>
+      </Field>
+      <Field label="Координатор">
+        <Sel value={owner} onChange={(e) => setOwner(e.target.value)}>
           <option value="">Не выбран</option>
           {people.data?.items
             .filter((p) => p.roles.includes("methodologist"))
@@ -606,15 +611,15 @@ function CourseForm({
                 {p.display_name}
               </option>
             ))}
-        </select>
-      </label>
+        </Sel>
+      </Field>
       <div className="btn-row modal-form-actions">
-        <button type="button" onClick={done}>
+        <Btn type="button" onClick={done}>
           Отмена
-        </button>
-        <button className="primary" disabled={action.busy}>
+        </Btn>
+        <Btn type="submit" variant="pri" disabled={action.busy}>
           {course ? "Сохранить курс" : "Создать курс"}
-        </button>
+        </Btn>
       </div>
     </form>
   );
@@ -658,29 +663,27 @@ function RunForm({
     >
       {action.feedback}
       <div className="date-range">
-        <label className="field">
-          <span className="field__lbl">Дата начала</span>
-          <input
+        <Field label="Дата начала">
+          <Inp
             required
             type="datetime-local"
             value={start}
             onChange={(e) => setStart(e.target.value)}
           />
-        </label>
-        <label className="field">
-          <span className="field__lbl">Дата окончания</span>
-          <input
+        </Field>
+        <Field label="Дата окончания">
+          <Inp
             required
             type="datetime-local"
             min={start}
             value={end}
             onChange={(e) => setEnd(e.target.value)}
           />
-        </label>
+        </Field>
       </div>
       <label className="field">
         <span className="field__lbl">ID потока</span>
-        <input
+        <Inp
           className="inp inp--mono"
           disabled
           value={run?.id ?? "Будет присвоен при создании"}
@@ -695,12 +698,12 @@ function RunForm({
         <p>После создания настройте состав студентов и ревьюеров в потоке.</p>
       </div>
       <div className="btn-row modal-form-actions">
-        <button type="button" onClick={done}>
+        <Btn type="button" onClick={done}>
           Отмена
-        </button>
-        <button className="primary" disabled={action.busy}>
+        </Btn>
+        <Btn type="submit" variant="pri" disabled={action.busy}>
           {run ? "Сохранить поток" : "Создать поток"}
-        </button>
+        </Btn>
       </div>
     </form>
   );
@@ -768,24 +771,25 @@ function PreferencesForm({
     <>
       <ScreenTitle code="Р3" title="Кабинет">
         <div className="actions">
-          <button type="button" onClick={reset}>
+          <Btn type="button" onClick={reset}>
             Отменить
-          </button>
-          <button
-            className="primary"
+          </Btn>
+          <Btn
+            type="submit"
+            variant="pri"
             form="reviewer-preferences"
             disabled={action.busy}
           >
             Сохранить
-          </button>
+          </Btn>
         </div>
       </ScreenTitle>
-      <nav className="tabs">
-        <a href="#/preferences" aria-current="page">
+      <Tabs role="navigation" label="Кабинет">
+        <Tab href="#/preferences" on>
           Настройки
-        </a>
-        <a href="#/statistics">Статистика</a>
-      </nav>
+        </Tab>
+        <Tab href="#/statistics">Статистика</Tab>
+      </Tabs>
       {action.feedback}
       <form
         id="reviewer-preferences"
@@ -825,28 +829,30 @@ function PreferencesForm({
                     run.course_id === course.id && run.status === "active",
                 );
                 return (
-                  <label key={course.id} className="check list-item">
-                    <input
-                      type="checkbox"
-                      checked={runs.every((run) => selected.includes(run.id))}
-                      onChange={(e) =>
-                        setSelected(
-                          e.target.checked
-                            ? [
-                                ...new Set([
-                                  ...selected,
-                                  ...runs.map((run) => run.id),
-                                ]),
-                              ]
-                            : selected.filter(
-                                (id) => !runs.some((run) => run.id === id),
-                              ),
-                        )
-                      }
-                    />
+                  <Chk
+                    key={course.id}
+                    className="list-item"
+                    row
+                    trail={<CoursePoolCount ws={ws} runs={runs} />}
+                    type="checkbox"
+                    checked={runs.every((run) => selected.includes(run.id))}
+                    onChange={(e) =>
+                      setSelected(
+                        e.target.checked
+                          ? [
+                              ...new Set([
+                                ...selected,
+                                ...runs.map((run) => run.id),
+                              ]),
+                            ]
+                          : selected.filter(
+                              (id) => !runs.some((run) => run.id === id),
+                            ),
+                      )
+                    }
+                  >
                     <span>{course.title}</span>
-                    <CoursePoolCount ws={ws} runs={runs} />
-                  </label>
+                  </Chk>
                 );
               })}
           </Card>
@@ -859,20 +865,15 @@ function PreferencesForm({
                     выключите, если временно не берёте новое
                   </small>
                 </span>
-                <span className="tgl">
-                  <input
-                    type="checkbox"
-                    role="switch"
-                    checked={showPool}
-                    onChange={(e) => setShowPool(e.target.checked)}
-                  />
-                  <span className="tgl__t" />
-                </span>
+                <Tgl
+                  checked={showPool}
+                  onChange={(event) => setShowPool(event.target.checked)}
+                />
               </label>
               <fieldset>
                 <legend>Отпуск или отсутствие</legend>
                 <div className="actions">
-                  <input
+                  <Inp
                     aria-label="Начало отсутствия"
                     type="datetime-local"
                     value={from}
@@ -882,7 +883,7 @@ function PreferencesForm({
                     }}
                   />
                   <span>—</span>
-                  <input
+                  <Inp
                     aria-label="Окончание отсутствия"
                     type="datetime-local"
                     required={!!from}
@@ -904,19 +905,19 @@ function PreferencesForm({
                   ["pool", "В пуле по моим курсам появилось что-то новое"],
                 ] as const
               ).map(([key, label]) => (
-                <label key={key} className="check">
-                  <input
-                    type="checkbox"
-                    checked={notifications[key]}
-                    onChange={(e) =>
-                      setNotifications((current) => ({
-                        ...current,
-                        [key]: e.target.checked,
-                      }))
-                    }
-                  />
+                <Chk
+                  key={key}
+                  type="checkbox"
+                  checked={notifications[key]}
+                  onChange={(e) =>
+                    setNotifications((current) => ({
+                      ...current,
+                      [key]: e.target.checked,
+                    }))
+                  }
+                >
                   {label}
-                </label>
+                </Chk>
               ))}
             </Card>
           </div>
@@ -1038,9 +1039,8 @@ export function WorkspaceAssignments({
                     });
                   }}
                 >
-                  <label>
-                    Роль в потоке
-                    <select
+                  <Field label="Роль в потоке">
+                    <Sel
                       value={kind}
                       onChange={(e) => {
                         setKind(e.target.value as typeof kind);
@@ -1049,11 +1049,10 @@ export function WorkspaceAssignments({
                     >
                       <option value="student">Студент</option>
                       <option value="reviewer">Ревьюер</option>
-                    </select>
-                  </label>
-                  <label>
-                    Участник
-                    <select
+                    </Sel>
+                  </Field>
+                  <Field label="Участник">
+                    <Sel
                       required
                       value={member}
                       onChange={(e) => setMember(e.target.value)}
@@ -1066,9 +1065,11 @@ export function WorkspaceAssignments({
                             {p.display_name}
                           </option>
                         ))}
-                    </select>
-                  </label>
-                  <button disabled={action.busy}>Добавить</button>
+                    </Sel>
+                  </Field>
+                  <Btn type="submit" disabled={action.busy}>
+                    Добавить
+                  </Btn>
                 </form>
               </Card>
               <Card title="Напомнить ревьюерам">
@@ -1091,32 +1092,34 @@ export function WorkspaceAssignments({
                   {r.data.people.items
                     .filter((p) => p.roles.includes("reviewer"))
                     .map((p) => (
-                      <label className="check" key={p.id}>
-                        <input
-                          type="checkbox"
-                          checked={recipients.includes(p.id)}
-                          onChange={(e) =>
-                            setRecipients(
-                              e.target.checked
-                                ? [...recipients, p.id]
-                                : recipients.filter((v) => v !== p.id),
-                            )
-                          }
-                        />
+                      <Chk
+                        key={p.id}
+                        type="checkbox"
+                        checked={recipients.includes(p.id)}
+                        onChange={(e) =>
+                          setRecipients(
+                            e.target.checked
+                              ? [...recipients, p.id]
+                              : recipients.filter((v) => v !== p.id),
+                          )
+                        }
+                      >
                         {p.display_name}
-                      </label>
+                      </Chk>
                     ))}
-                  <label>
-                    Сообщение
-                    <textarea
+                  <Field label="Сообщение">
+                    <Area
                       required
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                     />
-                  </label>
-                  <button disabled={action.busy || !recipients.length}>
+                  </Field>
+                  <Btn
+                    type="submit"
+                    disabled={action.busy || !recipients.length}
+                  >
                     Отправить напоминание
-                  </button>
+                  </Btn>
                 </form>
               </Card>
             </div>
@@ -1146,7 +1149,7 @@ function AssignmentRow({
       <td>{value.student_name}</td>
       <td>
         <div className="actions">
-          <select
+          <Sel
             aria-label={`Ревьюер: ${value.student_name}`}
             value={reviewer}
             onChange={(e) => setReviewer(e.target.value)}
@@ -1159,8 +1162,8 @@ function AssignmentRow({
                   {p.display_name}
                 </option>
               ))}
-          </select>
-          <button
+          </Sel>
+          <Btn
             disabled={action.busy}
             onClick={() =>
               void action.run(async () => {
@@ -1174,7 +1177,7 @@ function AssignmentRow({
             }
           >
             Сохранить
-          </button>
+          </Btn>
         </div>
         {action.feedback}
       </td>
@@ -1239,9 +1242,9 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
   return (
     <>
       <ScreenTitle code="К4" title="Задания">
-        <button className="primary" onClick={() => setCreating(true)}>
+        <Btn variant="pri" onClick={() => setCreating(true)}>
           Создать задание
-        </button>
+        </Btn>
       </ScreenTitle>
       {action.feedback}
       <Resource value={r}>
@@ -1250,17 +1253,15 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
           bodyClassName="card__body--flush"
           actions={
             <div className="filters">
-              <label>
-                Поиск
-                <input
+              <Field label="Поиск">
+                <Inp
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Название задания"
                 />
-              </label>
-              <label>
-                Курс
-                <select
+              </Field>
+              <Field label="Курс">
+                <Sel
                   value={courseId}
                   onChange={(e) => setCourseId(e.target.value)}
                 >
@@ -1270,8 +1271,8 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
                       {course.title}
                     </option>
                   ))}
-                </select>
-              </label>
+                </Sel>
+              </Field>
             </div>
           }
         >
@@ -1345,9 +1346,8 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
               });
             }}
           >
-            <label>
-              Курс и поток
-              <select
+            <Field label="Курс и поток">
+              <Sel
                 required
                 value={runId}
                 onChange={(e) => setRunId(e.target.value)}
@@ -1365,28 +1365,27 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
                       · {run.title}
                     </option>
                   ))}
-              </select>
-            </label>
-            <label>
-              Название задания
-              <input
+              </Sel>
+            </Field>
+            <Field label="Название задания">
+              <Inp
                 required
                 maxLength={512}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
-            </label>
+            </Field>
             <p className="muted">
               Задание сохраняется в курсе. На последнем шаге мастера задаются
               сроки публикации в выбранном потоке.
             </p>
             <div className="actions">
-              <button type="button" onClick={close}>
+              <Btn type="button" onClick={close}>
                 Отмена
-              </button>
-              <button className="primary" disabled={action.busy}>
+              </Btn>
+              <Btn type="submit" variant="pri" disabled={action.busy}>
                 Создать задание
-              </button>
+              </Btn>
             </div>
           </form>
         </Modal>
@@ -1426,7 +1425,7 @@ function HomeworkDirectoryRow({
       </td>
       <td>
         <div className="actions">
-          <select
+          <Sel
             aria-label={`Поток: ${item.title}`}
             value={runId}
             onChange={(e) => setRunId(e.target.value)}
@@ -1437,7 +1436,7 @@ function HomeworkDirectoryRow({
                 {run.title}
               </option>
             ))}
-          </select>
+          </Sel>
           {runId && (
             <a href={`#/homework/${item.id}?run=${runId}`}>Настроить →</a>
           )}

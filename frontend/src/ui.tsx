@@ -1,6 +1,7 @@
 import { markProgrammaticNavigation } from "./navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { errorMessage } from "./api/client";
+import { Card as DsCard, CardBody, CardHead, Skel } from "./ds";
 export function useResource<T>(
   load: () => Promise<T>,
   key: string,
@@ -107,9 +108,7 @@ export function Resource({
   return (
     <>
       {value.loading ? (
-        <p role="status" className="notice">
-          Загрузка…
-        </p>
+        <Skel lines={2} label="Загрузка…" />
       ) : value.error ? (
         <ErrorBox error={value.error} retry={value.refresh} />
       ) : (
@@ -197,16 +196,17 @@ export function Card({
   subtitle?: ReactNode;
 }) {
   return (
-    <section className="card">
-      <div className={`card-head card__head ${headClassName}`}>
-        <div>
-          <h2>{title}</h2>
-          {subtitle && <div className="card__sub">{subtitle}</div>}
-        </div>
+    <DsCard>
+      <CardHead
+        title={title}
+        sub={subtitle}
+        level={2}
+        className={`card-head ${headClassName}`}
+      >
         {actions}
-      </div>
-      <div className={`card-body card__body ${bodyClassName}`}>{children}</div>
-    </section>
+      </CardHead>
+      <CardBody className={`card-body ${bodyClassName}`}>{children}</CardBody>
+    </DsCard>
   );
 }
 export function Empty({ children }: { children: ReactNode }) {

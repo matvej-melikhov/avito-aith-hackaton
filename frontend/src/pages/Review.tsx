@@ -1,3 +1,5 @@
+import { Btn, Dock } from "../ds";
+import { nextPoolWork, openQueueWork } from "./reviewMode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ApiClient, Model } from "../api/client";
 import {
@@ -7,6 +9,7 @@ import {
   Status,
   date,
   safeUrl,
+  go,
   useAction,
   useResource,
 } from "../ui";
@@ -102,6 +105,7 @@ export function ReviewEditor({
 }) {
   const action = useAction();
   const [correcting, setCorrecting] = useState(false);
+  const [poolEmpty, setPoolEmpty] = useState(false);
   const [correctionReason, setCorrectionReason] = useState("");
   const closeCorrection = useCallback(() => setCorrecting(false), []);
   const history = useResource(
@@ -387,19 +391,17 @@ export function ReviewEditor({
         <div className="actions page-heading-actions">
           {onEdit && !["published", "canceled"].includes(detail.status) && (
             <div className="actions">
-              <button onClick={onEdit}>Редактировать проверку</button>
+              <Btn onClick={onEdit}>Редактировать проверку</Btn>
             </div>
           )}
           {canCorrect && (
             <div className="actions">
-              <button onClick={() => setCorrecting(true)}>
-                Создать исправление
-              </button>
+              <Btn onClick={() => setCorrecting(true)}>Создать исправление</Btn>
             </div>
           )}
           {editable && (
             <div className="actions">
-              <button
+              <Btn
                 disabled={action.busy || dirty}
                 onClick={() =>
                   void action.run(async () => {
@@ -414,13 +416,7 @@ export function ReviewEditor({
                 }
               >
                 Вернуть в пул
-              </button>
-              <button
-                disabled={action.busy || !canSave}
-                onClick={() => void action.run(save, "Черновик сохранён.")}
-              >
-                Сохранить черновик
-              </button>
+              </Btn>
             </div>
           )}
           <HeaderProfile />
@@ -514,7 +510,7 @@ export function ReviewEditor({
               </p>
             )}
             {editable && !joined && (
-              <button
+              <Btn
                 disabled={action.busy || dirty}
                 onClick={() =>
                   void action.run(async () => {
@@ -529,7 +525,7 @@ export function ReviewEditor({
                 }
               >
                 Присоединиться
-              </button>
+              </Btn>
             )}
           </Card>
           {readOnly && (
@@ -580,7 +576,7 @@ export function ReviewEditor({
                     ))}
                     {editable && (
                       <div className="actions">
-                        <button
+                        <Btn
                           aria-pressed={
                             signalDecisions[signal.id] === "confirm"
                           }
@@ -591,8 +587,8 @@ export function ReviewEditor({
                           }}
                         >
                           Подтвердить сигнал
-                        </button>
-                        <button
+                        </Btn>
+                        <Btn
                           aria-pressed={signalDecisions[signal.id] === "reject"}
                           onClick={() => {
                             setSourceRun(assist.data!.id);
@@ -601,7 +597,7 @@ export function ReviewEditor({
                           }}
                         >
                           Отклонить сигнал
-                        </button>
+                        </Btn>
                       </div>
                     )}
                   </>
@@ -621,7 +617,7 @@ export function ReviewEditor({
                     assist.data.status,
                   ) && <Status value={assist.data.status} />}{" "}
                 {editable && ws && (
-                  <button
+                  <Btn
                     disabled={
                       action.busy ||
                       ["queued", "running"].includes(assist.data?.status ?? "")
@@ -652,7 +648,7 @@ export function ReviewEditor({
                     }
                   >
                     {assist.data ? "Повторить проверку" : "Запустить проверку"}
-                  </button>
+                  </Btn>
                 )}
               </Card>
               <Card
@@ -661,7 +657,7 @@ export function ReviewEditor({
                 headClassName="card__head--response"
                 actions={
                   editable && (
-                    <button
+                    <Btn
                       className="btn btn--s btn--quiet"
                       disabled={
                         action.busy ||
@@ -681,7 +677,7 @@ export function ReviewEditor({
                       }}
                     >
                       Собрать заново
-                    </button>
+                    </Btn>
                   )
                 }
               >
@@ -700,75 +696,6 @@ export function ReviewEditor({
                 ) : (
                   <p className="preserve">{feedback || "Отзыв не добавлен."}</p>
                 )}
-              </Card>
-              <Card title="Результат">
-                <dl className="review-facts">
-                  <dt>По требованиям задания</dt>
-                  <dd>{total.toLocaleString("ru-RU")}</dd>
-                  <dt>Просрочка</dt>
-                  <dd>
-                    {displayPenalty
-                      ? `−${displayPenalty.toLocaleString("ru-RU")}`
-                      : "—"}
-                  </dd>
-                  <dt>Итог</dt>
-                  <dd>
-                    {displayFinal === null
-                      ? "—"
-                      : displayFinal.toLocaleString("ru-RU")}{" "}
-                    из {version?.max_score.toLocaleString("ru-RU") ?? "—"}
-                  </dd>
-                </dl>
-                <div className="card__foot">
-                  {grade.data?.pass_score != null && (
-                    <p>
-                      {displayFinal === null
-                        ? "Порог зачёта:"
-                        : displayFinal >= grade.data.pass_score
-                          ? "Порог зачёта пройден, нужно было"
-                          : "Ниже порога зачёта, нужно"}{" "}
-                      {grade.data.pass_score.toLocaleString("ru-RU")} из{" "}
-                      {version?.max_score.toLocaleString("ru-RU")}.
-                    </p>
-                  )}
-                  {dirty && (
-                    <p className="muted">
-                      Сохраните черновик перед публикацией.
-                    </p>
-                  )}
-                  {editable && (
-                    <div className="actions decision-actions">
-                      <button
-                        className="btn btn--dark"
-                        disabled={
-                          action.busy ||
-                          dirty ||
-                          !detail.current_review_revision_id
-                        }
-                        onClick={() => {
-                          setOutcome("needs_changes");
-                          setReason("");
-                        }}
-                      >
-                        Вернуть на доработку
-                      </button>
-                      <button
-                        className="primary btn btn--pri"
-                        disabled={
-                          action.busy ||
-                          dirty ||
-                          !detail.current_review_revision_id
-                        }
-                        onClick={() => {
-                          setOutcome("passed");
-                          setReason("");
-                        }}
-                      >
-                        Зачесть
-                      </button>
-                    </div>
-                  )}
-                </div>
               </Card>
             </>
           )}
@@ -943,13 +870,13 @@ export function ReviewEditor({
               {editable && ws && (
                 <div className="extra-requirement-entry">
                   {editable && ws && !addingRequirement && (
-                    <button
+                    <Btn
                       className="btn btn--s btn--quiet"
                       type="button"
                       onClick={() => setAddingRequirement(true)}
                     >
                       Добавить своё требование
-                    </button>
+                    </Btn>
                   )}
                   {editable && ws && addingRequirement && (
                     <div className="criterion">
@@ -984,7 +911,7 @@ export function ReviewEditor({
                           />
                           Не влияет на балл
                         </label>
-                        <button
+                        <Btn
                           disabled={
                             dirty ||
                             !extraTitle.trim() ||
@@ -1008,7 +935,7 @@ export function ReviewEditor({
                           }
                         >
                           Добавить ещё требование
-                        </button>
+                        </Btn>
                       </div>
                       {dirty && <small>Сначала сохраните черновик.</small>}
                     </div>
@@ -1026,6 +953,100 @@ export function ReviewEditor({
           </Card>
         </div>
       </div>
+      {!readOnly && (
+        <Dock
+          className="review-dock"
+          actions={
+            <>
+              {editable && (
+                <>
+                  <Btn
+                    disabled={action.busy || !canSave}
+                    onClick={() => void action.run(save, "Черновик сохранён.")}
+                  >
+                    Сохранить черновик
+                  </Btn>
+                  <Btn
+                    className="btn btn--dark"
+                    disabled={
+                      action.busy || dirty || !detail.current_review_revision_id
+                    }
+                    onClick={() => {
+                      setOutcome("needs_changes");
+                      setReason("");
+                    }}
+                  >
+                    Вернуть на доработку
+                  </Btn>
+                  <Btn
+                    className="primary btn btn--pri"
+                    disabled={
+                      action.busy || dirty || !detail.current_review_revision_id
+                    }
+                    onClick={() => {
+                      setOutcome("passed");
+                      setReason("");
+                    }}
+                  >
+                    Зачесть
+                  </Btn>
+                </>
+              )}
+              {ws && detail.status === "published" && (
+                <Btn
+                  disabled={action.busy}
+                  onClick={() =>
+                    void action.run(async () => {
+                      const next = await nextPoolWork(
+                        ws,
+                        detail.review_iteration_id,
+                        context?.submission_id,
+                      );
+                      if (!next) {
+                        setPoolEmpty(true);
+                        return;
+                      }
+                      const id = await openQueueWork(ws, next, session.user_id);
+                      go(`/reviews/${id}`);
+                    })
+                  }
+                >
+                  Следующая работа
+                </Btn>
+              )}
+            </>
+          }
+        >
+          <section className="review-dock-summary">
+            <h2>Результат</h2>
+            <dl className="review-facts">
+              <dt>По требованиям задания</dt>
+              <dd>{total.toLocaleString("ru-RU")}</dd>
+              <dt>Просрочка</dt>
+              <dd>
+                {displayPenalty
+                  ? `−${displayPenalty.toLocaleString("ru-RU")}`
+                  : "—"}
+              </dd>
+              <dt>Итог</dt>
+              <dd>
+                {displayFinal === null
+                  ? "—"
+                  : displayFinal.toLocaleString("ru-RU")}{" "}
+                из {version?.max_score.toLocaleString("ru-RU") ?? "—"}
+              </dd>
+            </dl>
+            {grade.data?.pass_score != null && (
+              <small>
+                Порог зачёта: {grade.data.pass_score.toLocaleString("ru-RU")} из{" "}
+                {version?.max_score.toLocaleString("ru-RU")}.
+              </small>
+            )}
+            {dirty && <small>Сохраните черновик перед публикацией.</small>}
+            {poolEmpty && <small>В пуле больше нет доступных работ.</small>}
+          </section>
+        </Dock>
+      )}
       {correcting && (
         <Modal title="Создать исправление" close={closeCorrection}>
           {action.feedback}
@@ -1060,12 +1081,13 @@ export function ReviewEditor({
                 onChange={(e) => setCorrectionReason(e.target.value)}
               />
             </label>
-            <button
+            <Btn
+              type="submit"
               className="primary"
               disabled={action.busy || !correctionReason.trim()}
             >
               Открыть новую версию
-            </button>
+            </Btn>
           </form>
         </Modal>
       )}
@@ -1119,7 +1141,8 @@ export function ReviewEditor({
                   : detail.current_review_revision?.total_score}
               .
             </p>
-            <button
+            <Btn
+              type="submit"
               className="primary"
               disabled={
                 action.busy ||
@@ -1127,7 +1150,7 @@ export function ReviewEditor({
               }
             >
               Подтвердить публикацию
-            </button>
+            </Btn>
           </form>
         </Modal>
       )}
