@@ -28,14 +28,24 @@ from review_platform.infrastructure.db.models.homework import (
     Homework,
     HomeworkVersion,
 )
-from review_platform.infrastructure.db.models.identity import OrganizationMembership, User
+from review_platform.infrastructure.db.models.identity import (
+    ExternalCredential,
+    OrganizationMembership,
+    User,
+)
 from review_platform.infrastructure.db.models.learning import Course, CourseRun
-from review_platform.infrastructure.db.models.operations import OutboxMessage
+from review_platform.infrastructure.db.models.operations import Operation, OutboxMessage
 from review_platform.infrastructure.db.models.review_case import ReviewCase, ReviewIteration
 from review_platform.infrastructure.db.models.review_revision import (
     ReviewCriterionDecision,
     ReviewNote,
     ReviewRevision,
+)
+from review_platform.infrastructure.db.models.submission import (
+    ArtifactReference,
+    ArtifactVersion,
+    Submission,
+    SubmissionVersion,
 )
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 from review_platform.infrastructure.tasks.registry import REGISTRY, load_handler_modules
@@ -64,11 +74,15 @@ REVIEW_CASE_ID = UUID("00000000-0000-7000-8000-000000012017")
 PREDECESSOR = UUID("00000000-0000-7000-8000-000000012018")
 PREDECESSOR_REVISION = UUID("00000000-0000-7000-8000-000000012019")
 IMPACT_MESSAGE = UUID("00000000-0000-7000-8000-000000012020")
+SUBMISSION_VERSION_ID = UUID("00000000-0000-7000-8000-000000012101")
+ARTIFACT_VERSION_ID = UUID("00000000-0000-7000-8000-000000012102")
+ARTIFACT_REFERENCE_ID = UUID("00000000-0000-7000-8000-000000012107")
+CAPTURE_OPERATION_ID = UUID("00000000-0000-7000-8000-000000012108")
+SUBMISSION_ID = UUID("00000000-0000-7000-8000-000000012109")
+CREDENTIAL_ID = UUID("00000000-0000-7000-8000-000000012110")
 NOW = datetime(2026, 9, 5, 12, 0, tzinfo=UTC)
 
-MIGRATION_ROUTE_TEMPLATE = (
-    "/api/v1/review-iterations/{reviewIterationId}/requirements-migrations"
-)
+MIGRATION_ROUTE_TEMPLATE = "/api/v1/review-iterations/{reviewIterationId}/requirements-migrations"
 CORRECTION_ROUTE_TEMPLATE = "/api/v1/review-iterations/{reviewIterationId}/corrections"
 MIGRATION_ROUTE = MIGRATION_ROUTE_TEMPLATE.replace(
     "{reviewIterationId}",
@@ -161,14 +175,18 @@ async def test_homework_requirements_event_is_idempotent_and_projects_affected_r
     impact = tables["review_impact_event"]
     async with successor_harness.session_factory() as session:
         rows = (
-            await session.execute(
-                select(impact).where(
-                    impact.c.organization_id == ORG,
-                    impact.c.review_iteration_id == PREDECESSOR,
-                    impact.c.current_homework_version_id == NEW_HOMEWORK_VERSION,
+            (
+                await session.execute(
+                    select(impact).where(
+                        impact.c.organization_id == ORG,
+                        impact.c.review_iteration_id == PREDECESSOR,
+                        impact.c.current_homework_version_id == NEW_HOMEWORK_VERSION,
+                    )
                 )
             )
-        ).mappings().all()
+            .mappings()
+            .all()
+        )
         assert len(rows) == 1
         affected = rows[0]
         assert affected["previous_homework_version_id"] == OLD_HOMEWORK_VERSION
@@ -209,14 +227,18 @@ async def test_requirements_migration_transfers_only_matching_keys_and_preserves
         assert successor.homework_version_id == NEW_HOMEWORK_VERSION
         assert successor.criterion_set_id == NEW_CRITERION_SET
         link = (
-            await session.execute(
-                select(relation).where(
-                    relation.c.organization_id == ORG,
-                    relation.c.predecessor_iteration_id == PREDECESSOR,
-                    relation.c.successor_iteration_id == successor_id,
+            (
+                await session.execute(
+                    select(relation).where(
+                        relation.c.organization_id == ORG,
+                        relation.c.predecessor_iteration_id == PREDECESSOR,
+                        relation.c.successor_iteration_id == successor_id,
+                    )
                 )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         assert link["kind"] == "requirements_migration"
         successor_revision = await session.scalar(
             select(ReviewRevision).where(
@@ -233,9 +255,7 @@ async def test_requirements_migration_transfers_only_matching_keys_and_preserves
                 )
             )
         ).all()
-        assert [decision.criterion_id for decision in decisions] == [
-            NEW_MATCHING_CRITERION
-        ]
+        assert [decision.criterion_id for decision in decisions] == [NEW_MATCHING_CRITERION]
     assert await _predecessor_bytes(successor_harness.session_factory) == before
 
 
@@ -266,7 +286,9 @@ async def test_two_corrections_race_to_one_successor_without_mutating_published_
     async with anyio.create_task_group() as tasks:
         tasks.start_soon(correct, 41)
         tasks.start_soon(correct, 42)
-    assert sorted(response.status_code for response in responses) == [201, 409]
+    assert sorted(response.status_code for response in responses) == [201, 409], [
+        (response.status_code, response.text) for response in responses
+    ]
 
     tables = _successor_tables()
     relation = tables["review_iteration_relation"]
@@ -331,10 +353,10 @@ async def _seed_predecessor(
     include_event: bool,
 ) -> None:
     async with session_scope(factory) as session:
-        await session.execute(text("SET FOREIGN_KEY_CHECKS=0"))
+        session.add(User(id=REVIEWER, display_name="Successor Reviewer", status="active"))
+        await session.flush()
         session.add_all(
             [
-                User(id=REVIEWER, display_name="Successor Reviewer", status="active"),
                 OrganizationMembership(
                     id=MEMBERSHIP,
                     organization_id=ORG,
@@ -353,6 +375,28 @@ async def _seed_predecessor(
                     status="active",
                     revision=0,
                 ),
+                ExternalCredential(
+                    id=CREDENTIAL_ID,
+                    organization_id=ORG,
+                    provider="github",
+                    binding_version=1,
+                    ciphertext="encrypted-fixture",
+                    key_id="fixture-key",
+                    status="active",
+                ),
+                Operation(
+                    id=CAPTURE_OPERATION_ID,
+                    organization_id=ORG,
+                    kind="artifact_capture",
+                    input_version="successor-fixture",
+                    state="succeeded",
+                    revision=0,
+                ),
+            ]
+        )
+        await session.flush()
+        session.add_all(
+            [
                 CourseRun(
                     id=COURSE_RUN,
                     organization_id=ORG,
@@ -369,6 +413,24 @@ async def _seed_predecessor(
                     title="Successor Homework",
                     revision=0,
                 ),
+                ArtifactReference(
+                    id=ARTIFACT_REFERENCE_ID,
+                    organization_id=ORG,
+                    provider="github",
+                    credential_binding_id=CREDENTIAL_ID,
+                    credential_binding_version=1,
+                    original_url="https://github.com/example/successor",
+                    locator={"external_id": "example/successor"},
+                    read_capability="available",
+                    feedback_capability="available",
+                    last_checked_at=NOW,
+                    revision=0,
+                ),
+            ]
+        )
+        await session.flush()
+        session.add_all(
+            [
                 HomeworkVersion(
                     id=OLD_HOMEWORK_VERSION,
                     organization_id=ORG,
@@ -391,6 +453,32 @@ async def _seed_predecessor(
                     estimated_review_minutes=30,
                     revision=0,
                 ),
+                CourseRunHomework(
+                    id=RELATION,
+                    organization_id=ORG,
+                    course_run_id=COURSE_RUN,
+                    homework_id=HOMEWORK,
+                    current_publication_id=None,
+                    status="active",
+                    revision=2,
+                ),
+                ArtifactVersion(
+                    id=ARTIFACT_VERSION_ID,
+                    organization_id=ORG,
+                    artifact_reference_id=ARTIFACT_REFERENCE_ID,
+                    provider_version="commit:successor",
+                    content_digest="sha256:" + "a" * 64,
+                    object_key=f"{ORG}/{ARTIFACT_VERSION_ID}/artifact.zip",
+                    media_type="application/zip",
+                    byte_size=128,
+                    captured_at=NOW - timedelta(hours=1),
+                    artifact_metadata={},
+                ),
+            ]
+        )
+        await session.flush()
+        session.add_all(
+            [
                 CriterionSet(
                     id=OLD_CRITERION_SET,
                     organization_id=ORG,
@@ -401,6 +489,11 @@ async def _seed_predecessor(
                     organization_id=ORG,
                     homework_version_id=NEW_HOMEWORK_VERSION,
                 ),
+            ]
+        )
+        await session.flush()
+        session.add_all(
+            [
                 _criterion(
                     OLD_MATCHING_CRITERION,
                     OLD_CRITERION_SET,
@@ -425,15 +518,6 @@ async def _seed_predecessor(
                     "added",
                     1,
                 ),
-                CourseRunHomework(
-                    id=RELATION,
-                    organization_id=ORG,
-                    course_run_id=COURSE_RUN,
-                    homework_id=HOMEWORK,
-                    current_publication_id=NEW_PUBLICATION,
-                    status="active",
-                    revision=2,
-                ),
                 CourseRunHomeworkPublication(
                     id=OLD_PUBLICATION,
                     organization_id=ORG,
@@ -456,50 +540,87 @@ async def _seed_predecessor(
                     review_deadline=NOW + timedelta(days=3),
                     published_at=NOW,
                 ),
+                Submission(
+                    id=SUBMISSION_ID,
+                    organization_id=ORG,
+                    course_run_homework_id=RELATION,
+                    course_run_id=COURSE_RUN,
+                    homework_id=HOMEWORK,
+                    student_id=REVIEWER,
+                    current_predeadline_version_id=None,
+                    revision=0,
+                ),
                 ReviewCase(
                     id=REVIEW_CASE_ID,
                     organization_id=ORG,
                     course_run_id=COURSE_RUN,
                     homework_id=HOMEWORK,
                     student_id=REVIEWER,
-                    current_iteration_id=PREDECESSOR,
+                    current_iteration_id=None,
                     revision=0,
                 ),
-                ReviewIteration(
-                    id=PREDECESSOR,
-                    organization_id=ORG,
-                    review_case_id=REVIEW_CASE_ID,
-                    course_run_id=COURSE_RUN,
-                    homework_id=HOMEWORK,
-                    student_id=REVIEWER,
-                    iteration_number=1,
-                    submission_version_id=UUID(
-                        "00000000-0000-7000-8000-000000012101"
-                    ),
-                    artifact_version_id=UUID(
-                        "00000000-0000-7000-8000-000000012102"
-                    ),
-                    homework_version_id=OLD_HOMEWORK_VERSION,
-                    criterion_set_id=OLD_CRITERION_SET,
-                    effective_deadline=NOW + timedelta(days=1),
-                    responsible_reviewer_id=REVIEWER,
-                    status="published",
-                    current_revision_id=PREDECESSOR_REVISION,
-                    predecessor_iteration_id=None,
-                    origin="initial",
-                    revision=0,
-                ),
-                ReviewRevision(
-                    id=PREDECESSOR_REVISION,
-                    organization_id=ORG,
-                    review_iteration_id=PREDECESSOR,
-                    revision_number=1,
-                    author_user_id=REVIEWER,
-                    base_revision_id=None,
-                    feedback="Published predecessor feedback",
-                    total_score=Decimal("8"),
-                    created_at=NOW,
-                ),
+            ]
+        )
+        await session.flush()
+        session.add(
+            SubmissionVersion(
+                id=SUBMISSION_VERSION_ID,
+                organization_id=ORG,
+                submission_id=SUBMISSION_ID,
+                course_run_id=COURSE_RUN,
+                homework_id=HOMEWORK,
+                sequence=1,
+                homework_version_id=OLD_HOMEWORK_VERSION,
+                artifact_reference_id=ARTIFACT_REFERENCE_ID,
+                artifact_version_id=ARTIFACT_VERSION_ID,
+                submitted_at=NOW - timedelta(hours=1),
+                effective_deadline=NOW + timedelta(days=1),
+                phase="before_deadline",
+                status="ready",
+                capture_operation_id=CAPTURE_OPERATION_ID,
+                revision=0,
+            )
+        )
+        await session.flush()
+        session.add(
+            ReviewIteration(
+                id=PREDECESSOR,
+                organization_id=ORG,
+                review_case_id=REVIEW_CASE_ID,
+                course_run_id=COURSE_RUN,
+                homework_id=HOMEWORK,
+                student_id=REVIEWER,
+                iteration_number=1,
+                submission_version_id=SUBMISSION_VERSION_ID,
+                artifact_version_id=ARTIFACT_VERSION_ID,
+                homework_version_id=OLD_HOMEWORK_VERSION,
+                criterion_set_id=OLD_CRITERION_SET,
+                effective_deadline=NOW + timedelta(days=1),
+                responsible_reviewer_id=REVIEWER,
+                status="published",
+                current_revision_id=None,
+                predecessor_iteration_id=None,
+                origin="initial",
+                revision=0,
+            )
+        )
+        await session.flush()
+        session.add(
+            ReviewRevision(
+                id=PREDECESSOR_REVISION,
+                organization_id=ORG,
+                review_iteration_id=PREDECESSOR,
+                revision_number=1,
+                author_user_id=REVIEWER,
+                base_revision_id=None,
+                feedback="Published predecessor feedback",
+                total_score=Decimal("8"),
+                created_at=NOW,
+            )
+        )
+        await session.flush()
+        session.add_all(
+            [
                 ReviewCriterionDecision(
                     id=UUID("00000000-0000-7000-8000-000000012103"),
                     organization_id=ORG,
@@ -533,6 +654,21 @@ async def _seed_predecessor(
                 ),
             ]
         )
+        await session.flush()
+        relation = await session.get(CourseRunHomework, RELATION)
+        review_case = await session.get(ReviewCase, REVIEW_CASE_ID)
+        iteration = await session.get(ReviewIteration, PREDECESSOR)
+        submission = await session.get(Submission, SUBMISSION_ID)
+        assert (
+            relation is not None
+            and review_case is not None
+            and iteration is not None
+            and submission is not None
+        )
+        relation.current_publication_id = NEW_PUBLICATION
+        review_case.current_iteration_id = PREDECESSOR
+        iteration.current_revision_id = PREDECESSOR_REVISION
+        submission.current_predeadline_version_id = SUBMISSION_VERSION_ID
         await session.flush()
         tables = _successor_tables()
         await _insert_known(
@@ -579,7 +715,6 @@ async def _seed_predecessor(
                 )
             )
         await session.flush()
-        await session.execute(text("SET FOREIGN_KEY_CHECKS=1"))
 
 
 def _criterion(identity: UUID, criterion_set_id: UUID, key: str, position: int) -> Criterion:
@@ -642,14 +777,17 @@ async def _predecessor_bytes(factory: AsyncSessionFactory) -> bytes:
             )
         ).all()
         publication = (
-            await session.execute(
-                select(tables["review_publication"]).where(
-                    tables["review_publication"].c.organization_id == ORG,
-                    tables["review_publication"].c.review_revision_id
-                    == PREDECESSOR_REVISION,
+            (
+                await session.execute(
+                    select(tables["review_publication"]).where(
+                        tables["review_publication"].c.organization_id == ORG,
+                        tables["review_publication"].c.review_revision_id == PREDECESSOR_REVISION,
+                    )
                 )
             )
-        ).mappings().one()
+            .mappings()
+            .one()
+        )
         snapshot = {
             "revision": _json_mapping(
                 {
@@ -695,10 +833,6 @@ async def _predecessor_bytes(factory: AsyncSessionFactory) -> bytes:
 
 def _json_mapping(values: Mapping[str, object]) -> dict[str, object]:
     return {
-        key: (
-            str(value)
-            if isinstance(value, UUID | datetime | Decimal)
-            else cast(object, value)
-        )
+        key: (str(value) if isinstance(value, UUID | datetime | Decimal) else cast(object, value))
         for key, value in values.items()
     }
