@@ -137,8 +137,10 @@ class HarnessExplorer:
         with tempfile.TemporaryDirectory(prefix="prereview-harness-") as tmp:
             tmp_path = Path(tmp)
             snapshot = materialize(work, tmp_path / "snapshot")
-            home = tmp_path / "home"
-            home.mkdir()
+            # Постоянный дом Harness: профиль и его зависимости ставятся один раз,
+            # сессии складываются туда же (в контейнере это том /data).
+            home = self.settings.data_dir / "dsh-home"
+            home.mkdir(parents=True, exist_ok=True)
             task = self.prompts.get("harness_repo_task").render(
                 assignment=assignment_text[:4000] or "(не передано)", criteria=_criteria_text(criteria)
             )
@@ -154,7 +156,7 @@ class HarnessExplorer:
             if self.settings.llm_base_url and "deepseek.com" not in self.settings.llm_base_url:
                 env["DEEPSEEK_BASE_URL"] = self.settings.llm_base_url
             cmd = [self.settings.harness_bin, "--profile", "headless", "--patch", str(PATCH), task]
-            before: set[Path] = set()
+            before: set[Path] = set((home / "sessions").rglob("session.jsonl")) if (home / "sessions").exists() else set()
             try:
                 proc = subprocess.run(
                     cmd, cwd=snapshot, env=env, capture_output=True, text=True,
@@ -174,7 +176,8 @@ class HarnessExplorer:
                                "ok" if proc.returncode == 0 else f"exit {proc.returncode}")
             out = proc.stdout[-self.settings.harness_max_output_bytes:]
             if proc.returncode != 0:
-                pack.error = f"harness exit {proc.returncode}: {proc.stderr[-400:]}"
+                tail = proc.stderr.strip().splitlines()
+                pack.error = "harness exit %d: %s" % (proc.returncode, " | ".join(ln.strip() for ln in tail[-6:])[:900])
                 log.warning(pack.error)
                 return pack
             blocks = JSON_BLOCK.findall(out)

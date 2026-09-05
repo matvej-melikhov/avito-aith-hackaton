@@ -1,0 +1,303 @@
+{
+ "slug": "system_design_lab1",
+ "work": "слабое_2",
+ "label": "weak",
+ "total": 1.0,
+ "max": 6.0,
+ "rows": [
+  {
+   "key": "decomposition",
+   "title": "Выполнена декомпозиция по двум и более признакам",
+   "max": 1.0,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "medium",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В предоставленном срезе (строки 1–87) присутствуют только C4-диаграммы (контекст, контейнеры, компоненты). Явного указания признаков декомпозиции («по функциям», «по ролям», «по данным», «по доменам») и списка компонентов под каждым признаком в срезе нет."
+  },
+  {
+   "key": "srp",
+   "title": "Обосновано соблюдение SRP при декомпозиции",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "medium",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В предоставленном срезе (строки 1–87) содержится только раздел 6 «C4 диаграммы» с mermaid-блоками. Текстового обоснования соблюдения SRP (почему границы проведены так, что произойдёт при смешении ответственности) в срезе нет."
+  },
+  {
+   "key": "interfaces",
+   "title": "Определены интерфейсы взаимодействия между компонентами",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе нет раздела, где перечислены интерфейсы взаимодействия между компонентами (методы, эндпоинты, события). Есть только диаграммы C4 с подписями связей, но нет описания контрактов."
+  },
+  {
+   "key": "contracts",
+   "title": "Указаны типы взаимодействий и контракты (формат, входы, выходы, ошибки)",
+   "max": 1.0,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "high",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В предоставленном срезе (строки 1–87) содержатся только C4-диаграммы (Context, Container, Component). Описаний типов взаимодействий с контрактами (входы, выходы, ошибки) в срезе нет."
+  },
+  {
+   "key": "c4",
+   "title": "Построена диаграмма C4 (контекстная и компонентная)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе присутствуют диаграмма C4 Context (строки 5-20) и диаграмма C4 Component (строки 54-87), что соответствует требованию наличия контекстной и компонентной диаграмм."
+  },
+  {
+   "key": "sequence",
+   "title": "Построена диаграмма последовательностей",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "high",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В предоставленном срезе работы (строки 1–87) присутствуют только C4 диаграммы (Context, Container, Component). Диаграммы последовательностей для бизнес-сценария в срезе не найдено."
+  },
+  {
+   "key": "coupling_analysis",
+   "title": "Проведён анализ связности компонентов",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "high",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В предоставленном срезе работы (строки 1–87) содержится только раздел «6. C4 диаграммы» с диаграммами C4. Раздела об анализе связности (coupling, матрица связей, оценка высокой связности) в срезе нет."
+  },
+  {
+   "key": "coupling_reduction",
+   "title": "Предложены способы снижения связности и обоснования",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "high",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В предоставленном срезе (строки 1–87) содержатся только C4-диаграммы (контекст, контейнеры, компоненты). Раздела с анализом связности и предложениями по её снижению с обоснованием в срезе нет."
+  },
+  {
+   "key": "documentation",
+   "title": "Структура, оформление и полнота документации",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "low",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "judgement",
+   "reason": "В срезе представлены только диаграммы C4 (контекст, контейнеры, компоненты), но отсутствуют другие обязательные разделы документации (декомпозиция, интерфейсы, контракты, анализ связности), что не позволяет оценить полноту и структуру документа."
+  }
+ ],
+ "ledger": {
+  "calls": 21,
+  "prompt_tokens": 133855,
+  "completion_tokens": 15399,
+  "cache_hit_tokens": 112256,
+  "cost_usd": 0.00765,
+  "cost_rub": 0.61,
+  "usd_rub": 80.0,
+  "usd_rub_note": "допущение",
+  "elapsed_seconds": 106.2,
+  "by_tag": {
+   "judge:srp#1": {
+    "calls": 1,
+    "prompt_tokens": 4114,
+    "completion_tokens": 372,
+    "cost_usd": 0.00036
+   },
+   "judge:decomposition#1": {
+    "calls": 1,
+    "prompt_tokens": 4135,
+    "completion_tokens": 402,
+    "cost_usd": 0.00038
+   },
+   "judge:contracts#1": {
+    "calls": 1,
+    "prompt_tokens": 4153,
+    "completion_tokens": 365,
+    "cost_usd": 0.00037
+   },
+   "judge:decomposition#2": {
+    "calls": 1,
+    "prompt_tokens": 4135,
+    "completion_tokens": 415,
+    "cost_usd": 0.00013
+   },
+   "judge:srp#2": {
+    "calls": 1,
+    "prompt_tokens": 4114,
+    "completion_tokens": 449,
+    "cost_usd": 0.00014
+   },
+   "judge:contracts#2": {
+    "calls": 1,
+    "prompt_tokens": 4153,
+    "completion_tokens": 411,
+    "cost_usd": 0.00013
+   },
+   "judge:coupling_analysis#1": {
+    "calls": 1,
+    "prompt_tokens": 4101,
+    "completion_tokens": 366,
+    "cost_usd": 0.00015
+   },
+   "judge:sequence#1": {
+    "calls": 1,
+    "prompt_tokens": 4098,
+    "completion_tokens": 356,
+    "cost_usd": 0.00015
+   },
+   "judge:interfaces#1": {
+    "calls": 1,
+    "prompt_tokens": 12356,
+    "completion_tokens": 1592,
+    "cost_usd": 0.00107
+   },
+   "judge:coupling_analysis#2": {
+    "calls": 1,
+    "prompt_tokens": 4101,
+    "completion_tokens": 374,
+    "cost_usd": 0.00012
+   },
+   "judge:sequence#2": {
+    "calls": 1,
+    "prompt_tokens": 4098,
+    "completion_tokens": 372,
+    "cost_usd": 0.00012
+   },
+   "judge:coupling_reduction#1": {
+    "calls": 1,
+    "prompt_tokens": 4118,
+    "completion_tokens": 367,
+    "cost_usd": 0.00015
+   },
+   "judge:c4#1": {
+    "calls": 1,
+    "prompt_tokens": 12431,
+    "completion_tokens": 1545,
+    "cost_usd": 0.00084
+   },
+   "judge:coupling_reduction#2": {
+    "calls": 1,
+    "prompt_tokens": 4118,
+    "completion_tokens": 360,
+    "cost_usd": 0.00012
+   },
+   "judge:interfaces#2": {
+    "calls": 1,
+    "prompt_tokens": 12356,
+    "completion_tokens": 1324,
+    "cost_usd": 0.00041
+   },
+   "judge:documentation#1": {
+    "calls": 1,
+    "prompt_tokens": 12407,
+    "completion_tokens": 1594,
+    "cost_usd": 0.00064
+   },
+   "judge:c4#2": {
+    "calls": 1,
+    "prompt_tokens": 12431,
+    "completion_tokens": 1560,
+    "cost_usd": 0.00049
+   },
+   "judge:documentation#2": {
+    "calls": 1,
+    "prompt_tokens": 12407,
+    "completion_tokens": 1443,
+    "cost_usd": 0.00046
+   },
+   "observe:documentation": {
+    "calls": 1,
+    "prompt_tokens": 5152,
+    "completion_tokens": 1153,
+    "cost_usd": 0.00076
+   },
+   "qa_questions": {
+    "calls": 1,
+    "prompt_tokens": 3043,
+    "completion_tokens": 278,
+    "cost_usd": 0.00033
+   },
+   "feedback": {
+    "calls": 1,
+    "prompt_tokens": 1834,
+    "completion_tokens": 301,
+    "cost_usd": 0.00034
+   }
+  }
+ },
+ "elapsed": 46.4,
+ "harness": {
+  "source": "none",
+  "elapsed": 0.0,
+  "error": null,
+  "session_id": null,
+  "usage": {
+   "prompt_tokens": 0,
+   "completion_tokens": 0
+  },
+  "criteria": {}
+ },
+ "signal": {
+  "level": "low",
+  "declaration": "not_declared",
+  "grounds": [],
+  "not_available": [
+   "стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам"
+  ],
+  "questions": [
+   "В разделе 6 вы приводите C4-диаграммы (контекст, контейнеры, компоненты). Расскажите, по каким признакам вы проводили декомпозицию системы и какие именно компоненты относятся к каждому признаку — например, что выделено «по функциям», а что «по ролям»?",
+   "На компонентной диаграмме (строки 54–87) показаны связи между компонентами. Опишите, какие интерфейсы (методы/эндпоинты/события) стоят за этими связями: какой формат (REST, события, gRPC), какие входы и выходы, и какие ошибки могут возникать у ключевых вызовов?",
+   "Если взять один бизнес-сценарий вашей системы (например, оформление заказа или отправку сообщения), опишите по шагам, как он проходит через выделенные компоненты и какие вызовы между ними происходят — как бы выглядела диаграмма последовательностей для этого сценария?"
+  ]
+ },
+ "errors": [],
+ "model": "deepseek-v4-flash",
+ "prompt_versions": {
+  "class_guidance": "f5f45b82f7cd",
+  "feedback": "be7d74d90e5a",
+  "harness_repo_task": "a8e3cccb9452",
+  "judge_criterion": "0de4e0c7c0f6",
+  "observations": "6ec991a22e85",
+  "qa_questions": "47ca1e8e0f27",
+  "self_review": "ce2764392a7a"
+ },
+ "feedback_draft": "Привет! Спасибо за работу, вот что нужно доработать:\n\n1. Добавь раздел, где явно перечислены признаки декомпозиции (по функциям, данным, ролям или доменам) и компоненты под каждым из них.\n2. Напиши текстовое обоснование, почему границы компонентов проведены именно так и что сломается при смешении ответственности (SRP).\n3. Добавь раздел с перечислением интерфейсов взаимодействия между компонентами — например, таблицу с колонками «отправитель, получатель, тип, метод/событие».\n4. Опиши типы взаимодействий и контракты для ключевых интерфейсов: формат, входы, выходы, ошибки.\n5. Добавь диаграмму последовательностей для одного бизнес-сценария (например, mermaid sequenceDiagram).\n6. Добавь раздел с анализом связности компонентов: где связность высокая, почему и как она влияет на систему.\n7. Предложи конкретные способы снижения связности (события, шина, фасад, разделение данных) с обоснованием.\n\nХорошо, что диаграммы C4 Context и Component уже есть и оформлены корректно.",
+ "at": "2026-09-05T19:26:20.116373+00:00"
+}

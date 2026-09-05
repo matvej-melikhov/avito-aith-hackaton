@@ -1,0 +1,305 @@
+{
+ "slug": "system_design_lab1",
+ "work": "среднее",
+ "label": "mid",
+ "total": 4.5,
+ "max": 6.0,
+ "rows": [
+  {
+   "key": "decomposition",
+   "title": "Выполнена декомпозиция по двум и более признакам",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе явно названы два признака декомпозиции — «по функциям» и «по ролям», под каждым приведён список компонентов."
+  },
+  {
+   "key": "srp",
+   "title": "Обосновано соблюдение SRP при декомпозиции",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "medium",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе перечислены зоны ответственности компонентов, но отсутствует обоснование, почему границы проведены именно так и что произойдёт при смешении ответственности."
+  },
+  {
+   "key": "interfaces",
+   "title": "Определены интерфейсы взаимодействия между компонентами",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 4,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе перечислены интерфейсы взаимодействия между компонентами: REST API с эндпоинтами, внутренние методы сервисов (classDiagram) и события Kafka, что покрывает требование."
+  },
+  {
+   "key": "contracts",
+   "title": "Указаны типы взаимодействий и контракты (формат, входы, выходы, ошибки)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе указаны типы взаимодействий (REST, Kafka-события) и подробные контракты с входами, выходами и ошибками для ключевых интерфейсов."
+  },
+  {
+   "key": "c4",
+   "title": "Построена диаграмма C4 (контекстная и компонентная)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе присутствуют контекстная диаграмма C4 (Context Diagram) и диаграмма компонентов одного контейнера (Component Diagram — Stock Service и Reservation Engine), что соответствует требованию."
+  },
+  {
+   "key": "sequence",
+   "title": "Построена диаграмма последовательностей",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе присутствует диаграмма последовательности для сценария резервирования товара, оформленная как mermaid sequenceDiagram."
+  },
+  {
+   "key": "coupling_analysis",
+   "title": "Проведён анализ связности компонентов",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе есть раздел «Анализ связности компонентов», где перечислены зависимости и дана оценка связности с указанием центрального компонента и причин высокой связанности."
+  },
+  {
+   "key": "coupling_reduction",
+   "title": "Предложены способы снижения связности и обоснования",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "medium",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Предложены конкретные меры (выделение Reservation Engine и Stock Service в отдельные микросервисы), но отсутствует обоснование, почему это снизит связность именно в данном контексте."
+  },
+  {
+   "key": "documentation",
+   "title": "Структура, оформление и полнота документации",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "low",
+   "verified": 4,
+   "dropped": 1,
+   "flags": [
+    "unverified_evidence"
+   ],
+   "class": "judgement",
+   "reason": "Документ единый и структурирован по разделам, но отсутствуют диаграммы C4 в виде изображений (только mermaid-код), а также нет явного раздела с обоснованием архитектурных решений и полнотой документации."
+  }
+ ],
+ "ledger": {
+  "calls": 21,
+  "prompt_tokens": 410919,
+  "completion_tokens": 25597,
+  "cache_hit_tokens": 341120,
+  "cost_usd": 0.01789,
+  "cost_rub": 1.43,
+  "usd_rub": 80.0,
+  "usd_rub_note": "допущение",
+  "elapsed_seconds": 170.7,
+  "by_tag": {
+   "judge:decomposition#1": {
+    "calls": 1,
+    "prompt_tokens": 21875,
+    "completion_tokens": 1098,
+    "cost_usd": 0.00219
+   },
+   "judge:interfaces#1": {
+    "calls": 1,
+    "prompt_tokens": 21797,
+    "completion_tokens": 1129,
+    "cost_usd": 0.00202
+   },
+   "judge:srp#1": {
+    "calls": 1,
+    "prompt_tokens": 21812,
+    "completion_tokens": 1286,
+    "cost_usd": 0.00206
+   },
+   "judge:contracts#1": {
+    "calls": 1,
+    "prompt_tokens": 21929,
+    "completion_tokens": 1842,
+    "cost_usd": 0.00157
+   },
+   "judge:decomposition#2": {
+    "calls": 1,
+    "prompt_tokens": 21875,
+    "completion_tokens": 1093,
+    "cost_usd": 0.0004
+   },
+   "judge:interfaces#2": {
+    "calls": 1,
+    "prompt_tokens": 21797,
+    "completion_tokens": 1059,
+    "cost_usd": 0.0004
+   },
+   "judge:srp#2": {
+    "calls": 1,
+    "prompt_tokens": 21812,
+    "completion_tokens": 1254,
+    "cost_usd": 0.00045
+   },
+   "judge:contracts#2": {
+    "calls": 1,
+    "prompt_tokens": 21929,
+    "completion_tokens": 1904,
+    "cost_usd": 0.0006
+   },
+   "judge:sequence#1": {
+    "calls": 1,
+    "prompt_tokens": 21764,
+    "completion_tokens": 879,
+    "cost_usd": 0.00047
+   },
+   "judge:coupling_analysis#1": {
+    "calls": 1,
+    "prompt_tokens": 21773,
+    "completion_tokens": 981,
+    "cost_usd": 0.0005
+   },
+   "judge:c4#1": {
+    "calls": 1,
+    "prompt_tokens": 21872,
+    "completion_tokens": 2001,
+    "cost_usd": 0.00144
+   },
+   "judge:sequence#2": {
+    "calls": 1,
+    "prompt_tokens": 21764,
+    "completion_tokens": 892,
+    "cost_usd": 0.00035
+   },
+   "judge:coupling_reduction#1": {
+    "calls": 1,
+    "prompt_tokens": 21824,
+    "completion_tokens": 1011,
+    "cost_usd": 0.00051
+   },
+   "judge:coupling_analysis#2": {
+    "calls": 1,
+    "prompt_tokens": 21773,
+    "completion_tokens": 952,
+    "cost_usd": 0.00036
+   },
+   "judge:c4#2": {
+    "calls": 1,
+    "prompt_tokens": 21872,
+    "completion_tokens": 1530,
+    "cost_usd": 0.00052
+   },
+   "judge:coupling_reduction#2": {
+    "calls": 1,
+    "prompt_tokens": 21824,
+    "completion_tokens": 1056,
+    "cost_usd": 0.0004
+   },
+   "judge:documentation#1": {
+    "calls": 1,
+    "prompt_tokens": 21848,
+    "completion_tokens": 1745,
+    "cost_usd": 0.00072
+   },
+   "judge:documentation#2": {
+    "calls": 1,
+    "prompt_tokens": 21848,
+    "completion_tokens": 1725,
+    "cost_usd": 0.00057
+   },
+   "observe:documentation": {
+    "calls": 1,
+    "prompt_tokens": 14641,
+    "completion_tokens": 1528,
+    "cost_usd": 0.00178
+   },
+   "qa_questions": {
+    "calls": 1,
+    "prompt_tokens": 2249,
+    "completion_tokens": 305,
+    "cost_usd": 0.00035
+   },
+   "feedback": {
+    "calls": 1,
+    "prompt_tokens": 1041,
+    "completion_tokens": 327,
+    "cost_usd": 0.00024
+   }
+  }
+ },
+ "elapsed": 67.7,
+ "harness": {
+  "source": "none",
+  "elapsed": 0.0,
+  "error": null,
+  "session_id": null,
+  "usage": {
+   "prompt_tokens": 0,
+   "completion_tokens": 0
+  },
+  "criteria": {}
+ },
+ "signal": {
+  "level": "low",
+  "declaration": "not_declared",
+  "grounds": [],
+  "not_available": [
+   "стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам"
+  ],
+  "questions": [
+   "В разделе декомпозиции вы выделили компоненты по функциям и по ролям. Объясните, почему границы между компонентами проведены именно так — например, почему Reservation Engine и Stock Service выделены как отдельные компоненты, а не объединены в один? Что конкретно сломается или усложнится, если Reservation Engine начнёт сам публиковать события в Kafka, минуя Stock Service?",
+   "В разделе «Анализ связности» вы предлагаете выделить Reservation Engine и Stock Service в отдельные микросервисы для снижения связности. Поясните, за счёт чего именно это снизит связность в вашей системе: какие зависимости уменьшатся, какие изменения станут изолированными, и как это повлияет на остальные компоненты?",
+   "В работе диаграммы C4 представлены только в виде mermaid-кода. Если бы вам нужно было показать эти диаграммы человеку, который не знаком с mermaid, как бы вы объяснили ключевые связи между компонентами на контекстной диаграмме и на диаграмме компонентов Stock Service — какие стрелки и зависимости там изображены и почему?"
+  ]
+ },
+ "errors": [],
+ "model": "deepseek-v4-flash",
+ "prompt_versions": {
+  "class_guidance": "f5f45b82f7cd",
+  "feedback": "be7d74d90e5a",
+  "harness_repo_task": "a8e3cccb9452",
+  "judge_criterion": "0de4e0c7c0f6",
+  "observations": "6ec991a22e85",
+  "qa_questions": "47ca1e8e0f27",
+  "self_review": "ce2764392a7a"
+ },
+ "feedback_draft": "Привет! Спасибо за проделанную работу, структура и диаграммы сильные. Ниже — что стоит доработать перед сдачей.\n\n- Добавь обоснование границ компонентов: объясни, почему ты разделил систему именно так и что сломается, если смешать ответственности (например, если Reservation Engine начнёт сам публиковать события или Stock Service будет управлять заказами).\n- В разделе про снижение связности распиши, почему выделение Reservation Engine и Stock Service в отдельные микросервисы уменьшит зависимости и изолирует изменения именно в твоей архитектуре, а не просто перечисли меры.\n- Вставь в документ изображения диаграмм C4 (контекстной и компонентной) — сейчас они есть только в виде mermaid-кода, а для полноты нужны визуальные версии.\n- Выдели отдельным разделом обоснование архитектурных решений: почему выбраны REST и Kafka, почему компоненты взаимодействуют именно так, какие альтернативы рассматривались.\n- Проверь, что в тексте явно сказано, какие проблемы возникнут при нарушении SRP — сейчас зоны ответственности перечислены, но не объяснены последствия смешения.\n\nХорошо, что декомпозиция выполнена по двум признакам, а контракты и диаграмма последовательности описаны детально и аккуратно.",
+ "at": "2026-09-05T19:24:05.986176+00:00"
+}

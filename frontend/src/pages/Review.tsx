@@ -489,6 +489,10 @@ export function ReviewEditor({
   const selfRuns = context?.self_reviews.length ?? 0;
   const signalPct =
     signal?.probability == null ? null : Math.round(signal.probability * 100);
+  /* Сервис проверки не даёт процент: уровень (низкий / средний / высокий)
+     приходит первой строкой объяснения. */
+  const signalLevel =
+    signal?.explanation?.match(/Уровень:\s*([^.\n]+)/)?.[1]?.trim() ?? null;
   const signalDecision = signal ? signalDecisions[signal.id] : undefined;
   const backHref = readOnly ? "#/registry" : "#/works";
   const screen = readOnly ? "К9" : repeat ? "Р6" : "Р5";
@@ -776,12 +780,19 @@ export function ReviewEditor({
                       <>
                         <div className="meter-row">
                           <span className="d3 d3--human">
-                            {signalPct == null ? "—" : `${signalPct}%`}
+                            {signalPct == null
+                              ? (signalLevel ?? "—")
+                              : `${signalPct}%`}
                           </span>
                           <div>
                             <Meter value={signalPct ?? 0} human />
                           </div>
                         </div>
+                        {signal.explanation && (
+                          <p className="caption" style={{ whiteSpace: "pre-wrap" }}>
+                            {signal.explanation}
+                          </p>
+                        )}
                         <ul className="list--small">
                           {(signal.evidence ?? []).length
                             ? (signal.evidence ?? []).map((e, i) => (
@@ -795,9 +806,7 @@ export function ReviewEditor({
                                   )}
                                 </li>
                               ))
-                            : signal.explanation && (
-                                <li>{signal.explanation}</li>
-                              )}
+                            : null}
                         </ul>
                       </>
                     ) : assistFailed ? (

@@ -1,0 +1,303 @@
+{
+ "slug": "system_design_lab1",
+ "work": "хорошее",
+ "label": "good",
+ "total": 5.5,
+ "max": 6.0,
+ "rows": [
+  {
+   "key": "decomposition",
+   "title": "Выполнена декомпозиция по двум и более признакам",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе явно указаны два признака декомпозиции: по функциям (раздел 2.1) и по ролям (раздел 2.2), под каждым приведены компоненты."
+  },
+  {
+   "key": "srp",
+   "title": "Обосновано соблюдение SRP при декомпозиции",
+   "max": 0.5,
+   "status": "needs_human",
+   "points": null,
+   "confidence": "medium",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе перечислены зоны ответственности сервисов и указано, что каждый меняется только по своей причине, но отсутствует обоснование границ через последствия смешения ответственности."
+  },
+  {
+   "key": "interfaces",
+   "title": "Определены интерфейсы взаимодействия между компонентами",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе определены интерфейсы взаимодействия между компонентами: в разделе 5.1 приведена таблица типов взаимодействий, а в разделе 5.2 описаны контракты для REST-эндпоинтов и события."
+  },
+  {
+   "key": "contracts",
+   "title": "Указаны типы взаимодействий и контракты (формат, входы, выходы, ошибки)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе указаны типы взаимодействий (REST, AMQP, синхронные/асинхронные) и для ключевых интерфейсов описаны контракты с входами, выходами и ошибками."
+  },
+  {
+   "key": "c4",
+   "title": "Построена диаграмма C4 (контекстная и компонентная)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе присутствуют и контекстная диаграмма C4 (раздел 3.1), и компонентная диаграмма контейнера Booking Service (раздел 3.2), что соответствует требованию."
+  },
+  {
+   "key": "sequence",
+   "title": "Построена диаграмма последовательностей",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе присутствует mermaid sequenceDiagram для сценария записи клиента на групповое занятие, что соответствует требованию."
+  },
+  {
+   "key": "coupling_analysis",
+   "title": "Проведён анализ связности компонентов",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе есть раздел «Анализ связности компонентов» с таблицей зависимостей, указанием типов связности и проблем, а также оценкой связности до и после предложенных улучшений."
+  },
+  {
+   "key": "coupling_reduction",
+   "title": "Предложены способы снижения связности и обоснования",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В разделе 6.2 предложены конкретные меры снижения связности (кэширование, событийная модель, обработка недоступности, динамическая адресация) с обоснованием для каждого."
+  },
+  {
+   "key": "documentation",
+   "title": "Структура, оформление и полнота документации",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "low",
+   "verified": 11,
+   "dropped": 0,
+   "flags": [],
+   "class": "judgement",
+   "reason": "Документ единый, структурирован по разделам (описание, декомпозиция, диаграммы, интерфейсы, анализ связности, итог), содержит все требуемые части: диаграммы C4, sequence, контракты, анализ связности. Читаемость хорошая, схемы в mermaid."
+  }
+ ],
+ "ledger": {
+  "calls": 21,
+  "prompt_tokens": 412652,
+  "completion_tokens": 32195,
+  "cache_hit_tokens": 353152,
+  "cost_usd": 0.01833,
+  "cost_rub": 1.47,
+  "usd_rub": 80.0,
+  "usd_rub_note": "допущение",
+  "elapsed_seconds": 198.0,
+  "by_tag": {
+   "judge:decomposition#1": {
+    "calls": 1,
+    "prompt_tokens": 21974,
+    "completion_tokens": 1224,
+    "cost_usd": 0.00222
+   },
+   "judge:interfaces#1": {
+    "calls": 1,
+    "prompt_tokens": 21896,
+    "completion_tokens": 1518,
+    "cost_usd": 0.00237
+   },
+   "judge:srp#1": {
+    "calls": 1,
+    "prompt_tokens": 21911,
+    "completion_tokens": 1379,
+    "cost_usd": 0.00154
+   },
+   "judge:contracts#1": {
+    "calls": 1,
+    "prompt_tokens": 22028,
+    "completion_tokens": 2130,
+    "cost_usd": 0.00175
+   },
+   "judge:decomposition#2": {
+    "calls": 1,
+    "prompt_tokens": 21974,
+    "completion_tokens": 1217,
+    "cost_usd": 0.00041
+   },
+   "judge:interfaces#2": {
+    "calls": 1,
+    "prompt_tokens": 21896,
+    "completion_tokens": 1638,
+    "cost_usd": 0.00056
+   },
+   "judge:srp#2": {
+    "calls": 1,
+    "prompt_tokens": 21911,
+    "completion_tokens": 1383,
+    "cost_usd": 0.00049
+   },
+   "judge:contracts#2": {
+    "calls": 1,
+    "prompt_tokens": 22028,
+    "completion_tokens": 2091,
+    "cost_usd": 0.00067
+   },
+   "judge:c4#1": {
+    "calls": 1,
+    "prompt_tokens": 21971,
+    "completion_tokens": 1896,
+    "cost_usd": 0.00155
+   },
+   "judge:sequence#1": {
+    "calls": 1,
+    "prompt_tokens": 21863,
+    "completion_tokens": 1570,
+    "cost_usd": 0.00067
+   },
+   "judge:coupling_analysis#1": {
+    "calls": 1,
+    "prompt_tokens": 21872,
+    "completion_tokens": 1331,
+    "cost_usd": 0.00061
+   },
+   "judge:coupling_reduction#1": {
+    "calls": 1,
+    "prompt_tokens": 21923,
+    "completion_tokens": 1674,
+    "cost_usd": 0.00069
+   },
+   "judge:sequence#2": {
+    "calls": 1,
+    "prompt_tokens": 21863,
+    "completion_tokens": 1195,
+    "cost_usd": 0.00043
+   },
+   "judge:coupling_analysis#2": {
+    "calls": 1,
+    "prompt_tokens": 21872,
+    "completion_tokens": 1327,
+    "cost_usd": 0.00047
+   },
+   "judge:c4#2": {
+    "calls": 1,
+    "prompt_tokens": 21971,
+    "completion_tokens": 1900,
+    "cost_usd": 0.0006
+   },
+   "judge:coupling_reduction#2": {
+    "calls": 1,
+    "prompt_tokens": 21923,
+    "completion_tokens": 1850,
+    "cost_usd": 0.00058
+   },
+   "judge:documentation#1": {
+    "calls": 1,
+    "prompt_tokens": 21947,
+    "completion_tokens": 2147,
+    "cost_usd": 0.00083
+   },
+   "judge:documentation#2": {
+    "calls": 1,
+    "prompt_tokens": 21947,
+    "completion_tokens": 2537,
+    "cost_usd": 0.00078
+   },
+   "observe:documentation": {
+    "calls": 1,
+    "prompt_tokens": 14741,
+    "completion_tokens": 1573,
+    "cost_usd": 0.0005
+   },
+   "qa_questions": {
+    "calls": 1,
+    "prompt_tokens": 2175,
+    "completion_tokens": 322,
+    "cost_usd": 0.00039
+   },
+   "feedback": {
+    "calls": 1,
+    "prompt_tokens": 966,
+    "completion_tokens": 293,
+    "cost_usd": 0.00022
+   }
+  }
+ },
+ "elapsed": 78.5,
+ "harness": {
+  "source": "none",
+  "elapsed": 0.0,
+  "error": null,
+  "session_id": null,
+  "usage": {
+   "prompt_tokens": 0,
+   "completion_tokens": 0
+  },
+  "criteria": {}
+ },
+ "signal": {
+  "level": "low",
+  "declaration": "not_declared",
+  "grounds": [],
+  "not_available": [
+   "стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам"
+  ],
+  "questions": [
+   "В разделе 2.1 вы выделили компоненты по функциям, а в 2.2 — по ролям. Как эти два набора компонентов соотносятся друг с другом? Например, сервис Booking из декомпозиции по функциям — это тот же компонент, что и какой-то из компонентов по ролям, или это разные уровни рассмотрения?",
+   "В разделе 5.2 вы описали контракты для REST-эндпоинтов и событий. Возьмём сценарий записи клиента на групповое занятие из вашей sequence-диаграммы: что произойдёт, если сервис расписания (Schedule) в момент записи окажется недоступен — как поведёт себя Booking Service и какой ответ/ошибку получит клиент?",
+   "В разделе 6.2 вы предложили меры снижения связности, включая событийную модель. Как изменится контракт взаимодействия между Booking Service и сервисом оплаты (или уведомлений), если перейти с синхронного REST-вызова на асинхронное событие — что именно станет входом/выходом и как обрабатывается случай, когда событие не доставлено?"
+  ]
+ },
+ "errors": [],
+ "model": "deepseek-v4-flash",
+ "prompt_versions": {
+  "class_guidance": "f5f45b82f7cd",
+  "feedback": "be7d74d90e5a",
+  "harness_repo_task": "a8e3cccb9452",
+  "judge_criterion": "0de4e0c7c0f6",
+  "observations": "6ec991a22e85",
+  "qa_questions": "47ca1e8e0f27",
+  "self_review": "ce2764392a7a"
+ },
+ "feedback_draft": "Привет! Спасибо за проделанную работу, структура и полнота документации на высоте.\n\n- Добавь обоснование границ ответственности в разделы 2.1 и 2.2: объясни, к каким конкретным проблемам приведёт смешение ролей или функций (например, изменение бизнес-правил записи затронет расписание или оплату).\n- Убери формальное перечисление зон ответственности и опиши последствия нарушения SRP для каждого сервиса.\n- Проверь, что в тексте рядом с декомпозицией есть явный вывод о том, почему границы выбраны именно так, а не иначе.\n- В разделе 5.2 для REST-контрактов укажи примеры кодов ошибок для каждого эндпоинта, а не только общее описание.\n- Для асинхронных событий (AMQP) добавь описание структуры события и возможные причины отказа в обработке.\n- В анализе связности (раздел 6) укажи, как именно предложенные меры (кэш, события) влияют на конкретные типы связности из твоей таблицы.\n\nОтлично, что диаграммы C4 и sequence выполнены в mermaid и легко читаются.",
+ "at": "2026-09-05T19:22:58.239181+00:00"
+}

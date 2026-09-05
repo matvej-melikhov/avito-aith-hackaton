@@ -15,3 +15,7 @@ dist/
 *.egg-info/
 node_modules/
 .DS_Store
+prereview/data/
+prereview/evals/runs/
+prereview/.venv/
+hw_examples/

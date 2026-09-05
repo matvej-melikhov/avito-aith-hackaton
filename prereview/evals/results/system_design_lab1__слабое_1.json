@@ -1,0 +1,303 @@
+{
+ "slug": "system_design_lab1",
+ "work": "слабое_1",
+ "label": "weak",
+ "total": 6.0,
+ "max": 6.0,
+ "rows": [
+  {
+   "key": "decomposition",
+   "title": "Выполнена декомпозиция по двум и более признакам",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе явно указаны два признака декомпозиции: по доменам и данным (раздел 2.1) и по ролям (раздел 2.2), под каждым приведены компоненты."
+  },
+  {
+   "key": "srp",
+   "title": "Обосновано соблюдение SRP при декомпозиции",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе для каждого компонента указана единственная ответственность и причина изменения, а также объяснено, почему границы проведены по бизнес-компонентам, а не по слоям, что обосновывает соблюдение SRP."
+  },
+  {
+   "key": "interfaces",
+   "title": "Определены интерфейсы взаимодействия между компонентами",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В разделе 4 приведена таблица интерфейсов I1–I5 с указанием компонентов, типа взаимодействия и формата, что полностью удовлетворяет критерию."
+  },
+  {
+   "key": "contracts",
+   "title": "Указаны типы взаимодействий и контракты (формат, входы, выходы, ошибки)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 5,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе для интерфейсов I1–I5 указаны типы (синхронный/асинхронный, REST, доменное событие) и подробные контракты с входами, выходами и ошибками, включая единый формат ошибок и таблицы ошибок для REST."
+  },
+  {
+   "key": "c4",
+   "title": "Построена диаграмма C4 (контекстная и компонентная)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 4,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе присутствуют контекстная диаграмма C4 (раздел 6.1) и компонентная диаграмма C4 (раздел 6.3), что соответствует требованию."
+  },
+  {
+   "key": "sequence",
+   "title": "Построена диаграмма последовательностей",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе присутствует диаграмма последовательностей на языке Mermaid (sequenceDiagram) для сценария публикации лука стилистом, что соответствует требованию."
+  },
+  {
+   "key": "coupling_analysis",
+   "title": "Проведён анализ связности компонентов",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе есть раздел «Анализ связности» с таблицей пар компонентов, оценкой уровня связности и рисков, а также раздел о снижении связности."
+  },
+  {
+   "key": "coupling_reduction",
+   "title": "Предложены способы снижения связности и обоснования",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В разделе 8.2 приведены конкретные меры снижения связности (минимальный sync-контракт, Outbox + событие, отдельная read-model, контракт без привязки к технологии, централизация RBAC, единый кэш-адаптер) с обоснованием для каждой пары компонентов."
+  },
+  {
+   "key": "documentation",
+   "title": "Структура, оформление и полнота документации",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "low",
+   "verified": 9,
+   "dropped": 0,
+   "flags": [],
+   "class": "judgement",
+   "reason": "Документ единый, структурирован по разделам (система, декомпозиция, SRP, интерфейсы, контракты, C4, sequence, анализ связности), все требуемые части присутствуют, схемы читаемы."
+  }
+ ],
+ "ledger": {
+  "calls": 21,
+  "prompt_tokens": 603930,
+  "completion_tokens": 35588,
+  "cache_hit_tokens": 530176,
+  "cost_usd": 0.02177,
+  "cost_rub": 1.74,
+  "usd_rub": 80.0,
+  "usd_rub_note": "допущение",
+  "elapsed_seconds": 220.0,
+  "by_tag": {
+   "judge:decomposition#1": {
+    "calls": 1,
+    "prompt_tokens": 31616,
+    "completion_tokens": 1001,
+    "cost_usd": 0.00272
+   },
+   "judge:srp#1": {
+    "calls": 1,
+    "prompt_tokens": 31553,
+    "completion_tokens": 1522,
+    "cost_usd": 0.00256
+   },
+   "judge:interfaces#1": {
+    "calls": 1,
+    "prompt_tokens": 31538,
+    "completion_tokens": 1557,
+    "cost_usd": 0.00178
+   },
+   "judge:decomposition#2": {
+    "calls": 1,
+    "prompt_tokens": 31616,
+    "completion_tokens": 1079,
+    "cost_usd": 0.00041
+   },
+   "judge:contracts#1": {
+    "calls": 1,
+    "prompt_tokens": 31670,
+    "completion_tokens": 2530,
+    "cost_usd": 0.00177
+   },
+   "judge:srp#2": {
+    "calls": 1,
+    "prompt_tokens": 31553,
+    "completion_tokens": 1571,
+    "cost_usd": 0.00054
+   },
+   "judge:interfaces#2": {
+    "calls": 1,
+    "prompt_tokens": 31538,
+    "completion_tokens": 1636,
+    "cost_usd": 0.00055
+   },
+   "judge:c4#1": {
+    "calls": 1,
+    "prompt_tokens": 31613,
+    "completion_tokens": 1953,
+    "cost_usd": 0.00081
+   },
+   "judge:coupling_analysis#1": {
+    "calls": 1,
+    "prompt_tokens": 31514,
+    "completion_tokens": 1392,
+    "cost_usd": 0.00066
+   },
+   "judge:sequence#1": {
+    "calls": 1,
+    "prompt_tokens": 31505,
+    "completion_tokens": 1461,
+    "cost_usd": 0.00068
+   },
+   "judge:contracts#2": {
+    "calls": 1,
+    "prompt_tokens": 31670,
+    "completion_tokens": 3040,
+    "cost_usd": 0.00096
+   },
+   "judge:c4#2": {
+    "calls": 1,
+    "prompt_tokens": 31613,
+    "completion_tokens": 1994,
+    "cost_usd": 0.00066
+   },
+   "judge:coupling_analysis#2": {
+    "calls": 1,
+    "prompt_tokens": 31514,
+    "completion_tokens": 1421,
+    "cost_usd": 0.00052
+   },
+   "judge:sequence#2": {
+    "calls": 1,
+    "prompt_tokens": 31505,
+    "completion_tokens": 1434,
+    "cost_usd": 0.00053
+   },
+   "judge:coupling_reduction#1": {
+    "calls": 1,
+    "prompt_tokens": 31565,
+    "completion_tokens": 2045,
+    "cost_usd": 0.00083
+   },
+   "judge:documentation#1": {
+    "calls": 1,
+    "prompt_tokens": 31589,
+    "completion_tokens": 2049,
+    "cost_usd": 0.00083
+   },
+   "judge:coupling_reduction#2": {
+    "calls": 1,
+    "prompt_tokens": 31565,
+    "completion_tokens": 2057,
+    "cost_usd": 0.00067
+   },
+   "judge:documentation#2": {
+    "calls": 1,
+    "prompt_tokens": 31589,
+    "completion_tokens": 1824,
+    "cost_usd": 0.00061
+   },
+   "observe:documentation": {
+    "calls": 1,
+    "prompt_tokens": 32573,
+    "completion_tokens": 3386,
+    "cost_usd": 0.00324
+   },
+   "qa_questions": {
+    "calls": 1,
+    "prompt_tokens": 2120,
+    "completion_tokens": 268,
+    "cost_usd": 0.0002
+   },
+   "feedback": {
+    "calls": 1,
+    "prompt_tokens": 911,
+    "completion_tokens": 368,
+    "cost_usd": 0.00023
+   }
+  }
+ },
+ "elapsed": 87.8,
+ "harness": {
+  "source": "none",
+  "elapsed": 0.0,
+  "error": null,
+  "session_id": null,
+  "usage": {
+   "prompt_tokens": 0,
+   "completion_tokens": 0
+  },
+  "criteria": {}
+ },
+ "signal": {
+  "level": "low",
+  "declaration": "not_declared",
+  "grounds": [],
+  "not_available": [
+   "стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам"
+  ],
+  "questions": [
+   "В разделе 2.1 вы декомпозируете систему по доменам и данным, а в разделе 2.2 — по ролям. Как эти два признака соотносятся между собой: не возникает ли конфликта, когда один и тот же компонент попадает в разные группы, и как вы разрешали такие пересечения?",
+   "В разделе 4 для интерфейса I2 вы указали асинхронное доменное событие. Опишите, что произойдёт в системе, если событие будет потеряно или обработано дважды (например, при сбое или повторной доставке), и как ваш контракт это учитывает.",
+   "В разделе 8.2 вы предлагаете снизить связность через Outbox-паттерн и отдельную read-model. Что изменится в диаграмме последовательностей для сценария публикации лука, если внедрить эти меры, — какие шаги станут асинхронными и кто станет источником истины?"
+  ]
+ },
+ "errors": [],
+ "model": "deepseek-v4-flash",
+ "prompt_versions": {
+  "class_guidance": "f5f45b82f7cd",
+  "feedback": "be7d74d90e5a",
+  "harness_repo_task": "a8e3cccb9452",
+  "judge_criterion": "0de4e0c7c0f6",
+  "observations": "6ec991a22e85",
+  "qa_questions": "47ca1e8e0f27",
+  "self_review": "ce2764392a7a"
+ },
+ "feedback_draft": "Привет! Отличная работа, структура и полнота документации на высоте.\n\n- Добавь в раздел 2.1 явную таблицу или список, где каждому компоненту сопоставлен конкретный домен и источник данных, чтобы декомпозиция читалась ещё нагляднее.\n- В разделе 4 для интерфейсов I1–I5 укажи, какой компонент является инициатором, а какой — исполнителем, это упростит чтение контрактов.\n- Для каждого REST-интерфейса в контрактах добавь HTTP-статус-коды для описанных ошибок, а не только текстовые описания.\n- В разделе 6.3 подпиши на компонентной диаграмме C4, каким интерфейсам из раздела 4 соответствуют стрелки между компонентами.\n- В диаграмме последовательностей для сценария публикации лука добавь явные блоки `alt` или `opt` для обработки ошибок валидации, чтобы сценарий был полнее.\n- В разделе «Анализ связности» для каждой пары компонентов укажи не только уровень связности, но и тип связи (по данным или по вызову), это усилит анализ.\n- В разделе 8.2 для меры «минимальный sync-контракт» приведи пример, какие поля остаются в контракте, а какие выносятся в событие.\n\nХорошо, что все схемы читаемы и разделы логически выстроены — это сильно упрощает проверку.",
+ "at": "2026-09-05T19:25:33.747903+00:00"
+}

@@ -118,10 +118,16 @@ def _zip(data: bytes, *, max_file_bytes: int) -> Work:
     if not names:
         raise ExtractionError("архив пуст")
     # Зипбол GitHub кладёт всё в одну верхнюю папку owner-repo-sha/: снимаем её.
-    first = [n.split("/", 1)[0] for n in names]
+    # В учебном корпусе репозиторий бывает вложен ещё раз, поэтому снимаем все
+    # единственные верхние папки подряд, пока на уровне не появится второй элемент.
     root = ""
-    if len(set(first)) == 1 and all("/" in n for n in names):
-        root = first[0] + "/"
+    while True:
+        rest = [n[len(root):] for n in names if n.startswith(root)]
+        first = {n.split("/", 1)[0] for n in rest}
+        if len(first) == 1 and all("/" in n for n in rest):
+            root += first.pop() + "/"
+        else:
+            break
     files: list[WorkFile] = []
     skipped: list[dict] = []
     secrets: list[str] = []

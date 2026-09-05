@@ -31,3 +31,13 @@ def test_zip_root_and_env():
 def test_markdown():
     w = extract("# a\nb".encode(), "text/markdown", filename="x.md")
     assert w.format == "markdown" and w.files[0].lines == ["# a", "b"]
+
+
+def test_zip_nested_root_is_stripped():
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("owner-repo-abc/course-go-student-sha/go.mod", "module x\n")
+        z.writestr("owner-repo-abc/course-go-student-sha/cmd/app/main.go", "package main\n")
+    w = extract(buf.getvalue(), "application/zip")
+    assert sorted(f.path for f in w.files) == ["cmd/app/main.go", "go.mod"]
+    assert w.meta["root"] == "owner-repo-abc/course-go-student-sha"
