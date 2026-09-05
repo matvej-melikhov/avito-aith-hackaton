@@ -287,7 +287,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T168 Create provider-specific live tests and a durable NOT_RUN/BLOCKED/PASS/FAIL ledger without invoking providers by default in `backend/tests/live/test_provider_gates.py` and `backend/tests/live/gates.json`
 - [X] T169 Walk every Alembic revision against representative immutable rows and assert lossless digests/publication bytes across supported upgrades in `backend/tests/integration/test_migration_walk.py`
 - [X] T170 Run complete offline tests, Ruff, mypy, manifest verification, migration walk, application image build, and every process-entrypoint import, then record observed commands in `specs/001-backend-core/quickstart.md`
-- [ ] T171 Create the explicit reviewer-workflow timing gate that defaults to BLOCKED without a frontend harness, then validate and record that SC-002..SC-004 cannot be reported as passed prematurely in `backend/tests/e2e/test_reviewer_workflow_time.py` and `specs/001-backend-core/requirements-traceability.md`
+- [X] T171 Create the explicit reviewer-workflow timing gate that defaults to BLOCKED without a frontend harness, then validate and record that SC-002..SC-004 cannot be reported as passed prematurely in `backend/tests/e2e/test_reviewer_workflow_time.py` and `specs/001-backend-core/requirements-traceability.md`
 
 **Checkpoint**: All offline gates are GREEN; skipped live/product gates remain visibly BLOCKED and cannot be reported as provider support.
 

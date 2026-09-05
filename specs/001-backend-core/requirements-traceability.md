@@ -26,9 +26,9 @@ This file is a pre-implementation gate. `PLANNED` means the named executable spe
 | Criterion | Fixture or authorized gate | Owner | Reproducible command | Status |
 |---|---|---|---|---|
 | SC-001 | Fresh MySQL/Redis/MinIO/Mailpit installation fixture | Backend Core | `uv run --directory backend pytest tests/integration/test_organization_course_lifecycle.py -q` | PLANNED |
-| SC-002 | Full import-to-homework human workflow | Product E2E + Stepik Owner | `uv run --directory backend pytest tests/live/test_provider_gates.py -m live -k stepik -q` | BLOCKED until authorized Stepik sandbox and frontend flow exist |
-| SC-003 | Student preflight-to-submit human workflow | Product E2E + Artifact Owners | `uv run --directory backend pytest tests/live/test_provider_gates.py -m live -k artifact -q` | BLOCKED until authorized provider sandboxes and frontend flow exist |
-| SC-004 | Reviewer selection-to-start human workflow | Product E2E | `uv run --directory backend pytest tests/e2e/test_reviewer_workflow_time.py -q` | BLOCKED until frontend flow exists; backend latency is tested separately |
+| SC-002 | Full import-to-homework human workflow | Product E2E + Stepik Owner | `uv run --directory backend pytest tests/live/test_provider_gates.py -m live -k stepik -q` | BLOCKED until an authorized frontend flow plus PASS `stepik_course_import` and `stepik_delivery_reconciliation` sandbox evidence exist |
+| SC-003 | Student preflight-to-submit human workflow | Product E2E + Artifact Owners | `uv run --directory backend pytest tests/live/test_provider_gates.py -m live -k artifact -q` | BLOCKED until an authorized frontend flow plus PASS `github_artifact` or `google_docs_artifact` sandbox evidence exist |
+| SC-004 | Reviewer selection-to-start human workflow | Product E2E | `uv run --directory backend pytest tests/e2e/test_reviewer_workflow_time.py -q` | BLOCKED until `REVIEW_PLATFORM_REVIEWER_WORKFLOW_ENABLED=true` and `REVIEW_PLATFORM_REVIEWER_WORKFLOW_HARNESS=module:function` record frontend evidence at or below 120 seconds; backend latency alone is insufficient |
 | SC-005 | Two-session stale-save fixture | Backend Core | `uv run --directory backend pytest tests/state/test_human_review_publication.py -q` | PLANNED |
 | SC-006 | Enumerated mutation-to-audit matrix | Backend Core | `uv run --directory backend pytest tests/isolation/test_audit_coverage.py -q` | PLANNED |
 | SC-007 | Multi-destination provider failure fixture | Backend Core | `uv run --directory backend pytest tests/integration/test_delivery_recovery.py -q` | PLANNED |
@@ -55,6 +55,9 @@ This file is a pre-implementation gate. `PLANNED` means the named executable spe
 - Offline fixtures never access live URLs and prove only backend behavior.
 - Each live provider writes `NOT_RUN`, `BLOCKED`, `PASS`, or `FAIL` plus scope, time and evidence to `backend/tests/live/gates.json`.
 - A skipped or mock-only provider gate remains unverified and cannot be reported as provider support.
+- SC-002 requires an authorized import-to-homework frontend run plus PASS Stepik course-import and delivery/reconciliation gates.
+- SC-003 requires an authorized student preflight-to-submit frontend run plus PASS evidence from the selected GitHub or Google Docs artifact gate.
+- SC-004 requires an explicitly configured reviewer frontend harness to complete selection → planned hours → recommendation → review start within 120 seconds. Backend-only latency, an unnamed frontend checkout, mocks, and skipped tests are not qualifying evidence.
 
 ## Planning constraints
 
