@@ -19,3 +19,6 @@ prereview/data/
 prereview/evals/runs/
 prereview/.venv/
 hw_examples/
+**/node_modules/
+**/.venv/
+**/__pycache__/

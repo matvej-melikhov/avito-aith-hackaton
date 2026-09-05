@@ -161,5 +161,13 @@ def evals(slug: str = typer.Option("all", help="system_design_lab1 | go_tasks_1_
     run_evals(slug, fake=fake, repeats=repeats)
 
 
+@app.command("evals-report")
+def evals_report() -> None:
+    """Пересобрать docs/EVALS.md из сохранённых результатов."""
+    from prereview.evals import build_report
+
+    typer.echo(f"отчёт: {build_report()}")
+
+
 if __name__ == "__main__":
     app()

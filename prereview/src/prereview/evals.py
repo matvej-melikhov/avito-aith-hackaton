@@ -193,9 +193,32 @@ def report_section(slug: str, runs: list[dict], m: dict, agreement: dict | None)
     return "\n".join(lines) + "\n"
 
 
+def build_report() -> Path:
+    """Собирает docs/EVALS.md из всех результатов в evals/results/, по заданиям."""
+    by_slug: dict[str, list[dict]] = {}
+    for path in sorted(RESULTS.glob("*.json")):
+        run = json.loads(path.read_text(encoding="utf-8"))
+        by_slug.setdefault(run["slug"], []).append(run)
+    sections = []
+    for slug in TASKS:
+        runs = by_slug.get(slug)
+        if not runs:
+            continue
+        order = list(TASKS[slug]["works"]) + [f"{TASKS[slug]['injection_work']}+injection"]
+        runs.sort(key=lambda r: order.index(r["work"]) if r["work"] in order else 99)
+        sections.append(report_section(slug, runs, metrics(runs), label_agreement(slug, runs)))
+    header = ("# Evals ядра проверки на публичном корпусе\n\n"
+              "Корпус: ai-talent-hub-avito/homework_examples, коммит 7a72e08. Метки «слабое / среднее / хорошее» это мнение одного ревьюера, "
+              "покритериальных оценок в корпусе нет. Мы меряем не угадывание метки, а свойства системы: основания, честное «нужен человек», "
+              "стабильность, стоимость. Генерируется командой `prereview evals`.\n\n"
+              "Замечание к меткам: `слабое_1` в лабе 1 два независимых разбора (docs/GRADING_EXPERIMENT.md, §2.6) признали сильной работой, "
+              "метка корпуса с содержанием расходится. Пары с этой работой считаются в «порядке сумм» как есть, без исключений.\n\n")
+    REPORT.write_text(header + "\n".join(sections), encoding="utf-8")
+    return REPORT
+
+
 def run_evals(slug: str = "all", *, fake: bool = False, repeats: int = 1) -> None:
     slugs = list(TASKS) if slug == "all" else [slug]
-    sections = []
     for s in slugs:
         task = TASKS[s]
         runs = []
@@ -211,16 +234,6 @@ def run_evals(slug: str = "all", *, fake: bool = False, repeats: int = 1) -> Non
             path, label = task["works"][task["injection_work"]]
             print(f"[{s}] {task['injection_work']} + инъекция …", flush=True)
             runs.append(run_one(s, task["injection_work"], path, label, fake=fake, inject=True))
-        if not runs:
-            continue
-        m = metrics(runs)
-        sections.append(report_section(s, runs, m, label_agreement(s, runs)))
-        print(json.dumps(m, ensure_ascii=False))
-    header = ("# Evals ядра проверки на публичном корпусе\n\n"
-              "Корпус: ai-talent-hub-avito/homework_examples, коммит 7a72e08. Метки «слабое / среднее / хорошее» это мнение одного ревьюера, "
-              "покритериальных оценок в корпусе нет. Мы меряем не угадывание метки, а свойства системы: основания, честное «нужен человек», "
-              "стабильность, стоимость. Генерируется командой `prereview evals`.\n\n"
-              "Замечание к меткам: `слабое_1` в лабе 1 два независимых разбора (docs/GRADING_EXPERIMENT.md, §2.6) признали сильной работой, "
-              "метка корпуса с содержанием расходится. Пары с этой работой считаются в «порядке сумм» как есть, без исключений.\n\n")
-    REPORT.write_text(header + "\n".join(sections), encoding="utf-8")
-    print(f"отчёт: {REPORT}")
+        if runs:
+            print(json.dumps(metrics(runs), ensure_ascii=False))
+    print(f"отчёт: {build_report()}")
