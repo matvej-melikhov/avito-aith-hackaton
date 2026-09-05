@@ -1,0 +1,1209 @@
+{
+ "slug": "go_tasks_1_3",
+ "work": "хорошее",
+ "label": "good",
+ "total": 39.0,
+ "max": 45.0,
+ "rows": [
+  {
+   "key": "structure",
+   "title": "Есть cmd/, internal/, pkg/ (или осознанная альтернатива)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "formal",
+   "reason": "Проверено кодом: dir_exists: каталог cmd: 1 файлов; dir_exists: каталог internal: 12 файлов"
+  },
+  {
+   "key": "go_mod",
+   "title": "Есть файл go.mod",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "formal",
+   "reason": "Проверено кодом: file_exists: найдено: go.mod"
+  },
+  {
+   "key": "entrypoint",
+   "title": "Точка входа находится в cmd/<service>/main.go",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "formal",
+   "reason": "Проверено кодом: count_files: файлов по маске cmd/*/main.go: 1 (нужно от 1)"
+  },
+  {
+   "key": "code_quality",
+   "title": "Хорошее качество кода (понятные названия идентификаторов, отсутствие циклических зависимостей)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "low",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "class": "judgement",
+   "reason": "Имена идентификаторов осмысленные, функции небольшие, циклических зависимостей нет (импорты идут вниз по слоям). Небольшое дублирование структур и повторная компиляция regexp не снижают общее качество."
+  },
+  {
+   "key": "server_starts",
+   "title": "HTTP-сервер запускается (stdlib/chi/gin/echo)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе создан http.Server и вызывается ListenAndServe, что подтверждает запуск HTTP-сервера."
+  },
+  {
+   "key": "port_env",
+   "title": "Порт берётся из конфигурации Env",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Порт читается из переменной окружения PORT (после загрузки .env) и используется при запуске сервера."
+  },
+  {
+   "key": "start_log",
+   "title": "Лог старта уходит в stdout",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 0.0,
+   "confidence": "medium",
+   "verified": 2,
+   "dropped": 1,
+   "flags": [
+    "unverified_evidence"
+   ],
+   "class": "content",
+   "reason": "Лог старта пишется стандартным пакетом log (log.Printf), который по умолчанию выводит в stderr. В работе нет ни одного вызова log.SetOutput(os.Stdout) или использования логгера, пишущего в stdout (slog, zap и т.п.), поэтому требование «вывод в stdout» не выполнено."
+  },
+  {
+   "key": "ping",
+   "title": "GET /ping отдаёт нужные коды согласно ТЗ",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Маршрут GET /ping зарегистрирован, обработчик возвращает JSON {\"message\":\"pong\"} со статусом 200 OK по умолчанию."
+  },
+  {
+   "key": "healthcheck",
+   "title": "HEAD /healthcheck отдаёт нужные коды согласно ТЗ",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Зарегистрирован метод HEAD для /healthcheck, обработчик возвращает 204 No Content без тела, что соответствует ТЗ."
+  },
+  {
+   "key": "graceful_signal",
+   "title": "После сигналов SIGINT/SIGTERM сервер останавливается",
+   "max": 2.0,
+   "status": "suggested",
+   "points": 2.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе реализована подписка на SIGINT/SIGTERM через signal.NotifyContext и корректный вызов srv.Shutdown в отдельной горутине, что обеспечивает остановку сервера после сигналов."
+  },
+  {
+   "key": "graceful_context",
+   "title": "graceful shutdown реализован через context",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Graceful shutdown реализован через signal.NotifyContext и srv.Shutdown с context.WithTimeout, что соответствует подсказке."
+  },
+  {
+   "key": "shutdown_log",
+   "title": "При остановке в лог выводится сообщение",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В момент остановки сервиса в лог выводится сообщение «Shutting down service-courier» перед вызовом srv.Shutdown."
+  },
+  {
+   "key": "port_flag",
+   "title": "Есть переопределение порта с помощью флагов",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Флаг --port обрабатывается через pflag и переопределяет значение из окружения."
+  },
+  {
+   "key": "flag_over_env",
+   "title": "При указании и флага и .env берётся значение из флага",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В коде явно реализован приоритет флага: сначала читается PORT из окружения, затем, если флаг --port задан непустым значением, он перезаписывает значение."
+  },
+  {
+   "key": "db_connect",
+   "title": "Подключение к базе в main.go или отдельном файле, данные для подключения из конфига",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Подключение к БД выполнено в main.go через initDBPool, DSN собирается из переменных окружения POSTGRES_*, не захардкожен."
+  },
+  {
+   "key": "db_defer_close",
+   "title": "Есть закрытие соединения в defer Close()",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В main.go сразу после создания пула соединений вызывается defer db.Close(), что гарантирует закрытие соединения при завершении работы сервиса."
+  },
+  {
+   "key": "db_ping",
+   "title": "Есть запрос Ping для проверки соединения",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "После создания пула подключений выполняется Ping к базе данных (pool.Ping), что соответствует требованию проверки соединения с БД."
+  },
+  {
+   "key": "db_ping_retry",
+   "title": "Есть ретрай при запросе Ping",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 0.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Ping вызывается один раз без цикла повторов и задержки, что не соответствует требованию ретрая."
+  },
+  {
+   "key": "db_panic",
+   "title": "В случае ошибки подключения кидается паника",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "При ошибке подключения к БД и неудачном Ping процесс завершается через log.Fatal, что допускается критерием как альтернатива panic."
+  },
+  {
+   "key": "migrations_tool",
+   "title": "Есть миграции с помощью популярного пакета",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В работе есть каталог migrations с goose-миграцией и Makefile-команды для запуска goose, что соответствует требованию использования популярного пакета миграций."
+  },
+  {
+   "key": "migrations_command",
+   "title": "Команда запуска миграций (Makefile или скрипт), миграция не накатывается прямо в main.go",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В Makefile есть цель migrate-up, которая запускает goose из командной строки, а не из main.go. Миграции накатываются вне кода приложения."
+  },
+  {
+   "key": "migrations_clean",
+   "title": "Запуск на чистой базе проходит",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "low",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Миграция создаёт таблицу couriers со всеми колонками, которые использует репозиторий; фактический прогон на чистой базе требует проверки ревьюером."
+  },
+  {
+   "key": "migrations_idempotent",
+   "title": "Миграция не падает при повторном запуске",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "medium",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Миграция использует IF NOT EXISTS и инструмент goose ведёт таблицу версий, что обеспечивает идемпотентность повторного запуска."
+  },
+  {
+   "key": "crud_get",
+   "title": "Оба GET-запроса реализованы согласно ТЗ",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Оба GET-обработчика реализованы: Get возвращает 200/404/400, GetMany возвращает 200 со списком; формат JSON через dto.CourierResponse."
+  },
+  {
+   "key": "crud_post",
+   "title": "POST-запрос реализован согласно ТЗ",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "POST /courier реализован: декодирование JSON, валидация обязательных полей, статуса и телефона, ответ 201 Created с id, обработка ошибок 400/409."
+  },
+  {
+   "key": "crud_put",
+   "title": "PUT-запрос реализован согласно ТЗ",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "PUT-запрос реализован: handler принимает тело с id, usecase вызывает repository, который возвращает ErrNotFound при отсутствии строки, что маппится в 404."
+  },
+  {
+   "key": "handlers_in_internal",
+   "title": "Код обработчиков вынесен в internal",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 7,
+   "dropped": 0,
+   "flags": [],
+   "class": "formal",
+   "reason": "Проверено кодом: grep: вхождений 'http\\\\.ResponseWriter|gin\\\\.Context|echo\\\\.Context': 7 (нужно от 1)"
+  },
+  {
+   "key": "sql_safety",
+   "title": "В коде нет sql-инъекций, в миграциях нет функций на БД",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.5,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Все SQL-запросы используют плейсхолдеры $1..$n с параметрами, конкатенации пользовательских данных нет. В миграциях отсутствуют CREATE FUNCTION."
+  },
+  {
+   "key": "pgx",
+   "title": "Используется пакет pgx",
+   "max": 0.5,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "formal",
+   "reason": "Проверено кодом: grep: вхождений 'jackc/pgx': 1 (нужно от 1)"
+  },
+  {
+   "key": "clean_layers",
+   "title": "Выделены слои инфраструктуры, домена, базы (internal/handler, internal/usecase, internal/repository, internal/model)",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.5,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Слои выделены: internal/handlers (HTTP), internal/usecase (бизнес-логика), internal/repository (БД), internal/entity и internal/model (домен), связаны через main."
+  },
+  {
+   "key": "di_constructors",
+   "title": "Все зависимости внедряются через конструкторы",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.5,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Все зависимости внедряются через конструкторы New*, принимающие зависимости параметрами; глобальных синглтонов нет."
+  },
+  {
+   "key": "constructors_interfaces",
+   "title": "Конструкторы на вход ждут интерфейсы, возвращают структуры или указатели",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Конструкторы NewCourierUseCase и NewCourierController принимают приватные интерфейсы и возвращают указатели, но NewCourierRepository принимает конкретный *pgxpool.Pool, а не интерфейс."
+  },
+  {
+   "key": "interfaces_at_use",
+   "title": "Интерфейсы расположены в месте использования, а не реализации",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Интерфейс courierRepository объявлен в пакете usecase (потребителе), а не в repository, что соответствует критерию."
+  },
+  {
+   "key": "interfaces_private",
+   "title": "Интерфейсы приватные",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Оба интерфейса объявлены с маленькой буквы, что соответствует требованию приватности."
+  },
+  {
+   "key": "no_layer_leaks",
+   "title": "Нет утечек между слоями (нет json/db тегов в моделях БД)",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Доменная модель entity.Courier не содержит json/db-тегов, а транспортные DTO вынесены в отдельный пакет internal/dto с json-тегами."
+  },
+  {
+   "key": "no_sql_in_usecase",
+   "title": "Нет ошибок sql в usecase/service",
+   "max": 1.5,
+   "status": "suggested",
+   "points": 1.5,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В usecase нет SQL-зависимостей: импортируются только доменные пакеты, а ошибки БД маппятся в доменные sentinel-ошибки в репозитории."
+  },
+  {
+   "key": "no_logic_in_handlers",
+   "title": "Нет логики в handlers",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 1.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Handler только разбирает запрос, вызывает usecase и формирует ответ; бизнес-правила вынесены в usecase."
+  },
+  {
+   "key": "thin_models",
+   "title": "Тонкие модели и handlers",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 0.5,
+   "confidence": "low",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "judgement",
+   "reason": "Модель Courier тонкая, без методов с логикой, но в срезе нет файлов обработчиков (internal/**/handler*), поэтому оценить их толщину невозможно."
+  },
+  {
+   "key": "layer_packages",
+   "title": "Каждый слой (handlers, repo) внутри содержит пакеты по сущностям",
+   "max": 1.0,
+   "status": "suggested",
+   "points": 0.0,
+   "confidence": "high",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "Слой handlers и repository не разбиты на пакеты по сущностям: весь код лежит в одном пакете handlers и одном пакете repository, а не в подпакетах вида internal/handler/courier."
+  },
+  {
+   "key": "di_package",
+   "title": "Для DI используется дополнительный пакет (например dig), код разделён по чистой архитектуре",
+   "max": 2.0,
+   "status": "suggested",
+   "points": 0.0,
+   "confidence": "high",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "class": "content",
+   "reason": "В go.mod отсутствуют DI-библиотеки (dig/fx/wire/do), DI выполнен вручную в main. Критерий требует дополнительный DI-пакет."
+  }
+ ],
+ "ledger": {
+  "calls": 75,
+  "prompt_tokens": 1364409,
+  "completion_tokens": 92724,
+  "cache_hit_tokens": 1332224,
+  "cost_usd": 0.05065,
+  "cost_rub": 4.05,
+  "usd_rub": 80.0,
+  "usd_rub_note": "допущение",
+  "elapsed_seconds": 609.2,
+  "by_tag": {
+   "harness": {
+    "calls": 1,
+    "prompt_tokens": 16490,
+    "completion_tokens": 19803,
+    "cost_usd": 0.00592
+   },
+   "judge:start_log#1": {
+    "calls": 1,
+    "prompt_tokens": 13160,
+    "completion_tokens": 724,
+    "cost_usd": 0.0011
+   },
+   "judge:server_starts#1": {
+    "calls": 1,
+    "prompt_tokens": 19991,
+    "completion_tokens": 997,
+    "cost_usd": 0.00208
+   },
+   "judge:port_env#1": {
+    "calls": 1,
+    "prompt_tokens": 19958,
+    "completion_tokens": 1068,
+    "cost_usd": 0.00207
+   },
+   "judge:start_log#2": {
+    "calls": 1,
+    "prompt_tokens": 6580,
+    "completion_tokens": 386,
+    "cost_usd": 0.00013
+   },
+   "judge:code_quality#1": {
+    "calls": 1,
+    "prompt_tokens": 25148,
+    "completion_tokens": 1930,
+    "cost_usd": 0.0028
+   },
+   "judge:server_starts#2": {
+    "calls": 1,
+    "prompt_tokens": 19991,
+    "completion_tokens": 978,
+    "cost_usd": 0.00037
+   },
+   "judge:ping#1": {
+    "calls": 1,
+    "prompt_tokens": 20129,
+    "completion_tokens": 853,
+    "cost_usd": 0.00125
+   },
+   "judge:port_env#2": {
+    "calls": 1,
+    "prompt_tokens": 19958,
+    "completion_tokens": 1181,
+    "cost_usd": 0.00042
+   },
+   "judge:healthcheck#1": {
+    "calls": 1,
+    "prompt_tokens": 19838,
+    "completion_tokens": 720,
+    "cost_usd": 0.00049
+   },
+   "judge:ping#2": {
+    "calls": 1,
+    "prompt_tokens": 20129,
+    "completion_tokens": 855,
+    "cost_usd": 0.00032
+   },
+   "judge:graceful_signal#1": {
+    "calls": 1,
+    "prompt_tokens": 19883,
+    "completion_tokens": 1040,
+    "cost_usd": 0.00058
+   },
+   "judge:code_quality#2": {
+    "calls": 1,
+    "prompt_tokens": 25148,
+    "completion_tokens": 1848,
+    "cost_usd": 0.00061
+   },
+   "judge:healthcheck#2": {
+    "calls": 1,
+    "prompt_tokens": 19838,
+    "completion_tokens": 678,
+    "cost_usd": 0.00028
+   },
+   "judge:graceful_context#1": {
+    "calls": 1,
+    "prompt_tokens": 19805,
+    "completion_tokens": 844,
+    "cost_usd": 0.0005
+   },
+   "judge:graceful_signal#2": {
+    "calls": 1,
+    "prompt_tokens": 19883,
+    "completion_tokens": 991,
+    "cost_usd": 0.00037
+   },
+   "judge:shutdown_log#1": {
+    "calls": 1,
+    "prompt_tokens": 13034,
+    "completion_tokens": 565,
+    "cost_usd": 0.00026
+   },
+   "judge:shutdown_log#2": {
+    "calls": 1,
+    "prompt_tokens": 13034,
+    "completion_tokens": 594,
+    "cost_usd": 0.00023
+   },
+   "judge:graceful_context#2": {
+    "calls": 1,
+    "prompt_tokens": 19805,
+    "completion_tokens": 882,
+    "cost_usd": 0.00033
+   },
+   "judge:port_flag#1": {
+    "calls": 1,
+    "prompt_tokens": 19568,
+    "completion_tokens": 624,
+    "cost_usd": 0.00042
+   },
+   "observe:code_quality": {
+    "calls": 1,
+    "prompt_tokens": 32782,
+    "completion_tokens": 1584,
+    "cost_usd": 0.00055
+   },
+   "judge:flag_over_env#1": {
+    "calls": 1,
+    "prompt_tokens": 19763,
+    "completion_tokens": 764,
+    "cost_usd": 0.00047
+   },
+   "judge:port_flag#2": {
+    "calls": 1,
+    "prompt_tokens": 19568,
+    "completion_tokens": 651,
+    "cost_usd": 0.00027
+   },
+   "judge:db_defer_close#1": {
+    "calls": 1,
+    "prompt_tokens": 19466,
+    "completion_tokens": 528,
+    "cost_usd": 0.00038
+   },
+   "judge:db_connect#1": {
+    "calls": 1,
+    "prompt_tokens": 19922,
+    "completion_tokens": 1022,
+    "cost_usd": 0.00056
+   },
+   "judge:db_ping#1": {
+    "calls": 1,
+    "prompt_tokens": 6527,
+    "completion_tokens": 247,
+    "cost_usd": 0.00014
+   },
+   "judge:db_defer_close#2": {
+    "calls": 1,
+    "prompt_tokens": 6479,
+    "completion_tokens": 221,
+    "cost_usd": 9e-05
+   },
+   "judge:db_ping#2": {
+    "calls": 1,
+    "prompt_tokens": 6527,
+    "completion_tokens": 248,
+    "cost_usd": 0.00011
+   },
+   "judge:flag_over_env#2": {
+    "calls": 1,
+    "prompt_tokens": 19763,
+    "completion_tokens": 763,
+    "cost_usd": 0.00029
+   },
+   "judge:db_connect#2": {
+    "calls": 1,
+    "prompt_tokens": 19922,
+    "completion_tokens": 1022,
+    "cost_usd": 0.00037
+   },
+   "judge:db_ping_retry#1": {
+    "calls": 1,
+    "prompt_tokens": 19652,
+    "completion_tokens": 760,
+    "cost_usd": 0.00045
+   },
+   "judge:migrations_command#1": {
+    "calls": 1,
+    "prompt_tokens": 5429,
+    "completion_tokens": 278,
+    "cost_usd": 0.00021
+   },
+   "judge:db_panic#1": {
+    "calls": 1,
+    "prompt_tokens": 19658,
+    "completion_tokens": 815,
+    "cost_usd": 0.00047
+   },
+   "judge:migrations_tool#1": {
+    "calls": 1,
+    "prompt_tokens": 16862,
+    "completion_tokens": 840,
+    "cost_usd": 0.00163
+   },
+   "judge:db_ping_retry#2": {
+    "calls": 1,
+    "prompt_tokens": 19652,
+    "completion_tokens": 762,
+    "cost_usd": 0.00028
+   },
+   "judge:migrations_command#2": {
+    "calls": 1,
+    "prompt_tokens": 16316,
+    "completion_tokens": 730,
+    "cost_usd": 0.00047
+   },
+   "judge:db_panic#2": {
+    "calls": 1,
+    "prompt_tokens": 19658,
+    "completion_tokens": 756,
+    "cost_usd": 0.00028
+   },
+   "judge:migrations_tool#2": {
+    "calls": 1,
+    "prompt_tokens": 16862,
+    "completion_tokens": 834,
+    "cost_usd": 0.00031
+   },
+   "judge:migrations_clean#1": {
+    "calls": 1,
+    "prompt_tokens": 15803,
+    "completion_tokens": 961,
+    "cost_usd": 0.00058
+   },
+   "judge:migrations_idempotent#1": {
+    "calls": 1,
+    "prompt_tokens": 16826,
+    "completion_tokens": 831,
+    "cost_usd": 0.00055
+   },
+   "judge:crud_get#1": {
+    "calls": 1,
+    "prompt_tokens": 20213,
+    "completion_tokens": 2002,
+    "cost_usd": 0.0013
+   },
+   "judge:crud_post#1": {
+    "calls": 1,
+    "prompt_tokens": 24647,
+    "completion_tokens": 1774,
+    "cost_usd": 0.00165
+   },
+   "judge:migrations_clean#2": {
+    "calls": 1,
+    "prompt_tokens": 15803,
+    "completion_tokens": 985,
+    "cost_usd": 0.00033
+   },
+   "judge:migrations_idempotent#2": {
+    "calls": 1,
+    "prompt_tokens": 16826,
+    "completion_tokens": 840,
+    "cost_usd": 0.00033
+   },
+   "judge:sql_safety#1": {
+    "calls": 1,
+    "prompt_tokens": 19121,
+    "completion_tokens": 1343,
+    "cost_usd": 0.00102
+   },
+   "judge:crud_get#2": {
+    "calls": 1,
+    "prompt_tokens": 20213,
+    "completion_tokens": 1973,
+    "cost_usd": 0.00064
+   },
+   "judge:crud_post#2": {
+    "calls": 1,
+    "prompt_tokens": 24647,
+    "completion_tokens": 2005,
+    "cost_usd": 0.00064
+   },
+   "judge:crud_put#1": {
+    "calls": 1,
+    "prompt_tokens": 23594,
+    "completion_tokens": 1782,
+    "cost_usd": 0.00115
+   },
+   "judge:di_constructors#1": {
+    "calls": 1,
+    "prompt_tokens": 24221,
+    "completion_tokens": 966,
+    "cost_usd": 0.00097
+   },
+   "judge:clean_layers#1": {
+    "calls": 1,
+    "prompt_tokens": 19793,
+    "completion_tokens": 1043,
+    "cost_usd": 0.00055
+   },
+   "judge:sql_safety#2": {
+    "calls": 1,
+    "prompt_tokens": 19121,
+    "completion_tokens": 1357,
+    "cost_usd": 0.00048
+   },
+   "judge:crud_put#2": {
+    "calls": 1,
+    "prompt_tokens": 23594,
+    "completion_tokens": 1913,
+    "cost_usd": 0.00063
+   },
+   "judge:di_constructors#2": {
+    "calls": 1,
+    "prompt_tokens": 24221,
+    "completion_tokens": 975,
+    "cost_usd": 0.00038
+   },
+   "judge:constructors_interfaces#1": {
+    "calls": 1,
+    "prompt_tokens": 28070,
+    "completion_tokens": 1104,
+    "cost_usd": 0.00136
+   },
+   "judge:clean_layers#2": {
+    "calls": 1,
+    "prompt_tokens": 19793,
+    "completion_tokens": 1178,
+    "cost_usd": 0.00041
+   },
+   "judge:interfaces_private#1": {
+    "calls": 1,
+    "prompt_tokens": 16019,
+    "completion_tokens": 651,
+    "cost_usd": 0.00053
+   },
+   "judge:interfaces_at_use#1": {
+    "calls": 1,
+    "prompt_tokens": 16643,
+    "completion_tokens": 1061,
+    "cost_usd": 0.0007
+   },
+   "judge:constructors_interfaces#2": {
+    "calls": 1,
+    "prompt_tokens": 28070,
+    "completion_tokens": 1124,
+    "cost_usd": 0.0004
+   },
+   "judge:no_layer_leaks#1": {
+    "calls": 1,
+    "prompt_tokens": 16184,
+    "completion_tokens": 927,
+    "cost_usd": 0.00061
+   },
+   "judge:interfaces_private#2": {
+    "calls": 1,
+    "prompt_tokens": 16019,
+    "completion_tokens": 651,
+    "cost_usd": 0.00026
+   },
+   "judge:interfaces_at_use#2": {
+    "calls": 1,
+    "prompt_tokens": 16643,
+    "completion_tokens": 1041,
+    "cost_usd": 0.00036
+   },
+   "judge:no_layer_leaks#2": {
+    "calls": 1,
+    "prompt_tokens": 16184,
+    "completion_tokens": 988,
+    "cost_usd": 0.00033
+   },
+   "judge:no_sql_in_usecase#1": {
+    "calls": 1,
+    "prompt_tokens": 20099,
+    "completion_tokens": 1149,
+    "cost_usd": 0.00105
+   },
+   "judge:no_logic_in_handlers#1": {
+    "calls": 1,
+    "prompt_tokens": 19682,
+    "completion_tokens": 1480,
+    "cost_usd": 0.00069
+   },
+   "judge:thin_models#1": {
+    "calls": 1,
+    "prompt_tokens": 15893,
+    "completion_tokens": 1066,
+    "cost_usd": 0.00063
+   },
+   "judge:no_logic_in_handlers#2": {
+    "calls": 1,
+    "prompt_tokens": 6551,
+    "completion_tokens": 484,
+    "cost_usd": 0.00016
+   },
+   "judge:layer_packages#1": {
+    "calls": 1,
+    "prompt_tokens": 23369,
+    "completion_tokens": 919,
+    "cost_usd": 0.00054
+   },
+   "judge:no_sql_in_usecase#2": {
+    "calls": 1,
+    "prompt_tokens": 20099,
+    "completion_tokens": 1131,
+    "cost_usd": 0.00039
+   },
+   "judge:thin_models#2": {
+    "calls": 1,
+    "prompt_tokens": 15893,
+    "completion_tokens": 1074,
+    "cost_usd": 0.00037
+   },
+   "judge:di_package#1": {
+    "calls": 1,
+    "prompt_tokens": 10928,
+    "completion_tokens": 1150,
+    "cost_usd": 0.00048
+   },
+   "judge:layer_packages#2": {
+    "calls": 1,
+    "prompt_tokens": 23369,
+    "completion_tokens": 969,
+    "cost_usd": 0.00036
+   },
+   "judge:di_package#2": {
+    "calls": 1,
+    "prompt_tokens": 10928,
+    "completion_tokens": 1174,
+    "cost_usd": 0.00038
+   },
+   "observe:thin_models": {
+    "calls": 1,
+    "prompt_tokens": 32725,
+    "completion_tokens": 1724,
+    "cost_usd": 0.00059
+   },
+   "qa_questions": {
+    "calls": 1,
+    "prompt_tokens": 3309,
+    "completion_tokens": 254,
+    "cost_usd": 0.00048
+   },
+   "feedback": {
+    "calls": 1,
+    "prompt_tokens": 3118,
+    "completion_tokens": 289,
+    "cost_usd": 0.00052
+   }
+  }
+ },
+ "elapsed": 262.2,
+ "harness": {
+  "source": "harness",
+  "elapsed": 132.2,
+  "error": null,
+  "session_id": "session-c537578b-ac77-4a73-b629-c8a9e3ee8a38",
+  "usage": {
+   "prompt_tokens": 16490,
+   "completion_tokens": 19803
+  },
+  "criteria": {
+   "code_quality": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Имена осмысленные, функции небольшие, комментарии есть. Циклических зависимостей нет (импорты только вниз по слоям). Небольшое дублирование: три похожие структуры Courier (entity/model/dto) с ручными конвертациями, regexp компилируется повторно в Create/Update usecase; usecase импортирует repository"
+   },
+   "server_starts": {
+    "found": true,
+    "quotes": 1,
+    "notes": "http.Server (stdlib net/http) + chi-роутер, запуск через srv.ListenAndServe(). Фактический запуск тестом курса не проверялся здесь — по коду сервер стартует."
+   },
+   "port_env": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Порт читается из os.Getenv(\"PORT\"), а .env загружается godotenv.Load(). Значение используется в srv.Addr (строка 41)."
+   },
+   "start_log": {
+    "found": false,
+    "quotes": 1,
+    "notes": "Сообщение о старте есть, но пишется стандартным пакетом log, который по умолчанию выводит в stderr, а не в stdout. Поиск по всему дереву: SetOutput, os.Stdout, slog, zap, zerolog — не найдено ни одного вхождения. Требование «лог старта уходит в stdout» не выполнено."
+   },
+   "ping": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Метод GET (r.Get), тело {\"message\":\"pong\"}, статус не задан явно — по умолчанию 200 OK. Соответствует ТЗ."
+   },
+   "healthcheck": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Зарегистрирован именно метод HEAD, обработчик возвращает 204 No Content без тела — по ТЗ."
+   },
+   "graceful_signal": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Подписка на SIGINT/SIGTERM через signal.NotifyContext и вызов srv.Shutdown в отдельной горутине (go gracefulShutdown, строка 48); main корректно выходит из ListenAndServe при ErrServerClosed."
+   },
+   "graceful_context": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Shutdown получает контекст с таймаутом (context.WithTimeout), сигналы через NotifyContext — оба варианта из подсказки на месте."
+   },
+   "shutdown_log": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Сообщение «Shutting down service-courier» выводится в момент остановки (перед Shutdown). Оговорка: выводится стандартным log в stderr (см. start_log), но сам факт сообщения есть."
+   },
+   "port_flag": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Флаг --port обрабатывается пакетом github.com/spf13/pflag (алиас flag), формат go run cmd/service-courier/main.go --port 3000 поддержан."
+   },
+   "flag_over_env": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Сначала берётся PORT из окружения/.env, затем, если флаг --port задан непустым значением, он перезаписывает env — приоритет флага реализован явно."
+   },
+   "db_connect": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Подключение pgxpool в main (initDBPool), DSN собирается из конфига/окружения (POSTGRES_*), не захардкожен. Вызывается из main строками 30-34."
+   },
+   "db_defer_close": {
+    "found": true,
+    "quotes": 1,
+    "notes": "defer db.Close() сразу после создания пула — закрытие соединения гарантировано."
+   },
+   "db_ping": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Ping к БД (pool.Ping) выполняется сразу после создания пула — это запрос к БД, а не HTTP /ping."
+   },
+   "db_ping_retry": {
+    "found": false,
+    "quotes": 1,
+    "notes": "Ping вызывается ровно один раз, без цикла повторов и задержек. Поиск по дереву: retry/backoff/Ticker/time.Sleep — совпадений нет. Один вызов без повторов = fail."
+   },
+   "db_panic": {
+    "found": true,
+    "quotes": 2,
+    "notes": "При ошибке подключения/пинга процесс завершается через log.Fatal (допустимая по критерию альтернатива panic). Оговорка: ретраев перед этим нет (см. db_ping_retry)."
+   },
+   "migrations_tool": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Миграции в goose-формате (-- +goose Up/Down), запуск через CLI goose из Makefile. Сам goose в go.mod/go.sum не подключён — используется как внешний инструмент (это допустимо)."
+   },
+   "migrations_command": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Команда запуска миграций — цель migrate-up в Makefile. В main.go goose не вызывается (grep по goose: только .sql и Makefile), миграции не накатываются из кода."
+   },
+   "migrations_clean": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Косвенно по коду: единственная миграция создаёт таблицу couriers со всеми колонками (id,name,phone,status), которые использует repository (SELECT/INSERT/UPDATE по couriers). Фактический прогон goose up на чистой базе нужен ревьюеру — confidence low."
+   },
+   "migrations_idempotent": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Инструмент goose ведёт таблицу версий (goose_db_version) + в SQL стоит IF NOT EXISTS (и DROP IF EXISTS в Down). Повторный запуск goose up не должен падать; фактический повторный прогон нужен ревьюеру — confidence low."
+   },
+   "crud_get": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Оба GET реализованы: GET /courier/{id} (200/404/400 при невалидном id), GET /couriers (200, массив). Маршруты: cmd/service-courier/main.go строки 109-110. Формат JSON через dto.CourierResponse. Прогон тестом курса hw2 здесь не выполнялся."
+   },
+   "crud_post": {
+    "found": true,
+    "quotes": 2,
+    "notes": "POST /courier (main.go строка 111): декодирование JSON, валидация обязательных полей/статуса/телефона в usecase, ответ 201 Created с {\"id\":...}, 400/409 при ошибках."
+   },
+   "crud_put": {
+    "found": true,
+    "quotes": 2,
+    "notes": "PUT /courier (main.go строка 112), id передаётся в теле запроса (dto.CourierUpdateRequest.ID). 404 при отсутствии курьера: repository → ErrNotFound (0 затронутых строк), usecase маппит в ErrNotFound, handler → 404. Точный формат по ТЗ (id в URL или теле) в выданном тексте задания обрезан — проверить"
+   },
+   "sql_safety": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Все SQL-запросы используют плейсхолдеры $1..$n с параметрами; конкатенации/fmt.Sprintf пользовательских данных нет. В миграции CREATE FUNCTION отсутствует (grep не дал совпадений) — только CREATE TABLE/DROP TABLE."
+   },
+   "clean_layers": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Дерево пакетов: cmd/, internal/handlers (delivery), internal/usecase (service), internal/repository (storage), internal/entity и internal/model (домен), internal/dto (транспорт). Слои выделены и связаны через main."
+   },
+   "di_constructors": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Все зависимости внедряются через New*-конструкторы (repository ← pool; usecase ← repository; controller ← usecase) в main строках 36-38. Глобальных синглтонов нет."
+   },
+   "constructors_interfaces": {
+    "found": true,
+    "quotes": 3,
+    "notes": "NewCourierUseCase и NewCourierController принимают приватные интерфейсы и возвращают указатели. Оговорка: NewCourierRepository принимает конкретный *pgxpool.Pool (инфраструктурный тип на нижнем слое), а не интерфейс."
+   },
+   "interfaces_at_use": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Интерфейс courierRepository объявлен в пакете usecase (потребителе), courierUseCase — в пакете handlers (потребителе); в repository/implementations интерфейсов нет."
+   },
+   "interfaces_private": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Оба интерфейса объявлены с маленькой буквы (приватные)."
+   },
+   "no_layer_leaks": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Доменные модели (entity.Courier, model.Courier) без json/db-тегов; json-теги есть только в dto (транспортный слой). Утечек тегов в домен нет."
+   },
+   "no_sql_in_usecase": {
+    "found": true,
+    "quotes": 2,
+    "notes": "В usecase нет импортов database/sql или pgx — только доменные пакеты; ошибки БД маппятся в доменные sentinel-ошибки (ErrNotFound/ErrConflict). Единственная связка с repository — сравнение sentinel-ошибок."
+   },
+   "no_logic_in_handlers": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Handler разбирает запрос (URL-параметр/JSON), вызывает usecase и пишет ответ; валидация бизнес-полей (статус, телефон) вынесена в usecase. В handler осталось только сопоставление ошибок с HTTP-кодами."
+   },
+   "thin_models": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Модели — тонкие структуры без методов с логикой; единственная функция IsValidStatus — чистая проверка. Обработчики короткие (делегирование в usecase)."
+   },
+   "layer_packages": {
+    "found": false,
+    "quotes": 2,
+    "notes": "Внутри слоёв нет подпакетов по сущностям: весь handlers лежит в одном пакете handlers, весь repository — в одном пакете repository (usecase аналогично). Файлы называются courier.go, но структуры internal/handler/courier, internal/repository/courier нет. В проекте пока только одна сущность (courier),"
+   },
+   "di_package": {
+    "found": false,
+    "quotes": 1,
+    "notes": "В go.mod нет DI-библиотек (dig/fx/wire/do и т.п.); DI выполнен вручную в main строками 36-38. Критерий (дополнительный DI-пакет) не выполнен."
+   }
+  }
+ },
+ "signal": {
+  "level": "low",
+  "declaration": "not_declared",
+  "grounds": [],
+  "not_available": [
+   "история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны",
+   "стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам"
+  ],
+  "questions": [
+   "В критериях отмечено, что лог старта пишется стандартным пакетом log, который по умолчанию выводит в stderr, а не в stdout. Расскажи, как именно у тебя настроен вывод логов и что нужно изменить, чтобы сообщение о старте гарантированно попадало в stdout?",
+   "В коде Ping к базе данных выполняется один раз без цикла повторов. Что произойдёт, если база данных ещё не успела подняться к моменту старта сервиса, и как можно было бы сделать подключение более устойчивым?",
+   "Приоритет порта: сначала читается PORT из окружения, затем флаг --port перезаписывает его. Объясни, что произойдёт, если пользователь запустит сервис с флагом --port, но при этом в .env-файле PORT не задан — какой порт в итоге будет использован и почему?"
+  ]
+ },
+ "errors": [],
+ "model": "deepseek-v4-flash",
+ "prompt_versions": {
+  "class_guidance": "f5f45b82f7cd",
+  "feedback": "be7d74d90e5a",
+  "harness_repo_task": "a8e3cccb9452",
+  "judge_criterion": "599452a78f75",
+  "observations": "6ec991a22e85",
+  "qa_questions": "47ca1e8e0f27",
+  "self_review": "ff175738fa94"
+ },
+ "feedback_draft": "Привет! Спасибо за работу, вот что нужно поправить:\n\n1. Настрой вывод лога старта в stdout: сейчас используется `log.Printf`, который пишет в stderr. Добавь `log.SetOutput(os.Stdout)` или перейди на `slog`.\n2. Добавь ретрай с задержкой вокруг вызова `pool.Ping` при подключении к БД — сейчас он вызывается один раз.\n3. Измени `NewCourierRepository`, чтобы он принимал интерфейс, а не конкретный `*pgxpool.Pool`.\n4. Разбей код внутри слоёв `handlers` и `repository` на подпакеты по сущностям, например `internal/handler/courier` и `internal/repository/courier`.\n5. Добавь DI-библиотеку (например, `uber-go/dig`) и используй контейнер в `main.go` — сейчас DI выполнен вручную.\n6. Убедись, что файлы обработчиков присутствуют в срезе и они короткие, без бизнес-логики.\n\nХорошо, что структура проекта чистая, слои выделены, зависимости внедряются через конструкторы, а SQL-запросы используют плейсхолдеры.",
+ "at": "2026-09-05T19:39:24.778191+00:00"
+}
