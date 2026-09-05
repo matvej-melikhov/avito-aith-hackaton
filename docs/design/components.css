@@ -256,15 +256,16 @@ a:hover { border-bottom-color: var(--ink); }
 .scale > * { min-width: 32px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
              font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
              border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
-/* Выбранное значение — пилюля внутри пилюли, углы обоих полные: промежуточных
-   радиусов в системе нет, а прямой угол внутри скруглённой рамки читается
-   как артефакт вёрстки.                                                     */
-.scale > .is-on { color: var(--ink); font-weight: var(--w-semi);
-                  box-shadow: inset 0 0 0 1px var(--ink); }
+/* Выбранное значение — залитая пилюля внутри пилюли, углы обоих полные:
+   промежуточных радиусов в системе нет, а прямой угол внутри скруглённой
+   рамки читается как артефакт вёрстки. Заливка, а не контур: балл ставит
+   ревьюер, это главное действие на строке требования, и в ряду из девяти
+   строк выбранное значение должно находиться взглядом сразу.                */
+.scale > .is-on { background: var(--ink); color: var(--surface); font-weight: var(--w-semi); }
 /* Края шкалы окрашены: ноль красный, максимум зелёный. Промежуточные
    значения остаются чёрными, у них нет своего смысла.                       */
-.scale--zero > .is-on { background: var(--red-wash);   color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
-.scale--max  > .is-on { background: var(--green-wash); color: var(--ok);  box-shadow: inset 0 0 0 1px var(--ok); }
+.scale--zero > .is-on { background: var(--bad); color: var(--surface); }
+.scale--max  > .is-on { background: var(--ok);  color: var(--surface); }
 
 /* --- Табы и крошки -------------------------------------------------------- */
 
@@ -330,7 +331,9 @@ a:hover { border-bottom-color: var(--ink); }
       font-size: 11px; font-weight: var(--w-semi); border: var(--bw-hair) solid;
       background: var(--surface); line-height: 1; }
 .ck--y { border-color: var(--ok);    color: var(--ok); }
-.ck--n { border-color: var(--bad);   color: var(--bad); }
+/* Крестик U+2715 нарисован в шрифте мельче галочки U+2713, поэтому кегль
+   у него свой: на глаз знаки должны быть одного размера.                   */
+.ck--n { border-color: var(--bad);   color: var(--bad); font-size: 13px; }
 .ck--h { border-color: var(--human); color: var(--human); border-radius: var(--r-circle); }
 .ck--q { border-color: var(--line-2); color: var(--ink-3); border-radius: var(--r-circle); }
 
