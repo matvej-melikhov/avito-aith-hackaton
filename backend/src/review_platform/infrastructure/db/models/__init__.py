@@ -40,6 +40,13 @@ from review_platform.infrastructure.db.models.operations import (
     OutboxMessage,
 )
 from review_platform.infrastructure.db.models.organization import Organization
+from review_platform.infrastructure.db.models.publication import (
+    ExternalDelivery,
+    PublicationRequest,
+    ReviewImpactEvent,
+    ReviewIterationRelation,
+    ReviewPublication,
+)
 from review_platform.infrastructure.db.models.review_case import ReviewCase, ReviewIteration
 from review_platform.infrastructure.db.models.review_revision import (
     ReviewCriterionDecision,
@@ -82,6 +89,7 @@ __all__ = [
     "DestinationBinding",
     "ExternalCourseBinding",
     "ExternalCredential",
+    "ExternalDelivery",
     "ExternalIdentity",
     "Homework",
     "HomeworkVersion",
@@ -92,10 +100,14 @@ __all__ = [
     "Organization",
     "OrganizationMembership",
     "OutboxMessage",
+    "PublicationRequest",
     "ReviewCase",
     "ReviewCriterionDecision",
+    "ReviewImpactEvent",
     "ReviewIteration",
+    "ReviewIterationRelation",
     "ReviewNote",
+    "ReviewPublication",
     "ReviewResponsibility",
     "ReviewRevision",
     "ReviewerCourseSelection",
