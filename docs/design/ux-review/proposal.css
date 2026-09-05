@@ -31,13 +31,13 @@ body.proposed {
 .proposed .proposal-precheck {flex:1;min-width:240px;display:grid;justify-items:start;gap:var(--s-2)}
 .proposed .proposal-precheck .caption {max-width:48ch}
 .proposed .proposal-comment {min-height:var(--review-comment-h);height:auto}
-.proposed .proposal-criterion {padding:var(--s-5) 0;border-bottom:var(--bw-hair) solid var(--line)}
-.proposed .proposal-criterion:first-child {padding-top:0}
-.proposed .proposal-criterion-head {display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s-4)}
-.proposed .proposal-criterion .field {margin-bottom:var(--s-4)}
-.proposed .proposal-criterion textarea {height:auto;min-height:96px;line-height:var(--body-lh)}
-.proposed .proposal-criterion-settings {display:flex;gap:var(--s-6);flex-wrap:wrap}
-.proposed .proposal-criterion-settings .field {margin-bottom:0;min-width:0}
+.proposed .proposal-criteria .acc__h {display:grid;grid-template-columns:16px minmax(0,1fr) 180px 32px 16px;gap:var(--s-3)}
+.proposed .proposal-criteria .acc__h .acc__chev {grid-column:5}
+.proposed .proposal-criteria .proposal-criterion-title {grid-column:2 / 5;min-width:0}
+.proposed .proposal-criteria .acc__h .caption {min-width:0}
+.proposed .proposal-criteria textarea {height:auto;min-height:96px;line-height:var(--body-lh)}
+.proposed .proposal-order {display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-4)}
+.proposed .proposal-order .caption {margin-right:auto}
 .proposed .proposal-filters {display:flex;gap:var(--s-3);align-items:center;flex-wrap:wrap;margin-bottom:var(--s-5)}
 .proposed .proposal-search {width:var(--review-search-w)}
 .proposed .proposal-status-filter {display:flex;align-items:center;gap:var(--s-2);margin-left:auto}

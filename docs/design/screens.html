@@ -493,6 +493,15 @@ a:hover { border-bottom-color: var(--ink); }
 /* Шкала только для показа: так критерий будет выглядеть у ревьюера.         */
 .scale--ro > * { cursor: default; }
 
+/* Открытый критерий — форма, а не строка списка. Отделена подложкой, а не
+   тем, что часть текста вдруг стала полем: в списке либо всё текст, либо
+   всё поля. Подписано каждое поле, включая название, иначе название и
+   условие читаются как два несвязанных ящика подряд.                       */
+.crit { background: var(--surface-2); padding: var(--s-5); margin-bottom: var(--s-2); }
+.crit__top { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.crit__top .label { flex: 1; }
+.crit .inp { background: var(--surface); }
+
 /* Маркер вердикта. Форма несёт смысл наравне с цветом:
    квадрат с галочкой — выполнено, квадрат с минусом — нет,
    круг — решает человек.                                                    */
@@ -2244,8 +2253,8 @@ a.step { border: 0; }
 <section class="screen" id="К6">
   <div class="screen__head"><span class="screen__id">К6</span><h2>Задание, шаг 2: конфигурация ревью</h2></div>
   <p class="screen__note">Здесь собирается всё, по чему потом работают модель и ревьюер. У критерия четыре настройки: формулировка, условие «выполнено, если», как проверяем и сколько это стоит. Шкалу отдельно не задают, она собирается из числа баллов и шага. Ниже рекомендации ревьюерам — то, что раньше передавалось голосом на калибровочной встрече. Правила этого шага: порядок критериев меняется перетаскиванием и он же определяет порядок в разборе у ревьюера и студента. Рекомендации видят только ревьюеры. Условие «выполнено, если» студент видит после проверки, до сдачи ему видны только названия критериев и баллы. Уже проверенные работы остаются на своей версии критериев.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Шаг 1 в карте пройден и нажимается, это и есть возврат. Кнопка внизу одна и ведёт только вперёд. Критерии лежат тем же списком со стрелками, что и разбор у ревьюера на Р5: одинаковая настройка и одинаковый результат. Развёрнут тот, который правите, остальные свёрнуты в строку с классом проверки и баллом. Скрытых критериев нет, все девять на месте. Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг. Шкала не выбирается из готовых наборов, она считается: баллы за критерий и шаг дают ряд значений, и он тут же показан той самой пилюлей, которую увидит ревьюер. Внизу слева сумма, справа порог зачёта: сумма считается, порог задаёт человек, поэтому одно текстом, другое полем.</p>
-  <div class="shot" style="height:1072px"><div class="vp">
+  <p class="screen__what"><b>Что даёт стиль</b> Шаг 1 в карте пройден и нажимается, это и есть возврат. Кнопка внизу одна и ведёт только вперёд. Критерии лежат тем же списком со стрелками, что и разбор у ревьюера на Р5: одинаковая настройка и одинаковый результат. Скрытых критериев нет, все девять на месте: свёрнуты все, кроме того, который правите. Открытый — не строка с полем посередине, а форма на подложке, где подписано каждое поле, включая название. Иначе название и условие читаются как два одинаковых ящика подряд, а список выходит наполовину текстом, наполовину полями. Класс проверки задаётся сегментом из трёх значений — формальная, по смыслу с цитатой, на усмотрение ревьюера. Это ровно те три класса, которые на Р5 превращаются в квадрат, квадрат и круг. Шкала не выбирается из готовых наборов, она считается: баллы за критерий и шаг дают ряд значений, и он тут же показан той самой пилюлей, которую увидит ревьюер. Внизу одна строка: «Порог зачёта 4 балла из 6 возможных». Порог задаёт человек, поэтому он поле, шестёрка считается сама, поэтому она текст рядом. Отдельной строки с суммой нет, число и так стоит там, где оно нужно.</p>
+  <div class="shot" style="height:1130px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2283,34 +2292,37 @@ a.step { border: 0; }
                   <span class="btn btn--s btn--dark">Добавить критерий</span>
                 </div>
                 <div class="card__body">
-                  <div class="acc">
-                    <div class="acc__h">
+                  <div class="crit">
+                    <div class="crit__top">
                       <span class="drag"></span>
-                      <input class="inp" value="Выполнена декомпозиция по двум и более признакам">
+                      <span class="label">критерий 1 из 9</span>
                       <span class="acc__chev">&#9650;</span>
                     </div>
-                    <div class="acc__b">
-                      <label class="field">
-                        <span class="field__lbl">Выполнено, если</span>
-                        <input class="inp" value="в работе есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они">
-                      </label>
-                      <div class="field">
-                        <span class="field__lbl">Как проверяем</span>
-                        <div class="seg"><span>формальная</span><span class="is-on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
+                    <label class="field">
+                      <span class="field__lbl">Название, его студент видит до сдачи</span>
+                      <input class="inp" value="Выполнена декомпозиция по двум и более признакам">
+                    </label>
+                    <label class="field">
+                      <span class="field__lbl">Выполнено, если</span>
+                      <input class="inp" value="в работе есть минимум два разных разреза декомпозиции и объяснено, почему выбраны именно они">
+                      <span class="field__hint">По этой формулировке работают и модель, и ревьюер. Студент видит её после проверки.</span>
+                    </label>
+                    <div class="field">
+                      <span class="field__lbl">Как проверяем</span>
+                      <div class="seg"><span>формальная</span><span class="is-on">по смыслу, с цитатой</span><span>на усмотрение ревьюера</span></div>
+                    </div>
+                    <div style="display:flex;gap:var(--s-6);align-items:flex-start;flex-wrap:wrap">
+                      <div class="field" style="margin-bottom:0">
+                        <span class="field__lbl">Баллов за критерий</span>
+                        <div class="seg"><span>0,5</span><span class="is-on">1</span><span>2</span></div>
                       </div>
-                      <div style="display:flex;gap:var(--s-6);align-items:flex-start;flex-wrap:wrap">
-                        <div class="field" style="margin-bottom:0">
-                          <span class="field__lbl">Баллов за критерий</span>
-                          <div class="seg"><span>0,5</span><span class="is-on">1</span><span>2</span></div>
-                        </div>
-                        <div class="field" style="margin-bottom:0">
-                          <span class="field__lbl">Шаг</span>
-                          <div class="seg"><span class="is-on">1</span><span>0,5</span></div>
-                        </div>
-                        <div class="field" style="margin-bottom:0">
-                          <span class="field__lbl">Что увидит ревьюер</span>
-                          <span class="scale scale--ro"><span>0</span><span>1</span></span>
-                        </div>
+                      <div class="field" style="margin-bottom:0">
+                        <span class="field__lbl">Шаг</span>
+                        <div class="seg"><span class="is-on">1</span><span>0,5</span></div>
+                      </div>
+                      <div class="field" style="margin-bottom:0">
+                        <span class="field__lbl">Что увидит ревьюер</span>
+                        <span class="scale scale--ro"><span>0</span><span>1</span></span>
                       </div>
                     </div>
                   </div>
@@ -2370,12 +2382,10 @@ a.step { border: 0; }
                     <span class="mono" style="color:var(--ink);font-weight:var(--w-semi);min-width:28px;text-align:right">0,5</span>
                     <span class="acc__chev">&#9660;</span>
                   </div></div>
-                  <div class="kv" style="border-bottom:0;border-top:var(--bw-hair) solid var(--line-2);margin-top:var(--s-5)">
-                    <span class="muted">9 критериев, всего 6 баллов</span>
-                    <span style="display:flex;align-items:center;gap:var(--s-3)">
-                      <span class="small" style="font-weight:var(--w-medium)">Порог зачёта</span>
-                      <input class="inp inp--s mono" value="4" style="width:56px;text-align:center">
-                    </span>
+                  <div style="display:flex;align-items:center;gap:var(--s-3);padding-top:var(--s-5);margin-top:var(--s-4);border-top:var(--bw-hair) solid var(--line-2)">
+                    <span class="small" style="font-weight:var(--w-medium)">Порог зачёта</span>
+                    <input class="inp inp--s mono" value="4" style="width:56px;text-align:center">
+                    <span class="caption">балла из 6 возможных</span>
                   </div>
                 </div>
               </div>

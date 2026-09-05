@@ -32,13 +32,13 @@ const auditCases = [
     ['В плашке оранжевое «Нужны правки», а в результате красное «не прошла проверку». Второе можно принять за окончательный отказ.','В результате то же «Нужны правки» и тот же смысл цвета. Красными остаются невыполненные критерии.','resubmit-verdict'],
     ['Форма и действие называются как при первой сдаче: «Ваша работа», «Отправить на ревью».','«Исправленная работа» и «Отправить исправления». Ссылка и пояснение о сохранении первой попытки остаются.','submit-actions']
    ]},
-  {id:'criteria',screen:'К6',name:'Редактор критериев',title:'Дать длинным формулировкам полную ширину',kind:'Читаемость и редактирование',
-   summary:'Те же три показанных критерия, те же шкалы и классы проверки. Без автоматических оценок качества рубрики, новых метрик и новой модели публикации.',
+  {id:'criteria',screen:'К6',name:'Редактор критериев',title:'Сохранить новый список, улучшить редактирование и выравнивание',kind:'Читаемость и доступность',
+   summary:'В текущем К6 уже девять критериев, аккордеон и расчёт шкалы из баллов и шага. Всё это сохраняем. Правки касаются длинного условия и внутренней геометрии списка.',
    changes:[
-    ['Название делит строку со шкалой; условие выполнения — input без постоянной подписи. Конец длинного текста скрывается.','Название и условие занимают полную ширину. Условие — textarea с видимой подписью. Шкала и тип проверки вынесены в следующий ряд.','criterion-editor'],
-    ['Перестановка заявлена в описании, но у критерия нет очевидного элемента управления порядком.','Номер критерия и кнопки «Вверх» / «Вниз» с названиями для клавиатуры. Перенос можно проверить в макете.','criterion-editor'],
-    ['В длинной форме трудно увидеть, где заканчивается один критерий и начинается следующий.','Один повторяемый блок с номером, одинаковыми отступами и тонким разделителем; прямые углы сохранены.','criterion-editor']
-   ],caution:'На экране по-прежнему только три показанных критерия и сводная строка остальных шести — ровно как в исходнике. Перестановка в прототипе действует только внутри этих трёх.'},
+    ['У «Выполнено, если» уже есть подпись, но однострочный input скрывает конец формулировки.','Полноширинное многострочное поле под той же подписью. Текст условия не сокращён.','criterion-editor'],
+    ['В свёрнутых строках класс проверки имеет разную длину; свободный flex сдвигает границы колонок.','Общие столбцы названия, класса проверки, балла и стрелки. Длинные названия и классы переносятся внутри своих колонок.','criterion-list'],
+    ['У перестановки есть drag-handle, но нет показанного управления с клавиатуры.','У раскрытого критерия — две небольшие кнопки «Вверх» / «Вниз» и текущий номер. Остальные строки остаются компактными.','criterion-order']
+   ],caution:'Это предложение пересобрано после обновления К6. Старое замечание о трёх показанных критериях больше не актуально.'},
   {id:'registry',screen:'К8',name:'Реестр домашек',title:'Сделать фильтры одной строкой управления таблицей',kind:'Плотность и поиск',
    summary:'Семь статусов, восемь счётчиков, данные таблицы и действие выгрузки сохраняются. Меняется способ выбора статуса, а не жизненный цикл работы.',
    changes:[
@@ -144,23 +144,18 @@ function applyProposal(doc, item) {
    const form=card('Ваша работа');form.querySelector('h4').textContent='Исправленная работа';form.querySelector('.btn--pri').textContent='Отправить исправления';
  }
  if(item.id==='criteria'){
-   const body=card('Критерии').querySelector('.card__body');
-   const blocks=[...body.children].filter(el=>el.querySelector('input.inp'));
-   blocks.forEach((block,index)=>{
-     const inputs=[...block.querySelectorAll('input.inp')];const segments=[...block.querySelectorAll('.seg')];
-     const header=doc.createElement('div');header.className='proposal-criterion-head';
-     const number=doc.createElement('span');number.className='label proposal-number';number.textContent=`Критерий ${index+1}`;
-     const controls=doc.createElement('div');controls.className='btn-row';
-     for(const [text,direction] of [['↑','up'],['↓','down']]){const b=button(text,'btn btn--s btn--icon');b.dataset.move=direction;b.setAttribute('aria-label',`${direction==='up'?'Поднять':'Опустить'} критерий ${index+1}`);controls.append(b);}
-     header.append(number,controls);
-     const field=(labelText,control)=>{const label=doc.createElement('label');label.className='field';const span=doc.createElement('span');span.className='field__lbl';span.textContent=labelText;label.append(span,control);return label;};
-     inputs[0].removeAttribute('style');
-     const area=doc.createElement('textarea');area.className='inp inp--area';area.rows=3;area.textContent=inputs[1].value;
-     const settings=doc.createElement('div');settings.className='proposal-criterion-settings';
-     segments.forEach((seg,i)=>{const group=doc.createElement('div');group.className='field';const label=doc.createElement('span');label.className='field__lbl';label.textContent=i===0?'Шкала баллов':'Тип проверки';group.append(label,seg);settings.append(group);});
-     block.removeAttribute('style');block.className='proposal-criterion';block.replaceChildren(header,field('Название критерия',inputs[0]),field('Что считается выполненным',area),settings);mark(block,'criterion-editor');
-   });
-   root.dataset.reorder='true';
+   const criteria=card('Критерии');criteria.classList.add('proposal-criteria');mark(criteria,'criterion-list');
+   const body=criteria.querySelector('.card__body');const blocks=[...body.children].filter(el=>el.classList.contains('acc'));
+   if(blocks.length!==9)throw new Error('К6 изменился: перед пересборкой проверить структуру девяти критериев.');
+   blocks.forEach(block=>block.classList.add('proposal-criterion'));
+   const expanded=blocks.find(block=>block.querySelector('.acc__b'));const detail=expanded.querySelector('.acc__b');
+   const input=detail.querySelector('label.field input');const area=doc.createElement('textarea');
+   area.className='inp inp--area';area.rows=3;area.textContent=input.value;input.replaceWith(area);mark(area.closest('.field'),'criterion-editor');
+   const title=expanded.querySelector('.acc__h input');title.setAttribute('aria-label','Название критерия');title.classList.add('proposal-criterion-title');
+   const order=doc.createElement('div');order.className='proposal-order';
+   const number=doc.createElement('span');number.className='caption proposal-number';number.textContent='Критерий 1 из 9';order.append(number);
+   for(const [text,direction] of [['Вверх','up'],['Вниз','down']]){const b=button(text);b.dataset.move=direction;b.setAttribute('aria-label',(direction==='up'?'Поднять':'Опустить')+' критерий');order.append(b);}
+   detail.append(order);mark(order,'criterion-order');root.dataset.reorder='true';
  }
  if(item.id==='registry'){
    const tabs=query('.main > .tabs');const entries=[...tabs.querySelectorAll('.tab')];
@@ -202,14 +197,14 @@ function frameRuntime(){
  function localNotice(text){if(!notice){notice=document.createElement('div');notice.className='prototype-notice';notice.setAttribute('role','status');document.body.append(notice);}notice.textContent=text;notice.hidden=false;clearTimeout(localNotice.timer);localNotice.timer=setTimeout(()=>notice.hidden=true,3500);}
  document.addEventListener('click',event=>{
   const move=event.target.closest('[data-move]');
-  if(move){const block=move.closest('.proposal-criterion');const sibling=move.dataset.move==='up'?block.previousElementSibling:block.nextElementSibling;if(sibling?.classList.contains('proposal-criterion')){if(move.dataset.move==='up')sibling.before(block);else sibling.after(block);[...document.querySelectorAll('.proposal-criterion')].forEach((el,i)=>{el.querySelector('.proposal-number').textContent=`Критерий ${i+1}`;el.querySelectorAll('[data-move]').forEach(b=>b.setAttribute('aria-label',`${b.dataset.move==='up'?'Поднять':'Опустить'} критерий ${i+1}`));});move.focus();}return;}
+  if(move){const block=move.closest('.proposal-criterion');const sibling=move.dataset.move==='up'?block.previousElementSibling:block.nextElementSibling;if(sibling?.classList.contains('proposal-criterion')){if(move.dataset.move==='up')sibling.before(block);else sibling.after(block);[...document.querySelectorAll('.proposal-criterion')].forEach((el,i)=>{const number=el.querySelector('.proposal-number');if(number)number.textContent=`Критерий ${i+1} из 9`;el.querySelectorAll('[data-move]').forEach(b=>b.setAttribute('aria-label',`${b.dataset.move==='up'?'Поднять':'Опустить'} критерий ${i+1}`));});move.focus();}return;}
   const scale=event.target.closest('.proposal-review .scale button');
   if(scale){if(scale.closest('[data-custom]')){localNotice('Макет: влияние своего требования на максимум баллов ещё не определено.');return;}const group=scale.parentElement;[...group.children].forEach(b=>{b.classList.toggle('is-on',b===scale);b.setAttribute('aria-pressed',String(b===scale));});const n=s=>Number(s.replace(',','.'));const value=n(scale.textContent);const max=Math.max(...[...group.children].map(b=>n(b.textContent)));group.classList.toggle('scale--zero',value===0);group.classList.toggle('scale--max',value===max);const marker=group.closest('.acc__h').querySelector('.ck');if(marker&&!marker.classList.contains('ck--h')&&!marker.classList.contains('ck--q')){marker.classList.toggle('ck--y',value===max);marker.classList.toggle('ck--n',value<max);marker.textContent=value===max?'✓':'✕';}const total=[...document.querySelectorAll('.proposal-review .acc:not([data-custom]) .scale > .is-on')].reduce((sum,b)=>sum+n(b.textContent),0);const result=[...document.querySelectorAll('.card')].find(c=>c.querySelector('h4')?.textContent==='Результат');if(result){const rows=result.querySelectorAll('.card__body .kv');rows[0].lastElementChild.textContent=total.toLocaleString('ru-RU');rows[2].lastElementChild.innerHTML=`${(total-1).toLocaleString('ru-RU')}<span style="color:var(--ink-3);font-weight:400"> из 6</span>`;rows[2].lastElementChild.style.color=total-1<4?'var(--bad)':'var(--ink)';result.querySelector('.card__foot > div').style.color=total-1<4?'var(--bad)':'var(--ink-2)';result.querySelector('.card__foot > div').textContent=total-1<4?'Ниже порога зачёта, нужно 4 из 6. Выберите, что делать дальше.':'Порог зачёта пройден: 4 из 6.';}const summary=document.querySelector('.proposal-review .card__body > .kv:last-child');if(summary)summary.lastElementChild.textContent=`${total.toLocaleString('ru-RU')} из 6`;return;}
   const row=event.target.closest('.proposal-review .acc__h');
   if(row&&!event.target.closest('button')){const body=row.nextElementSibling;if(body?.classList.contains('acc__b')){body.hidden=!body.hidden;const c=row.querySelector('.acc__chev');if(c)c.textContent=body.hidden?'▼':'▲';report();}return;}
   const control=event.target.closest('button,a');if(control){event.preventDefault();localNotice('Макет: это действие не отправляет и не сохраняет данные.');}
  });
- if(document.body.dataset.registry){const input=document.querySelector('.proposal-search');const select=document.querySelector('.proposal-status-filter select');const rows=[...document.querySelectorAll('.main tbody tr')];const update=()=>{let count=0;rows.forEach(row=>{const status=row.querySelector('.st')?.textContent.trim();row.hidden=!(row.cells[0].textContent.includes(input.value.trim())&&(!select.value||status===select.value));if(!row.hidden)count++;});document.querySelector('[data-table-count]').textContent=`В макете: ${count} из 8 строк. Всего в потоке — 88.`;report();};input.addEventListener('input',update);select.addEventListener('change',update);}
+ if(document.body.dataset.registry){const input=document.querySelector('.proposal-search');const select=document.querySelector('.proposal-status-filter select');const rows=[...document.querySelectorAll('.main tbody tr')];const update=()=>{let count=0;rows.forEach(row=>{const status=row.querySelector('.st')?.textContent.trim();row.hidden=!(row.firstElementChild.textContent.includes(input.value.trim())&&(!select.value||status===select.value));if(!row.hidden)count++;});document.querySelector('[data-table-count]').textContent=`В макете: ${count} из 8 строк. Всего в потоке — 88.`;report();};input.addEventListener('input',update);select.addEventListener('change',update);}
  window.addEventListener('message',event=>{if(event.source!==parent)return;if(event.data.type==='audit-highlight'){document.body.classList.toggle('show-changes',event.data.show);}if(event.data.type==='audit-find'){const element=document.querySelector(`[data-change="${event.data.id}"]`);if(element)parent.postMessage({type:'audit-focus',y:element.getBoundingClientRect().top+window.scrollY},'*');}});
  // Keep custom added criteria outside the configured six-point total.
  document.querySelectorAll('.proposal-review .acc').forEach(el=>{if(el.textContent.includes('Своё требование'))el.dataset.custom='true';});
