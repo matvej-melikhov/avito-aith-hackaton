@@ -19,3 +19,9 @@ node_modules/
 Thumbs.db
 data/
 experiments/
+hw_examples/
+grader/blind_full/
+grader/blind/
+grader/bundles/
+prereview/data/
+.dsh/

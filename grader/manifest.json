@@ -1,0 +1,411 @@
+{
+ "data_analysis::Пример ДЗ 2. АА": {
+  "task_dir": "hw_examples/data_analysis/Пример ДЗ 2. АА",
+  "condition": [
+   "hw_examples/data_analysis/Пример ДЗ 2. АА/Условия домашки 2. (метрики).docx"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/data_analysis/Пример ДЗ 2. АА/Среднее решение.docx"
+   ],
+   "weak": [
+    "hw_examples/data_analysis/Пример ДЗ 2. АА/Слабое решение.docx"
+   ],
+   "good": [
+    "hw_examples/data_analysis/Пример ДЗ 2. АА/Хорошее решение.docx"
+   ]
+  }
+ },
+ "data_analysis::Пример ДЗ 3. АА": {
+  "task_dir": "hw_examples/data_analysis/Пример ДЗ 3. АА",
+  "condition": [
+   "hw_examples/data_analysis/Пример ДЗ 3. АА/Условия домашки 3. (кейсы).docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/data_analysis/Пример ДЗ 3. АА/Слабое решение.docx"
+   ],
+   "mid": [
+    "hw_examples/data_analysis/Пример ДЗ 3. АА/Среднее решение.pdf"
+   ],
+   "good": [
+    "hw_examples/data_analysis/Пример ДЗ 3. АА/Хорошее решение.pdf"
+   ]
+  }
+ },
+ "data_analysis::Пример ДЗ 1. АА": {
+  "task_dir": "hw_examples/data_analysis/Пример ДЗ 1. АА",
+  "condition": [
+   "hw_examples/data_analysis/Пример ДЗ 1. АА/Условие домашки (Метрики).docx"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/data_analysis/Пример ДЗ 1. АА/Среднее решение.docx"
+   ],
+   "good": [
+    "hw_examples/data_analysis/Пример ДЗ 1. АА/Хорошее решение.docx"
+   ]
+  }
+ },
+ "data_analysis::Пример ДЗ 4. АА": {
+  "task_dir": "hw_examples/data_analysis/Пример ДЗ 4. АА",
+  "condition": [
+   "hw_examples/data_analysis/Пример ДЗ 4. АА/Условия задачи 4(кейсы).docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/data_analysis/Пример ДЗ 4. АА/Слабое решение.docx"
+   ],
+   "mid": [
+    "hw_examples/data_analysis/Пример ДЗ 4. АА/Среднее решение.pdf"
+   ],
+   "good": [
+    "hw_examples/data_analysis/Пример ДЗ 4. АА/Хорошее решение.pdf"
+   ]
+  }
+ },
+ "data_analysis::Пример ДЗ 5. АА": {
+  "task_dir": "hw_examples/data_analysis/Пример ДЗ 5. АА",
+  "condition": [
+   "hw_examples/data_analysis/Пример ДЗ 5. АА/Условия домашки 5. (кейсы).docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/data_analysis/Пример ДЗ 5. АА/Слабое решение.docx"
+   ],
+   "mid": [
+    "hw_examples/data_analysis/Пример ДЗ 5. АА/Среднее решение.pdf"
+   ],
+   "good": [
+    "hw_examples/data_analysis/Пример ДЗ 5. АА/Хорошее решение.pdf"
+   ]
+  }
+ },
+ "GO": {
+  "task_dir": "hw_examples/GO",
+  "condition": [
+   "hw_examples/GO/task1.md",
+   "hw_examples/GO/task2.md",
+   "hw_examples/GO/task3.md"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/cmd/myapp/main.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/docker-compose.yaml",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/go.mod",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/go.sum",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/courier/handler/handler.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/courier/model/model.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/courier/repository/interface.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/courier/repository/postgres.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/courier/service/service.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/db/db.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/server/config/config.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/internal/server/server.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/pkg/logger/logger.go",
+    "hw_examples/GO/Слабое решение 1-3/course-go-avito-israpilovsha-af0d8d079d0b73e0dda2a41902e4ed0b9e145b19/text.txt"
+   ],
+   "good": [
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/Makefile",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/cmd/service-courier/main.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/docker-compose.yml",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/go.mod",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/go.sum",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/dto/courier.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/entity/courier.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/handlers/contract.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/handlers/controller.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/handlers/healthcheck.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/handlers/ping.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/model/models.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/repository/courier.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/repository/errors.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/usecase/contract.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/usecase/courier.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/internal/usecase/errors.go",
+    "hw_examples/GO/Хорошее решение 1-3/course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c/migrations/20251105174855_create_couriers.sql"
+   ],
+   "mid": [
+    "hw_examples/GO/Среднее решение 1-3/course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab/README.md",
+    "hw_examples/GO/Среднее решение 1-3/course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab/cmd/main.go",
+    "hw_examples/GO/Среднее решение 1-3/course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab/go.mod",
+    "hw_examples/GO/Среднее решение 1-3/course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab/go.sum",
+    "hw_examples/GO/Среднее решение 1-3/course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab/internal/handler/health_handler.go",
+    "hw_examples/GO/Среднее решение 1-3/course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab/internal/route/health_route.go",
+    "hw_examples/GO/Среднее решение 1-3/course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab/internal/route/route.go"
+   ]
+  }
+ },
+ "product_business_models": {
+  "task_dir": "hw_examples/product_business_models",
+  "condition": [
+   "hw_examples/product_business_models/Product_BM_ДЗ1_условия.pdf"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/product_business_models/Product_BM_ДЗ1_Регение слабое.xlsx"
+   ],
+   "mid": [
+    "hw_examples/product_business_models/Product_BM_ДЗ1_Решение среднее.xlsx"
+   ],
+   "good": [
+    "hw_examples/product_business_models/Product_BM_ДЗ1_Решение хорошее.xlsx"
+   ]
+  }
+ },
+ "data_science::Пример домашки 1. (АА)": {
+  "task_dir": "hw_examples/data_science/Пример домашки 1. (АА)",
+  "condition": [
+   "hw_examples/data_science/Пример домашки 1. (АА)/Условие задачи 1 (МЛСД).docx"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/data_science/Пример домашки 1. (АА)/Среднее решение.html"
+   ],
+   "weak": [
+    "hw_examples/data_science/Пример домашки 1. (АА)/Слабое решение.html"
+   ],
+   "good": [
+    "hw_examples/data_science/Пример домашки 1. (АА)/Хорошее решение.html"
+   ]
+  }
+ },
+ "data_science::Пример ДЗ. Курс _Основы backend-разработки_": {
+  "task_dir": "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_",
+  "condition": [
+   "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/ДЗ 1. Основы веб-разработки.docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/init.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/main.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/models/advertisement.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/requirements.txt",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/routers/advertisement.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/services/advertisement.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/tests/conftest.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Слабое решение/tests/test_advertisement.py"
+   ],
+   "good": [
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Хорошее решение/errors.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Хорошее решение/main.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Хорошее решение/models/predict.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Хорошее решение/pytest.ini",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Хорошее решение/routes/predict.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Хорошее решение/services/moderation.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Хорошее решение/tests/test_moderation.py"
+   ],
+   "mid": [
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Среднее решение/main.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Среднее решение/requirements.txt",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Среднее решение/routers/__init__.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Среднее решение/routers/users.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Среднее решение/tests/__init__.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _Основы backend-разработки_/Среднее решение/tests/test_predict.py"
+   ]
+  }
+ },
+ "data_science::Пример ДЗ. Курс _LLM_": {
+  "task_dir": "hw_examples/data_science/Пример ДЗ. Курс _LLM_",
+  "condition": [
+   "hw_examples/data_science/Пример ДЗ. Курс _LLM_/ДЗ 1. Pretrain.docx"
+  ],
+  "solutions": {
+   "good": [
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Хорошее решение/Dockerfile",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Хорошее решение/README.md",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Хорошее решение/model_output_experiments.ipynb",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Хорошее решение/your_solution.py"
+   ],
+   "mid": [
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/Dockerfile",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/README.md",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/all_runs_eval_loss.png",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/all_runs_train_loss.png",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/best_run_train_loss.png",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/docker-compose.yaml",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/lib/infer.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/lib/train/optuna_grid_search.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/lib/train/train.py",
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Среднее решение/task.md"
+   ],
+   "weak": [
+    "hw_examples/data_science/Пример ДЗ. Курс _LLM_/Слабое решение.ipynb"
+   ]
+  }
+ },
+ "data_science::Пример ДЗ. Курс _GPU и распределённые вычисления_": {
+  "task_dir": "hw_examples/data_science/Пример ДЗ. Курс _GPU и распределённые вычисления_",
+  "condition": [
+   "hw_examples/data_science/Пример ДЗ. Курс _GPU и распределённые вычисления_/Условие.docx"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/data_science/Пример ДЗ. Курс _GPU и распределённые вычисления_/Среднее решение.docx"
+   ],
+   "good": [
+    "hw_examples/data_science/Пример ДЗ. Курс _GPU и распределённые вычисления_/Хорошее решение.docx"
+   ],
+   "weak": [
+    "hw_examples/data_science/Пример ДЗ. Курс _GPU и распределённые вычисления_/Слабое решение.pdf"
+   ]
+  }
+ },
+ "system_design::лаба 1": {
+  "task_dir": "hw_examples/system_design/лаба 1",
+  "condition": [
+   "hw_examples/system_design/лаба 1/условие.md"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/system_design/лаба 1/среднее.md"
+   ],
+   "weak": [
+    "hw_examples/system_design/лаба 1/слабое_2.md",
+    "hw_examples/system_design/лаба 1/слабое_1.md"
+   ],
+   "good": [
+    "hw_examples/system_design/лаба 1/хорошее.md"
+   ]
+  }
+ },
+ "system_design::лаба 2": {
+  "task_dir": "hw_examples/system_design/лаба 2",
+  "condition": [
+   "hw_examples/system_design/лаба 2/условие.md"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/system_design/лаба 2/среднее.md"
+   ],
+   "weak": [
+    "hw_examples/system_design/лаба 2/слабое.md"
+   ],
+   "good": [
+    "hw_examples/system_design/лаба 2/хорошее.md"
+   ]
+  }
+ },
+ "product::Пример ДЗ 5": {
+  "task_dir": "hw_examples/product/Пример ДЗ 5",
+  "condition": [
+   "hw_examples/product/Пример ДЗ 5/ДЗ №4. Оценка затрат на реализацию (PnL) до EBITDA.docx"
+  ],
+  "solutions": {
+   "good": [
+    "hw_examples/product/Пример ДЗ 5/Хорошее.xlsx",
+    "hw_examples/product/Пример ДЗ 5/Хорошее.docx"
+   ],
+   "weak": [
+    "hw_examples/product/Пример ДЗ 5/Слабое.docx",
+    "hw_examples/product/Пример ДЗ 5/Слабое.xlsx"
+   ],
+   "mid": [
+    "hw_examples/product/Пример ДЗ 5/Среднее.xlsx",
+    "hw_examples/product/Пример ДЗ 5/Среднее.docx"
+   ]
+  }
+ },
+ "product::Пример ДЗ 2": {
+  "task_dir": "hw_examples/product/Пример ДЗ 2",
+  "condition": [
+   "hw_examples/product/Пример ДЗ 2/ДЗ 3. План и проведение количественного исследования.docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/product/Пример ДЗ 2/Слабое.docx"
+   ],
+   "good": [
+    "hw_examples/product/Пример ДЗ 2/Хорошее.docx"
+   ],
+   "mid": [
+    "hw_examples/product/Пример ДЗ 2/Среднее.docx"
+   ]
+  }
+ },
+ "product::Пример ДЗ 3": {
+  "task_dir": "hw_examples/product/Пример ДЗ 3",
+  "condition": [
+   "hw_examples/product/Пример ДЗ 3/ДЗ 2. Дизайн А_Б-тест.docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/product/Пример ДЗ 3/Слабое.docx"
+   ],
+   "good": [
+    "hw_examples/product/Пример ДЗ 3/Хорошее.docx"
+   ],
+   "mid": [
+    "hw_examples/product/Пример ДЗ 3/Среднее.docx"
+   ]
+  }
+ },
+ "product::Пример ДЗ 4": {
+  "task_dir": "hw_examples/product/Пример ДЗ 4",
+  "condition": [
+   "hw_examples/product/Пример ДЗ 4/ДЗ №1. Анализ внешней среды продукта.docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/product/Пример ДЗ 4/Слабое.docx"
+   ],
+   "good": [
+    "hw_examples/product/Пример ДЗ 4/Хорошее.docx"
+   ],
+   "mid": [
+    "hw_examples/product/Пример ДЗ 4/Среднее.docx"
+   ]
+  }
+ },
+ "product::Пример ДЗ 1": {
+  "task_dir": "hw_examples/product/Пример ДЗ 1",
+  "condition": [
+   "hw_examples/product/Пример ДЗ 1/ДЗ №5. Формат проверки гипотез, метрики и критерии успеха.docx"
+  ],
+  "solutions": {
+   "weak": [
+    "hw_examples/product/Пример ДЗ 1/Слабое.docx"
+   ],
+   "good": [
+    "hw_examples/product/Пример ДЗ 1/Хорошее.docx"
+   ],
+   "mid": [
+    "hw_examples/product/Пример ДЗ 1/Среднее.docx"
+   ]
+  }
+ },
+ "tech_QA": {
+  "task_dir": "hw_examples/tech_QA",
+  "condition": [
+   "hw_examples/tech_QA/Tech_QA_ДЗ1_условия.pdf"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/tech_QA/Tech_QA_ДЗ1_Решение_среднее.xlsx"
+   ],
+   "good": [
+    "hw_examples/tech_QA/Tech_QA_ДЗ1_Решение_хорошее.xlsx"
+   ],
+   "weak": [
+    "hw_examples/tech_QA/Tech_QA_ДЗ1_Решение_слабое.xlsx"
+   ]
+  }
+ },
+ "product_fraud": {
+  "task_dir": "hw_examples/product_fraud",
+  "condition": [
+   "hw_examples/product_fraud/Product_Fraud_ДЗ2_условия.pdf"
+  ],
+  "solutions": {
+   "mid": [
+    "hw_examples/product_fraud/Product_Fraud_ДЗ2_Решение среднее.docx"
+   ],
+   "good": [
+    "hw_examples/product_fraud/Product_Fraud_ДЗ2_Решение хорошее.docx"
+   ],
+   "weak": [
+    "hw_examples/product_fraud/Product_Fraud_ДЗ2_Решение слабое.docx"
+   ]
+  }
+ }
+}
