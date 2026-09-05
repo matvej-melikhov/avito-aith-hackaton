@@ -1626,3 +1626,67 @@ body.fb-on .login {
 .mode-pill__x:hover {
   color: var(--bad);
 }
+
+/* Зона загрузки файла работы */
+.upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-1);
+  cursor: pointer;
+  transition:
+    border-color var(--t-fast),
+    background var(--t-fast);
+}
+.upload:hover,
+.upload--over {
+  border-color: var(--ink);
+  background: var(--green-wash);
+}
+.upload--err {
+  border-color: var(--bad);
+}
+.upload--filled {
+  flex-direction: row;
+  text-align: left;
+  gap: var(--s-3);
+  border-style: solid;
+  background: var(--surface);
+}
+.upload--filled b {
+  display: inline;
+}
+.upload__icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-circle);
+  display: grid;
+  place-items: center;
+  border: var(--bw-hair) solid var(--line-2);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.upload__icon--ok {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.upload__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.upload__body b {
+  font-weight: var(--w-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.upload__body span {
+  margin-top: 0;
+}
+.upload__body a {
+  color: var(--info);
+  border: 0;
+}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
 import { ErrorBox, Resource, go, useAction, useResource } from "../ui";
@@ -32,9 +32,28 @@ import {
   plural,
   points,
   workStatus,
+  cx,
 } from "../ds";
 
 type StudentContext = W<"StudentContext">;
+type Kind = "github" | "google_docs";
+const FILE_TYPES = [".md", ".pdf", ".docx"];
+const FILE_LIMIT = 10_000_000;
+
+function bytes(n: number) {
+  return n < 1_000_000
+    ? `${Math.max(1, Math.round(n / 1000))} КБ`
+    : `${(n / 1_000_000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} МБ`;
+}
+/** Проверка файла до загрузки: формат и размер, понятным языком. */
+function checkFile(file: File) {
+  const name = file.name.toLowerCase();
+  if (!FILE_TYPES.some((ext) => name.endsWith(ext)))
+    return "Подходят Markdown, PDF или DOCX. Другие форматы платформа не читает.";
+  if (file.size > FILE_LIMIT)
+    return "Файл больше 10 МБ. Сожмите или разбейте его.";
+  return null;
+}
 
 export function WorkspaceSubmit({
   ws,
@@ -84,6 +103,9 @@ function DraftForm({
     initial.draft?.upload_id ? "file" : "url",
   );
   const [saved, setSaved] = useState(initial.draft);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [dirty, setDirty] = useState(false);
   const [run, setRun] = useState(initial.quota?.active_run_id ?? undefined);
   const [result, setResult] = useState<W<"SelfReviewView">>();
@@ -112,6 +134,39 @@ function DraftForm({
   const current = history.data?.reviews.find(
     (v) => v.id === history.data?.current_publication_id,
   );
+  /* Какие ссылки принимает задание, задаёт организатор; файл можно всегда. */
+  const kinds = useResource(
+    async () =>
+      (await ws.core.homeworks(data.course_run_id)).items.find(
+        (h) => h.course_run_homework_id === data.publication_id,
+      )?.artifact_kinds ?? (["github", "google_docs"] as Kind[]),
+    `kinds:${data.publication_id}`,
+  );
+  const linkKinds = kinds.data ?? [];
+  const linkAllowed = kinds.loading || linkKinds.length > 0;
+  /* Имя и ссылка уже загруженного файла: черновик хранит только его id. */
+  const uploaded = useResource(
+    async () => (saved?.upload_id ? ws.download(saved.upload_id) : null),
+    `upload:${saved?.upload_id ?? "none"}`,
+  );
+  useEffect(() => {
+    if (!kinds.loading && !linkAllowed && source === "url" && !saved?.upload_id)
+      setSource("file");
+  }, [kinds.loading, linkAllowed, source, saved?.upload_id]);
+  function pickFile(next: File | undefined) {
+    if (!next) return;
+    const problem = checkFile(next);
+    setFileError(problem);
+    if (problem) return;
+    setFile(next);
+    setSource("file");
+    setDirty(true);
+  }
+  function onDrop(e: DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    pickFile(e.dataTransfer.files?.[0]);
+  }
   const revision = current?.decision === "needs_changes";
   const activeResult = result ?? data.self_reviews.at(-1);
   const attempts = history.data?.attempts ?? [];
@@ -142,7 +197,8 @@ function DraftForm({
     }
     if (source === "file" && file)
       uploadId = (await uploadFile(ws, file, session.user_id)).id;
-    if (source === "file" && !uploadId) throw new Error("Выберите файл.");
+    if (source === "file" && !uploadId)
+      throw new Error("Приложите файл работы: Markdown, PDF или DOCX.");
     const draft = await ws.command(
       "save_work_draft",
       data.publication_id,
@@ -475,8 +531,19 @@ function DraftForm({
                     setDirty(true);
                   }}
                   options={[
-                    { value: "url", label: "Ссылка на репозиторий" },
-                    { value: "file", label: "Файлы" },
+                    ...(linkAllowed
+                      ? [
+                          {
+                            value: "url" as const,
+                            label:
+                              linkKinds.length === 1 &&
+                              linkKinds[0] === "google_docs"
+                                ? "Ссылка на Google Docs"
+                                : "Ссылка на репозиторий",
+                          },
+                        ]
+                      : []),
+                    { value: "file" as const, label: "Файл" },
                   ]}
                 />
               </CardHead>
@@ -495,7 +562,12 @@ function DraftForm({
                         mono
                         type="url"
                         value={url}
-                        placeholder="https://github.com/username/project"
+                        placeholder={
+                          linkKinds.length === 1 &&
+                          linkKinds[0] === "google_docs"
+                            ? "https://docs.google.com/document/d/…"
+                            : "https://github.com/username/project"
+                        }
                         onChange={(e) => {
                           setUrl(e.target.value);
                           setDirty(true);
@@ -503,23 +575,107 @@ function DraftForm({
                       />
                     </Field>
                   ) : (
-                    <Field
-                      label="Markdown, PDF или DOCX, до 10 МБ"
-                      hint={
-                        saved?.upload_id && !file
-                          ? "Ранее загруженный файл сохранён."
-                          : undefined
-                      }
-                    >
-                      <Inp
-                        type="file"
-                        accept=".md,.pdf,.docx"
-                        onChange={(e) => {
-                          setFile(e.target.files?.[0]);
-                          setDirty(true);
+                    <div className="field">
+                      <span className="field__lbl" id="upload-lbl">
+                        Файл работы
+                      </span>
+                      <label
+                        className={cx(
+                          "drop upload",
+                          (file || saved?.upload_id) && "upload--filled",
+                          dragging && "upload--over",
+                          fileError && "upload--err",
+                        )}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDragging(true);
                         }}
-                      />
-                    </Field>
+                        onDragLeave={() => setDragging(false)}
+                        onDrop={onDrop}
+                      >
+                        <input
+                          ref={fileInput}
+                          className="sr-only"
+                          type="file"
+                          accept={FILE_TYPES.join(",")}
+                          aria-labelledby="upload-lbl"
+                          onChange={(e) => {
+                            pickFile(e.target.files?.[0]);
+                            e.target.value = "";
+                          }}
+                        />
+                        {file ? (
+                          <>
+                            <span className="upload__icon" aria-hidden="true">
+                              ↑
+                            </span>
+                            <span className="upload__body">
+                              <b>{file.name}</b>
+                              <span>
+                                {bytes(file.size)} ·{" "}
+                                {action.busy ? "загружаем…" : "загрузится сам"}
+                              </span>
+                            </span>
+                            <span className="btn btn--s btn--quiet">
+                              Заменить
+                            </span>
+                          </>
+                        ) : saved?.upload_id ? (
+                          <>
+                            <span
+                              className="upload__icon upload__icon--ok"
+                              aria-hidden="true"
+                            >
+                              ✓
+                            </span>
+                            <span className="upload__body">
+                              <b>
+                                {uploaded.data?.filename ?? "Файл загружен"}
+                              </b>
+                              <span>
+                                Загружен и сохранён в черновике
+                                {uploaded.data && (
+                                  <>
+                                    {" · "}
+                                    <a
+                                      href={uploaded.data.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      открыть ↗
+                                    </a>
+                                  </>
+                                )}
+                              </span>
+                            </span>
+                            <span className="btn btn--s btn--quiet">
+                              Заменить
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <b>
+                              {dragging
+                                ? "Отпустите файл здесь"
+                                : "Перетащите файл или выберите"}
+                            </b>
+                            <span>Markdown, PDF или DOCX, до 10 МБ</span>
+                          </>
+                        )}
+                      </label>
+                      {fileError ? (
+                        <span className="field__err" role="alert">
+                          {fileError}
+                        </span>
+                      ) : (
+                        <span className="field__hint">
+                          {revision && lastAttempt
+                            ? `Версия попытки ${lastAttempt.sequence} сохранится в истории, ревьюер увидит обе.`
+                            : "Ревьюер и модель читают именно этот файл. Ссылки внутри файла не открываются."}
+                        </span>
+                      )}
+                    </div>
                   )}
                   <Field label="Комментарий к сдаче, необязательно">
                     <Inp

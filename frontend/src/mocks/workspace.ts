@@ -597,7 +597,10 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
           return response({
             submission_id: c.submission.submission_id,
             latest_review_iteration_id: c.review.review_iteration_id,
-            artifact_label: "work.md",
+            artifact_label:
+              uploads.get(
+                c.submission.versions.at(-1)?.artifact_version_id ?? "",
+              )?.view.filename ?? "work.md",
             title: c.seed.homework.title,
             student_name: `Студент ${c.seed.ids.user.slice(-12)}`,
             attempt: c.submission.versions.at(-1)?.sequence ?? 1,
@@ -619,6 +622,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             url:
               uploads.get(identity)?.url ??
               `${location.origin}/demo-artifact.txt`,
+            filename: uploads.get(identity)?.view.filename ?? null,
             expires_at: new Date(Date.now() + 900000).toISOString(),
           });
         if (path.startsWith("/v2/submissions/")) {
@@ -1053,6 +1057,10 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
               ? preparations.get(preparationId)?.artifact_id
               : null) ??
             null;
+          if (draft.upload_id && uploads.get(draft.upload_id))
+            c.review.immutable_inputs.artifact_download_url = uploads.get(
+              draft.upload_id,
+            )!.url;
           result = {
             id: submitted.submission_id,
             revision: submitted.submission_revision,

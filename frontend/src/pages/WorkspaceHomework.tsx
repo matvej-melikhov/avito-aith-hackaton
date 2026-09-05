@@ -570,7 +570,7 @@ function HomeworkWizard({
                   <Field
                     group
                     label="Что сдаём"
-                    hint="Студент выбирает способ сам на странице сдачи."
+                    hint="Какие ссылки принимаем. Файл Markdown, PDF или DOCX студент может приложить всегда."
                   >
                     <div className="btn-row">
                       {(["github", "google_docs"] as const).map((kind) => (

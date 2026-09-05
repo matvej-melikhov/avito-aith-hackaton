@@ -228,7 +228,11 @@ export function CoursePage({
                           <td className="n">
                             {dayLong(h.submission_deadline)}
                           </td>
-                          <td>{h.artifact_kinds.map(kindLabel).join(", ")}</td>
+                          <td>
+                            {[...h.artifact_kinds.map(kindLabel), "файл"].join(
+                              ", ",
+                            )}
+                          </td>
                           <td className="n">{num(h.max_score)}</td>
                           <td className="r">
                             <Btn
