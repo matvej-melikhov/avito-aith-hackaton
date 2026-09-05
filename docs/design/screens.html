@@ -624,6 +624,30 @@ a:hover { border-bottom-color: var(--ink); }
 .overlay--wide { width: 720px; }
 
 .modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
+/* Поле поиска. Лупа нарисована в разметке, а не шрифтом: значка поиска нет
+   ни в одной из трёх наших гарнитур, а эмодзи в интерфейсе мы не ставим.    */
+.srch { position: relative; display: inline-flex; align-items: center; }
+.srch__i { position: absolute; left: 10px; width: 14px; height: 14px;
+           color: var(--ink-3); pointer-events: none; }
+.srch .inp { padding-left: 32px; }
+
+/* Выпадающий список поиска. Не модалка: якорится к полю, страницу за собой
+   не гасит и не требует решения, закрывается Escape или кликом мимо.        */
+.pop { position: absolute; z-index: 2; background: var(--surface);
+       border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); }
+.pop__g { padding: var(--s-4) var(--s-5) var(--s-2); font-family: var(--font-mono);
+          font-size: var(--caption-size); letter-spacing: .08em; text-transform: uppercase;
+          color: var(--ink-3); }
+.pop__row { display: flex; align-items: center; gap: var(--s-4); cursor: pointer;
+            padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line); }
+.pop__row:hover, .pop__row.is-on { background: var(--surface-2); }
+.pop__row > .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pop__row .s { margin-top: 2px; font-size: var(--caption-size); color: var(--ink-3); }
+.pop__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+             padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+             background: var(--surface-2); font-size: var(--caption-size); color: var(--ink-3); }
+.pop__empty { padding: var(--s-3) var(--s-5) var(--s-4); font-size: var(--small-size); color: var(--ink-3); }
+
 .toast { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5);
          background: var(--ink); color: var(--ink-inv); border-radius: var(--r-pill); box-shadow: var(--shadow-overlay);
          font-size: var(--small-size); font-weight: var(--w-medium); }
@@ -687,8 +711,8 @@ a:hover { border-bottom-color: var(--ink); }
 
   <div class="doc__head">
     <span class="label">Avito AI Reviewer · макеты</span>
-    <h1 class="d2" style="margin-top:var(--s-4);max-width:12ch">Двадцать <span class="hl">экранов</span></h1>
-    <p style="max-width:76ch;color:var(--ink-2);margin-top:var(--s-4)">Все двадцать экранов платформы, пересобранных на дизайн-паке. Правила — в <a href="design-pack.md">design-pack.md</a>, компоненты живьём — в <a href="kit.html">kit.html</a>. Содержание экранов и логика статусов не менялись, источник — <a href="../platform-screens/entities-and-screens.md">реестр экранов</a> и <a href="../platform-screens/flows.md">flows.md</a>.</p>
+    <h1 class="d2" style="margin-top:var(--s-4);max-width:12ch">Двадцать один <span class="hl">экран</span></h1>
+    <p style="max-width:76ch;color:var(--ink-2);margin-top:var(--s-4)">Все двадцать один экран платформы, пересобранных на дизайн-паке. Правила — в <a href="design-pack.md">design-pack.md</a>, компоненты живьём — в <a href="kit.html">kit.html</a>. Содержание экранов и логика статусов не менялись, источник — <a href="../platform-screens/entities-and-screens.md">реестр экранов</a> и <a href="../platform-screens/flows.md">flows.md</a>.</p>
     <div class="toc">
       <span class="toc__g">Студент</span>
       <a class="pill" href="#С1">С1 Страница домашки по ссылке, до сдачи</a>
@@ -705,6 +729,7 @@ a:hover { border-bottom-color: var(--ink); }
       <a class="pill" href="#Р6">Р6 Карточка работы, повторная проверка</a>
       <span class="toc__g">Координатор</span>
       <a class="pill" href="#К1">К1 Обзор координатора</a>
+      <a class="pill" href="#К1а">К1а Поиск</a>
       <a class="pill" href="#К2">К2 Новый курс</a>
       <a class="pill" href="#К3">К3 Новый поток</a>
       <a class="pill" href="#К4">К4 Задание, шаг 1: что видит студент</a>
@@ -1801,8 +1826,8 @@ a:hover { border-bottom-color: var(--ink); }
 
 <section class="screen" id="К1">
   <div class="screen__head"><span class="screen__id">К1</span><h2>Обзор координатора</h2></div>
-  <p class="screen__note">Точка входа координатора и единственное место, откуда попадаешь во всё остальное. В таблице потоков видно, что сдано, что у ревьюеров и что зависло без проверки. Завершённые потоки лежат в той же таблице, отдельного показа для них нет.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Плитки метрик крупными цифрами Unbounded: координатор смотрит на этот экран по несколько раз в день и должен считывать состояние за секунду. Проблемная плитка помечена красной рамкой и красной цифрой, а не восклицательным знаком. Поиск стоит слева при заголовке, а не в ряду кнопок: это поле ввода, а не действие. Справа только то, что создаёт новое.</p>
+  <p class="screen__note">Точка входа координатора и единственное место, откуда попадаешь во всё остальное. В таблице потоков видно, что сдано, что у ревьюеров и что зависло без проверки. Фильтры стоят в шапке таблицы потоков, а не в шапке экрана: они сужают только её. Завершённые потоки лежат в той же таблице, отдельного показа для них нет. Как работает поиск, показано на К1а.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Плитки метрик крупными цифрами Unbounded: координатор смотрит на этот экран по несколько раз в день и должен считывать состояние за секунду. Проблемная плитка помечена красной рамкой и красной цифрой, а не восклицательным знаком. Поиск стоит слева при заголовке, а не в ряду кнопок: это поле ввода, а не действие. Справа только то, что создаёт новое. Фильтр живёт рядом с тем, что фильтрует, поэтому «Курс» и «Статус» переехали в шапку карточки потоков.</p>
   <div class="shot" style="height:689px"><div class="vp">
     <div class="app">
       <aside class="aside">
@@ -1826,7 +1851,10 @@ a:hover { border-bottom-color: var(--ink); }
         <div class="topbar" style="align-items:center">
           <div style="display:flex;align-items:center;gap:var(--s-5)">
             <h1>Обзор</h1>
-            <input class="inp inp--s" placeholder="Поиск по студенту или заданию" style="width:260px">
+            <span class="srch">
+              <svg class="srch__i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6.8" cy="6.8" r="4.6"/><path d="M10.2 10.2 L14 14" stroke-linecap="round"/></svg>
+              <input class="inp inp--s" placeholder="ID студента или название задания" style="width:280px">
+            </span>
           </div>
           <div class="btn-row">
             <span class="btn btn--s">Создать курс</span>
@@ -1838,12 +1866,19 @@ a:hover { border-bottom-color: var(--ink); }
             <div class="tiles">
               <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div><div class="d">по 4 курсам</div></div>
               <div class="tile"><div class="n">46</div><div class="l">у ревьюеров прямо сейчас</div><div class="d">средний срок проверки 1,8 дня</div></div>
-              <div class="tile tile--alert"><div class="n">12</div><div class="l">в пуле без ревьюера</div><div class="d">3 из них дольше 3 дней</div></div>
-              <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div><div class="d">ближайший 19 февраля</div></div>
+              <div class="tile tile--alert"><div class="n">12</div><div class="l">в пуле без ревьюера</div><div class="d">ждут в среднем 2,1 дня</div></div>
+              <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div><div class="d">на курсах «Системный дизайн» и Tech QA</div></div>
             </div>
 
             <div class="card">
-              <div class="card__head"><div><h4>Потоки</h4><div class="card__sub">Состояние по каждому запуску курса</div></div><span class="btn btn--s btn--link">Свернуть</span></div>
+              <div class="card__head">
+                <div><h4>Потоки</h4><div class="card__sub">Показаны 4 из 11, сначала активные</div></div>
+                <div class="btn-row">
+                  <span class="btn btn--s btn--quiet">Курс: все</span>
+                  <span class="btn btn--s btn--quiet">Статус: все</span>
+                  <span class="btn btn--s btn--link">Свернуть</span>
+                </div>
+              </div>
               <div class="card__body card__body--flush">
                 <table class="tbl">
                   <thead><tr><th>Курс</th><th>Поток</th><th class="n">Студентов</th><th class="n">Ближайший дедлайн</th><th class="n">Сдано</th><th class="n">На ревью</th><th class="n">Зависло</th><th class="n">Зачтено</th></tr></thead>
@@ -1900,6 +1935,70 @@ a:hover { border-bottom-color: var(--ink); }
           </div>
         </div>
       </div>
+    </div>
+  </div></div>
+</section>
+<section class="screen" id="К1а">
+  <div class="screen__head"><span class="screen__id">К1а</span><h2>Поиск</h2></div>
+  <p class="screen__note">Что делает поле поиска в шапке. Ищем по двум вещам: ID студента и название задания. По ФИО не ищем, его в системе нет. Результаты сгруппированы по типу и открывают конкретную страницу: строка студента ведёт в его работу, строка задания — в карточку задания. Пустая группа не прячется, иначе непонятно, искали там вообще или нет.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Список якорится к полю и не гасит страницу за собой: поиск не требует решения, его закрывают Escape или кликом мимо. Тень тут по той же причине, что у модалки, список физически лежит поверх страницы. Статус работы в строке нужен, чтобы координатор понял, надо ли открывать, ещё до перехода.</p>
+  <div class="shot" style="height:368px"><div class="vp">
+    <div style="min-height:540px">
+    <div class="app">
+      <aside class="aside">
+        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <nav class="menu">
+          <a class="is-on" href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
+          <a href="#">Задания<span class="c">17</span></a><a href="#">Пул проверок<span class="c">12</span></a>
+          <a href="#">Домашки<span class="c">284</span></a>
+        </nav>
+        <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
+      </aside>
+      <div>
+        <div class="topbar" style="align-items:center">
+          <div style="display:flex;align-items:center;gap:var(--s-5)">
+            <h1>Обзор</h1>
+            <span class="srch">
+              <svg class="srch__i" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6.8" cy="6.8" r="4.6"/><path d="M10.2 10.2 L14 14" stroke-linecap="round"/></svg>
+              <input class="inp inp--s" value="4821" style="width:280px">
+              <div class="pop" style="top:100%;left:0;margin-top:4px;width:560px">
+                <div class="pop__g">Студент 4821, 3 работы</div>
+                <div class="pop__row is-on">
+                  <span class="t"><span>Лабораторная 1. Декомпозиция сервиса</span><span class="s">Системный дизайн, Февраль 2026</span></span>
+                  <span class="st st--rereview">На повторном ревью</span>
+                </div>
+                <div class="pop__row">
+                  <span class="t"><span>Лабораторная 2. Надёжность</span><span class="s">Системный дизайн, Февраль 2026</span></span>
+                  <span class="st st--draft">Черновик</span>
+                </div>
+                <div class="pop__row">
+                  <span class="t"><span>Домашнее задание 4</span><span class="s">Tech QA, Февраль 2026</span></span>
+                  <span class="st st--pass">Зачтена</span>
+                </div>
+                <div class="pop__g">Задания</div>
+                <div class="pop__empty">Заданий с таким названием нет.</div>
+                <div class="pop__foot">
+                  <span>Enter открывает выбранную строку, Escape закрывает поиск</span>
+                  <span class="btn btn--link">Все работы студента</span>
+                </div>
+              </div>
+            </span>
+          </div>
+          <div class="btn-row">
+            <span class="btn btn--s">Создать курс</span>
+            <span class="btn btn--s btn--dark">Создать поток</span>
+          </div>
+        </div>
+        <div class="main">
+          <div class="tiles">
+            <div class="tile"><div class="n">284</div><div class="l">домашек в активных потоках</div><div class="d">по 4 курсам</div></div>
+            <div class="tile"><div class="n">46</div><div class="l">у ревьюеров прямо сейчас</div><div class="d">средний срок проверки 1,8 дня</div></div>
+            <div class="tile tile--alert"><div class="n">12</div><div class="l">в пуле без ревьюера</div><div class="d">ждут в среднем 2,1 дня</div></div>
+            <div class="tile"><div class="n">2</div><div class="l">дедлайна на этой неделе</div><div class="d">на курсах «Системный дизайн» и Tech QA</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   </div></div>
 </section>
@@ -2309,7 +2408,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">К7</span><h2>Реестр домашек курса</h2></div>
   <p class="screen__note">Все домашки выбранного курса и потока, в отличие от пула — со всеми статусами, включая закрытые. Отсюда открывается любое ревью и отсюда же делается выгрузка. Клик по строке открывает ревью в режиме просмотра. Кнопка выгрузки становится активной после дедлайна задания.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Восемь вкладок по статусам — единственное место, где их так много. Счётчик у каждой набран моноширинным, чтобы вкладки не прыгали при обновлении цифр. Фильтр по заданию стоит в той же строке, что и вкладки: оба сужают одну таблицу. Отдельного фильтра по статусу нет, его роль играют вкладки.</p>
-  <div class="shot" style="height:626px"><div class="vp">
+  <div class="shot" style="height:639px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>

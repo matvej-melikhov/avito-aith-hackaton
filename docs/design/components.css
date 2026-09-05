@@ -467,6 +467,30 @@ a:hover { border-bottom-color: var(--ink); }
 .overlay--wide { width: 720px; }
 
 .modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
+/* Поле поиска. Лупа нарисована в разметке, а не шрифтом: значка поиска нет
+   ни в одной из трёх наших гарнитур, а эмодзи в интерфейсе мы не ставим.    */
+.srch { position: relative; display: inline-flex; align-items: center; }
+.srch__i { position: absolute; left: 10px; width: 14px; height: 14px;
+           color: var(--ink-3); pointer-events: none; }
+.srch .inp { padding-left: 32px; }
+
+/* Выпадающий список поиска. Не модалка: якорится к полю, страницу за собой
+   не гасит и не требует решения, закрывается Escape или кликом мимо.        */
+.pop { position: absolute; z-index: 2; background: var(--surface);
+       border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); }
+.pop__g { padding: var(--s-4) var(--s-5) var(--s-2); font-family: var(--font-mono);
+          font-size: var(--caption-size); letter-spacing: .08em; text-transform: uppercase;
+          color: var(--ink-3); }
+.pop__row { display: flex; align-items: center; gap: var(--s-4); cursor: pointer;
+            padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line); }
+.pop__row:hover, .pop__row.is-on { background: var(--surface-2); }
+.pop__row > .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pop__row .s { margin-top: 2px; font-size: var(--caption-size); color: var(--ink-3); }
+.pop__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+             padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+             background: var(--surface-2); font-size: var(--caption-size); color: var(--ink-3); }
+.pop__empty { padding: var(--s-3) var(--s-5) var(--s-4); font-size: var(--small-size); color: var(--ink-3); }
+
 .toast { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5);
          background: var(--ink); color: var(--ink-inv); border-radius: var(--r-pill); box-shadow: var(--shadow-overlay);
          font-size: var(--small-size); font-weight: var(--w-medium); }
