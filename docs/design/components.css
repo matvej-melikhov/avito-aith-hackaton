@@ -451,7 +451,15 @@ a:hover { border-bottom-color: var(--ink); }
            border: var(--bw-hair) solid var(--line-2); font-family: var(--font-mono); font-size: var(--caption-size); }
 .step.is-on { color: var(--ink); font-weight: var(--w-medium); }
 .step.is-on .n { border-color: var(--ink); }
+/* Пройденный шаг — единственный способ вернуться назад. Кнопки «Назад» внизу
+   нет: карта шагов и кнопка делали бы одно и то же в двух местах.           */
+a.step { border: 0; }
+.step.is-done { color: var(--ink); cursor: pointer; }
 .step.is-done .n { background: var(--brand-green); border-color: var(--brand-green); color: var(--ink); }
+.step.is-done:hover { color: var(--green-ink); }
+/* Непройденный шаг не нажимается: вперёд ведёт только кнопка под формой.     */
+.step--next { color: var(--ink-4); }
+.step--next .n { color: var(--ink-4); border-color: var(--line); }
 .steps .bar { flex: 1; height: 1px; background: var(--line); min-width: 32px; }
 
 /* --- Зона загрузки файла --------------------------------------------------- */
