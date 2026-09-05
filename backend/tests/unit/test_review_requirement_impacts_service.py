@@ -4,9 +4,12 @@ import sys
 from dataclasses import asdict
 from datetime import UTC, datetime
 from types import ModuleType
+from typing import cast
 from uuid import UUID
 
 import pytest
+from sqlalchemy import func, select
+from taskiq.abc.broker import AsyncBroker
 
 from review_platform.application.services.homeworks import HomeworkRequirementsChanged
 from review_platform.application.services.review_requirement_impacts import (
@@ -16,9 +19,20 @@ from review_platform.application.services.review_requirement_impacts import (
     ReviewRequirementImpactConflict,
     ReviewRequirementImpactService,
 )
-from review_platform.infrastructure.tasks.registry import (
-    REGISTRY,
+from review_platform.infrastructure.db.models.operations import (
+    AuditEvent,
+    Operation,
+    OperationAttempt,
+)
+from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
+from review_platform.infrastructure.tasks.broker import BrokerPolicy
+from review_platform.infrastructure.tasks.registry import REGISTRY, bind_handlers
+from review_platform.infrastructure.tasks.review_impacts import (
+    IN_TREE_REVIEW_IMPACT_FACTORY,
     REVIEW_IMPACT_HANDLER_FACTORY_ENV,
+    ReviewImpactTaskError,
+    SqlReviewImpactAuditRecorder,
+    SqlReviewImpactOperationRecorder,
     handle_homework_requirements_changed,
 )
 
@@ -291,3 +305,138 @@ async def test_registry_handler_uses_only_explicit_offline_factory(
     assert spec.name == "review_platform.review_requirement_impacts"
     assert spec.kind == "course_import"
     assert spec.requires_auth_revalidation is False
+
+
+class Broker:
+    def __init__(self) -> None:
+        self.tasks: list[str] = []
+
+    def register_task(self, _: object, *, task_name: str, **__: object) -> None:
+        self.tasks.append(task_name)
+
+
+def _policy() -> BrokerPolicy:
+    return BrokerPolicy(
+        redis_url="redis://localhost:6379/0",
+        max_attempts=3,
+        initial_retry_seconds=1,
+        max_retry_seconds=10,
+        concurrency_by_kind={
+            "course_import": 1,
+            "artifact_capture": 1,
+            "ai_review": 1,
+            "external_delivery": 1,
+            "email": 1,
+        },
+        queue_by_kind={
+            "course_import": "review-platform:worker",
+            "artifact_capture": "review-platform:worker",
+            "ai_review": "review-platform:worker",
+            "external_delivery": "review-platform:worker",
+            "email": "review-platform:email",
+        },
+    )
+
+
+def test_worker_bind_validates_review_impact_configuration_before_registering(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    broker = Broker()
+    monkeypatch.delenv(REVIEW_IMPACT_HANDLER_FACTORY_ENV, raising=False)
+    with pytest.raises(ReviewImpactTaskError, match=REVIEW_IMPACT_HANDLER_FACTORY_ENV):
+        bind_handlers(
+            broker=cast(AsyncBroker, broker),
+            policy=_policy(),
+            queue_name="review-platform:worker",
+        )
+    assert broker.tasks == []
+
+    monkeypatch.setenv(
+        REVIEW_IMPACT_HANDLER_FACTORY_ENV,
+        IN_TREE_REVIEW_IMPACT_FACTORY,
+    )
+    with pytest.raises(ReviewImpactTaskError, match="DATABASE_URL"):
+        bind_handlers(
+            broker=cast(AsyncBroker, broker),
+            policy=_policy(),
+            queue_name="review-platform:worker",
+        )
+    assert broker.tasks == []
+
+
+def test_worker_bind_accepts_explicit_offline_handler_factory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def handler(*, organization_id: str, message_id: str) -> object:
+        return {"organization_id": organization_id, "message_id": message_id}
+
+    module = ModuleType("review_impact_startup_factory")
+    module.build = lambda: handler  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    monkeypatch.setenv(
+        REVIEW_IMPACT_HANDLER_FACTORY_ENV,
+        f"{module.__name__}:build",
+    )
+    broker = Broker()
+
+    names = bind_handlers(
+        broker=cast(AsyncBroker, broker),
+        policy=_policy(),
+        queue_name="review-platform:worker",
+    )
+
+    assert "review_platform.review_requirement_impacts" in names
+    assert broker.tasks == list(names)
+
+
+async def test_in_tree_sql_operation_and_audit_record_full_worker_history(
+    foundation_session_factory: AsyncSessionFactory,
+) -> None:
+    ids = IDs(19000)
+    operations = SqlReviewImpactOperationRecorder(
+        id_factory=ids,
+        clock=lambda: NOW,
+    )
+    audit = SqlReviewImpactAuditRecorder(
+        id_factory=ids,
+        clock=lambda: NOW,
+    )
+    async with session_scope(foundation_session_factory) as session:
+        await operations.record_ingestion(
+            organization_id=ORG,
+            source_event_id=SOURCE_EVENT,
+            created_count=2,
+            replayed_count=0,
+            transaction=session,
+        )
+        await operations.record_ingestion(
+            organization_id=ORG,
+            source_event_id=SOURCE_EVENT,
+            created_count=0,
+            replayed_count=2,
+            transaction=session,
+        )
+        await audit.record_impacts(
+            organization_id=ORG,
+            source_event_id=SOURCE_EVENT,
+            created_impact_ids=(
+                UUID("00000000-0000-7000-8000-000000019101"),
+                UUID("00000000-0000-7000-8000-000000019102"),
+            ),
+            affected_iteration_ids=(ITERATION_A, ITERATION_B),
+            transaction=session,
+        )
+    async with foundation_session_factory() as session:
+        operation = await session.scalar(select(Operation))
+        attempts = (
+            await session.scalars(
+                select(OperationAttempt).order_by(OperationAttempt.attempt_number)
+            )
+        ).all()
+        audit_count = await session.scalar(select(func.count()).select_from(AuditEvent))
+        assert operation is not None
+        assert operation.state == "succeeded"
+        assert operation.input_version.endswith(str(SOURCE_EVENT))
+        assert [attempt.outcome for attempt in attempts] == ["succeeded", "succeeded"]
+        assert all(str(SOURCE_EVENT) in attempt.worker_identity for attempt in attempts)
+        assert audit_count == 1

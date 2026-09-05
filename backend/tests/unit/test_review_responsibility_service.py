@@ -56,6 +56,7 @@ class Audits:
 class Repository:
     def __init__(self) -> None:
         self.events: list[ReviewResponsibilityEvent] = []
+        self.append_succeeds = True
 
     async def resolve_context(
         self,
@@ -63,18 +64,33 @@ class Repository:
         review_case_id: UUID,
         review_iteration_id: UUID | None,
         *,
+        expected_review_iteration_revision: int | None,
         transaction: object,
     ) -> ResponsibilityContext | None:
         if organization_id != ORG or review_case_id != CASE:
             return None
         if review_iteration_id not in {None, ITERATION}:
             return None
-        return ResponsibilityContext(organization_id, review_case_id, review_iteration_id)
+        return ResponsibilityContext(
+            organization_id,
+            review_case_id,
+            review_iteration_id,
+            expected_review_iteration_revision,
+        )
 
-    async def append(self, event: ReviewResponsibilityEvent, *, transaction: object) -> None:
+    async def append(
+        self,
+        event: ReviewResponsibilityEvent,
+        *,
+        expected_review_iteration_revision: int | None,
+        transaction: object,
+    ) -> bool:
         # Append deliberately has no uniqueness/owner check.
         await anyio.sleep(0)
+        if not self.append_succeeds:
+            return False
         self.events.append(event)
+        return True
 
 
 def _actor(user_id: UUID, *, methodologist: bool = False) -> RequestActor:
@@ -108,6 +124,7 @@ async def test_all_actions_are_distinct_append_only_events_for_own_identity() ->
             organization_id=ORG,
             review_case_id=CASE,
             review_iteration_id=ITERATION,
+            expected_review_iteration_revision=0,
             action=action,
             actor=_actor(REVIEWER_A),
             request_id=UUID(int=1000 + index),
@@ -134,6 +151,7 @@ async def test_concurrent_distinct_participants_are_nonexclusive() -> None:
             organization_id=ORG,
             review_case_id=CASE,
             review_iteration_id=ITERATION,
+            expected_review_iteration_revision=0,
             action="joined",
             actor=_actor(user_id, methodologist=methodologist),
             request_id=UUID(int=start + 50),
@@ -156,8 +174,14 @@ async def test_case_iteration_affinity_fails_closed() -> None:
         original = repository.resolve_context
 
         async def wrong_context(*args: object, **kwargs: object) -> ResponsibilityContext:
-            await original(ORG, CASE, ITERATION, transaction=object())
-            return ResponsibilityContext(ORG, CASE, UUID(int=999))
+            await original(
+                ORG,
+                CASE,
+                ITERATION,
+                expected_review_iteration_revision=0,
+                transaction=object(),
+            )
+            return ResponsibilityContext(ORG, CASE, UUID(int=999), 0)
 
         repository.resolve_context = wrong_context  # type: ignore[method-assign]
         await service.record(
@@ -165,8 +189,28 @@ async def test_case_iteration_affinity_fails_closed() -> None:
             organization_id=ORG,
             review_case_id=CASE,
             review_iteration_id=ITERATION,
+            expected_review_iteration_revision=0,
             action="started",
             actor=_actor(REVIEWER_A),
             request_id=UUID(int=1),
             trace_id=UUID(int=2),
         )
+
+
+@pytest.mark.anyio
+async def test_revision_change_immediately_before_append_is_typed_conflict() -> None:
+    repository = Repository()
+    repository.append_succeeds = False
+    with pytest.raises(ReviewResponsibilityConflict, match="revision changed"):
+        await _service(repository, 900).record(
+            transaction=object(),
+            organization_id=ORG,
+            review_case_id=CASE,
+            review_iteration_id=ITERATION,
+            expected_review_iteration_revision=0,
+            action="started",
+            actor=_actor(REVIEWER_A),
+            request_id=UUID(int=3),
+            trace_id=UUID(int=4),
+        )
+    assert repository.events == []

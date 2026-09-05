@@ -12,6 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from testcontainers.mysql import MySqlContainer
 
+from review_platform.application.projections.review_detail import project_ai_review
 from review_platform.infrastructure.db.base import Base
 from review_platform.infrastructure.db.models import (
     AICriterionSuggestion,
@@ -73,6 +74,7 @@ def _event(
     attempt_id: UUID,
     *,
     digest: str = "sha256:" + "9" * 64,
+    sequence: int = 1,
 ) -> AIReviewEventReceipt:
     return AIReviewEventReceipt(
         event_id=event_id,
@@ -80,7 +82,7 @@ def _event(
         ai_review_run_id=run_id,
         attempt_id=attempt_id,
         attempt_number=1,
-        sequence=1,
+        sequence=sequence,
         payload_digest=digest,
         status="partial",
         is_final=False,
@@ -164,6 +166,7 @@ async def test_mysql_unique_race_event_collision_old_attempt_and_terminal_cas(
     attempt1_id = UUID("00000000-0000-7000-8000-000000001122")
     attempt2_id = UUID("00000000-0000-7000-8000-000000001123")
     event_id = UUID("00000000-0000-7000-8000-000000001124")
+    later_event_id = UUID("00000000-0000-7000-8000-000000001100")
     async with session_scope(factory) as session:
         repository = AIReviewRepository(session)
         await repository.add_attempt(
@@ -211,6 +214,16 @@ async def test_mysql_unique_race_event_collision_old_attempt_and_terminal_cas(
             await repository.reserve_event(
                 _event(event_id, run_id, attempt1_id, digest="sha256:" + "a" * 64)
             )
+        later_event, created = await repository.reserve_event(
+            _event(
+                later_event_id,
+                run_id,
+                attempt1_id,
+                digest="sha256:" + "b" * 64,
+                sequence=2,
+            )
+        )
+        assert created and later_event.sequence == 2
         with pytest.raises(AIReviewStateConflict, match="sequence"):
             await repository.transition_attempt(
                 ORG,
@@ -298,14 +311,54 @@ async def test_mysql_unique_race_event_collision_old_attempt_and_terminal_cas(
             limitations=[],
             questions=[],
         )
-        await repository.append_outputs([suggestion], signal)
+        later_suggestion = AICriterionSuggestion(
+            id=UUID("00000000-0000-7000-8000-000000001129"),
+            organization_id=ORG,
+            ai_review_run_id=run_id,
+            event_id=later_event_id,
+            criterion_id=UUID("00000000-0000-7000-8000-000000001130"),
+            status="suggested",
+            proposed_points=None,
+            reason="Later sequence",
+            evidence=[],
+            confidence="high",
+            flags=[],
+        )
+        later_signal = AISignal(
+            id=UUID("00000000-0000-7000-8000-000000001131"),
+            organization_id=ORG,
+            ai_review_run_id=run_id,
+            event_id=later_event_id,
+            level="high",
+            evidence=[],
+            limitations=[],
+            questions=[],
+        )
+        await repository.append_outputs(
+            [suggestion, later_suggestion],
+            signal,
+        )
+        await repository.append_outputs([], later_signal)
         await session.execute(text("SET FOREIGN_KEY_CHECKS=1"))
         history = await repository.history(ORG, run_id)
         assert history is not None
         assert [item.attempt_number for item in history.attempts] == [1, 2]
-        assert [item.sequence for item in history.events] == [1]
-        assert history.suggestions == (suggestion,)
-        assert history.signals == (signal,)
+        assert [item.sequence for item in history.events] == [1, 2]
+        assert [item.event_id for item in history.suggestions] == [
+            event_id,
+            later_event_id,
+        ]
+        assert [item.event_id for item in history.signals] == [
+            event_id,
+            later_event_id,
+        ]
+        projected = project_ai_review(history)
+        assert projected is not None
+        assert [item["reason"] for item in projected["suggestions"]] == [
+            "Needs review",
+            "Later sequence",
+        ]
+        assert projected["signal"]["level"] == "high"
         attempt1 = await repository.get_attempt(ORG, attempt1_id)
         assert attempt1 is not None
         assert "secret" not in str(attempt1.sanitized_error).lower()

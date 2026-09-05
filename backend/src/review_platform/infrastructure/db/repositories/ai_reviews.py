@@ -210,9 +210,7 @@ class AIReviewRepository:
                 status=new_status,
                 last_sequence=new_sequence,
                 finished_at=(
-                    utc_now()
-                    if new_status in ATTEMPT_TERMINAL | {"retryable_failed"}
-                    else None
+                    utc_now() if new_status in ATTEMPT_TERMINAL | {"retryable_failed"} else None
                 ),
                 error_code=(str(sanitized.get("code")) if sanitized is not None else None),
                 sanitized_error=sanitized,
@@ -290,11 +288,24 @@ class AIReviewRepository:
             (
                 await self._session.execute(
                     select(AICriterionSuggestion)
+                    .join(
+                        AIReviewEventReceipt,
+                        (
+                            AIReviewEventReceipt.organization_id
+                            == AICriterionSuggestion.organization_id
+                        )
+                        & (AIReviewEventReceipt.event_id == AICriterionSuggestion.event_id),
+                    )
                     .where(
                         AICriterionSuggestion.organization_id == organization_id,
                         AICriterionSuggestion.ai_review_run_id == run_id,
                     )
-                    .order_by(AICriterionSuggestion.event_id, AICriterionSuggestion.criterion_id)
+                    .order_by(
+                        AIReviewEventReceipt.attempt_number,
+                        AIReviewEventReceipt.sequence,
+                        AICriterionSuggestion.criterion_id,
+                        AICriterionSuggestion.id,
+                    )
                 )
             )
             .scalars()
@@ -304,11 +315,20 @@ class AIReviewRepository:
             (
                 await self._session.execute(
                     select(AISignal)
+                    .join(
+                        AIReviewEventReceipt,
+                        (AIReviewEventReceipt.organization_id == AISignal.organization_id)
+                        & (AIReviewEventReceipt.event_id == AISignal.event_id),
+                    )
                     .where(
                         AISignal.organization_id == organization_id,
                         AISignal.ai_review_run_id == run_id,
                     )
-                    .order_by(AISignal.event_id, AISignal.id)
+                    .order_by(
+                        AIReviewEventReceipt.attempt_number,
+                        AIReviewEventReceipt.sequence,
+                        AISignal.id,
+                    )
                 )
             )
             .scalars()

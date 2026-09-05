@@ -301,6 +301,11 @@ class PublicationRequest(TenantEntityMixin, RevisionMixin, TimestampMixin, Base)
         ),
         CheckConstraint("revision >= 0", name="revision_nonnegative"),
         CheckConstraint(
+            "(agent_id IS NULL AND agent_authorization_id IS NULL) OR "
+            "(agent_id IS NOT NULL AND agent_authorization_id IS NOT NULL)",
+            name="agent_provenance_coherent",
+        ),
+        CheckConstraint(
             "(status = 'confirmed' AND confirmed_by IS NOT NULL "
             "AND confirmed_at IS NOT NULL) OR "
             "(status <> 'confirmed' AND confirmed_by IS NULL "
@@ -324,8 +329,8 @@ class PublicationRequest(TenantEntityMixin, RevisionMixin, TimestampMixin, Base)
     review_iteration_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     review_revision_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     requested_by_user_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
-    agent_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
-    agent_authorization_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    agent_id: Mapped[UUID | None] = mapped_column(UUID_TYPE, nullable=True)
+    agent_authorization_id: Mapped[UUID | None] = mapped_column(UUID_TYPE, nullable=True)
     idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
     status: Mapped[str] = mapped_column(
         String(32),

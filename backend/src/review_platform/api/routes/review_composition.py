@@ -9,7 +9,7 @@ from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from review_platform.application.audit import AuditRecorder
@@ -132,6 +132,10 @@ async def dispatch_review_mutation(
         )
     except _COMPOSITION_ERRORS as error:
         raise ReviewCompositionError(str(error)) from error
+    except (IntegrityError, OperationalError) as error:
+        if _mysql_error_code(error) in _MYSQL_CONCURRENCY_CODES:
+            raise ReviewCompositionError("concurrent review mutation conflict") from error
+        raise
 
 
 async def _dispatch_review_mutation(
@@ -215,6 +219,7 @@ async def _dispatch_review_mutation(
             organization_id=actor.organization_id,
             review_case_id=review_case_id,
             review_iteration_id=command.target_id,
+            expected_review_iteration_revision=command.expected_revision,
             action=responsibility_payload.action,
             actor=actor,
             request_id=command.request_id,
@@ -528,8 +533,14 @@ _COMPOSITION_ERRORS = (
     ReviewerAvailabilityError,
     ReviewerSelectionError,
     ReviewWorkRepositoryError,
-    SQLAlchemyError,
 )
+
+_MYSQL_CONCURRENCY_CODES = frozenset({1062, 1205, 1213})
+
+
+def _mysql_error_code(error: IntegrityError | OperationalError) -> int | None:
+    arguments = getattr(error.orig, "args", ())
+    return arguments[0] if arguments and isinstance(arguments[0], int) else None
 
 
 __all__ = [

@@ -230,34 +230,47 @@ class SqlReviewWorkRepository:
         review_case_id: UUID,
         review_iteration_id: UUID | None,
         *,
+        expected_review_iteration_revision: int | None,
         transaction: object,
     ) -> ResponsibilityContext | None:
         session = _session(transaction)
+        revision: int | None = None
         if review_iteration_id is None:
-            found = await session.scalar(
+            if expected_review_iteration_revision is not None:
+                return None
+            found_id = await session.scalar(
                 select(ReviewCase.id).where(
                     ReviewCase.organization_id == organization_id,
                     ReviewCase.id == review_case_id,
                 )
             )
         else:
-            found = await session.scalar(
-                select(ReviewIteration.id).where(
-                    ReviewIteration.organization_id == organization_id,
-                    ReviewIteration.review_case_id == review_case_id,
-                    ReviewIteration.id == review_iteration_id,
+            found = (
+                await session.execute(
+                    select(ReviewIteration.id, ReviewIteration.revision)
+                    .where(
+                        ReviewIteration.organization_id == organization_id,
+                        ReviewIteration.review_case_id == review_case_id,
+                        ReviewIteration.id == review_iteration_id,
+                        ReviewIteration.revision == expected_review_iteration_revision,
+                    )
+                    .with_for_update()
                 )
-            )
-        if found is None:
+            ).one_or_none()
+            if found is None:
+                return None
+            found_id, revision = found
+        if found_id is None:
             return None
-        return ResponsibilityContext(organization_id, review_case_id, review_iteration_id)
+        return ResponsibilityContext(organization_id, review_case_id, review_iteration_id, revision)
 
     async def append(
         self,
         event: ReviewResponsibilityEvent,
         *,
+        expected_review_iteration_revision: int | None,
         transaction: object,
-    ) -> None:
+    ) -> bool:
         session = _session(transaction)
         if event.action not in {"started", "joined", "released", "completed"}:
             raise ReviewWorkScopeConflict("unknown responsibility action")
@@ -266,10 +279,11 @@ class SqlReviewWorkRepository:
             event.organization_id,
             event.review_case_id,
             event.review_iteration_id,
+            expected_review_iteration_revision=expected_review_iteration_revision,
             transaction=session,
         )
         if context is None:
-            raise ReviewWorkScopeConflict("tenant ReviewCase/ReviewIteration affinity is invalid")
+            return False
         participant_ids = {event.reviewer_id, event.actor_id}
         active_members = set(
             (
@@ -304,6 +318,7 @@ class SqlReviewWorkRepository:
             raise ReviewWorkScopeConflict(
                 "responsibility event identity or affinity conflicts"
             ) from error
+        return True
 
     async def load_queue(
         self,

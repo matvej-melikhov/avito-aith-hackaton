@@ -7,11 +7,12 @@ from uuid import UUID
 import httpx
 import pytest
 from fastapi import Request, Response
+from sqlalchemy import select
 
 from review_platform.application.foundation_runtime import FoundationRuntime
 from review_platform.application.request_context import RequestActor
 from review_platform.contracts.commands import WireCommand
-from review_platform.infrastructure.db.models import OrganizationMembership, User
+from review_platform.infrastructure.db.models import CommandReceipt, OrganizationMembership, User
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 from review_platform.main import create_app
 from review_platform.settings import Settings
@@ -19,6 +20,8 @@ from review_platform.settings import Settings
 ITERATION = UUID("00000000-0000-7000-8000-000000002101")
 USER = UUID("00000000-0000-7000-8000-000000002201")
 MEMBERSHIP = UUID("00000000-0000-7000-8000-000000002202")
+OTHER_USER = UUID("00000000-0000-7000-8000-000000002204")
+OTHER_MEMBERSHIP = UUID("00000000-0000-7000-8000-000000002205")
 
 
 class AvailabilityHandler:
@@ -107,23 +110,43 @@ async def test_agent_publish_is_rejected_before_handler_or_database(
 
 
 @pytest.mark.anyio
-async def test_mutation_receipt_replays_injected_handler_result_once(
+async def test_mutation_receipt_replays_only_for_exact_original_actor_snapshot(
     foundation_runtime: FoundationRuntime,
     foundation_session_factory: AsyncSessionFactory,
 ) -> None:
     async with session_scope(foundation_session_factory) as session:
-        session.add(User(id=USER, display_name="Route Reviewer", status="active"))
+        session.add_all(
+            [
+                User(id=USER, display_name="Route Reviewer", status="active"),
+                User(id=OTHER_USER, display_name="Other Reviewer", status="active"),
+            ]
+        )
         await session.flush()
-        session.add(
-            OrganizationMembership(
-                id=MEMBERSHIP,
-                organization_id=UUID("00000000-0000-7000-8000-000000000001"),
-                user_id=USER,
-                roles=["reviewer"],
-                status="active",
-                revision=0,
-                auth_epoch=0,
-            )
+        session.add_all(
+            [
+                OrganizationMembership(
+                    id=MEMBERSHIP,
+                    organization_id=UUID(
+                        "00000000-0000-7000-8000-000000000001"
+                    ),
+                    user_id=USER,
+                    roles=["reviewer"],
+                    status="active",
+                    revision=0,
+                    auth_epoch=0,
+                ),
+                OrganizationMembership(
+                    id=OTHER_MEMBERSHIP,
+                    organization_id=UUID(
+                        "00000000-0000-7000-8000-000000000001"
+                    ),
+                    user_id=OTHER_USER,
+                    roles=["reviewer"],
+                    status="active",
+                    revision=0,
+                    auth_epoch=0,
+                ),
+            ]
         )
     app = create_app(Settings(), runtime=foundation_runtime)
     actor = RequestActor.user(
@@ -133,6 +156,14 @@ async def test_mutation_receipt_replays_injected_handler_result_once(
         membership_revision=0,
         auth_epoch=0,
     )
+    other_actor = RequestActor.user(
+        organization_id=UUID("00000000-0000-7000-8000-000000000001"),
+        user_id=OTHER_USER,
+        roles={"reviewer"},
+        membership_revision=0,
+        auth_epoch=0,
+    )
+    current_actor = [actor]
     handler = AvailabilityHandler()
     app.state.review_route_handlers = {"set_reviewer_availability": handler}
 
@@ -141,7 +172,7 @@ async def test_mutation_receipt_replays_injected_handler_result_once(
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
-        request.state.request_actor = actor
+        request.state.request_actor = current_actor[0]
         return await call_next(request)
 
     command = {
@@ -162,7 +193,54 @@ async def test_mutation_receipt_replays_injected_handler_result_once(
     ) as client:
         first = await client.put("/api/v1/reviewer/availability", json=command)
         replay = await client.put("/api/v1/reviewer/availability", json=command)
+        current_actor[0] = other_actor
+        cross_actor = await client.put(
+            "/api/v1/reviewer/availability",
+            json=command,
+        )
+        async with session_scope(foundation_session_factory) as session:
+            membership = await session.get(OrganizationMembership, OTHER_MEMBERSHIP)
+            assert membership is not None
+            membership.roles = ["student"]
+            membership.revision = 1
+            membership.auth_epoch = 1
+        current_actor[0] = RequestActor.user(
+            organization_id=actor.organization_id,
+            user_id=OTHER_USER,
+            roles={"student"},
+            membership_revision=1,
+            auth_epoch=1,
+        )
+        role_denied = await client.put(
+            "/api/v1/reviewer/availability",
+            json=command,
+        )
 
     assert first.status_code == replay.status_code == 200
     assert first.json() == replay.json() == {"id": str(MEMBERSHIP), "revision": 1}
+    assert cross_actor.status_code == 409
+    assert "actor or authority snapshot" in cross_actor.json()["message"]
+    assert role_denied.status_code == 403
+    assert "role" in role_denied.json()["message"]
     assert handler.calls == 1
+    async with foundation_session_factory() as session:
+        receipt = await session.scalar(
+            select(CommandReceipt).where(
+                CommandReceipt.organization_id == actor.organization_id,
+                CommandReceipt.idempotency_key == command["idempotency_key"],
+            )
+        )
+    assert receipt is not None
+    assert receipt.actor_snapshot == {
+        "type": "user",
+        "organization_id": str(actor.organization_id),
+        "user_id": str(USER),
+        "roles": ["reviewer"],
+        "membership_revision": 0,
+        "auth_epoch": 0,
+        "agent_id": None,
+        "agent_authorization_id": None,
+        "agent_authorization_revision": None,
+        "scopes": [],
+        "expires_at": None,
+    }

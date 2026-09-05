@@ -17,7 +17,11 @@ from review_platform.api.routes.review_composition import (
     read_recommendation,
     read_review_detail_response,
 )
-from review_platform.application.authorization import AuthorizationError
+from review_platform.application.authorization import (
+    AuthorizationError,
+    AuthorizationPolicy,
+    Authorizer,
+)
 from review_platform.application.foundation_runtime import FoundationRuntime
 from review_platform.application.idempotency import IdempotencyCoordinator, IdempotencyError
 from review_platform.application.request_context import RequestActor
@@ -26,6 +30,41 @@ from review_platform.infrastructure.db.adapters import SqlIdempotencyReceiptRepo
 from review_platform.infrastructure.db.repositories.operations import CommandReceiptRepository
 
 router = APIRouter(tags=["reviews"])
+
+_REVIEW_POLICIES = {
+    "set_reviewer_course_selection": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer"}),
+        required_scopes=frozenset({"review_preferences:write"}),
+    ),
+    "set_reviewer_availability": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer"}),
+        required_scopes=frozenset({"review_preferences:write"}),
+    ),
+    "save_review_revision": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer", "methodologist"}),
+        required_scopes=frozenset({"reviews:write"}),
+    ),
+    "record_review_responsibility": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer", "methodologist"}),
+        required_scopes=frozenset({"reviews:write"}),
+    ),
+    "request_review_publication": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer", "methodologist"}),
+        required_scopes=frozenset({"publication_requests:write"}),
+    ),
+    "migrate_review_requirements": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer", "methodologist"}),
+        allowed_actor_types=frozenset({"user"}),
+    ),
+    "create_review_correction": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer", "methodologist"}),
+        allowed_actor_types=frozenset({"user"}),
+    ),
+    "publish_review": AuthorizationPolicy(
+        required_roles=frozenset({"reviewer", "methodologist"}),
+        allowed_actor_types=frozenset({"user"}),
+    ),
+}
 
 
 class ReviewRouteError(RuntimeError):
@@ -148,9 +187,22 @@ async def _mutation(
         handlers = getattr(request.app.state, "review_route_handlers", None)
         if handlers is not None and not isinstance(handlers, Mapping):
             raise ReviewRouteError("review route handler registry is invalid")
-        await runtime.user_auth_guard.revalidate(actor=actor)
+        authorizer = Authorizer(runtime.user_auth_guard, clock=runtime.clock)
+        policy = _REVIEW_POLICIES.get(name)
+        if policy is None:
+            raise ReviewRouteError(f"review command has no authorization policy: {name}")
+        grant = await authorizer.authorize(
+            actor=actor,
+            organization_id=actor.organization_id,
+            policy=policy,
+        )
         async with runtime.transaction() as transaction:
-            replay = await _reserve(runtime, transaction, command, actor.organization_id)
+            replay = await _reserve(
+                runtime,
+                transaction,
+                command,
+                actor,
+            )
             if replay is None:
                 if isinstance(handlers, Mapping) and name in handlers:
                     handler = cast(ReviewRouteHandler, handlers[name])
@@ -175,7 +227,7 @@ async def _mutation(
                 )
             else:
                 response_payload = replay
-            await runtime.user_auth_guard.lock_and_revalidate(actor=actor, transaction=transaction)
+            await authorizer.revalidate_for_commit(grant, transaction=transaction)
         if status == 204:
             return Response(status_code=204)
         return JSONResponse(response_payload, status_code=status)
@@ -232,14 +284,14 @@ async def _reserve(
     runtime: FoundationRuntime,
     transaction: AsyncSession,
     command: WireCommand,
-    organization_id: UUID,
+    actor: RequestActor,
 ) -> dict[str, Any] | None:
     reservation = await IdempotencyCoordinator(
         SqlIdempotencyReceiptRepository(),
         receipt_id_factory=runtime.id_factory,
         result_reference_factory=lambda: {"kind": "pending", "payload": {}},
     ).reserve(
-        organization_id=organization_id,
+        organization_id=actor.organization_id,
         idempotency_key=command.idempotency_key,
         request_id=command.request_id,
         command_name=str(command.command_name),
@@ -248,12 +300,50 @@ async def _reserve(
         payload=command.payload,
         transaction=transaction,
     )
+    repository = CommandReceiptRepository(transaction)
+    receipt = await repository.get_by_idempotency_key(
+        actor.organization_id,
+        command.idempotency_key,
+        for_update=True,
+    )
+    if receipt is None:
+        raise ReviewRouteError("idempotency receipt disappeared after reservation")
+    expected_actor = _actor_snapshot(actor)
+    if reservation.disposition == "reserved":
+        if receipt.actor_snapshot:
+            raise ReviewRouteError("new idempotency receipt is unexpectedly actor-bound")
+        receipt.actor_snapshot = expected_actor
+        await transaction.flush([receipt])
+    elif receipt.actor_snapshot != expected_actor:
+        raise IdempotencyError(
+            "idempotency replay actor or authority snapshot does not match"
+        )
     if reservation.disposition == "reserved":
         return None
     payload = reservation.receipt.result_reference.get("payload")
     if not isinstance(payload, dict):
         raise ReviewRouteError("idempotency replay payload is incomplete")
     return cast(dict[str, Any], payload)
+
+
+def _actor_snapshot(actor: RequestActor) -> dict[str, Any]:
+    return {
+        "type": actor.actor_type,
+        "organization_id": str(actor.organization_id),
+        "user_id": str(actor.user_id) if actor.user_id is not None else None,
+        "roles": sorted(str(role) for role in actor.roles),
+        "membership_revision": actor.membership_revision,
+        "auth_epoch": actor.auth_epoch,
+        "agent_id": str(actor.agent_id) if actor.agent_id is not None else None,
+        "agent_authorization_id": (
+            str(actor.agent_authorization_id)
+            if actor.agent_authorization_id is not None
+            else None
+        ),
+        "agent_authorization_revision": actor.agent_authorization_revision,
+        "scopes": sorted(str(scope) for scope in actor.scopes),
+        "expires_at": actor.expires_at.isoformat() if actor.expires_at is not None else None,
+    }
 
 
 async def _complete(

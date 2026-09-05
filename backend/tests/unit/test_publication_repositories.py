@@ -9,6 +9,7 @@ from uuid import UUID
 import anyio
 import pytest
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from review_platform.application.services.publication_requests import PublicationRequestRecord
 from review_platform.application.services.review_publication import ReviewPublicationRecord
@@ -40,6 +41,7 @@ from review_platform.infrastructure.db.models import (
 )
 from review_platform.infrastructure.db.repositories.publications import (
     InvalidPublicationTransaction,
+    PublicationPersistenceConflict,
     SqlPublicationRepository,
     require_successor_revision_repository,
 )
@@ -572,6 +574,59 @@ async def test_publication_request_reserve_collision_and_confirm_are_atomic(
         )
         assert not created
         assert collision.expires_at == NOW + timedelta(hours=1)
+        human, human_created = await repository.reserve(
+            PublicationRequestRecord(
+                organization_id=ORG,
+                publication_request_id=UUID("00000000-0000-7000-8000-000000129204"),
+                review_iteration_id=ITERATION,
+                review_revision_id=REVISION,
+                requested_by_user_id=REVIEWER,
+                agent_id=None,
+                agent_authorization_id=None,
+                idempotency_key="human-publication-request-0001",
+                status="pending",
+                expires_at=NOW + timedelta(hours=1),
+                revision=0,
+            ),
+            transaction=session,
+        )
+        assert human_created
+        assert human.agent_id is human.agent_authorization_id is None
+        with pytest.raises(PublicationPersistenceConflict, match="coherent"):
+            await repository.reserve(
+                PublicationRequestRecord(
+                    organization_id=ORG,
+                    publication_request_id=UUID("00000000-0000-7000-8000-000000129205"),
+                    review_iteration_id=ITERATION,
+                    review_revision_id=REVISION,
+                    requested_by_user_id=REVIEWER,
+                    agent_id=AGENT,
+                    agent_authorization_id=None,
+                    idempotency_key="invalid-publication-request-0001",
+                    status="pending",
+                    expires_at=NOW + timedelta(hours=1),
+                    revision=0,
+                ),
+                transaction=session,
+            )
+        with pytest.raises((IntegrityError, OperationalError)):
+            async with session.begin_nested():
+                session.add(
+                    PublicationRequest(
+                        id=UUID("00000000-0000-7000-8000-000000129206"),
+                        organization_id=ORG,
+                        review_iteration_id=ITERATION,
+                        review_revision_id=REVISION,
+                        requested_by_user_id=REVIEWER,
+                        agent_id=AGENT,
+                        agent_authorization_id=None,
+                        idempotency_key="database-invalid-authority-pair",
+                        status="pending",
+                        expires_at=NOW + timedelta(hours=1),
+                        revision=0,
+                    )
+                )
+                await session.flush()
         locked = await repository.lock_publication_request(
             ORG,
             request_id,

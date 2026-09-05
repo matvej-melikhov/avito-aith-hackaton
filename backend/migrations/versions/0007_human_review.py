@@ -414,8 +414,8 @@ def upgrade() -> None:
         sa.Column("review_iteration_id", UUID, nullable=False),
         sa.Column("review_revision_id", UUID, nullable=False),
         sa.Column("requested_by_user_id", UUID, nullable=False),
-        sa.Column("agent_id", UUID, nullable=False),
-        sa.Column("agent_authorization_id", UUID, nullable=False),
+        sa.Column("agent_id", UUID, nullable=True),
+        sa.Column("agent_authorization_id", UUID, nullable=True),
         sa.Column("idempotency_key", sa.String(128), nullable=False),
         sa.Column(
             "status",
@@ -448,6 +448,11 @@ def upgrade() -> None:
         sa.CheckConstraint(
             "revision >= 0",
             name="ck_publication_request_revision_nonnegative",
+        ),
+        sa.CheckConstraint(
+            "(agent_id IS NULL AND agent_authorization_id IS NULL) OR "
+            "(agent_id IS NOT NULL AND agent_authorization_id IS NOT NULL)",
+            name="ck_publication_request_agent_provenance_coherent",
         ),
         sa.CheckConstraint(
             "(status = 'confirmed' AND confirmed_by IS NOT NULL "

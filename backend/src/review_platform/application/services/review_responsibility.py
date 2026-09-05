@@ -36,6 +36,7 @@ class ResponsibilityContext:
     organization_id: UUID
     review_case_id: UUID
     review_iteration_id: UUID | None
+    review_iteration_revision: int | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,10 +70,17 @@ class ReviewResponsibilityRepository(Protocol):
         review_case_id: UUID,
         review_iteration_id: UUID | None,
         *,
+        expected_review_iteration_revision: int | None,
         transaction: object,
     ) -> ResponsibilityContext | None: ...
 
-    async def append(self, event: ReviewResponsibilityEvent, *, transaction: object) -> None: ...
+    async def append(
+        self,
+        event: ReviewResponsibilityEvent,
+        *,
+        expected_review_iteration_revision: int | None,
+        transaction: object,
+    ) -> bool: ...
 
 
 class ReviewResponsibilityService:
@@ -98,6 +106,7 @@ class ReviewResponsibilityService:
         organization_id: UUID,
         review_case_id: UUID,
         review_iteration_id: UUID | None,
+        expected_review_iteration_revision: int | None,
         action: ResponsibilityAction,
         actor: RequestActor,
         request_id: UUID,
@@ -116,6 +125,7 @@ class ReviewResponsibilityService:
             organization_id,
             review_case_id,
             review_iteration_id,
+            expected_review_iteration_revision=expected_review_iteration_revision,
             transaction=transaction,
         )
         if context is None:
@@ -126,6 +136,7 @@ class ReviewResponsibilityService:
             context.organization_id != organization_id
             or context.review_case_id != review_case_id
             or context.review_iteration_id != review_iteration_id
+            or context.review_iteration_revision != expected_review_iteration_revision
         ):
             raise ReviewResponsibilityConflict(
                 "repository returned a different case/iteration affinity"
@@ -141,7 +152,14 @@ class ReviewResponsibilityService:
             action=action,
             occurred_at=occurred_at,
         )
-        await self._repository.append(event, transaction=transaction)
+        if not await self._repository.append(
+            event,
+            expected_review_iteration_revision=expected_review_iteration_revision,
+            transaction=transaction,
+        ):
+            raise ReviewResponsibilityConflict(
+                "ReviewIteration revision changed before responsibility append"
+            )
         await self._audit.record(
             AuditEventDraft(
                 organization_id=organization_id,

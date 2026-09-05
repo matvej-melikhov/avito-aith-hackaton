@@ -218,13 +218,10 @@ async def read_review_detail(
         "ai_review": project_ai_review(ai_history),
         "responsibility_events": [_responsibility(item) for item in responsibility],
         "publication_request": (
-            _publication_request(publication_request)
-            if publication_request is not None
-            else None
+            _publication_request(publication_request) if publication_request is not None else None
         ),
         "deliveries": [
-            _delivery(item, attempts_by_operation.get(item.operation_id, ()))
-            for item in deliveries
+            _delivery(item, attempts_by_operation.get(item.operation_id, ())) for item in deliveries
         ],
     }
 
@@ -233,6 +230,24 @@ def project_ai_review(history: AIReviewHistory | None) -> dict[str, Any] | None:
     if history is None:
         return None
     run = history.run
+    event_order = {
+        event.event_id: (event.attempt_number, event.sequence) for event in history.events
+    }
+    suggestion_rows = (
+        tuple(
+            sorted(
+                enumerate(history.suggestions),
+                key=lambda indexed: (
+                    *event_order.get(indexed[1].event_id, (2**31, 2**31)),
+                    indexed[1].criterion_id.int,
+                    indexed[1].id.int,
+                    indexed[0],
+                ),
+            )
+        )
+        if event_order
+        else tuple(enumerate(history.suggestions))
+    )
     suggestions = [
         {
             "id": str(item.id),
@@ -248,9 +263,23 @@ def project_ai_review(history: AIReviewHistory | None) -> dict[str, Any] | None:
             "student_feedback": item.student_feedback,
             "flags": list(item.flags),
         }
-        for item in history.suggestions
+        for _, item in suggestion_rows
     ]
-    signal_row = history.signals[-1] if history.signals else None
+    signal_rows = (
+        tuple(
+            sorted(
+                enumerate(history.signals),
+                key=lambda indexed: (
+                    *event_order.get(indexed[1].event_id, (2**31, 2**31)),
+                    indexed[1].id.int,
+                    indexed[0],
+                ),
+            )
+        )
+        if event_order
+        else tuple(enumerate(history.signals))
+    )
+    signal_row = signal_rows[-1][1] if signal_rows else None
     signal = (
         {
             "level": signal_row.level,
@@ -267,9 +296,7 @@ def project_ai_review(history: AIReviewHistory | None) -> dict[str, Any] | None:
             "state": _ai_attempt_state(item.status),
             "started_at": require_utc(item.started_at).isoformat(),
             "finished_at": (
-                require_utc(item.finished_at).isoformat()
-                if item.finished_at is not None
-                else None
+                require_utc(item.finished_at).isoformat() if item.finished_at is not None else None
             ),
             "error": _error(item.sanitized_error),
         }
@@ -315,8 +342,7 @@ async def _highest_published_revision(
                 ReviewRevision,
                 and_(
                     ReviewRevision.organization_id == ReviewPublication.organization_id,
-                    ReviewRevision.review_iteration_id
-                    == ReviewPublication.review_iteration_id,
+                    ReviewRevision.review_iteration_id == ReviewPublication.review_iteration_id,
                     ReviewRevision.id == ReviewPublication.review_revision_id,
                 ),
             )

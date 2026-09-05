@@ -37,7 +37,6 @@ from review_platform.infrastructure.db.models import (
 )
 from review_platform.infrastructure.db.repositories.review_work import (
     InvalidReviewWorkTransaction,
-    ReviewWorkScopeConflict,
     SqlReviewWorkRepository,
 )
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
@@ -407,6 +406,7 @@ async def test_responsibility_append_is_nonexclusive_and_tenant_affine(
                 ORG_A,
                 REVIEW_CASE,
                 None,
+                expected_review_iteration_revision=None,
                 transaction=session,
             )
             is not None
@@ -416,6 +416,7 @@ async def test_responsibility_append_is_nonexclusive_and_tenant_affine(
                 ORG_B,
                 REVIEW_CASE,
                 None,
+                expected_review_iteration_revision=None,
                 transaction=session,
             )
             is None
@@ -423,7 +424,11 @@ async def test_responsibility_append_is_nonexclusive_and_tenant_affine(
 
     async def append_event(event: ReviewResponsibilityEvent) -> None:
         async with session_scope(foundation_session_factory) as session:
-            await repository.append(event, transaction=session)
+            await repository.append(
+                event,
+                expected_review_iteration_revision=None,
+                transaction=session,
+            )
 
     first = ReviewResponsibilityEvent(
         event_id=UUID("00000000-0000-7000-8000-000000128111"),
@@ -475,8 +480,11 @@ async def test_responsibility_append_is_nonexclusive_and_tenant_affine(
             action="started",
             occurred_at=NOW,
         )
-        with pytest.raises(ReviewWorkScopeConflict, match="affinity"):
-            await repository.append(wrong_tenant, transaction=session)
+        assert not await repository.append(
+            wrong_tenant,
+            expected_review_iteration_revision=None,
+            transaction=session,
+        )
 
 
 async def test_recommendation_snapshot_is_selected_active_exact_and_read_only(
@@ -523,6 +531,7 @@ async def test_recommendation_snapshot_is_selected_active_exact_and_read_only(
                 action="started",
                 occurred_at=NOW,
             ),
+            expected_review_iteration_revision=None,
             transaction=session,
         )
 
@@ -602,6 +611,7 @@ async def test_recommendation_snapshot_is_selected_active_exact_and_read_only(
                 action="released",
                 occurred_at=NOW + timedelta(minutes=1),
             ),
+            expected_review_iteration_revision=0,
             transaction=session,
         )
         released = await repository.load_queue(

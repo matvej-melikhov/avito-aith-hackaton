@@ -173,6 +173,10 @@ def test_publication_request_is_agent_provenance_without_delivery_side_effect() 
     )
     assert all(f"'{status}'" in checks for status in PUBLICATION_REQUEST_STATUSES)
     assert "revision >= 0" in checks
+    assert table.c.agent_id.nullable
+    assert table.c.agent_authorization_id.nullable
+    assert "agent_id IS NULL AND agent_authorization_id IS NULL" in checks
+    assert "agent_id IS NOT NULL AND agent_authorization_id IS NOT NULL" in checks
     foreign_keys = _foreign_key_pairs(table)
     assert (
         ("organization_id", "review_iteration_id", "review_revision_id"),

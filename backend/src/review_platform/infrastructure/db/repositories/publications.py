@@ -756,13 +756,12 @@ class SqlPublicationRepository:
     ) -> tuple[PublicationRequestRecord, bool]:
         session = _session(transaction)
         if (
-            candidate.agent_id is None
-            or candidate.agent_authorization_id is None
+            (candidate.agent_id is None) != (candidate.agent_authorization_id is None)
             or candidate.status != "pending"
             or candidate.revision != 0
         ):
             raise PublicationPersistenceConflict(
-                "publication request must carry exact pending agent provenance"
+                "publication request authority provenance must be coherent and pending"
             )
         existing = await _request_by_key(
             session,
