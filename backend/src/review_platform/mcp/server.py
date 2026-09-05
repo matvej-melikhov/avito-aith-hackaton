@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
@@ -22,6 +22,12 @@ from review_platform.mcp.authentication import (
     MCPBearerAuthenticator,
 )
 from review_platform.settings import Settings
+
+if TYPE_CHECKING:
+    from review_platform.application.services.ai_review_start import (
+        AIComponentCredentialBinding,
+    )
+    from review_platform.mcp.tools.ai_publication import AIReviewStartServiceFactory
 
 MCP_PATH = "/mcp"
 MCP_PROTOCOL_VERSION = "2026-07-28"
@@ -229,6 +235,12 @@ class MCPServer:
 
         return self._app
 
+    @property
+    def dispatcher(self) -> MCPToolDispatcher:
+        """Expose immutable dispatch composition for startup assertions."""
+
+        return self._dispatcher
+
     async def __call__(
         self,
         scope: Scope,
@@ -298,20 +310,27 @@ def build_mcp_server(
     dispatcher: MCPToolDispatcher | None = None,
     tool_registry: Mapping[str, MCPToolHandler] | None = None,
     authenticator: MCPAuthenticator | None = None,
+    credential_binding: AIComponentCredentialBinding | None = None,
+    ai_review_start_service_factory: AIReviewStartServiceFactory | None = None,
 ) -> MCPServer:
     """Build a server without process-global sessions or mutable tool state."""
 
     if dispatcher is not None and tool_registry is not None:
         raise ValueError("pass either dispatcher or tool_registry, not both")
     selected = settings or runtime.settings
-    registry = (
-        tool_registry
-        if tool_registry is not None
-        else {"list_courses": _ListCoursesHandler()}
-    )
-    selected_dispatcher = (
-        dispatcher if dispatcher is not None else MappingToolDispatcher(registry)
-    )
+    if dispatcher is not None:
+        selected_dispatcher = dispatcher
+    else:
+        registry = (
+            tool_registry
+            if tool_registry is not None
+            else _default_tool_registry(
+                runtime,
+                credential_binding=credential_binding,
+                ai_review_start_service_factory=ai_review_start_service_factory,
+            )
+        )
+        selected_dispatcher = MappingToolDispatcher(registry)
     selected_authenticator = (
         authenticator
         if authenticator is not None
@@ -332,6 +351,8 @@ def create_mcp_app(
     dispatcher: MCPToolDispatcher | None = None,
     tool_registry: Mapping[str, MCPToolHandler] | None = None,
     authenticator: MCPAuthenticator | None = None,
+    credential_binding: AIComponentCredentialBinding | None = None,
+    ai_review_start_service_factory: AIReviewStartServiceFactory | None = None,
 ) -> FastAPI:
     """Return the exact stateless ASGI application used by tests and T160."""
 
@@ -341,7 +362,31 @@ def create_mcp_app(
         dispatcher=dispatcher,
         tool_registry=tool_registry,
         authenticator=authenticator,
+        credential_binding=credential_binding,
+        ai_review_start_service_factory=ai_review_start_service_factory,
     ).streamable_http_app()
+
+
+def _default_tool_registry(
+    runtime: FoundationRuntime,
+    *,
+    credential_binding: AIComponentCredentialBinding | None,
+    ai_review_start_service_factory: AIReviewStartServiceFactory | None,
+) -> Mapping[str, MCPToolHandler]:
+    from review_platform.mcp.tools import build_mcp_tool_registry
+
+    registry = build_mcp_tool_registry(
+        runtime,
+        credential_binding=credential_binding,
+        ai_review_start_service_factory=ai_review_start_service_factory,
+    )
+    if credential_binding is not None:
+        return registry
+    # Preserve the T155 transport acceptance semantics until the standalone
+    # T160 entrypoint supplies complete AI composition. Names remain frozen.
+    compatible = dict(registry)
+    compatible["list_courses"] = _ListCoursesHandler()
+    return compatible
 
 
 def _validate_headers(request: Request) -> str:
