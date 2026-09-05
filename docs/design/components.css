@@ -428,14 +428,6 @@ a:hover { border-bottom-color: var(--ink); }
 .menu a:hover { background: var(--surface-2); color: var(--ink); }
 .menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
 .menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
-/* Второй список в панели — не раздел, а контекст: внутри какого потока или
-   задания сейчас работаем. Раздел в системе выбран ровно один, поэтому
-   зелёная засечка здесь не повторяется, выбранное помечено серой подложкой.  */
-.menu--sub a { padding-left: var(--s-6); color: var(--ink-3); }
-.menu--sub a.is-on { color: var(--ink); font-weight: var(--w-medium);
-                     border-left-color: transparent; background: var(--surface-2); }
-.menu__sep { padding: var(--s-5) var(--s-5) var(--s-2); font-family: var(--font-mono);
-             font-size: var(--label-size); letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); }
 .aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
                display: flex; align-items: center; gap: var(--s-3); }
 .ava { width: 32px; height: 32px; border-radius: var(--r-circle); background: var(--ink); color: var(--ink-inv);

@@ -585,14 +585,6 @@ a:hover { border-bottom-color: var(--ink); }
 .menu a:hover { background: var(--surface-2); color: var(--ink); }
 .menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
 .menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
-/* Второй список в панели — не раздел, а контекст: внутри какого потока или
-   задания сейчас работаем. Раздел в системе выбран ровно один, поэтому
-   зелёная засечка здесь не повторяется, выбранное помечено серой подложкой.  */
-.menu--sub a { padding-left: var(--s-6); color: var(--ink-3); }
-.menu--sub a.is-on { color: var(--ink); font-weight: var(--w-medium);
-                     border-left-color: transparent; background: var(--surface-2); }
-.menu__sep { padding: var(--s-5) var(--s-5) var(--s-2); font-family: var(--font-mono);
-             font-size: var(--label-size); letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); }
 .aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
                display: flex; align-items: center; gap: var(--s-3); }
 .ava { width: 32px; height: 32px; border-radius: var(--r-circle); background: var(--ink); color: var(--ink-inv);
@@ -1257,7 +1249,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">Р2</span><h2>Мои работы и пул</h2></div>
   <p class="screen__note">Главный экран ревьюера. Сверху работы, закреплённые за ним, ниже общий пул. Правила работы, которые задаёт этот экран: брать можно сколько угодно, лимита активных работ нет. Взятая работа сразу уходит из пула и закрепляется за ревьюером. На проверку два рабочих дня с момента, когда взяли. В активных выше те, у кого срок ближе, в пуле выше те, кто дольше ждёт.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Правила вынесены из макета в это описание, на экране остались только данные и действия. Полосы цифр над таблицами нет: все её числа уже стояли на экране, в счётчиках меню и в самих таблицах, а средний срок проверки переехал в кабинет, где ему и место. Колонки с датами содержат только даты, просрочка — это красная дата и засечка у строки, а не фраза в ячейке. Зелёная кнопка одна на строку — «Взять».</p>
-  <div class="shot" style="height:760px"><div class="vp">
+  <div class="shot" style="height:767px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -1266,11 +1258,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Пул<span class="c">12</span></a>
           <a href="#">Статистика</a>
           <a href="#">Настройки</a>
-        </nav>
-        <div class="menu__sep">Курсы</div>
-        <nav class="menu menu--sub">
-          <a href="#">Системный дизайн<span class="c">9</span></a>
-          <a href="#">Go<span class="c">3</span></a>
         </nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
@@ -1329,7 +1316,7 @@ a:hover { border-bottom-color: var(--ink); }
             </div>
 
             <div class="card">
-              <div class="card__head"><h4>Пул</h4></div>
+              <div class="card__head"><h4>Пул</h4><span class="btn btn--s btn--quiet">Курс: все</span></div>
               <div class="card__body card__body--flush">
                 <table class="tbl">
                   <thead><tr><th>Студент</th><th>Задание</th><th>Курс</th><th class="n">Сдана</th><th class="n">В пуле</th><th class="r"></th></tr></thead>
@@ -1380,8 +1367,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Пул<span class="c">12</span></a>
           <a class="is-on" href="#">Кабинет</a>
         </nav>
-        <div class="menu__sep">Курсы</div>
-        <nav class="menu menu--sub"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
       <div>
@@ -1451,8 +1436,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Пул<span class="c">12</span></a>
           <a class="is-on" href="#">Кабинет</a>
         </nav>
-        <div class="menu__sep">Курсы</div>
-        <nav class="menu menu--sub"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
       <div>
@@ -1699,8 +1682,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Пул<span class="c">12</span></a>
           <a href="#">Кабинет</a>
         </nav>
-        <div class="menu__sep">Курсы</div>
-        <nav class="menu menu--sub"><a href="#">Системный дизайн<span class="c">9</span></a><a href="#">Go<span class="c">3</span></a></nav>
         <div class="aside__foot"><span class="ava">РВ</span><div><div class="small" style="font-weight:500">rev-2214</div><div class="caption">ревьюер</div></div></div>
       </aside>
       <div>
@@ -1849,12 +1830,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a>
           <a href="#">Домашки<span class="c">284</span></a>
-        </nav>
-        <div class="menu__sep">Активные потоки</div>
-        <nav class="menu menu--sub">
-          <a href="#">Системный дизайн, фев</a>
-          <a href="#">Tech QA, фев</a>
-          <a href="#">Go, янв</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>
@@ -2017,7 +1992,7 @@ a:hover { border-bottom-color: var(--ink); }
   <div class="screen__head"><span class="screen__id">К2</span><h2>Курсы</h2></div>
   <p class="screen__note">Справочник курсов, пункт «Курсы» в меню. Курс — верхний уровень: внутри него живут задания и потоки, поэтому сам он почти ничего не хранит, кроме названия, описания и необязательной ссылки на курс в Stepik. Отдельной карточки курса нет и не нужно: работа идёт в заданиях и потоках, а клик по строке открывает то же окно, что и создание, только с заполненными полями.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Таблица без шапки карточки: фильтровать четыре строки нечего, а заголовок экрана уже сказал, что это. Ссылка на Stepik набрана моноширинным и синим, как всё внешнее. Там, где ссылки нет, стоит прочерк, а не пустая ячейка: пустая читается как недогруженная.</p>
-  <div class="shot" style="height:366px"><div class="vp">
+  <div class="shot" style="height:361px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2025,12 +2000,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Обзор</a><a class="is-on" href="#">Курсы<span class="c">4</span></a>
           <a href="#">Задания<span class="c">17</span></a><a href="#">Пул проверок<span class="c">12</span></a>
           <a href="#">Домашки<span class="c">284</span></a>
-        </nav>
-        <div class="menu__sep">Активные потоки</div>
-        <nav class="menu menu--sub">
-          <a href="#">Системный дизайн, фев</a>
-          <a href="#">Tech QA, фев</a>
-          <a href="#">Go, янв</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>
@@ -2174,7 +2143,7 @@ a:hover { border-bottom-color: var(--ink); }
 <section class="screen" id="К5">
   <div class="screen__head"><span class="screen__id">К5</span><h2>Задание, шаг 1: что видит студент</h2></div>
   <p class="screen__note">Задание принадлежит курсу и заполняется по шагам. Сначала то, что увидит студент: название, условие, формат сдачи, срок и правило штрафа. Критерии на следующем шаге, чтобы не смешивать текст для студента с конфигурацией проверки.</p>
-  <p class="screen__what"><b>Что даёт стиль</b> Шаги мастера — круги с номерами, пройденный заливается зелёным. Это единственное место, где заливка вернулась: шагов всего три, и они не повторяются списком. «Дальше» стоит внизу, под формой: сначала заполняем, потом идём дальше, а не наоборот. Штраф и попытки ИИ-ревью выбираются сегментами, а не полем с цифрой: значений мало, они заранее известны, а единица измерения ушла в подпись и не висит текстом рядом с полем. В боковой панели зелёная засечка одна и стоит у раздела, выбранное задание помечено серой подложкой: это не второй раздел, а контекст внутри первого.</p>
+  <p class="screen__what"><b>Что даёт стиль</b> Шаги мастера — круги с номерами, пройденный заливается зелёным. Это единственное место, где заливка вернулась: шагов всего три, и они не повторяются списком. «Дальше» стоит внизу, под формой: сначала заполняем, потом идём дальше, а не наоборот. Штраф и попытки ИИ-ревью выбираются сегментами, а не полем с цифрой: значений мало, они заранее известны, а единица измерения ушла в подпись и не висит текстом рядом с полем. В панели один список разделов, где мы внутри курса и задания, говорят крошки.</p>
   <div class="shot" style="height:632px"><div class="vp">
     <div class="app">
       <aside class="aside">
@@ -2183,11 +2152,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
           <a class="is-on" href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a><a href="#">Домашки<span class="c">284</span></a>
-        </nav>
-        <div class="menu__sep">Курс «Системный дизайн»</div>
-        <nav class="menu menu--sub">
-          <a href="#">Вводное задание</a><a class="is-on" href="#">Лабораторная 1</a>
-          <a href="#">Лабораторная 2</a><a href="#">Лабораторная 3</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>
@@ -2272,11 +2236,6 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
           <a class="is-on" href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a><a href="#">Домашки<span class="c">284</span></a>
-        </nav>
-        <div class="menu__sep">Курс «Системный дизайн»</div>
-        <nav class="menu menu--sub">
-          <a href="#">Вводное задание</a><a class="is-on" href="#">Лабораторная 1</a>
-          <a href="#">Лабораторная 2</a><a href="#">Лабораторная 3</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>
@@ -2401,9 +2360,9 @@ a:hover { border-bottom-color: var(--ink); }
 </section>
 <section class="screen" id="К7">
   <div class="screen__head"><span class="screen__id">К7</span><h2>Пул проверок</h2></div>
-  <p class="screen__note">Что сдано и до сих пор не взято ревьюером. Назначения нет ни в каком виде: зависшие работы никому не раздаются, они лежат в общем пуле и подсвечиваются как горящие после трёх дней. Единственный рычаг координатора — «Напомнить ревьюерам». Колонки статуса здесь нет: в пуле лежат только работы в статусе «Сдана», одинаковое значение во всех строках ничего не сообщает. Сверху те, что лежат дольше всех. Работа уходит из пула, когда её берёт ревьюер. Ниже типичные ошибки потока: требование, которое не выполнила половина группы, стоит разобрать на занятии или переформулировать в задании.</p>
+  <p class="screen__note">Пул одного потока, поток виден в крошках. Что сдано и до сих пор не взято ревьюером. Назначения нет ни в каком виде: зависшие работы никому не раздаются, они лежат в общем пуле и подсвечиваются как горящие после трёх дней. Единственный рычаг координатора — «Напомнить ревьюерам». Колонки статуса здесь нет: в пуле лежат только работы в статусе «Сдана», одинаковое значение во всех строках ничего не сообщает. Сверху те, что лежат дольше всех. Работа уходит из пула, когда её берёт ревьюер. Ниже типичные ошибки потока: требование, которое не выполнила половина группы, стоит разобрать на занятии или переформулировать в задании.</p>
   <p class="screen__what"><b>Что даёт стиль</b> Доля непрошедших требований показана полосой, а не процентом: координатору важно сравнить строки между собой, а не прочитать число. Полоса красная только у первой, где провал больше половины.</p>
-  <div class="shot" style="height:747px"><div class="vp">
+  <div class="shot" style="height:776px"><div class="vp">
     <div class="app">
       <aside class="aside">
         <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
@@ -2411,19 +2370,15 @@ a:hover { border-bottom-color: var(--ink); }
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
           <a class="is-on" href="#">Пул проверок<span class="c">12</span></a><a href="#">Домашки<span class="c">284</span></a>
         </nav>
-        <div class="menu__sep">Активные потоки</div>
-        <nav class="menu menu--sub">
-          <a class="is-on" href="#">Системный дизайн, фев<span class="c">9</span></a>
-          <a href="#">Tech QA, фев<span class="c">3</span></a><a href="#">Go, янв<span class="c">0</span></a>
-        </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>
       <div>
         <div class="topbar">
-          <h1>Пул проверок</h1>
+          <div>
+            <div class="crumbs"><a class="crumbs__back" href="#" title="Назад">←</a><a href="#">Курсы</a><span>/</span><a href="#">Системный дизайн</a><span>/</span><span class="cur">Февраль 2026</span></div>
+            <h1 style="margin-top:var(--s-2)">Пул проверок</h1>
+          </div>
           <div class="btn-row">
-            <span class="btn btn--s btn--quiet">Задание: все</span>
-            <span class="btn btn--s btn--quiet">Только зависшие</span>
             <span class="btn btn--s btn--dark">Напомнить ревьюерам</span>
           </div>
         </div>
@@ -2437,7 +2392,13 @@ a:hover { border-bottom-color: var(--ink); }
             </div>
 
             <div class="card">
-              <div class="card__head"><h4>Работы без ревьюера</h4></div>
+              <div class="card__head">
+                  <h4>Работы без ревьюера</h4>
+                  <div class="btn-row">
+                    <span class="btn btn--s btn--quiet">Задание: все</span>
+                    <span class="btn btn--s btn--quiet">Только зависшие</span>
+                  </div>
+                </div>
               <div class="card__body card__body--flush">
                 <table class="tbl">
                   <thead><tr><th>Студент</th><th>Задание</th><th class="n">Сдана</th><th class="n">В пуле</th><th class="n">Попытка</th></tr></thead>
@@ -2484,10 +2445,6 @@ a:hover { border-bottom-color: var(--ink); }
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a><a class="is-on" href="#">Домашки<span class="c">284</span></a>
-        </nav>
-        <div class="menu__sep">Активные потоки</div>
-        <nav class="menu menu--sub">
-          <a class="is-on" href="#">Системный дизайн, фев</a><a href="#">Tech QA, фев</a><a href="#">Go, янв</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>
@@ -2551,10 +2508,6 @@ a:hover { border-bottom-color: var(--ink); }
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a><a class="is-on" href="#">Домашки<span class="c">284</span></a>
-        </nav>
-        <div class="menu__sep">Активные потоки</div>
-        <nav class="menu menu--sub">
-          <a class="is-on" href="#">Системный дизайн, фев</a><a href="#">Tech QA, фев</a><a href="#">Go, янв</a>
         </nav>
         <div class="aside__foot"><span class="ava">КО</span><div><div class="small" style="font-weight:500">Координатор</div><div class="caption">методист</div></div></div>
       </aside>
