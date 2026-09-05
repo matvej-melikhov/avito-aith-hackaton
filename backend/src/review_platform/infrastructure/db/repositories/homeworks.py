@@ -533,6 +533,7 @@ class SqlHomeworkRepository:
                 .where(
                     HomeworkVersion.organization_id == organization_id,
                     HomeworkVersion.homework_id == homework_id,
+                    HomeworkVersion.review_only.is_(False),
                 )
                 .order_by(HomeworkVersion.version_number, HomeworkVersion.id)
             )

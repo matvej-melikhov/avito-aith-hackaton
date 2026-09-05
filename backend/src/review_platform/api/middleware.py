@@ -49,7 +49,8 @@ class RequestBodyLimitMiddleware(BaseHTTPMiddleware):
                 content_length = int(raw_length)
             except ValueError:
                 return _error_response(400, "invalid_content_length", "Invalid request length")
-            if content_length > self._max_bytes:
+            effective_limit = 13_500_000 if request.url.path == "/api/v2/uploads" else self._max_bytes
+            if content_length > effective_limit:
                 return _error_response(413, "request_too_large", "Request body is too large")
         return await call_next(request)
 

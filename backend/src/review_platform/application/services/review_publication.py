@@ -282,6 +282,7 @@ class ReviewPublicationService:
         *,
         actor: RequestActor,
         transaction: object,
+        score_adjustment: Decimal = Decimal("0"),
     ) -> ReviewPublicationResult:
         grant = await self._authorizer.authorize(
             actor=actor,
@@ -368,7 +369,9 @@ class ReviewPublicationService:
             expected_iteration_revision=command.expected_iteration_revision + 1,
         )
 
-        payload = self._delivery_payload(context.current_revision)
+        if score_adjustment < 0 or score_adjustment > context.current_revision.total_score:
+            raise ReviewPublicationConflict("publication score adjustment is out of bounds")
+        payload = self._delivery_payload(context.current_revision, score_adjustment)
         payload_digest = canonical_delivery_payload_digest(payload)
         provenance = self._provenance(context)
         publication_fingerprint = publication_provenance_fingerprint(
@@ -566,9 +569,9 @@ class ReviewPublicationService:
                 )
 
     @staticmethod
-    def _delivery_payload(revision: ReviewRevisionRecord) -> DeliveryPayload:
+    def _delivery_payload(revision: ReviewRevisionRecord, score_adjustment: Decimal = Decimal("0")) -> DeliveryPayload:
         return DeliveryPayload(
-            total_score=revision.total_score,
+            total_score=revision.total_score - score_adjustment,
             feedback=revision.feedback,
             criteria=[
                 DeliveryCriterionResult(

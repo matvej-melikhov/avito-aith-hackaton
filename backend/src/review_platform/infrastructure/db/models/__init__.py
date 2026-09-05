@@ -122,3 +122,6 @@ __all__ = [
     "SubmissionVersion",
     "User",
 ]
+
+# Register additive v2 metadata for migrations and transaction tests.
+from review_platform.infrastructure.db.models import workspace as workspace

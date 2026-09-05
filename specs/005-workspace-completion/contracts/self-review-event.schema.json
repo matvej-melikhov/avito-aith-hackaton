@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "SelfReviewFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "criterion_id": {
+          "format": "uuid",
+          "title": "Criterion Id",
+          "type": "string"
+        },
+        "evidence": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Evidence",
+          "type": "string"
+        },
+        "feedback": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Feedback",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "met",
+            "needs_attention",
+            "not_checked"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "criterion_id",
+        "status",
+        "feedback"
+      ],
+      "title": "SelfReviewFinding",
+      "type": "object"
+    },
+    "SelfReviewResult": {
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/SelfReviewFinding"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Findings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "findings"
+      ],
+      "title": "SelfReviewResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attempt": {
+      "minimum": 1,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "contract_version": {
+      "const": "2.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "error_code": {
+      "anyOf": [
+        {
+          "enum": [
+            "unavailable",
+            "invalid_artifact",
+            "unsupported_format",
+            "invalid_result"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error Code"
+    },
+    "event_id": {
+      "format": "uuid",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "input_fingerprint": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Input Fingerprint",
+      "type": "string"
+    },
+    "result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SelfReviewResult"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "running",
+        "succeeded",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_version",
+    "event_id",
+    "run_id",
+    "attempt",
+    "sequence",
+    "input_fingerprint",
+    "status"
+  ],
+  "title": "SelfReviewEvent",
+  "type": "object"
+}

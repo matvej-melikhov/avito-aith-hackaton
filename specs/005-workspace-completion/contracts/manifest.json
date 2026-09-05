@@ -1,0 +1,8 @@
+{
+  "sha256": {
+    "openapi.json": "f7f3c42c9bcae573929c100a7ac6b8babdfb7c44e622a682fb556d5c2bf91b56",
+    "self-review-event.schema.json": "2482e3dc88e524844f1d192c9d8200b5fa50ae330017f3ae5235ffc78440f87c",
+    "self-review-request.schema.json": "13e121a0b3b0e2b8852b8c637304a0a77bc975e51f0e12e24d577e7c1b63eb0b"
+  },
+  "version": "2.0.0"
+}

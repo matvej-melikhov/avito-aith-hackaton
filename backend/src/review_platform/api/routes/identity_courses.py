@@ -751,8 +751,8 @@ def _authentication_service(
     if callable(factory):
         return cast(Callable[[AsyncSession], AuthenticationService], factory)(transaction)
     provider = getattr(request.app.state, "identity_provider", None)
-    if not isinstance(provider, IdentityProvider):
-        raise RouteConfigurationError("identity provider is not configured")
+    if provider is not None and not isinstance(provider, IdentityProvider):
+        raise RouteConfigurationError("identity provider has an invalid interface")
     return AuthenticationService(
         transaction,
         identity_provider=provider,

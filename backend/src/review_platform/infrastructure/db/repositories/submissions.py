@@ -1227,6 +1227,8 @@ class SqlSubmissionRepository:
         )
         if row is None:
             return None
+        if row.credential_binding_id is None or row.credential_binding_version is None:
+            raise SubmissionPersistenceConflict("Uploaded artifacts require the workspace v2 route")
         return SubmissionArtifactReferenceRecord(
             organization_id=row.organization_id,
             artifact_reference_id=row.id,
@@ -2163,6 +2165,8 @@ def _preflight_reference_record(row: ArtifactReference) -> PreflightArtifactRefe
         raise SubmissionPersistenceConflict("ArtifactReference read capability is invalid")
     if row.feedback_capability not in {"available", "not_supported", "requires_action"}:
         raise SubmissionPersistenceConflict("ArtifactReference feedback capability is invalid")
+    if row.credential_binding_id is None or row.credential_binding_version is None:
+        raise SubmissionPersistenceConflict("External artifact credentials are required")
     return PreflightArtifactReferenceRecord(
         organization_id=row.organization_id,
         artifact_reference_id=row.id,

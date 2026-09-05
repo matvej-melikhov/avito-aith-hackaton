@@ -84,6 +84,7 @@ class HomeworkVersion(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
     )
 
     homework_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    review_only: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("0"))
     version_number: Mapped[int] = mapped_column(nullable=False)
     student_text: Mapped[str] = mapped_column(Text, nullable=False)
     max_score: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)

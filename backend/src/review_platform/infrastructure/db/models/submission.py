@@ -14,6 +14,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -32,7 +33,7 @@ from review_platform.infrastructure.db.base import (
     tenant_foreign_key,
 )
 
-ARTIFACT_PROVIDERS = ("github", "google_docs")
+ARTIFACT_PROVIDERS = ("github", "google_docs", "upload")
 READ_CAPABILITIES = ("available", "requires_action", "unavailable")
 FEEDBACK_CAPABILITIES = ("available", "not_supported", "requires_action")
 SUBMISSION_VERSION_PHASES = ("before_deadline", "revision")
@@ -126,6 +127,10 @@ class ArtifactReference(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
         ),
         CheckConstraint(string_enum_check("provider", ARTIFACT_PROVIDERS), name="provider"),
         CheckConstraint(
+            "(provider = 'upload' AND credential_binding_id IS NULL AND credential_binding_version IS NULL) OR (provider != 'upload' AND credential_binding_id IS NOT NULL AND credential_binding_version IS NOT NULL)",
+            name="credential_source",
+        ),
+        CheckConstraint(
             string_enum_check("read_capability", READ_CAPABILITIES),
             name="read_capability",
         ),
@@ -142,8 +147,8 @@ class ArtifactReference(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
     )
 
     provider: Mapped[str] = mapped_column(String(32), nullable=False)
-    credential_binding_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
-    credential_binding_version: Mapped[int] = mapped_column(nullable=False)
+    credential_binding_id: Mapped[UUID | None] = mapped_column(UUID_TYPE, nullable=True)
+    credential_binding_version: Mapped[int | None] = mapped_column(nullable=True)
     original_url: Mapped[str] = mapped_column(String(2048), nullable=False)
     locator: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     read_capability: Mapped[str] = mapped_column(String(32), nullable=False)
@@ -273,6 +278,7 @@ class SubmissionVersion(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
     submission_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     course_run_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     homework_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    comment: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default=text("('')"))
     sequence: Mapped[int] = mapped_column(nullable=False)
     homework_version_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     artifact_reference_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)

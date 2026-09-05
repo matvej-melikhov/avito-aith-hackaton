@@ -149,6 +149,10 @@ class FoundationRuntime:
         }
 
     @property
+    def object_storage(self) -> S3ObjectStorage:
+        return self._object_storage
+
+    @property
     def command_bus(self) -> CommandBus:
         return self._command_bus
 

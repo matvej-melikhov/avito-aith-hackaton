@@ -6,12 +6,24 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import uvicorn
+import asyncio
+import os
+import contextlib
+import logging
+from review_platform.application.workspace.worker import (
+    SelfReviewWorker,
+    FixtureSelfReviewProvider,
+    SelfReviewProvider,
+)
+from review_platform.application.workspace.exports import ExportWorker
 from fastapi import FastAPI
 
 from review_platform.api.middleware import (
     RequestBodyLimitMiddleware,
     SanitizedExceptionMiddleware,
 )
+from review_platform.api.session_middleware import SessionActorMiddleware
+from review_platform.api.upload_limit import UploadBodyLimitMiddleware
 from review_platform.api.routes import build_api_router
 from review_platform.application.foundation_runtime import (
     FoundationRuntime,
@@ -32,6 +44,7 @@ def create_app(
     settings: Settings | None = None,
     *,
     runtime: FoundationRuntime | None = None,
+    workspace_provider: SelfReviewProvider | None = None,
 ) -> FastAPI:
     selected = settings or get_settings()
     configuration_error: str | None = None
@@ -41,11 +54,38 @@ def create_app(
         except RuntimeConfigurationError as error:
             configuration_error = str(error)
 
+    async def workspace_loop() -> None:
+        assert runtime is not None
+        provider = workspace_provider
+        if provider is None and os.environ.get("REVIEW_PLATFORM_WORKSPACE_FIXTURES") == "true":
+            if selected.environment not in {"local", "test"}:
+                raise RuntimeError("workspace fixtures require a local environment")
+            provider = FixtureSelfReviewProvider()
+        reviewer = SelfReviewWorker(runtime, provider, runtime.object_storage) if provider else None
+        exporter = ExportWorker(runtime)
+        while True:
+            try:
+                if reviewer:
+                    await reviewer.tick()
+                await exporter.tick()
+            except Exception:
+                logging.getLogger(__name__).error(
+                    "workspace worker iteration failed; durable lease retained"
+                )
+            await asyncio.sleep(1)
+
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        worker = None
+        if runtime is not None and os.environ.get("REVIEW_PLATFORM_WORKSPACE_ENABLED") == "true":
+            worker = asyncio.create_task(workspace_loop())
         try:
             yield
         finally:
+            if worker:
+                worker.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await worker
             if runtime is not None:
                 await runtime.close()
 
@@ -71,8 +111,10 @@ def create_app(
             app.state.ai_review_credential_binding_version = (
                 configured_ai.credential_binding_version
             )
+    app.add_middleware(SessionActorMiddleware)
     app.add_middleware(SanitizedExceptionMiddleware)
     app.add_middleware(RequestBodyLimitMiddleware, max_bytes=selected.command_body_limit_bytes)
+    app.add_middleware(UploadBodyLimitMiddleware)
     app.include_router(build_api_router())
 
     @app.get("/health", include_in_schema=False)

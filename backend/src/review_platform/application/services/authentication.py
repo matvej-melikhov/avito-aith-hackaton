@@ -128,7 +128,7 @@ class AuthenticationService:
         self,
         session: AsyncSession,
         *,
-        identity_provider: IdentityProvider,
+        identity_provider: IdentityProvider | None = None,
         registry: ContractRegistry | None = None,
         id_factory: Callable[[], UUID] = uuid7,
         clock: Callable[[], datetime] = utc_now,
@@ -478,6 +478,8 @@ class AuthenticationService:
         state: OAuthState,
         authorization_response: str,
     ) -> ProviderPayload:
+        if self._provider is None:
+            raise InvalidIdentityAssertion("identity provider is not configured")
         if (
             self._provider.contract_version != CONTRACT_VERSION
             or self._provider.schema_name != "identity-provider.schema.json"

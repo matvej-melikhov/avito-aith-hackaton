@@ -121,6 +121,7 @@ async def dispatch_review_mutation(
     actor: RequestActor,
     command: WireCommand,
     transaction: AsyncSession,
+    score_adjustment: Decimal = Decimal("0"),
 ) -> Mapping[str, Any] | None:
     """Map one already validated exact command to its implemented US5 service."""
 
@@ -130,6 +131,7 @@ async def dispatch_review_mutation(
             actor=actor,
             command=command,
             transaction=transaction,
+            score_adjustment=score_adjustment,
         )
     except _COMPOSITION_ERRORS as error:
         raise ReviewCompositionError(str(error)) from error
@@ -145,6 +147,7 @@ async def _dispatch_review_mutation(
     actor: RequestActor,
     command: WireCommand,
     transaction: AsyncSession,
+    score_adjustment: Decimal = Decimal("0"),
 ) -> Mapping[str, Any] | None:
     authorizer = Authorizer(runtime.user_auth_guard, clock=runtime.clock)
     audit = AuditRecorder(
@@ -390,6 +393,7 @@ async def _dispatch_review_mutation(
             ),
             actor=actor,
             transaction=transaction,
+            score_adjustment=score_adjustment,
         )
         assert actor.user_id is not None
         return {
@@ -414,6 +418,7 @@ async def read_recommendation(
     actor: RequestActor,
     course_run_id: UUID,
     transaction: AsyncSession,
+    score_adjustment: Decimal = Decimal("0"),
 ) -> Mapping[str, Any] | None:
     try:
         result = await RecommendationService(
