@@ -6,7 +6,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal, Protocol, cast
+from typing import Literal, Protocol
 from uuid import UUID
 
 from review_platform.application.audit import AuditEventDraft, AuditRecorder
@@ -17,8 +17,16 @@ from review_platform.application.services.publication_requests import (
     PublicationRequestRecord,
 )
 from review_platform.contracts.registry import CONTRACT_VERSION, ContractRegistry
+from review_platform.domain.delivery_payload import (
+    DeliveryCriterionResult,
+    DeliveryPayload,
+    DeliveryProvenance,
+    build_deliver_request,
+    canonical_delivery_payload_digest,
+    publication_provenance_fingerprint,
+    render_deliver_request,
+)
 from review_platform.domain.primitives import (
-    canonical_json_sha256,
     require_utc,
     utc_now,
     uuid7,
@@ -361,17 +369,14 @@ class ReviewPublicationService:
         )
 
         payload = self._delivery_payload(context.current_revision)
-        payload_digest = canonical_json_sha256(payload)
+        payload_digest = canonical_delivery_payload_digest(payload)
         provenance = self._provenance(context)
-        publication_fingerprint = canonical_json_sha256(
-            {
-                "contract_version": CONTRACT_VERSION,
-                "organization_id": str(command.organization_id),
-                "publication_id": str(publication.publication_id),
-                "publication_version": publication.publication_version,
-                "provenance": provenance,
-                "payload_digest": payload_digest,
-            }
+        publication_fingerprint = publication_provenance_fingerprint(
+            organization_id=command.organization_id,
+            publication_id=publication.publication_id,
+            publication_version=publication.publication_version,
+            provenance=provenance,
+            payload_digest=payload_digest,
         )
         intents = tuple(
             self._intent(
@@ -561,33 +566,33 @@ class ReviewPublicationService:
                 )
 
     @staticmethod
-    def _delivery_payload(revision: ReviewRevisionRecord) -> dict[str, JsonValue]:
-        return {
-            "total_score": float(revision.total_score),
-            "feedback": revision.feedback,
-            "criteria": [
-                {
-                    "criterion_id": str(decision.criterion_id),
-                    "points": float(decision.points),
-                    "reason": decision.reason,
-                }
+    def _delivery_payload(revision: ReviewRevisionRecord) -> DeliveryPayload:
+        return DeliveryPayload(
+            total_score=revision.total_score,
+            feedback=revision.feedback,
+            criteria=[
+                DeliveryCriterionResult(
+                    criterion_id=decision.criterion_id,
+                    points=decision.points,
+                    reason=decision.reason,
+                )
                 for decision in revision.decisions
             ],
-        }
+        )
 
     @staticmethod
-    def _provenance(context: ReviewPublicationContext) -> dict[str, JsonValue]:
-        return {
-            "course_run_id": str(context.course_run_id),
-            "homework_version_id": str(context.homework_version_id),
-            "criterion_set_id": str(context.criterion_set_id),
-            "submission_version_id": str(context.submission_version_id),
-            "artifact_version_id": str(context.artifact_version_id),
-            "artifact_content_digest": context.artifact_content_digest,
-            "review_iteration_id": str(context.review_iteration_id),
-            "review_revision_id": str(context.current_revision.review_revision_id),
-            "contract_version": CONTRACT_VERSION,
-        }
+    def _provenance(context: ReviewPublicationContext) -> DeliveryProvenance:
+        return DeliveryProvenance(
+            course_run_id=context.course_run_id,
+            homework_version_id=context.homework_version_id,
+            criterion_set_id=context.criterion_set_id,
+            submission_version_id=context.submission_version_id,
+            artifact_version_id=context.artifact_version_id,
+            artifact_content_digest=context.artifact_content_digest,
+            review_iteration_id=context.review_iteration_id,
+            review_revision_id=context.current_revision.review_revision_id,
+            contract_version="1.1.0",
+        )
 
     def _intent(
         self,
@@ -595,8 +600,8 @@ class ReviewPublicationService:
         destination: DestinationSnapshot,
         *,
         context: ReviewPublicationContext,
-        provenance: Mapping[str, JsonValue],
-        payload: Mapping[str, JsonValue],
+        provenance: DeliveryProvenance,
+        payload: DeliveryPayload,
         payload_digest: str,
         publication_fingerprint: str,
     ) -> ExternalDeliveryIntent:
@@ -606,12 +611,11 @@ class ReviewPublicationService:
             f"review:{publication.publication_id}:"
             f"{destination.destination_binding_id}:{destination.binding_version}"
         )
-        request: dict[str, JsonValue] = {
-            "contract_version": CONTRACT_VERSION,
-            "organization_id": str(publication.organization_id),
-            "delivery_id": str(delivery_id),
-            "delivery_key": delivery_key,
-            "destination": {
+        typed_request = build_deliver_request(
+            organization_id=publication.organization_id,
+            delivery_id=delivery_id,
+            delivery_key=delivery_key,
+            destination={
                 "binding_id": str(destination.destination_binding_id),
                 "binding_version": destination.binding_version,
                 "credential_binding_id": str(destination.credential_binding_id),
@@ -619,11 +623,19 @@ class ReviewPublicationService:
                 "kind": destination.kind,
                 "recipient_ref": destination.recipient_ref,
             },
-            "provenance": dict(provenance),
-            "publication_fingerprint": publication_fingerprint,
-            "payload_digest": payload_digest,
-            "payload": dict(payload),
-        }
+            provenance=provenance,
+            publication_id=publication.publication_id,
+            publication_version=publication.publication_version,
+            payload=payload,
+        )
+        if (
+            typed_request.payload_digest != payload_digest
+            or typed_request.publication_fingerprint != publication_fingerprint
+        ):
+            raise ReviewPublicationConflict(
+                "delivery builder returned different payload or publication identity"
+            )
+        request = render_deliver_request(typed_request)
         try:
             self._registry.validate(
                 request,
@@ -653,7 +665,7 @@ class ReviewPublicationService:
             publication_fingerprint=publication_fingerprint,
             payload_version=CONTRACT_VERSION,
             payload_digest=payload_digest,
-            request=cast(Mapping[str, JsonValue], request),
+            request=request,
             requested_at=publication.published_at,
         )
 
