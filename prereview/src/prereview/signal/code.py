@@ -20,12 +20,13 @@ FUNC = {
     "java": re.compile(r"^\s*(?:public|private|protected)\s+[\w<>\[\]]+\s+\w+\("),
 }
 COMMENT = re.compile(r"^\s*(?://|#|/\*|\*|\"\"\")")
+CODE_LANGS = {"go", "python", "typescript", "javascript", "java", "kotlin", "rust", "c", "cpp", "csharp", "ruby", "php"}
 
 
 def stub_markers(work: Work, meta: dict) -> Ground | None:
     ev = []
     for f in work.files:
-        if not f.language or f.language in {"markdown", "text"}:
+        if f.language not in CODE_LANGS:
             continue
         for i, line in enumerate(f.lines, 1):
             if any(re.search(p, line) for p in STUBS):
@@ -65,7 +66,7 @@ def english_prose_comments(work: Work, meta: dict) -> Ground | None:
     long_en = 0
     ev = []
     for f in work.files:
-        if not f.language or f.language in {"markdown", "text"}:
+        if f.language not in CODE_LANGS:
             continue
         for i, line in enumerate(f.lines, 1):
             m = re.match(r"^\s*(?://|#)\s*(.+)$", line)

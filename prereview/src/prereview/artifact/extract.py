@@ -26,7 +26,10 @@ SKIP_DIRS = {".git", "vendor", "node_modules", "__pycache__", ".idea", ".vscode"
              ".venv", "venv", "target", ".next", "coverage", ".pytest_cache", ".mypy_cache"}
 SKIP_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico", ".pdf", ".zip", ".gz", ".tar",
             ".jar", ".class", ".o", ".so", ".dylib", ".dll", ".exe", ".bin", ".lock", ".pyc",
-            ".woff", ".woff2", ".ttf", ".eot", ".mp4", ".mp3", ".docx", ".xlsx", ".pptx", ".db", ".sqlite"}
+            ".woff", ".woff2", ".ttf", ".eot", ".mp4", ".mp3", ".docx", ".xlsx", ".pptx", ".db", ".sqlite",
+            ".pprof", ".prof", ".out", ".min.js", ".map"}
+# Сгенерированные отчёты и артефакты сборки: не код студента, в срез не идут.
+SKIP_NAMES = {"coverage.html", "coverage.out", "package-lock.json", "yarn.lock", "pnpm-lock.yaml"}
 SECRET_FILES = {".env"}
 
 
@@ -146,7 +149,7 @@ def _zip(data: bytes, *, max_file_bytes: int) -> Work:
         if name in SECRET_FILES or name.startswith(".env."):
             secrets.append(rel)
             continue
-        if PurePosixPath(name).suffix.lower() in SKIP_EXT:
+        if name in SKIP_NAMES or PurePosixPath(name).suffix.lower() in SKIP_EXT:
             skipped.append({"path": rel, "why": "бинарный или служебный формат"})
             continue
         if info.file_size > max_file_bytes:
