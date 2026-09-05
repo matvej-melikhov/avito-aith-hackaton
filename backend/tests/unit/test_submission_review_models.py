@@ -122,9 +122,9 @@ def test_artifact_and_promotion_shapes_are_durable_and_tenant_scoped() -> None:
     )
 
 
-def test_submission_migration_is_single_head() -> None:
+def test_submission_migration_is_preserved_below_single_current_head() -> None:
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))
-    assert scripts.get_heads() == ["0004_submissions_and_artifacts"]
+    assert len(scripts.get_heads()) == 1
     revision = scripts.get_revision("0004_submissions_and_artifacts")
     assert revision is not None and revision.down_revision == "0003_homework_versions"
 

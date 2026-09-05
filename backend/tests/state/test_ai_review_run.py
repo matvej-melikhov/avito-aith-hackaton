@@ -111,7 +111,7 @@ async def test_ai_review_run_attempt_retry_and_event_receipt_contract(
         "current_attempt_no",
         "created_at",
         "finished_at",
-    } <= set(run.columns)
+    } <= set(run.columns.keys())
     run_checks = _check_sql(run)
     assert all(state in run_checks for state in RUN_STATES)
     assert "current_attempt_no" in run_checks
@@ -131,7 +131,7 @@ async def test_ai_review_run_attempt_retry_and_event_receipt_contract(
         "finished_at",
         "error_code",
         "sanitized_error",
-    } <= set(attempt.columns)
+    } <= set(attempt.columns.keys())
     assert (
         ("organization_id", "credential_binding_id", "credential_binding_version"),
         (
@@ -155,16 +155,18 @@ async def test_ai_review_run_attempt_retry_and_event_receipt_contract(
         "attempt_number",
         "sequence",
         "received_at",
-    } <= set(receipt.columns)
+    } <= set(receipt.columns.keys())
     assert (
         (
             "organization_id",
             "ai_review_run_id",
+            "attempt_id",
             "attempt_number",
         ),
         (
             "ai_review_attempt.organization_id",
             "ai_review_attempt.ai_review_run_id",
+            "ai_review_attempt.id",
             "ai_review_attempt.attempt_number",
         ),
     ) in _foreign_keys(receipt)

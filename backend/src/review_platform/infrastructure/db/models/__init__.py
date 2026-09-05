@@ -1,5 +1,12 @@
 """Import all currently migrated SQLAlchemy models for metadata discovery."""
 
+from review_platform.infrastructure.db.models.ai_review import (
+    AICriterionSuggestion,
+    AIReviewAttempt,
+    AIReviewEventReceipt,
+    AIReviewRun,
+    AISignal,
+)
 from review_platform.infrastructure.db.models.homework import (
     CourseRunHomework,
     CourseRunHomeworkPublication,
@@ -34,6 +41,11 @@ from review_platform.infrastructure.db.models.operations import (
 )
 from review_platform.infrastructure.db.models.organization import Organization
 from review_platform.infrastructure.db.models.review_case import ReviewCase, ReviewIteration
+from review_platform.infrastructure.db.models.review_revision import (
+    ReviewCriterionDecision,
+    ReviewNote,
+    ReviewRevision,
+)
 from review_platform.infrastructure.db.models.submission import (
     ArtifactPromotion,
     ArtifactReference,
@@ -43,6 +55,11 @@ from review_platform.infrastructure.db.models.submission import (
 )
 
 __all__ = [
+    "AICriterionSuggestion",
+    "AIReviewAttempt",
+    "AIReviewEventReceipt",
+    "AIReviewRun",
+    "AISignal",
     "AgentAuthorization",
     "ArtifactPromotion",
     "ArtifactReference",
@@ -70,7 +87,10 @@ __all__ = [
     "OrganizationMembership",
     "OutboxMessage",
     "ReviewCase",
+    "ReviewCriterionDecision",
     "ReviewIteration",
+    "ReviewNote",
+    "ReviewRevision",
     "Session",
     "Submission",
     "SubmissionVersion",

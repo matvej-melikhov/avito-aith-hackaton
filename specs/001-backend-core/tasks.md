@@ -170,10 +170,10 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T093 [P] [US4] Write failing AIReviewRun transition, attempt separation, typed failures, and terminal non-regression tests in `backend/tests/state/test_ai_review_run.py`
 - [X] T094 [P] [US4] Write failing identical replay, event-ID collision, duplicate/out-of-order/old-attempt/stale, fingerprint mismatch, and human-override ingestion tests in `backend/tests/integration/test_ai_event_ingestion.py`
 - [X] T095 [P] [US4] Write failing component-token, provider-error redaction, and signed artifact URL tenant-isolation tests in `backend/tests/isolation/test_ai_component_access.py`
-- [ ] T096 [US4] Implement ReviewRevision, ReviewCriterionDecision, and ReviewNote tables without mutable publication state in `backend/src/review_platform/infrastructure/db/models/review_revision.py`
-- [ ] T097 [US4] Implement AIReviewRun, AIReviewAttempt, AIReviewEventReceipt, AICriterionSuggestion, and AISignal tables in `backend/src/review_platform/infrastructure/db/models/ai_review.py`
-- [ ] T098 [US4] Create the reversible review-spine migration with `down_revision=0004_submissions_and_artifacts` in `backend/migrations/versions/0005_review_spine.py`
-- [ ] T099 [US4] Create the reversible AI-review migration with `down_revision=0005_review_spine` in `backend/migrations/versions/0006_ai_review.py`
+- [X] T096 [US4] Implement ReviewRevision, ReviewCriterionDecision, and ReviewNote tables without mutable publication state in `backend/src/review_platform/infrastructure/db/models/review_revision.py`
+- [X] T097 [US4] Implement AIReviewRun, AIReviewAttempt, AIReviewEventReceipt, AICriterionSuggestion, and AISignal tables in `backend/src/review_platform/infrastructure/db/models/ai_review.py`
+- [X] T098 [US4] Create the reversible review-spine migration with `down_revision=0004_submissions_and_artifacts` in `backend/migrations/versions/0005_review_spine.py`
+- [X] T099 [US4] Create the reversible AI-review migration with `down_revision=0005_review_spine` in `backend/migrations/versions/0006_ai_review.py`
 - [ ] T100 [US4] Implement canonical immutable-input fingerprinting and shared vector verification in `backend/src/review_platform/domain/ai_fingerprint.py`
 - [ ] T101 [US4] Implement generated typed AI request/event/error models plus exact completeness and zero..criterion-max semantic validation for every AI suggestion in `backend/src/review_platform/contracts/ai_review.py`
 - [ ] T102 [US4] Implement tenant-scoped draft revision/decision/note repositories with expected-current CAS in `backend/src/review_platform/infrastructure/db/repositories/review_revisions.py`

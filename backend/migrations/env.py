@@ -14,6 +14,11 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from review_platform.infrastructure.db.base import Base
 from review_platform.infrastructure.db.models import (
     AgentAuthorization,
+    AICriterionSuggestion,
+    AIReviewAttempt,
+    AIReviewEventReceipt,
+    AIReviewRun,
+    AISignal,
     ArtifactPromotion,
     ArtifactReference,
     ArtifactVersion,
@@ -40,7 +45,10 @@ from review_platform.infrastructure.db.models import (
     OrganizationMembership,
     OutboxMessage,
     ReviewCase,
+    ReviewCriterionDecision,
     ReviewIteration,
+    ReviewNote,
+    ReviewRevision,
     Session,
     Submission,
     SubmissionVersion,
@@ -89,6 +97,14 @@ MIGRATED_MODELS = (
     ArtifactPromotion,
     ReviewCase,
     ReviewIteration,
+    ReviewRevision,
+    ReviewCriterionDecision,
+    ReviewNote,
+    AIReviewRun,
+    AIReviewAttempt,
+    AIReviewEventReceipt,
+    AICriterionSuggestion,
+    AISignal,
 )
 target_metadata = Base.metadata
 
