@@ -189,10 +189,15 @@ def merge(ctx: JudgeContext, c: Criterion, judgements: list[Judgement], condense
         else:
             points = 0.0
             requirement_met = False
-    else:  # not_found
+    elif verdict == "not_found" and not condensed:
+        # Работа показана целиком: «не найдено» это провал с указанием, где искали.
+        points = 0.0
+        requirement_met = False
+        notes.append("Не найдено в работе: " + ("; ".join(j.missing) if j.missing else "модель не указала, где искала."))
+    else:  # not_found при пропусках в срезе
         status = "needs_human"
         points = None
-        notes.append("В работе не найдено: " + ("; ".join(j.missing) if j.missing else "модель не указала, где искала."))
+        notes.append("В показанной части работы не найдено, срез был с пропусками: " + ("; ".join(j.missing) if j.missing else "модель не указала, где искала."))
     if c.check_class == "judgement":
         confidence = "low"
         if status == "suggested":
