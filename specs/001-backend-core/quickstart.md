@@ -12,15 +12,7 @@
 
 ## Start
 
-    cp deploy/env.example deploy/.env
-    docker compose --env-file deploy/.env -f deploy/compose.yaml up -d mysql redis minio mailpit
-    uv sync --directory backend --locked
-    docker compose --env-file deploy/.env -f deploy/compose.yaml build api worker outbox-relay email-worker mcp
-    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic upgrade head
-    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api python -m review_platform.bootstrap
-    docker compose --env-file deploy/.env -f deploy/compose.yaml up -d api worker outbox-relay email-worker mcp
-
-Ожидается: health checks MySQL, Redis, MinIO, API, worker и MCP зелёные; создана одна организация без открытого bootstrap endpoint.
+Следуйте [инструкции запуска проекта](../../RUNNING.md). Она разделяет основной локальный стек и отдельный MCP, описывает адреса подключения и обязательные настройки.
 
 ## Code specifications
 
@@ -84,11 +76,8 @@ Required gates:
 ## Full local gate
 
     uv run --directory backend pytest -m "not live" -q
-    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic upgrade head
-    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic downgrade -1
-    docker compose --env-file deploy/.env -f deploy/compose.yaml run --rm api alembic upgrade head
 
-Expected: all offline tests pass, migration round-trip succeeds, no unhandled delivery remains, and no secret appears in captured logs.
+Проверяйте миграции на тестовых контейнерах. Для обновления локального стенда используйте команды из [RUNNING.md](../../RUNNING.md); не выполняйте downgrade рабочей базы.
 
 ## Observed local validation — 2026-09-05
 
