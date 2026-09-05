@@ -7,6 +7,10 @@ from review_platform.infrastructure.db.models.ai_review import (
     AIReviewRun,
     AISignal,
 )
+from review_platform.infrastructure.db.models.delivery import (
+    DeliveryAttempt,
+    DeliveryReconciliationObservation,
+)
 from review_platform.infrastructure.db.models.homework import (
     CourseRunHomework,
     CourseRunHomeworkPublication,
@@ -86,6 +90,8 @@ __all__ = [
     "CourseRunHomeworkPublication",
     "Criterion",
     "CriterionSet",
+    "DeliveryAttempt",
+    "DeliveryReconciliationObservation",
     "DestinationBinding",
     "ExternalCourseBinding",
     "ExternalCredential",
