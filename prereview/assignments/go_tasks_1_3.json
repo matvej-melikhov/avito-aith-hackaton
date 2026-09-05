@@ -47,7 +47,7 @@
     },
     "entrypoint": {
       "group": "Структура проекта",
-      "title": "Точка входа находится в cmd/<service>/main.go",
+      "title": "Точка входа находится в cmd/<service>/main.go (<service> опционален)",
       "description": "Файл main.go лежит в cmd/ или cmd/<service>/.",
       "max_points": 1,
       "check_class": "formal",
@@ -55,7 +55,10 @@
       "checks": [
         {
           "kind": "count_files",
-          "glob": "cmd/*/main.go",
+          "glob": [
+            "cmd/*/main.go",
+            "cmd/main.go"
+          ],
           "min": 1
         }
       ]

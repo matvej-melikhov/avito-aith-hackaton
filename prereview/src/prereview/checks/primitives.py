@@ -50,15 +50,23 @@ def _grep(files: list[WorkFile], pattern: str, flags: int = 0, limit: int = 20) 
     return hits
 
 
-def file_exists(work: Work, glob: str, **_: object) -> CheckOutcome:
-    hits = [f for f in work.files if fnmatch.fnmatch(f.path, glob)]
+def _globs(glob: str | list[str]) -> list[str]:
+    return [glob] if isinstance(glob, str) else list(glob)
+
+
+def _match(path: str, glob: str | list[str]) -> bool:
+    return any(fnmatch.fnmatch(path, g) for g in _globs(glob))
+
+
+def file_exists(work: Work, glob: str | list[str], **_: object) -> CheckOutcome:
+    hits = [f for f in work.files if _match(f.path, glob)]
     if hits:
         return CheckOutcome("pass", f"найдено: {', '.join(f.path for f in hits[:5])}", [Evidence(hits[0].path, 1, hits[0].lines[0][:120])])
     return CheckOutcome("fail", f"нет файла по маске {glob}")
 
 
-def file_absent(work: Work, glob: str, **_: object) -> CheckOutcome:
-    hits = [f for f in work.files if fnmatch.fnmatch(f.path, glob)]
+def file_absent(work: Work, glob: str | list[str], **_: object) -> CheckOutcome:
+    hits = [f for f in work.files if _match(f.path, glob)]
     if hits:
         return CheckOutcome("fail", f"файл не должен присутствовать: {hits[0].path}", [Evidence(hits[0].path, 1, "")])
     return CheckOutcome("pass", f"файлов по маске {glob} нет")
@@ -72,8 +80,8 @@ def dir_exists(work: Work, path: str, **_: object) -> CheckOutcome:
     return CheckOutcome("fail", f"нет каталога {path}")
 
 
-def count_files(work: Work, glob: str, min: int = 1, max: int | None = None, **_: object) -> CheckOutcome:
-    hits = [f for f in work.files if fnmatch.fnmatch(f.path, glob)]
+def count_files(work: Work, glob: str | list[str], min: int = 1, max: int | None = None, **_: object) -> CheckOutcome:
+    hits = [f for f in work.files if _match(f.path, glob)]
     n = len(hits)
     ok = n >= min and (max is None or n <= max)
     ev = [Evidence(f.path, 1, "") for f in hits[:5]]
