@@ -1,4 +1,4 @@
-import { ApiClient, ApiError } from "./client";
+import { ApiClient, ApiError, type Model } from "./client";
 import {
   workspaceRoutes,
   type W,
@@ -62,6 +62,18 @@ export class WorkspaceClient {
     );
   notifications = () =>
     this.core.request<W<"NotificationsView">>("/v2/notifications");
+  studentWorks = (params: Record<string, string | number> = {}) =>
+    this.core.request<W<"StudentHomeworkList">>(
+      `/v2/student/homeworks?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]))}`,
+    );
+  search = (q: string) =>
+    this.core.request<W<"WorkspaceSearchView">>(
+      `/v2/search?q=${encodeURIComponent(q)}`,
+    );
+  courseHomeworks = (id: string) =>
+    this.core.request<W<"CoordinatorHomeworkList">>(
+      `/v2/courses/${id}/homeworks`,
+    );
   catalog = () => this.core.request<W<"CatalogView">>("/v2/catalog");
   directory = () => this.core.request<W<"DirectoryView">>("/v2/directory");
   preferences = () =>
@@ -85,12 +97,27 @@ export class WorkspaceClient {
     this.core.request<W<"StudentContext">>(
       `/v2/course-run-homeworks/${id}/student-context`,
     );
+  async reviewDetail(id: string): Promise<Model<"ReviewDetail">> {
+    const [detail, draft] = await Promise.all([
+      this.core.review(id),
+      this.core.request<W<"ReviewDraftView">>(`/v2/reviews/${id}/draft`),
+    ]);
+    return { ...detail, ...draft };
+  }
+  reviewAssist = (id: string) =>
+    this.core.request<W<"ReviewAssistView"> | null>(`/v2/reviews/${id}/assist`);
+  preparation = (id: string) =>
+    this.core.request<W<"PreparationView">>(`/v2/preparations/${id}`);
+  gradePreview = (id: string) =>
+    this.core.request<W<"GradePreview">>(`/v2/reviews/${id}/grade-preview`);
   reviewContext = (id: string) =>
     this.core.request<W<"ReviewContext">>(`/v2/reviews/${id}/context`);
   selfReview = (id: string) =>
     this.core.request<W<"SelfReviewView">>(`/v2/self-reviews/${id}`);
-  statistics = (days = 30) =>
-    this.core.request<W<"StatisticView">>(`/v2/statistics?days=${days}`);
+  statistics = (days = 30, courseRun?: string) =>
+    this.core.request<W<"StatisticView">>(
+      `/v2/statistics?days=${days}${courseRun ? `&course_run_id=${courseRun}` : ""}`,
+    );
   export = (id: string) =>
     this.core.request<W<"ExportView">>(`/v2/exports/${id}`);
   download = (id: string) =>

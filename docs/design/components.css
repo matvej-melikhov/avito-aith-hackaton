@@ -1,0 +1,533 @@
+/* ===========================================================================
+   Avito AI Reviewer — библиотека компонентов
+   Требует tokens.css. Ни одного цвета и размера мимо переменных.
+   Правило геометрии: блоки с прямым углом, управляющие элементы — пилюли.
+   Правило веса: рабочий интерфейс на 400 и 500, границы зон волосяные.
+   =========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--body-size);
+  line-height: var(--body-lh);
+  font-weight: var(--w-regular);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Типографика --------------------------------------------------------- */
+
+.d1, .d2 { font-family: var(--font-display); font-weight: var(--w-bold); margin: 0; }
+.d3 { font-family: var(--font-display); font-weight: var(--w-semi); margin: 0; }
+.d1 { font-size: var(--d1-size); line-height: var(--d1-lh); letter-spacing: var(--d1-ls); }
+.d2 { font-size: var(--d2-size); line-height: var(--d2-lh); letter-spacing: var(--d2-ls); }
+.d3 { font-size: var(--d3-size); line-height: var(--d3-lh); letter-spacing: var(--d3-ls); }
+
+h1, .h1 { font-size: var(--h1-size); line-height: var(--h1-lh); letter-spacing: var(--h1-ls); font-weight: var(--w-medium); margin: 0; }
+h2, .h2 { font-size: var(--h2-size); line-height: var(--h2-lh); letter-spacing: var(--h2-ls); font-weight: var(--w-medium); margin: 0; }
+h3, .h3 { font-size: var(--h3-size); line-height: var(--h3-lh); letter-spacing: var(--h3-ls); font-weight: var(--w-medium); margin: 0; }
+
+.small  { font-size: var(--small-size); line-height: var(--small-lh); }
+.caption{ font-size: var(--caption-size); line-height: var(--caption-lh); color: var(--ink-3); }
+.muted  { color: var(--ink-3); }
+.dim    { color: var(--ink-2); }
+
+/* Служебная метка: моноширинный капслок. Разделы, источники, номера строк.  */
+.label {
+  font-family: var(--font-mono); font-size: var(--label-size); font-weight: var(--w-regular);
+  letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3);
+}
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.num  { font-variant-numeric: tabular-nums; }
+
+/* Заголовок с цветной пилюлей поверх слова — фирменный приём Авито.
+   Не больше одной пилюли на заголовок.                                      */
+.hl { display: inline-block; padding: 0 .28em; border-radius: var(--r-pill); background: var(--brand-green); }
+.hl-ink { background: var(--brand-ink); color: #fff; }
+
+a { color: var(--ink); text-decoration: none; border-bottom: var(--bw-hair) solid var(--line-2); }
+a:hover { border-bottom-color: var(--ink); }
+
+:focus-visible { outline: var(--bw-focus) solid var(--ink); outline-offset: 2px; }
+.inv :focus-visible { outline-color: var(--brand-green); }
+
+/* --- Кнопки. Всегда пилюля, всегда 1px граница ---------------------------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  height: var(--ctl-m); padding: 0 var(--s-5);
+  font-family: var(--font-text); font-size: var(--body-size); font-weight: var(--w-medium);
+  line-height: 1; color: var(--ink); background: var(--surface);
+  border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill);
+  cursor: pointer; white-space: nowrap; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.btn:hover  { background: var(--surface-2); }
+.btn:active { transform: translateY(1px); }
+
+.btn--pri   { background: var(--brand-green); border-color: var(--brand-green); font-weight: var(--w-semi); }
+.btn--pri:hover { background: #00C954; border-color: #00C954; }
+
+.btn--dark  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
+.btn--dark:hover { background: var(--ink-2); border-color: var(--ink-2); }
+
+.btn--quiet { border-color: var(--line); color: var(--ink-3); }
+.btn--quiet:hover { border-color: var(--ink); color: var(--ink); }
+
+.btn--danger{ border-color: var(--bad); color: var(--bad); }
+.btn--danger:hover { background: var(--bad-bg); }
+
+.btn--link  { border: 0; padding: 0; height: auto; background: none; color: var(--ink);
+              text-decoration: underline; text-underline-offset: 3px; font-weight: var(--w-medium); }
+.btn--link:hover { background: none; color: var(--green-ink); }
+
+.btn--l { height: var(--ctl-l); padding: 0 var(--s-6); font-size: 16px; }
+.btn--s { height: var(--ctl-s); padding: 0 var(--s-4); font-size: var(--small-size); }
+
+.btn[disabled], .btn--off { color: var(--ink-4); border-color: var(--line); background: var(--surface); cursor: not-allowed; }
+
+.btn--icon { width: var(--ctl-m); padding: 0; border-radius: var(--r-circle); }
+.btn--icon.btn--s { width: var(--ctl-s); }
+
+.btn-row { display: flex; gap: var(--s-2); flex-wrap: wrap; align-items: center; }
+
+/* --- Пилюли и теги -------------------------------------------------------- */
+
+.pill {
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  height: 26px; padding: 0 var(--s-3);
+  font-size: var(--small-size); font-weight: var(--w-medium); line-height: 1;
+  border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--ink-2); white-space: nowrap;
+}
+.pill--solid  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); }
+.pill--ok     { background: var(--green-pale);  border-color: var(--green-pale);  color: var(--ink); }
+.pill--bad    { background: var(--red-pale);    border-color: var(--red-pale);    color: var(--ink); }
+.pill--human  { background: var(--violet-pale); border-color: var(--violet-pale); color: var(--ink); }
+.pill--info   { background: var(--blue-pale);   border-color: var(--blue-pale);   color: var(--ink); }
+.pill--late   { background: var(--orange-pale); border-color: var(--orange-pale); color: var(--ink); }
+.pill--mono   { font-family: var(--font-mono); font-size: var(--caption-size); }
+
+/* Точка-маркер перед текстом пилюли, когда цвета мало для различения        */
+.pill i { width: 7px; height: 7px; border-radius: var(--r-circle); background: currentColor; display: block; }
+
+/* --- Статусы домашки. Единый набор на всю платформу ----------------------- */
+
+.st { display: inline-flex; align-items: center; gap: var(--s-2); height: 26px; padding: 0 var(--s-3);
+      border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-medium);
+      border: var(--bw-hair) solid transparent; white-space: nowrap; }
+.st::before { content: ""; width: 8px; height: 8px; border-radius: var(--r-circle); background: currentColor; }
+.st--draft  { background: var(--surface-2);  color: var(--ink-3); border-color: var(--line); }
+.st--sent   { background: var(--blue-wash);  color: var(--info); }
+.st--review { background: var(--violet-wash);color: var(--human); }
+.st--fix    { background: var(--orange-wash);color: var(--late); }
+.st--rereview{background: var(--violet-wash);color: var(--human); }
+.st--pass   { background: var(--green-wash); color: var(--ok); }
+.st--fail   { background: var(--red-wash);   color: var(--bad); }
+
+/* --- Карточка. Прямой угол, волосяная граница, без тени ------------------- */
+
+.card { background: var(--surface); border: var(--bw-hair) solid var(--line); border-radius: var(--r-0); }
+.card--hard { border-color: var(--line-2); }
+.card__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-4) var(--s-5); border-bottom: var(--bw-hair) solid var(--line);
+}
+.card__head h3, .card__head h4 { margin: 0; font-size: var(--h3-size); font-weight: var(--w-medium); letter-spacing: var(--h3-ls); }
+.card__sub  { margin-top: 2px; font-size: var(--small-size); color: var(--ink-3); font-weight: var(--w-regular); }
+.card__body { padding: var(--s-5); }
+.card__body--tight { padding: var(--s-2) var(--s-5); }
+.card__body--compact { padding: var(--s-4) var(--s-5); }
+.card__body--compact .field { margin-bottom: var(--s-3); }
+.card__body--compact .field:last-child { margin-bottom: 0; }
+.card__body--flush { padding: 0; overflow-x: auto; }   /* широкая таблица скроллится внутри карточки, а не тянет страницу */
+.card__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+  background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3);
+}
+/* Пояснение в подвале сжимается, кнопки не переносятся                      */
+.card__foot > :first-child { min-width: 0; }
+.card__foot .btn-row { flex: none; flex-wrap: nowrap; }
+
+/* Сводка «балл из максимума» в шапке карточки                               */
+.sum { display: flex; align-items: baseline; gap: var(--s-2); }
+.sum b { font-family: var(--font-display); font-weight: var(--w-medium); font-size: 23px; letter-spacing: -.04em; }
+.sum span { font-size: var(--small-size); color: var(--ink-3); }
+
+/* --- Витринная плашка: пастельная заливка, круги, крупный заголовок ------- */
+
+.band { position: relative; overflow: hidden; padding: var(--s-8) var(--gutter); background: var(--green-pale); }
+.band--blue   { background: var(--blue-pale); }
+.band--violet { background: var(--violet-pale); }
+.band--ink    { background: var(--ink); color: var(--ink-inv); }
+.band__in { position: relative; z-index: 1; max-width: var(--page-max); margin: 0 auto; }
+.band p { margin: var(--s-3) 0 0; max-width: 54ch; font-size: 16px; }
+
+/* Фирменная графика: плоские круги. Только брендовые цвета, без градиентов. */
+.circ { position: absolute; border-radius: var(--r-circle); pointer-events: none; }
+.circ--g { background: var(--brand-green); }
+.circ--b { background: var(--brand-blue); }
+.circ--r { background: var(--brand-red); }
+.circ--v { background: var(--brand-violet); }
+
+/* --- Полоса цифр ---------------------------------------------------------- */
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+         border-top: var(--bw-hair) solid var(--line); border-bottom: var(--bw-hair) solid var(--line);
+         background: var(--surface); }
+.stat { padding: var(--s-5) var(--gutter); border-right: var(--bw-hair) solid var(--line); }
+.stat:last-child { border-right: 0; }
+.stat b { display: block; font-family: var(--font-display); font-weight: var(--w-semi);
+          font-size: var(--d3-size); line-height: 1; letter-spacing: var(--d3-ls); }
+.stat span { display: block; margin-top: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
+.stat--alert b { color: var(--bad); }
+
+/* Плитка отдельной метрикой (сетка вместо полосы)                           */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-3); }
+.tile { background: var(--surface); border: var(--bw-hair) solid var(--line); padding: var(--s-5); }
+.tile .n { font-family: var(--font-display); font-weight: var(--w-semi); font-size: var(--d3-size);
+           line-height: 1; letter-spacing: var(--d3-ls); }
+.tile .l { margin-top: var(--s-2); font-size: var(--small-size); }
+.tile .d { margin-top: var(--s-1); font-size: var(--caption-size); color: var(--ink-3); }
+.tile--alert { border-color: var(--brand-red); }
+.tile--alert .n { color: var(--bad); }
+
+/* --- Поля ввода ----------------------------------------------------------- */
+
+.field { display: block; margin-bottom: var(--s-4); }
+.field:last-child { margin-bottom: 0; }
+.field__lbl { display: block; margin-bottom: var(--s-2); font-size: var(--small-size); font-weight: var(--w-medium); }
+.field__hint { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--ink-3); }
+/* Помечаем необязательное, а не обязательное: звёздочек в форме из трёх полей
+   получается больше, чем полей без них.                                     */
+.field__opt { margin-left: var(--s-2); font-size: var(--caption-size);
+              font-weight: var(--w-regular); color: var(--ink-3); }
+.field__err  { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--bad); font-weight: var(--w-medium); }
+
+.inp {
+  display: block; width: 100%; min-height: var(--ctl-l); padding: var(--s-3) var(--s-4);
+  font-family: var(--font-text); font-size: var(--body-size); line-height: 1.5; color: var(--ink);
+  background: var(--surface); border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-0);
+}
+.inp::placeholder { color: var(--ink-3); }
+.inp:hover { border-color: var(--ink-3); }
+.inp:focus { outline: 0; border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.inp--area { min-height: 96px; resize: vertical; }
+/* Компактное поле для шапки: поиск и фильтры стоят в одном ряду с кнопками. */
+.inp--s { height: 32px; padding: 0 var(--s-3); font-size: var(--small-size); }
+.inp--mono { font-family: var(--font-mono); font-size: var(--small-size); }
+.inp--err  { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+.inp[disabled] { background: var(--surface-2); color: var(--ink-4); }
+
+/* Чекбокс и радио: квадрат остаётся квадратом, радио — кругом               */
+.chk { display: inline-flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
+.chk input { position: absolute; opacity: 0; width: 0; height: 0; }
+.chk__box { flex: none; width: 20px; height: 20px; margin-top: 1px; background: var(--surface);
+            border: var(--bw-hair) solid var(--ink); display: grid; place-items: center; }
+.chk--radio .chk__box { border-radius: var(--r-circle); }
+.chk input:checked + .chk__box { background: var(--brand-green); border-color: var(--brand-green); }
+.chk input:checked + .chk__box::after { content: "✓"; font-size: 13px; font-weight: var(--w-bold); color: var(--ink); }
+.chk--radio input:checked + .chk__box::after { content: ""; width: 9px; height: 9px; border-radius: var(--r-circle); background: var(--ink); }
+.chk input:focus-visible + .chk__box { outline: var(--bw-focus) solid var(--ink); outline-offset: 2px; }
+
+/* Тумблер — единственное место, где скругление читается как «переключатель» */
+.tgl { position: relative; display: inline-block; width: 44px; height: 24px; }
+.tgl input { position: absolute; opacity: 0; }
+.tgl__t { position: absolute; inset: 0; background: var(--surface-3); border: var(--bw-hair) solid var(--line-2);
+          border-radius: var(--r-pill); transition: background var(--t-fast); }
+.tgl__t::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+                 border-radius: var(--r-circle); background: var(--surface); border: var(--bw-hair) solid var(--line-2);
+                 transition: transform var(--t-fast); }
+.tgl input:checked + .tgl__t { background: var(--brand-green); border-color: var(--brand-green); }
+.tgl input:checked + .tgl__t::after { transform: translateX(20px); border-color: var(--brand-green); }
+
+/* Сегментированный переключатель                                            */
+.seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--surface-2);
+       border: var(--bw-hair) solid var(--line); border-radius: var(--r-pill); }
+.seg > * { display: inline-flex; align-items: center; height: 28px; padding: 0 var(--s-4);
+           border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-medium);
+           color: var(--ink-3); cursor: pointer; border: 0; background: none; font-family: var(--font-text); }
+.seg > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
+
+/* Шкала оценки требования: значения из конфигурации задания                 */
+.scale { display: inline-flex; padding: 2px; border: var(--bw-hair) solid var(--line-2);
+         border-radius: var(--r-pill); background: var(--surface); }
+.scale > * { min-width: 32px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+             font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
+             border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
+/* Выбранное значение — залитая пилюля внутри пилюли, углы обоих полные:
+   промежуточных радиусов в системе нет, а прямой угол внутри скруглённой
+   рамки читается как артефакт вёрстки. Заливка, а не контур: балл ставит
+   ревьюер, это главное действие на строке требования, и в ряду из девяти
+   строк выбранное значение должно находиться взглядом сразу.                */
+.scale > .is-on { background: var(--ink); color: var(--surface); font-weight: var(--w-semi); }
+/* Края шкалы окрашены: ноль красный, максимум зелёный. Промежуточные
+   значения остаются чёрными, у них нет своего смысла.                       */
+.scale--zero > .is-on { background: var(--bad); color: var(--surface); }
+.scale--max  > .is-on { background: var(--ok);  color: var(--surface); }
+
+/* --- Табы и крошки -------------------------------------------------------- */
+
+.tabs { display: flex; gap: var(--s-6); border-bottom: var(--bw-hair) solid var(--line); }
+.tab { display: inline-flex; align-items: center; gap: var(--s-2); padding: var(--s-3) 0;
+       font-size: var(--body-size); font-weight: var(--w-medium); color: var(--ink-3);
+       border-bottom: var(--bw-struct) solid transparent; margin-bottom: -1px; cursor: pointer; }
+.tab.is-on { color: var(--ink); font-weight: var(--w-medium); border-bottom-color: var(--ink); }
+.tab .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+
+.crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
+/* Стрелка возврата на родительский экран. Живёт первой в строке крошек:
+   так у пути и у возврата одно место, а не два разных.                      */
+.crumbs__back { position: relative; display: inline-grid; place-items: center; flex: none;
+                width: 28px; height: 28px; margin-left: -7px; margin-right: -2px;
+                border: 0; border-radius: var(--r-circle);
+                background: var(--tint-soft); color: var(--ink-2);
+                font-size: 14px; line-height: 1;
+                transition: background var(--t-fast), color var(--t-fast); }
+/* Круг 28px, зона нажатия 32px: кружок не должен спорить по весу со строкой
+   пути, но попадать в него надо по правилу доступности.                    */
+.crumbs__back::after { content: ""; position: absolute; inset: -2px; }
+.crumbs__back:hover { background: var(--tint-soft-hover); color: var(--ink); }
+.crumbs a { color: var(--ink-3); border: 0; }
+.crumbs a:hover { color: var(--ink); }
+.crumbs .cur { color: var(--ink); font-weight: var(--w-medium); }
+
+/* --- Таблица -------------------------------------------------------------- */
+
+.tbl { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+.tbl th {
+  text-align: left; padding: var(--s-3) var(--s-3); border-bottom: var(--bw-hair) solid var(--line-2);
+  font-family: var(--font-mono); font-size: var(--label-size); font-weight: var(--w-regular);
+  letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
+}
+.tbl td { padding: var(--s-5) var(--s-3); border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
+.tbl tbody tr:hover { background: var(--surface-2); }
+.tbl .r { text-align: right; }
+.tbl .n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tbl .who { font-weight: var(--w-medium); }
+.tbl .sub { font-size: var(--caption-size); color: var(--ink-3); margin-top: 2px; }
+/* Горит срок: красная засечка слева, а не заливка всей строки              */
+.tbl tr.is-hot td:first-child { box-shadow: inset 3px 0 0 var(--brand-red); }
+.tbl tr.is-done td { color: var(--ink-3); }
+.tbl tr.is-done .who { font-weight: var(--w-regular); }
+
+/* --- Разбор по требованиям: аккордеон ------------------------------------- */
+
+.acc { border-bottom: var(--bw-hair) solid var(--line); }
+.acc:last-child { border-bottom: 0; }
+.acc__h { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-5) 0; cursor: pointer; }
+.acc__t { flex: 1; font-size: var(--body-size); font-weight: var(--w-medium); letter-spacing: -.005em; }
+.acc__chev { color: var(--ink-3); font-size: 11px; }
+.acc__b { padding: 0 0 var(--s-4) 36px; }
+.acc__empty { padding: var(--s-3) var(--s-4); background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3); }
+
+/* Ручка перетаскивания. Нарисована точками из градиента, а не знаком шрифта:
+   подходящего символа нет ни в одной из трёх наших гарнитур.                */
+.drag { flex: none; width: 10px; height: 16px; cursor: grab; color: var(--ink-4);
+        background-image: radial-gradient(currentColor 1px, transparent 1.2px);
+        background-size: 5px 5px; background-position: 0 2px; }
+.drag:hover { color: var(--ink-3); }
+
+/* Шкала только для показа: так критерий будет выглядеть у ревьюера.         */
+.scale--ro > * { cursor: default; }
+
+/* Открытый критерий — форма, а не строка списка. Отделена подложкой, а не
+   тем, что часть текста вдруг стала полем: в списке либо всё текст, либо
+   всё поля. Подписано каждое поле, включая название, иначе название и
+   условие читаются как два несвязанных ящика подряд.                       */
+.crit { background: var(--surface-2); padding: var(--s-5); margin-bottom: var(--s-2); }
+.crit__top { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.crit__top .label { flex: 1; }
+.crit .inp { background: var(--surface); }
+
+/* Маркер вердикта. Форма несёт смысл наравне с цветом:
+   квадрат с галочкой — выполнено, квадрат с минусом — нет,
+   круг — решает человек.                                                    */
+/* Маркеры контурные, не заливные: в списке из девяти требований шесть
+   зелёных заливок подряд перегружают экран и ничего не сообщают.           */
+.ck { flex: none; width: 21px; height: 21px; display: grid; place-items: center;
+      font-size: 11px; font-weight: var(--w-semi); border: var(--bw-hair) solid;
+      background: var(--surface); line-height: 1; }
+.ck--y { border-color: var(--ok);    color: var(--ok); }
+/* Крестик U+2715 нарисован в шрифте мельче галочки U+2713, поэтому кегль
+   у него свой: на глаз знаки должны быть одного размера.                   */
+.ck--n { border-color: var(--bad);   color: var(--bad); font-size: 13px; }
+.ck--h { border-color: var(--human); color: var(--human); border-radius: var(--r-circle); }
+.ck--q { border-color: var(--line-2); color: var(--ink-3); border-radius: var(--r-circle); }
+
+/* Находка: где именно нарушено. Цитата обязательна, без неё вердикта нет.   */
+.finding { border: var(--bw-hair) solid var(--line); margin-top: var(--s-3); }
+.finding__src { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3);
+                background: var(--surface-2); border-bottom: var(--bw-hair) solid var(--line);
+                font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+.finding__src .f { color: var(--ink); }
+.finding__src .o { margin-left: auto; color: var(--info); cursor: pointer; }
+.finding__why { padding: var(--s-3); font-size: var(--small-size); color: var(--ink-2); }
+
+.code { font-family: var(--font-mono); font-size: var(--caption-size); line-height: 1.7; background: var(--surface); }
+.code .cl { display: flex; gap: var(--s-3); padding: 0 var(--s-3); white-space: pre; }
+.code .cl .n { color: var(--ink-4); user-select: none; min-width: 28px; text-align: right; }
+.code .cl.is-hit { background: var(--green-wash); box-shadow: inset 3px 0 0 var(--brand-green); }
+.code .cl.is-miss { background: var(--red-wash); box-shadow: inset 3px 0 0 var(--brand-red); }
+
+/* Цитата в тексте без кода                                                  */
+.quote { padding: var(--s-3) var(--s-4); background: var(--surface-2);
+         box-shadow: inset 3px 0 0 var(--brand-green); font-size: var(--small-size); color: var(--ink-2); }
+.quote--bad   { background: var(--red-wash);    box-shadow: inset 3px 0 0 var(--brand-red);    color: var(--bad); }
+.quote--human { background: var(--violet-wash); box-shadow: inset 3px 0 0 var(--brand-violet); color: var(--human); }
+
+/* --- Прогресс, метр ------------------------------------------------------- */
+
+.meter { height: 8px; background: var(--surface-3); display: flex; }
+.meter i { display: block; height: 100%; background: var(--brand-green); }
+.meter i.is-low { background: var(--brand-red); }
+.meter--thin { height: 4px; }
+
+/* --- Строка «ключ — значение» --------------------------------------------- */
+
+.kv { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+      padding: var(--s-3) 0; border-bottom: var(--bw-hair) solid var(--line); font-size: var(--small-size); }
+.kv:last-child { border-bottom: 0; }
+.kv > span:first-child { color: var(--ink-3); }
+.kv .neg { color: var(--bad); font-weight: var(--w-semi); }
+
+/* --- Замечание -------------------------------------------------------------
+   Единый вид для замечаний и пояснений. Левой полосы нет: цвет несёт бледная
+   подложка, внимание держит залитый кружок. Текст всегда --ink, потому что
+   замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на
+   всех пяти брендовых заливках он проходит по контрасту, белый не проходит.  */
+
+.callout { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-4);
+           background: var(--surface-2); color: var(--ink);
+           font-size: var(--small-size); line-height: var(--small-lh); }
+.callout__mark { flex: none; width: var(--callout-mark); height: var(--callout-mark); margin-top: 1px;
+                 border-radius: var(--r-circle); background: var(--ink-4); color: var(--brand-ink);
+                 display: grid; place-items: center;
+                 font-size: 13px; font-weight: var(--w-semi); line-height: 1; }
+.callout p { margin: 0; }
+.callout p + p { margin-top: var(--s-2); }
+.callout--warn  { background: var(--late-bg); }
+.callout--warn  .callout__mark { background: var(--late-fill); }
+.callout--bad   { background: var(--bad-bg); }
+.callout--bad   .callout__mark { background: var(--bad-fill); }
+.callout--human { background: var(--human-bg); }
+.callout--human .callout__mark { background: var(--human-fill); }
+.callout--info  { background: var(--info-bg); }
+.callout--info  .callout__mark { background: var(--info-fill); }
+
+/* --- Пустое состояние ------------------------------------------------------ */
+
+.empty { padding: var(--s-14) var(--s-6); text-align: center; }
+.empty__art { width: 96px; height: 96px; margin: 0 auto var(--s-5); position: relative; }
+.empty h3 { margin-bottom: var(--s-2); }
+.empty p  { margin: 0 auto; max-width: 46ch; color: var(--ink-3); font-size: var(--small-size); }
+
+/* Скелетон загрузки: серые прямоугольники, без мерцающих градиентов         */
+.skel { background: var(--surface-3); height: 14px; }
+.skel--pulse { animation: skel 1.2s ease-in-out infinite; }
+@keyframes skel { 0%,100% { opacity: 1 } 50% { opacity: .5 } }
+
+/* --- Оболочка приложения --------------------------------------------------- */
+
+.app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100%; background: var(--surface); }
+.aside { border-right: var(--bw-hair) solid var(--line); padding: var(--s-5) 0; display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-5);
+         font-family: var(--font-display); font-weight: var(--w-semi); font-size: 15px; letter-spacing: -.03em; }
+.brand .dots { display: flex; align-items: center; gap: 3px; }
+.brand .dots i { display: block; border-radius: var(--r-circle); }
+.menu { display: flex; flex-direction: column; }
+.menu a { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
+          padding: var(--s-3) var(--s-5); font-size: var(--small-size); color: var(--ink-2); border: 0;
+          border-left: var(--bw-focus) solid transparent; }
+.menu a:hover { background: var(--surface-2); color: var(--ink); }
+.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
+.menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+.aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
+               display: flex; align-items: center; gap: var(--s-3); }
+.ava { width: 32px; height: 32px; border-radius: var(--r-circle); background: var(--ink); color: var(--ink-inv);
+       display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--caption-size); flex: none; }
+
+.topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-6);
+          padding: var(--s-6) var(--gutter); border-bottom: var(--bw-hair) solid var(--line); background: var(--surface); }
+.main { padding: var(--s-6) var(--gutter) var(--s-14); background: var(--page); }
+.main--flush { padding: 0; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+.row-side { display: grid; grid-template-columns: 1fr 336px; gap: var(--s-5); align-items: start; }
+.row-rev  { display: grid; grid-template-columns: 384px 1fr; gap: var(--s-5); align-items: start; }
+.stack > * + * { margin-top: var(--s-5); }
+
+/* --- Шаги мастера ---------------------------------------------------------- */
+
+.steps { display: flex; align-items: center; gap: var(--s-3); }
+.step { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--small-size);
+        color: var(--ink-3); white-space: nowrap; }
+.step .n { width: 22px; height: 22px; border-radius: var(--r-circle); display: grid; place-items: center;
+           border: var(--bw-hair) solid var(--line-2); font-family: var(--font-mono); font-size: var(--caption-size); }
+.step.is-on { color: var(--ink); font-weight: var(--w-medium); }
+.step.is-on .n { border-color: var(--ink); }
+/* Пройденный шаг — единственный способ вернуться назад. Кнопки «Назад» внизу
+   нет: карта шагов и кнопка делали бы одно и то же в двух местах.           */
+a.step { border: 0; }
+.step.is-done { color: var(--ink); cursor: pointer; }
+.step.is-done .n { background: var(--brand-green); border-color: var(--brand-green); color: var(--ink); }
+.step.is-done:hover { color: var(--green-ink); }
+/* Непройденный шаг не нажимается: вперёд ведёт только кнопка под формой.     */
+.step--next { color: var(--ink-4); }
+.step--next .n { color: var(--ink-4); border-color: var(--line); }
+.steps .bar { flex: 1; height: 1px; background: var(--line); min-width: 32px; }
+
+/* --- Зона загрузки файла --------------------------------------------------- */
+
+.drop { padding: var(--s-6); text-align: center; background: var(--surface-2);
+        border: var(--bw-hair) dashed var(--line-2); }
+.drop b { display: block; font-weight: var(--w-medium); }
+.drop span { display: block; margin-top: var(--s-1); font-size: var(--caption-size); color: var(--ink-3); }
+
+/* --- Слои поверх страницы -------------------------------------------------- */
+
+/* Затемнение под модалкой. Внутри кадра макета кладётся абсолютом.           */
+.scrim { position: absolute; inset: 0; background: rgba(26,26,26,.32); }
+.overlay { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); z-index: 2; width: 560px; }
+.overlay--wide { width: 720px; }
+
+.modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
+/* Поле поиска. Лупа нарисована в разметке, а не шрифтом: значка поиска нет
+   ни в одной из трёх наших гарнитур, а эмодзи в интерфейсе мы не ставим.    */
+.srch { position: relative; display: inline-flex; align-items: center; }
+.srch__i { position: absolute; left: 10px; width: 14px; height: 14px;
+           color: var(--ink-3); pointer-events: none; }
+.srch .inp { padding-left: 32px; }
+
+/* Выпадающий список поиска. Не модалка: якорится к полю, страницу за собой
+   не гасит и не требует решения, закрывается Escape или кликом мимо.        */
+.pop { position: absolute; z-index: 2; background: var(--surface);
+       border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); }
+.pop__g { padding: var(--s-4) var(--s-5) var(--s-2); font-family: var(--font-mono);
+          font-size: var(--caption-size); letter-spacing: .08em; text-transform: uppercase;
+          color: var(--ink-3); }
+.pop__row { display: flex; align-items: center; gap: var(--s-4); cursor: pointer;
+            padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line); }
+.pop__row:hover, .pop__row.is-on { background: var(--surface-2); }
+.pop__row > .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pop__row .s { margin-top: 2px; font-size: var(--caption-size); color: var(--ink-3); }
+.pop__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+             padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+             background: var(--surface-2); font-size: var(--caption-size); color: var(--ink-3); }
+.pop__empty { padding: var(--s-3) var(--s-5) var(--s-4); font-size: var(--small-size); color: var(--ink-3); }
+
+.toast { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5);
+         background: var(--ink); color: var(--ink-inv); border-radius: var(--r-pill); box-shadow: var(--shadow-overlay);
+         font-size: var(--small-size); font-weight: var(--w-medium); }
+.toast--ok  { background: var(--brand-green); color: var(--ink); }
+.toast--bad { background: var(--brand-red); color: var(--ink-inv); }
+
+@media (max-width: 1100px) {
+  .row-side, .row-rev, .row-2 { grid-template-columns: 1fr; }
+  .app { grid-template-columns: 1fr; }
+  .aside { border-right: 0; border-bottom: var(--bw-hair) solid var(--ink); }
+}

@@ -324,9 +324,7 @@ class ReviewPublicationService:
                     transaction=transaction,
                 )
                 return result
-            raise ReviewPublicationConflict(
-                "ReviewIteration is stale or current revision changed"
-            )
+            raise ReviewPublicationConflict("ReviewIteration is stale or current revision changed")
         self._validate_context(command, context)
         now = require_utc(self._clock())
         request = await self._optional_request(
@@ -440,9 +438,7 @@ class ReviewPublicationService:
                     "review_iteration_id": str(command.review_iteration_id),
                     "review_revision_id": str(command.expected_current_revision_id),
                     "publication_request_id": (
-                        str(request.publication_request_id)
-                        if request is not None
-                        else None
+                        str(request.publication_request_id) if request is not None else None
                     ),
                     "destination_count": len(intents),
                     "delivery_ids": [str(intent.delivery_id) for intent in intents],
@@ -506,8 +502,7 @@ class ReviewPublicationService:
             or context.review_iteration_id != command.review_iteration_id
             or context.current_iteration_id != command.review_iteration_id
             or context.iteration_revision != command.expected_iteration_revision
-            or context.current_review_revision_id
-            != command.expected_current_revision_id
+            or context.current_review_revision_id != command.expected_current_revision_id
             or revision.organization_id != command.organization_id
             or revision.review_iteration_id != command.review_iteration_id
             or revision.review_revision_id != command.expected_current_revision_id
@@ -522,9 +517,7 @@ class ReviewPublicationService:
         try:
             validate_digest(context.artifact_content_digest)
         except ValueError as error:
-            raise ReviewPublicationConflict(
-                "publication artifact digest is invalid"
-            ) from error
+            raise ReviewPublicationConflict("publication artifact digest is invalid") from error
         criteria = {criterion.criterion_id: criterion for criterion in context.criteria}
         decision_ids = [decision.criterion_id for decision in revision.decisions]
         total = sum(
@@ -537,8 +530,7 @@ class ReviewPublicationService:
             or set(decision_ids) != set(criteria)
             or len(decision_ids) != len(set(decision_ids))
             or any(
-                decision.points < 0
-                or decision.points > criteria[decision.criterion_id].max_points
+                decision.points < 0 or decision.points > criteria[decision.criterion_id].max_points
                 for decision in revision.decisions
             )
             or total != revision.total_score
@@ -564,12 +556,12 @@ class ReviewPublicationService:
                 or destination.kind not in {"stepik", "github"}
                 or not destination.recipient_ref
             ):
-                raise ReviewPublicationConflict(
-                    "required DestinationBinding snapshot is invalid"
-                )
+                raise ReviewPublicationConflict("required DestinationBinding snapshot is invalid")
 
     @staticmethod
-    def _delivery_payload(revision: ReviewRevisionRecord, score_adjustment: Decimal = Decimal("0")) -> DeliveryPayload:
+    def _delivery_payload(
+        revision: ReviewRevisionRecord, score_adjustment: Decimal = Decimal("0")
+    ) -> DeliveryPayload:
         return DeliveryPayload(
             total_score=revision.total_score - score_adjustment,
             feedback=revision.feedback,

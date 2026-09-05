@@ -14,6 +14,7 @@ dependencies = [
   "boto3==1.40.21",
   "fastapi==0.116.1",
   "greenlet==3.5.5",
+  "httpx==0.28.1",
   "mcp==1.13.1",
   "pydantic==2.11.7",
   "pydantic-settings==2.10.1",

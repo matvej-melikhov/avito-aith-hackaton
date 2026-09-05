@@ -24,6 +24,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 COPY --from=builder /app/.venv ./.venv
 COPY --from=builder /app/src ./src
+COPY backend/alembic.ini ./alembic.ini
+COPY backend/migrations ./migrations
 
 FROM runtime AS api
 CMD ["python", "-m", "review_platform.main"]

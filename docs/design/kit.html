@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Дизайн-кит. Avito AI Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=Unbounded:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- css:start -->
+<style>
+/* ===== tokens.css ===== */
+/* ===========================================================================
+   Avito AI Reviewer — токены дизайн-системы
+   Вариант «Светлый брутализм», плотность «Воздух». Источник: ребрендинг
+   Авито 2024 (бюро «Щука»)
+   и разбор вёрстки start.avito.ru от 4 сентября 2026.
+   Все значения из этого файла. Хардкодить цвета и размеры в компонентах нельзя.
+   =========================================================================== */
+
+:root {
+
+  /* --- Брендовые цвета. Ровно четыре плюс оранжевый для просрочки ---------- */
+  --brand-green:        #04E061;   /* основной. Заливка, метки «выполнено»    */
+  --brand-blue:         #00AAFF;
+  --brand-red:          #FF4053;
+  --brand-violet:       #965EEB;
+  --brand-orange:       #FF891D;
+
+  /* Тёмные варианты: только для текста и тонких линий на белом.
+     Чистые брендовые на белом тексте не проходят по контрасту.               */
+  --green-ink:          #02863A;   /* 5.3:1 на белом */
+  --blue-ink:           #0070B8;   /* 5.2:1 */
+  --red-ink:            #C8202F;   /* 6.4:1 */
+  --violet-ink:         #6B36C4;   /* 7.4:1 */
+  --orange-ink:         #B85A00;   /* 4.6:1 */
+
+  /* Пастельные. Заливка целых блоков и плашек. Текст поверх — только чёрный. */
+  --green-pale:         #C9FFBF;
+  --blue-pale:          #BADAFB;
+  --red-pale:           #F7C1C5;
+  --violet-pale:        #DFCDF3;
+  --orange-pale:        #FFD9B0;
+
+  /* Разбавленные. Подложка строки, цитаты, инлайн-подсветки.                 */
+  --green-wash:         #EFFDF3;
+  --blue-wash:          #EAF5FE;
+  --red-wash:           #FDEDEF;
+  --violet-wash:        #F3ECFC;
+  --orange-wash:        #FFF2E4;
+
+  /* --- Нейтрали. База системы, 90% экрана состоит из них -------------------
+     Чистый чёрный оставлен бренду и витрине. В интерфейсе основной текст
+     #1A1A1A: на плотном экране из девяти требований чистый чёрный вместе
+     с чёрными границами зон даёт лишний вес.                                */
+  --ink:                #1A1A1A;   /* основной текст                          */
+  --ink-2:              #4A4A4A;   /* вторичный текст, длинные абзацы         */
+  --ink-3:              #747574;   /* подписи, мета, плейсхолдеры             */
+  --ink-4:              #A9AAA9;   /* выключенное состояние                   */
+  --line:               #EDEEEF;   /* волосяная линия между строками и зонами */
+  --line-2:             #C9CBCA;   /* граница поля ввода, кнопки, шапки табл. */
+  --line-hard:          #1A1A1A;   /* структурная линия, почти не нужна       */
+  --surface:            #FFFFFF;   /* карточка                                */
+  --surface-2:          #F7F7F7;   /* подложка цитаты, подвал карточки        */
+  --surface-3:          #EFEFEF;   /* полоса метра, разделитель               */
+  --page:               #FAFAFA;   /* холст под карточками                    */
+  --surface-inv:        #1A1A1A;   /* тёмная плашка                           */
+  --ink-inv:            #FFFFFF;
+  --brand-ink:          #000000;   /* чистый чёрный: логотип, витринный текст */
+
+  /* --- Семантика. Компоненты обращаются только к этим переменным ----------- */
+  --ok:                 var(--green-ink);
+  --ok-fill:            var(--brand-green);
+  --ok-bg:              var(--green-wash);
+  --bad:                var(--red-ink);
+  --bad-fill:           var(--brand-red);
+  --bad-bg:             var(--red-wash);
+  --human:              var(--violet-ink);   /* «решает человек», оценочное   */
+  --human-fill:         var(--brand-violet);
+  --human-bg:           var(--violet-wash);
+  --info:               var(--blue-ink);
+  --info-fill:          var(--brand-blue);
+  --info-bg:            var(--blue-wash);
+  --late:               var(--orange-ink);   /* просрочка, горит срок         */
+  --late-fill:          var(--brand-orange);
+  --late-bg:            var(--orange-wash);
+
+  /* --- Шрифты ------------------------------------------------------------- */
+  --font-display: 'Unbounded', 'Onest', system-ui, sans-serif;
+  --font-text:    'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Размер / интерлиньяж / трекинг. Чем крупнее, тем плотнее трекинг.        */
+  --d1-size: 64px;  --d1-lh: .95;  --d1-ls: -.05em;   /* обложка, лендинг     */
+  --d2-size: 44px;  --d2-lh: 1.0;  --d2-ls: -.04em;   /* витринная плашка     */
+  --d3-size: 32px;  --d3-lh: 1.05; --d3-ls: -.04em;   /* крупная цифра        */
+  --h1-size: 25px;  --h1-lh: 1.15; --h1-ls: -.02em;
+  --h2-size: 20px;  --h2-lh: 1.25; --h2-ls: -.02em;
+  --h3-size: 15px;  --h3-lh: 1.4;  --h3-ls: -.01em;
+  --body-size: 15px;   --body-lh: 1.5;
+  --small-size: 13.5px; --small-lh: 1.45;
+  --caption-size: 12px; --caption-lh: 1.35;
+  --label-size: 11px;   --label-ls: .1em;   /* mono, uppercase, служебное     */
+
+  /* Веса. Рабочий интерфейс держится на 400 и 500. 600 — только цифры и
+     главная кнопка, 700 — только дисплейные заголовки. 800 не используется. */
+  --w-light: 300; --w-regular: 400; --w-medium: 500; --w-semi: 600; --w-bold: 700;
+
+  /* --- Геометрия. Система бинарная: либо прямой угол, либо полная пилюля --- */
+  --r-0: 0;
+  --r-pill: 999px;
+  --r-circle: 50%;
+  --bw-hair: 1px;      /* волосяная линия                                    */
+  --bw-struct: 2px;    /* структурная граница блока и раздела                */
+  --bw-focus: 3px;
+
+  /* --- Шаг 4px ------------------------------------------------------------ */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-14: 56px; --s-20: 80px;
+
+  /* --- Размеры управляющих элементов -------------------------------------- */
+  --ctl-l: 48px; --ctl-m: 40px; --ctl-s: 32px;
+  --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px;
+
+  /* --- Замечание ---------------------------------------------------------- */
+  --callout-mark: 20px;   /* диаметр залитого кружка со знаком                */
+
+  /* --- Тень. Только у слоёв поверх страницы. У карточек тени нет ---------- */
+  --shadow-overlay: 0 24px 60px rgba(0,0,0,.18);
+
+  /* Полупрозрачная подложка круглой кнопки. Не сплошной серый: кнопка стоит
+     и на белом, и на зелёной плашке, и должна работать на обоих.          */
+  --tint-soft:       rgba(26,26,26,.06);
+  --tint-soft-hover: rgba(26,26,26,.12);
+
+  /* --- Движение ----------------------------------------------------------- */
+  --t-fast: 120ms cubic-bezier(.2,0,.2,1);
+  --t-base: 200ms cubic-bezier(.2,0,.2,1);
+}
+
+/* Тёмной темы в системе нет. Роль «тёмного» играет чёрная плашка .inv:
+   она инвертирует нейтрали внутри себя и оставляет брендовые цвета как есть. */
+.inv {
+  --ink: #FFFFFF; --ink-2: #C9CBCA; --ink-3: #8E908F; --ink-4: #5A5B5A;
+  --line: #2E2E2E; --line-2: #414141; --line-hard: #FFFFFF;
+  --surface: #121212; --surface-2: #1A1A1A; --surface-3: #242424; --page: #121212;
+  --surface-inv: #FFFFFF; --ink-inv: #121212;
+  --ok: var(--brand-green); --bad: #FF8A94; --human: #C4A6FA; --info: #6ECBFF; --late: #FFB265;
+  --ok-bg: #0A2216; --bad-bg: #2A1114; --human-bg: #1C1230; --info-bg: #06222F; --late-bg: #2A1B08;
+  background: #121212; color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-base: 0ms; }
+}
+
+/* ===== components.css ===== */
+/* ===========================================================================
+   Avito AI Reviewer — библиотека компонентов
+   Требует tokens.css. Ни одного цвета и размера мимо переменных.
+   Правило геометрии: блоки с прямым углом, управляющие элементы — пилюли.
+   Правило веса: рабочий интерфейс на 400 и 500, границы зон волосяные.
+   =========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--body-size);
+  line-height: var(--body-lh);
+  font-weight: var(--w-regular);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Типографика --------------------------------------------------------- */
+
+.d1, .d2 { font-family: var(--font-display); font-weight: var(--w-bold); margin: 0; }
+.d3 { font-family: var(--font-display); font-weight: var(--w-semi); margin: 0; }
+.d1 { font-size: var(--d1-size); line-height: var(--d1-lh); letter-spacing: var(--d1-ls); }
+.d2 { font-size: var(--d2-size); line-height: var(--d2-lh); letter-spacing: var(--d2-ls); }
+.d3 { font-size: var(--d3-size); line-height: var(--d3-lh); letter-spacing: var(--d3-ls); }
+
+h1, .h1 { font-size: var(--h1-size); line-height: var(--h1-lh); letter-spacing: var(--h1-ls); font-weight: var(--w-medium); margin: 0; }
+h2, .h2 { font-size: var(--h2-size); line-height: var(--h2-lh); letter-spacing: var(--h2-ls); font-weight: var(--w-medium); margin: 0; }
+h3, .h3 { font-size: var(--h3-size); line-height: var(--h3-lh); letter-spacing: var(--h3-ls); font-weight: var(--w-medium); margin: 0; }
+
+.small  { font-size: var(--small-size); line-height: var(--small-lh); }
+.caption{ font-size: var(--caption-size); line-height: var(--caption-lh); color: var(--ink-3); }
+.muted  { color: var(--ink-3); }
+.dim    { color: var(--ink-2); }
+
+/* Служебная метка: моноширинный капслок. Разделы, источники, номера строк.  */
+.label {
+  font-family: var(--font-mono); font-size: var(--label-size); font-weight: var(--w-regular);
+  letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3);
+}
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.num  { font-variant-numeric: tabular-nums; }
+
+/* Заголовок с цветной пилюлей поверх слова — фирменный приём Авито.
+   Не больше одной пилюли на заголовок.                                      */
+.hl { display: inline-block; padding: 0 .28em; border-radius: var(--r-pill); background: var(--brand-green); }
+.hl-ink { background: var(--brand-ink); color: #fff; }
+
+a { color: var(--ink); text-decoration: none; border-bottom: var(--bw-hair) solid var(--line-2); }
+a:hover { border-bottom-color: var(--ink); }
+
+:focus-visible { outline: var(--bw-focus) solid var(--ink); outline-offset: 2px; }
+.inv :focus-visible { outline-color: var(--brand-green); }
+
+/* --- Кнопки. Всегда пилюля, всегда 1px граница ---------------------------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  height: var(--ctl-m); padding: 0 var(--s-5);
+  font-family: var(--font-text); font-size: var(--body-size); font-weight: var(--w-medium);
+  line-height: 1; color: var(--ink); background: var(--surface);
+  border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill);
+  cursor: pointer; white-space: nowrap; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.btn:hover  { background: var(--surface-2); }
+.btn:active { transform: translateY(1px); }
+
+.btn--pri   { background: var(--brand-green); border-color: var(--brand-green); font-weight: var(--w-semi); }
+.btn--pri:hover { background: #00C954; border-color: #00C954; }
+
+.btn--dark  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
+.btn--dark:hover { background: var(--ink-2); border-color: var(--ink-2); }
+
+.btn--quiet { border-color: var(--line); color: var(--ink-3); }
+.btn--quiet:hover { border-color: var(--ink); color: var(--ink); }
+
+.btn--danger{ border-color: var(--bad); color: var(--bad); }
+.btn--danger:hover { background: var(--bad-bg); }
+
+.btn--link  { border: 0; padding: 0; height: auto; background: none; color: var(--ink);
+              text-decoration: underline; text-underline-offset: 3px; font-weight: var(--w-medium); }
+.btn--link:hover { background: none; color: var(--green-ink); }
+
+.btn--l { height: var(--ctl-l); padding: 0 var(--s-6); font-size: 16px; }
+.btn--s { height: var(--ctl-s); padding: 0 var(--s-4); font-size: var(--small-size); }
+
+.btn[disabled], .btn--off { color: var(--ink-4); border-color: var(--line); background: var(--surface); cursor: not-allowed; }
+
+.btn--icon { width: var(--ctl-m); padding: 0; border-radius: var(--r-circle); }
+.btn--icon.btn--s { width: var(--ctl-s); }
+
+.btn-row { display: flex; gap: var(--s-2); flex-wrap: wrap; align-items: center; }
+
+/* --- Пилюли и теги -------------------------------------------------------- */
+
+.pill {
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  height: 26px; padding: 0 var(--s-3);
+  font-size: var(--small-size); font-weight: var(--w-medium); line-height: 1;
+  border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--ink-2); white-space: nowrap;
+}
+.pill--solid  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); }
+.pill--ok     { background: var(--green-pale);  border-color: var(--green-pale);  color: var(--ink); }
+.pill--bad    { background: var(--red-pale);    border-color: var(--red-pale);    color: var(--ink); }
+.pill--human  { background: var(--violet-pale); border-color: var(--violet-pale); color: var(--ink); }
+.pill--info   { background: var(--blue-pale);   border-color: var(--blue-pale);   color: var(--ink); }
+.pill--late   { background: var(--orange-pale); border-color: var(--orange-pale); color: var(--ink); }
+.pill--mono   { font-family: var(--font-mono); font-size: var(--caption-size); }
+
+/* Точка-маркер перед текстом пилюли, когда цвета мало для различения        */
+.pill i { width: 7px; height: 7px; border-radius: var(--r-circle); background: currentColor; display: block; }
+
+/* --- Статусы домашки. Единый набор на всю платформу ----------------------- */
+
+.st { display: inline-flex; align-items: center; gap: var(--s-2); height: 26px; padding: 0 var(--s-3);
+      border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-medium);
+      border: var(--bw-hair) solid transparent; white-space: nowrap; }
+.st::before { content: ""; width: 8px; height: 8px; border-radius: var(--r-circle); background: currentColor; }
+.st--draft  { background: var(--surface-2);  color: var(--ink-3); border-color: var(--line); }
+.st--sent   { background: var(--blue-wash);  color: var(--info); }
+.st--review { background: var(--violet-wash);color: var(--human); }
+.st--fix    { background: var(--orange-wash);color: var(--late); }
+.st--rereview{background: var(--violet-wash);color: var(--human); }
+.st--pass   { background: var(--green-wash); color: var(--ok); }
+.st--fail   { background: var(--red-wash);   color: var(--bad); }
+
+/* --- Карточка. Прямой угол, волосяная граница, без тени ------------------- */
+
+.card { background: var(--surface); border: var(--bw-hair) solid var(--line); border-radius: var(--r-0); }
+.card--hard { border-color: var(--line-2); }
+.card__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-4) var(--s-5); border-bottom: var(--bw-hair) solid var(--line);
+}
+.card__head h3, .card__head h4 { margin: 0; font-size: var(--h3-size); font-weight: var(--w-medium); letter-spacing: var(--h3-ls); }
+.card__sub  { margin-top: 2px; font-size: var(--small-size); color: var(--ink-3); font-weight: var(--w-regular); }
+.card__body { padding: var(--s-5); }
+.card__body--tight { padding: var(--s-2) var(--s-5); }
+.card__body--compact { padding: var(--s-4) var(--s-5); }
+.card__body--compact .field { margin-bottom: var(--s-3); }
+.card__body--compact .field:last-child { margin-bottom: 0; }
+.card__body--flush { padding: 0; overflow-x: auto; }   /* широкая таблица скроллится внутри карточки, а не тянет страницу */
+.card__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+  background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3);
+}
+/* Пояснение в подвале сжимается, кнопки не переносятся                      */
+.card__foot > :first-child { min-width: 0; }
+.card__foot .btn-row { flex: none; flex-wrap: nowrap; }
+
+/* Сводка «балл из максимума» в шапке карточки                               */
+.sum { display: flex; align-items: baseline; gap: var(--s-2); }
+.sum b { font-family: var(--font-display); font-weight: var(--w-medium); font-size: 23px; letter-spacing: -.04em; }
+.sum span { font-size: var(--small-size); color: var(--ink-3); }
+
+/* --- Витринная плашка: пастельная заливка, круги, крупный заголовок ------- */
+
+.band { position: relative; overflow: hidden; padding: var(--s-8) var(--gutter); background: var(--green-pale); }
+.band--blue   { background: var(--blue-pale); }
+.band--violet { background: var(--violet-pale); }
+.band--ink    { background: var(--ink); color: var(--ink-inv); }
+.band__in { position: relative; z-index: 1; max-width: var(--page-max); margin: 0 auto; }
+.band p { margin: var(--s-3) 0 0; max-width: 54ch; font-size: 16px; }
+
+/* Фирменная графика: плоские круги. Только брендовые цвета, без градиентов. */
+.circ { position: absolute; border-radius: var(--r-circle); pointer-events: none; }
+.circ--g { background: var(--brand-green); }
+.circ--b { background: var(--brand-blue); }
+.circ--r { background: var(--brand-red); }
+.circ--v { background: var(--brand-violet); }
+
+/* --- Полоса цифр ---------------------------------------------------------- */
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+         border-top: var(--bw-hair) solid var(--line); border-bottom: var(--bw-hair) solid var(--line);
+         background: var(--surface); }
+.stat { padding: var(--s-5) var(--gutter); border-right: var(--bw-hair) solid var(--line); }
+.stat:last-child { border-right: 0; }
+.stat b { display: block; font-family: var(--font-display); font-weight: var(--w-semi);
+          font-size: var(--d3-size); line-height: 1; letter-spacing: var(--d3-ls); }
+.stat span { display: block; margin-top: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
+.stat--alert b { color: var(--bad); }
+
+/* Плитка отдельной метрикой (сетка вместо полосы)                           */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-3); }
+.tile { background: var(--surface); border: var(--bw-hair) solid var(--line); padding: var(--s-5); }
+.tile .n { font-family: var(--font-display); font-weight: var(--w-semi); font-size: var(--d3-size);
+           line-height: 1; letter-spacing: var(--d3-ls); }
+.tile .l { margin-top: var(--s-2); font-size: var(--small-size); }
+.tile .d { margin-top: var(--s-1); font-size: var(--caption-size); color: var(--ink-3); }
+.tile--alert { border-color: var(--brand-red); }
+.tile--alert .n { color: var(--bad); }
+
+/* --- Поля ввода ----------------------------------------------------------- */
+
+.field { display: block; margin-bottom: var(--s-4); }
+.field:last-child { margin-bottom: 0; }
+.field__lbl { display: block; margin-bottom: var(--s-2); font-size: var(--small-size); font-weight: var(--w-medium); }
+.field__hint { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--ink-3); }
+/* Помечаем необязательное, а не обязательное: звёздочек в форме из трёх полей
+   получается больше, чем полей без них.                                     */
+.field__opt { margin-left: var(--s-2); font-size: var(--caption-size);
+              font-weight: var(--w-regular); color: var(--ink-3); }
+.field__err  { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--bad); font-weight: var(--w-medium); }
+
+.inp {
+  display: block; width: 100%; min-height: var(--ctl-l); padding: var(--s-3) var(--s-4);
+  font-family: var(--font-text); font-size: var(--body-size); line-height: 1.5; color: var(--ink);
+  background: var(--surface); border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-0);
+}
+.inp::placeholder { color: var(--ink-3); }
+.inp:hover { border-color: var(--ink-3); }
+.inp:focus { outline: 0; border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.inp--area { min-height: 96px; resize: vertical; }
+/* Компактное поле для шапки: поиск и фильтры стоят в одном ряду с кнопками. */
+.inp--s { height: 32px; padding: 0 var(--s-3); font-size: var(--small-size); }
+.inp--mono { font-family: var(--font-mono); font-size: var(--small-size); }
+.inp--err  { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+.inp[disabled] { background: var(--surface-2); color: var(--ink-4); }
+
+/* Чекбокс и радио: квадрат остаётся квадратом, радио — кругом               */
+.chk { display: inline-flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
+.chk input { position: absolute; opacity: 0; width: 0; height: 0; }
+.chk__box { flex: none; width: 20px; height: 20px; margin-top: 1px; background: var(--surface);
+            border: var(--bw-hair) solid var(--ink); display: grid; place-items: center; }
+.chk--radio .chk__box { border-radius: var(--r-circle); }
+.chk input:checked + .chk__box { background: var(--brand-green); border-color: var(--brand-green); }
+.chk input:checked + .chk__box::after { content: "✓"; font-size: 13px; font-weight: var(--w-bold); color: var(--ink); }
+.chk--radio input:checked + .chk__box::after { content: ""; width: 9px; height: 9px; border-radius: var(--r-circle); background: var(--ink); }
+.chk input:focus-visible + .chk__box { outline: var(--bw-focus) solid var(--ink); outline-offset: 2px; }
+
+/* Тумблер — единственное место, где скругление читается как «переключатель» */
+.tgl { position: relative; display: inline-block; width: 44px; height: 24px; }
+.tgl input { position: absolute; opacity: 0; }
+.tgl__t { position: absolute; inset: 0; background: var(--surface-3); border: var(--bw-hair) solid var(--line-2);
+          border-radius: var(--r-pill); transition: background var(--t-fast); }
+.tgl__t::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+                 border-radius: var(--r-circle); background: var(--surface); border: var(--bw-hair) solid var(--line-2);
+                 transition: transform var(--t-fast); }
+.tgl input:checked + .tgl__t { background: var(--brand-green); border-color: var(--brand-green); }
+.tgl input:checked + .tgl__t::after { transform: translateX(20px); border-color: var(--brand-green); }
+
+/* Сегментированный переключатель                                            */
+.seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--surface-2);
+       border: var(--bw-hair) solid var(--line); border-radius: var(--r-pill); }
+.seg > * { display: inline-flex; align-items: center; height: 28px; padding: 0 var(--s-4);
+           border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-medium);
+           color: var(--ink-3); cursor: pointer; border: 0; background: none; font-family: var(--font-text); }
+.seg > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
+
+/* Шкала оценки требования: значения из конфигурации задания                 */
+.scale { display: inline-flex; padding: 2px; border: var(--bw-hair) solid var(--line-2);
+         border-radius: var(--r-pill); background: var(--surface); }
+.scale > * { min-width: 32px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+             font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
+             border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
+/* Выбранное значение — залитая пилюля внутри пилюли, углы обоих полные:
+   промежуточных радиусов в системе нет, а прямой угол внутри скруглённой
+   рамки читается как артефакт вёрстки. Заливка, а не контур: балл ставит
+   ревьюер, это главное действие на строке требования, и в ряду из девяти
+   строк выбранное значение должно находиться взглядом сразу.                */
+.scale > .is-on { background: var(--ink); color: var(--surface); font-weight: var(--w-semi); }
+/* Края шкалы окрашены: ноль красный, максимум зелёный. Промежуточные
+   значения остаются чёрными, у них нет своего смысла.                       */
+.scale--zero > .is-on { background: var(--bad); color: var(--surface); }
+.scale--max  > .is-on { background: var(--ok);  color: var(--surface); }
+
+/* --- Табы и крошки -------------------------------------------------------- */
+
+.tabs { display: flex; gap: var(--s-6); border-bottom: var(--bw-hair) solid var(--line); }
+.tab { display: inline-flex; align-items: center; gap: var(--s-2); padding: var(--s-3) 0;
+       font-size: var(--body-size); font-weight: var(--w-medium); color: var(--ink-3);
+       border-bottom: var(--bw-struct) solid transparent; margin-bottom: -1px; cursor: pointer; }
+.tab.is-on { color: var(--ink); font-weight: var(--w-medium); border-bottom-color: var(--ink); }
+.tab .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+
+.crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
+/* Стрелка возврата на родительский экран. Живёт первой в строке крошек:
+   так у пути и у возврата одно место, а не два разных.                      */
+.crumbs__back { position: relative; display: inline-grid; place-items: center; flex: none;
+                width: 28px; height: 28px; margin-left: -7px; margin-right: -2px;
+                border: 0; border-radius: var(--r-circle);
+                background: var(--tint-soft); color: var(--ink-2);
+                font-size: 14px; line-height: 1;
+                transition: background var(--t-fast), color var(--t-fast); }
+/* Круг 28px, зона нажатия 32px: кружок не должен спорить по весу со строкой
+   пути, но попадать в него надо по правилу доступности.                    */
+.crumbs__back::after { content: ""; position: absolute; inset: -2px; }
+.crumbs__back:hover { background: var(--tint-soft-hover); color: var(--ink); }
+.crumbs a { color: var(--ink-3); border: 0; }
+.crumbs a:hover { color: var(--ink); }
+.crumbs .cur { color: var(--ink); font-weight: var(--w-medium); }
+
+/* --- Таблица -------------------------------------------------------------- */
+
+.tbl { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+.tbl th {
+  text-align: left; padding: var(--s-3) var(--s-3); border-bottom: var(--bw-hair) solid var(--line-2);
+  font-family: var(--font-mono); font-size: var(--label-size); font-weight: var(--w-regular);
+  letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
+}
+.tbl td { padding: var(--s-5) var(--s-3); border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
+.tbl tbody tr:hover { background: var(--surface-2); }
+.tbl .r { text-align: right; }
+.tbl .n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tbl .who { font-weight: var(--w-medium); }
+.tbl .sub { font-size: var(--caption-size); color: var(--ink-3); margin-top: 2px; }
+/* Горит срок: красная засечка слева, а не заливка всей строки              */
+.tbl tr.is-hot td:first-child { box-shadow: inset 3px 0 0 var(--brand-red); }
+.tbl tr.is-done td { color: var(--ink-3); }
+.tbl tr.is-done .who { font-weight: var(--w-regular); }
+
+/* --- Разбор по требованиям: аккордеон ------------------------------------- */
+
+.acc { border-bottom: var(--bw-hair) solid var(--line); }
+.acc:last-child { border-bottom: 0; }
+.acc__h { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-5) 0; cursor: pointer; }
+.acc__t { flex: 1; font-size: var(--body-size); font-weight: var(--w-medium); letter-spacing: -.005em; }
+.acc__chev { color: var(--ink-3); font-size: 11px; }
+.acc__b { padding: 0 0 var(--s-4) 36px; }
+.acc__empty { padding: var(--s-3) var(--s-4); background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3); }
+
+/* Ручка перетаскивания. Нарисована точками из градиента, а не знаком шрифта:
+   подходящего символа нет ни в одной из трёх наших гарнитур.                */
+.drag { flex: none; width: 10px; height: 16px; cursor: grab; color: var(--ink-4);
+        background-image: radial-gradient(currentColor 1px, transparent 1.2px);
+        background-size: 5px 5px; background-position: 0 2px; }
+.drag:hover { color: var(--ink-3); }
+
+/* Шкала только для показа: так критерий будет выглядеть у ревьюера.         */
+.scale--ro > * { cursor: default; }
+
+/* Открытый критерий — форма, а не строка списка. Отделена подложкой, а не
+   тем, что часть текста вдруг стала полем: в списке либо всё текст, либо
+   всё поля. Подписано каждое поле, включая название, иначе название и
+   условие читаются как два несвязанных ящика подряд.                       */
+.crit { background: var(--surface-2); padding: var(--s-5); margin-bottom: var(--s-2); }
+.crit__top { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.crit__top .label { flex: 1; }
+.crit .inp { background: var(--surface); }
+
+/* Маркер вердикта. Форма несёт смысл наравне с цветом:
+   квадрат с галочкой — выполнено, квадрат с минусом — нет,
+   круг — решает человек.                                                    */
+/* Маркеры контурные, не заливные: в списке из девяти требований шесть
+   зелёных заливок подряд перегружают экран и ничего не сообщают.           */
+.ck { flex: none; width: 21px; height: 21px; display: grid; place-items: center;
+      font-size: 11px; font-weight: var(--w-semi); border: var(--bw-hair) solid;
+      background: var(--surface); line-height: 1; }
+.ck--y { border-color: var(--ok);    color: var(--ok); }
+/* Крестик U+2715 нарисован в шрифте мельче галочки U+2713, поэтому кегль
+   у него свой: на глаз знаки должны быть одного размера.                   */
+.ck--n { border-color: var(--bad);   color: var(--bad); font-size: 13px; }
+.ck--h { border-color: var(--human); color: var(--human); border-radius: var(--r-circle); }
+.ck--q { border-color: var(--line-2); color: var(--ink-3); border-radius: var(--r-circle); }
+
+/* Находка: где именно нарушено. Цитата обязательна, без неё вердикта нет.   */
+.finding { border: var(--bw-hair) solid var(--line); margin-top: var(--s-3); }
+.finding__src { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3);
+                background: var(--surface-2); border-bottom: var(--bw-hair) solid var(--line);
+                font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+.finding__src .f { color: var(--ink); }
+.finding__src .o { margin-left: auto; color: var(--info); cursor: pointer; }
+.finding__why { padding: var(--s-3); font-size: var(--small-size); color: var(--ink-2); }
+
+.code { font-family: var(--font-mono); font-size: var(--caption-size); line-height: 1.7; background: var(--surface); }
+.code .cl { display: flex; gap: var(--s-3); padding: 0 var(--s-3); white-space: pre; }
+.code .cl .n { color: var(--ink-4); user-select: none; min-width: 28px; text-align: right; }
+.code .cl.is-hit { background: var(--green-wash); box-shadow: inset 3px 0 0 var(--brand-green); }
+.code .cl.is-miss { background: var(--red-wash); box-shadow: inset 3px 0 0 var(--brand-red); }
+
+/* Цитата в тексте без кода                                                  */
+.quote { padding: var(--s-3) var(--s-4); background: var(--surface-2);
+         box-shadow: inset 3px 0 0 var(--brand-green); font-size: var(--small-size); color: var(--ink-2); }
+.quote--bad   { background: var(--red-wash);    box-shadow: inset 3px 0 0 var(--brand-red);    color: var(--bad); }
+.quote--human { background: var(--violet-wash); box-shadow: inset 3px 0 0 var(--brand-violet); color: var(--human); }
+
+/* --- Прогресс, метр ------------------------------------------------------- */
+
+.meter { height: 8px; background: var(--surface-3); display: flex; }
+.meter i { display: block; height: 100%; background: var(--brand-green); }
+.meter i.is-low { background: var(--brand-red); }
+.meter--thin { height: 4px; }
+
+/* --- Строка «ключ — значение» --------------------------------------------- */
+
+.kv { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+      padding: var(--s-3) 0; border-bottom: var(--bw-hair) solid var(--line); font-size: var(--small-size); }
+.kv:last-child { border-bottom: 0; }
+.kv > span:first-child { color: var(--ink-3); }
+.kv .neg { color: var(--bad); font-weight: var(--w-semi); }
+
+/* --- Замечание -------------------------------------------------------------
+   Единый вид для замечаний и пояснений. Левой полосы нет: цвет несёт бледная
+   подложка, внимание держит залитый кружок. Текст всегда --ink, потому что
+   замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на
+   всех пяти брендовых заливках он проходит по контрасту, белый не проходит.  */
+
+.callout { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-4);
+           background: var(--surface-2); color: var(--ink);
+           font-size: var(--small-size); line-height: var(--small-lh); }
+.callout__mark { flex: none; width: var(--callout-mark); height: var(--callout-mark); margin-top: 1px;
+                 border-radius: var(--r-circle); background: var(--ink-4); color: var(--brand-ink);
+                 display: grid; place-items: center;
+                 font-size: 13px; font-weight: var(--w-semi); line-height: 1; }
+.callout p { margin: 0; }
+.callout p + p { margin-top: var(--s-2); }
+.callout--warn  { background: var(--late-bg); }
+.callout--warn  .callout__mark { background: var(--late-fill); }
+.callout--bad   { background: var(--bad-bg); }
+.callout--bad   .callout__mark { background: var(--bad-fill); }
+.callout--human { background: var(--human-bg); }
+.callout--human .callout__mark { background: var(--human-fill); }
+.callout--info  { background: var(--info-bg); }
+.callout--info  .callout__mark { background: var(--info-fill); }
+
+/* --- Пустое состояние ------------------------------------------------------ */
+
+.empty { padding: var(--s-14) var(--s-6); text-align: center; }
+.empty__art { width: 96px; height: 96px; margin: 0 auto var(--s-5); position: relative; }
+.empty h3 { margin-bottom: var(--s-2); }
+.empty p  { margin: 0 auto; max-width: 46ch; color: var(--ink-3); font-size: var(--small-size); }
+
+/* Скелетон загрузки: серые прямоугольники, без мерцающих градиентов         */
+.skel { background: var(--surface-3); height: 14px; }
+.skel--pulse { animation: skel 1.2s ease-in-out infinite; }
+@keyframes skel { 0%,100% { opacity: 1 } 50% { opacity: .5 } }
+
+/* --- Оболочка приложения --------------------------------------------------- */
+
+.app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100%; background: var(--surface); }
+.aside { border-right: var(--bw-hair) solid var(--line); padding: var(--s-5) 0; display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-5);
+         font-family: var(--font-display); font-weight: var(--w-semi); font-size: 15px; letter-spacing: -.03em; }
+.brand .dots { display: flex; align-items: center; gap: 3px; }
+.brand .dots i { display: block; border-radius: var(--r-circle); }
+.menu { display: flex; flex-direction: column; }
+.menu a { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
+          padding: var(--s-3) var(--s-5); font-size: var(--small-size); color: var(--ink-2); border: 0;
+          border-left: var(--bw-focus) solid transparent; }
+.menu a:hover { background: var(--surface-2); color: var(--ink); }
+.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
+.menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+.aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
+               display: flex; align-items: center; gap: var(--s-3); }
+.ava { width: 32px; height: 32px; border-radius: var(--r-circle); background: var(--ink); color: var(--ink-inv);
+       display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--caption-size); flex: none; }
+
+.topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-6);
+          padding: var(--s-6) var(--gutter); border-bottom: var(--bw-hair) solid var(--line); background: var(--surface); }
+.main { padding: var(--s-6) var(--gutter) var(--s-14); background: var(--page); }
+.main--flush { padding: 0; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+.row-side { display: grid; grid-template-columns: 1fr 336px; gap: var(--s-5); align-items: start; }
+.row-rev  { display: grid; grid-template-columns: 384px 1fr; gap: var(--s-5); align-items: start; }
+.stack > * + * { margin-top: var(--s-5); }
+
+/* --- Шаги мастера ---------------------------------------------------------- */
+
+.steps { display: flex; align-items: center; gap: var(--s-3); }
+.step { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--small-size);
+        color: var(--ink-3); white-space: nowrap; }
+.step .n { width: 22px; height: 22px; border-radius: var(--r-circle); display: grid; place-items: center;
+           border: var(--bw-hair) solid var(--line-2); font-family: var(--font-mono); font-size: var(--caption-size); }
+.step.is-on { color: var(--ink); font-weight: var(--w-medium); }
+.step.is-on .n { border-color: var(--ink); }
+/* Пройденный шаг — единственный способ вернуться назад. Кнопки «Назад» внизу
+   нет: карта шагов и кнопка делали бы одно и то же в двух местах.           */
+a.step { border: 0; }
+.step.is-done { color: var(--ink); cursor: pointer; }
+.step.is-done .n { background: var(--brand-green); border-color: var(--brand-green); color: var(--ink); }
+.step.is-done:hover { color: var(--green-ink); }
+/* Непройденный шаг не нажимается: вперёд ведёт только кнопка под формой.     */
+.step--next { color: var(--ink-4); }
+.step--next .n { color: var(--ink-4); border-color: var(--line); }
+.steps .bar { flex: 1; height: 1px; background: var(--line); min-width: 32px; }
+
+/* --- Зона загрузки файла --------------------------------------------------- */
+
+.drop { padding: var(--s-6); text-align: center; background: var(--surface-2);
+        border: var(--bw-hair) dashed var(--line-2); }
+.drop b { display: block; font-weight: var(--w-medium); }
+.drop span { display: block; margin-top: var(--s-1); font-size: var(--caption-size); color: var(--ink-3); }
+
+/* --- Слои поверх страницы -------------------------------------------------- */
+
+/* Затемнение под модалкой. Внутри кадра макета кладётся абсолютом.           */
+.scrim { position: absolute; inset: 0; background: rgba(26,26,26,.32); }
+.overlay { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); z-index: 2; width: 560px; }
+.overlay--wide { width: 720px; }
+
+.modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
+/* Поле поиска. Лупа нарисована в разметке, а не шрифтом: значка поиска нет
+   ни в одной из трёх наших гарнитур, а эмодзи в интерфейсе мы не ставим.    */
+.srch { position: relative; display: inline-flex; align-items: center; }
+.srch__i { position: absolute; left: 10px; width: 14px; height: 14px;
+           color: var(--ink-3); pointer-events: none; }
+.srch .inp { padding-left: 32px; }
+
+/* Выпадающий список поиска. Не модалка: якорится к полю, страницу за собой
+   не гасит и не требует решения, закрывается Escape или кликом мимо.        */
+.pop { position: absolute; z-index: 2; background: var(--surface);
+       border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); }
+.pop__g { padding: var(--s-4) var(--s-5) var(--s-2); font-family: var(--font-mono);
+          font-size: var(--caption-size); letter-spacing: .08em; text-transform: uppercase;
+          color: var(--ink-3); }
+.pop__row { display: flex; align-items: center; gap: var(--s-4); cursor: pointer;
+            padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line); }
+.pop__row:hover, .pop__row.is-on { background: var(--surface-2); }
+.pop__row > .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pop__row .s { margin-top: 2px; font-size: var(--caption-size); color: var(--ink-3); }
+.pop__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+             padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+             background: var(--surface-2); font-size: var(--caption-size); color: var(--ink-3); }
+.pop__empty { padding: var(--s-3) var(--s-5) var(--s-4); font-size: var(--small-size); color: var(--ink-3); }
+
+.toast { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5);
+         background: var(--ink); color: var(--ink-inv); border-radius: var(--r-pill); box-shadow: var(--shadow-overlay);
+         font-size: var(--small-size); font-weight: var(--w-medium); }
+.toast--ok  { background: var(--brand-green); color: var(--ink); }
+.toast--bad { background: var(--brand-red); color: var(--ink-inv); }
+
+@media (max-width: 1100px) {
+  .row-side, .row-rev, .row-2 { grid-template-columns: 1fr; }
+  .app { grid-template-columns: 1fr; }
+  .aside { border-right: 0; border-bottom: var(--bw-hair) solid var(--ink); }
+}
+</style>
+<!-- css:end -->
+<style>
+  body { background: var(--surface); }
+  .kit { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--gutter) var(--s-20); }
+  .sec { margin-top: var(--s-20); padding-top: var(--s-5); border-top: var(--bw-struct) solid var(--ink); }
+  .sec__n { font-family: var(--font-mono); font-size: var(--label-size); letter-spacing: var(--label-ls);
+            text-transform: uppercase; color: var(--ink-3); }
+  .sec h2 { margin: var(--s-2) 0 var(--s-2); }
+  .sec > p { margin: 0; max-width: 76ch; color: var(--ink-2); }
+  .sub { margin-top: var(--s-8); }
+  .sub h3 { margin-bottom: var(--s-2); }
+  .sub > p { margin: 0 0 var(--s-4); max-width: 76ch; color: var(--ink-3); font-size: var(--small-size); }
+  .demo { border: var(--bw-hair) solid var(--line); padding: var(--s-5); background: var(--surface); }
+  .demo + .demo { border-top: 0; }
+  .grid-sw { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border: var(--bw-hair) solid var(--line); }
+  .sw { padding: var(--s-3); min-height: 96px; display: flex; flex-direction: column; justify-content: flex-end;
+        border-right: var(--bw-hair) solid var(--line); }
+  .sw:nth-child(5n) { border-right: 0; }
+  .sw b { font-family: var(--font-mono); font-size: var(--caption-size); }
+  .sw span { font-size: var(--caption-size); opacity: .75; }
+  .ty { display: flex; align-items: baseline; gap: var(--s-5); padding: var(--s-4) 0;
+        border-bottom: var(--bw-hair) solid var(--line); }
+  .ty .meta { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
+              min-width: 240px; flex: none; }
+  .rules { list-style: none; padding: 0; margin: var(--s-4) 0 0; }
+  .rules li { padding: var(--s-3) 0 var(--s-3) var(--s-6); border-bottom: var(--bw-hair) solid var(--line);
+              position: relative; font-size: var(--small-size); }
+  .rules li::before { content: ""; position: absolute; left: 0; top: 18px; width: 10px; height: 10px;
+                      border-radius: var(--r-circle); background: var(--brand-green); }
+  .rules li.no::before { background: var(--brand-red); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .box { border: var(--bw-hair) solid var(--line); padding: var(--s-4); }
+  .box .label { display: block; margin-bottom: var(--s-3); }
+  .box.ok  { border-color: var(--brand-green); }
+  .box.no  { border-color: var(--brand-red); }
+  .toc { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-5); }
+  .toc a { border: 0; }
+</style>
+</head>
+<body>
+
+<div class="band">
+  <div class="circ circ--g" style="width:320px;height:320px;right:-60px;top:-110px;opacity:.55"></div>
+  <div class="circ circ--b" style="width:130px;height:130px;right:230px;bottom:-56px;opacity:.6"></div>
+  <div class="circ circ--r" style="width:64px;height:64px;right:150px;top:34px;opacity:.75"></div>
+  <div class="band__in">
+    <span class="label">Дизайн-пак · вариант A · светлый брутализм · плотность «Воздух»</span>
+    <h1 class="d2" style="margin-top:var(--s-3);max-width:16ch">Чёрное, белое и <span class="hl hl-ink">четыре цвета</span></h1>
+    <p>Живой кит: всё, из чего собираются экраны платформы. Правила словами — в <a href="design-pack.md">design-pack.md</a>, экраны — в <a href="screens.html">screens.html</a>. Плотность выбрана по сравнению в <a href="p5-variants.html">p5-variants.html</a>: текст #1A1A1A вместо чистого чёрного, начертания на ступень ниже, волосяные границы зон, контурные маркеры вердиктов.</p>
+    <div class="toc">
+      <a class="pill" href="#color">Цвет</a>
+      <a class="pill" href="#type">Типографика</a>
+      <a class="pill" href="#geo">Геометрия</a>
+      <a class="pill" href="#graph">Графика</a>
+      <a class="pill" href="#ctl">Управление</a>
+      <a class="pill" href="#status">Статусы</a>
+      <a class="pill" href="#data">Данные</a>
+      <a class="pill" href="#review">Разбор</a>
+      <a class="pill" href="#states">Состояния</a>
+      <a class="pill" href="#anti">Антипаттерны</a>
+    </div>
+  </div>
+</div>
+
+<div class="kit">
+
+<!-- ===================== ЦВЕТ ===================== -->
+<section class="sec" id="color">
+  <div class="sec__n">01</div>
+  <h2>Цвет</h2>
+  <p>База — чёрный, белый и три серых. Цвет появляется пятнами и всегда что-то значит: вердикт, статус, срок. Если убрать весь цвет, экран обязан остаться понятным — за это отвечают форма маркера и подпись.</p>
+
+  <div class="sub">
+    <h3>Брендовые</h3>
+    <p>Чистые цвета из ребрендинга. Годятся как заливка под чёрным текстом и как графика. Текстом на белом их не пишем — не проходят по контрасту.</p>
+    <div class="grid-sw">
+      <div class="sw" style="background:#04E061"><b>#04E061</b><span>зелёный, основной</span></div>
+      <div class="sw" style="background:#00AAFF;color:#fff"><b>#00AAFF</b><span>синий</span></div>
+      <div class="sw" style="background:#FF4053;color:#fff"><b>#FF4053</b><span>красный</span></div>
+      <div class="sw" style="background:#965EEB;color:#fff"><b>#965EEB</b><span>фиолетовый</span></div>
+      <div class="sw" style="background:#FF891D"><b>#FF891D</b><span>оранжевый, просрочка</span></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Тёмные, для текста</h3>
+    <p>Тот же цвет, доведённый до контраста 4.5:1 и выше на белом. Цифры, подписи вердиктов, ссылки внутри статусов.</p>
+    <div class="grid-sw">
+      <div class="sw" style="background:#02863A;color:#fff"><b>#02863A</b><span>ok · 5.3:1</span></div>
+      <div class="sw" style="background:#0070B8;color:#fff"><b>#0070B8</b><span>info · 5.2:1</span></div>
+      <div class="sw" style="background:#C8202F;color:#fff"><b>#C8202F</b><span>bad · 6.4:1</span></div>
+      <div class="sw" style="background:#6B36C4;color:#fff"><b>#6B36C4</b><span>human · 7.4:1</span></div>
+      <div class="sw" style="background:#B85A00;color:#fff"><b>#B85A00</b><span>late · 4.6:1</span></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Пастельные и разбавленные</h3>
+    <p>Пастель закрывает целые полосы и плашки, разбавленный — подложку строки или цитаты. Поверх обоих текст только чёрный или соответствующий тёмный.</p>
+    <div class="grid-sw">
+      <div class="sw" style="background:#C9FFBF"><b>#C9FFBF</b><span>green pale</span></div>
+      <div class="sw" style="background:#BADAFB"><b>#BADAFB</b><span>blue pale</span></div>
+      <div class="sw" style="background:#F7C1C5"><b>#F7C1C5</b><span>red pale</span></div>
+      <div class="sw" style="background:#DFCDF3"><b>#DFCDF3</b><span>violet pale</span></div>
+      <div class="sw" style="background:#FFD9B0"><b>#FFD9B0</b><span>orange pale</span></div>
+      <div class="sw" style="background:#EFFDF3"><b>#EFFDF3</b><span>green wash</span></div>
+      <div class="sw" style="background:#EAF5FE"><b>#EAF5FE</b><span>blue wash</span></div>
+      <div class="sw" style="background:#FDEDEF"><b>#FDEDEF</b><span>red wash</span></div>
+      <div class="sw" style="background:#F3ECFC"><b>#F3ECFC</b><span>violet wash</span></div>
+      <div class="sw" style="background:#FFF2E4"><b>#FFF2E4</b><span>orange wash</span></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Нейтрали</h3>
+    <div class="grid-sw">
+      <div class="sw" style="background:#1A1A1A;color:#fff"><b>#1A1A1A</b><span>ink · текст</span></div>
+      <div class="sw" style="background:#4A4A4A;color:#fff"><b>#4A4A4A</b><span>ink-2 · абзацы</span></div>
+      <div class="sw" style="background:#747574;color:#fff"><b>#747574</b><span>ink-3 · подписи</span></div>
+      <div class="sw" style="background:#A9AAA9"><b>#A9AAA9</b><span>ink-4 · выключено</span></div>
+      <div class="sw" style="background:#EDEEEF"><b>#EDEEEF</b><span>line · зоны и строки</span></div>
+      <div class="sw" style="background:#C9CBCA"><b>#C9CBCA</b><span>line-2 · поля и кнопки</span></div>
+      <div class="sw" style="background:#EFEFEF"><b>#EFEFEF</b><span>surface-3</span></div>
+      <div class="sw" style="background:#F7F7F7"><b>#F7F7F7</b><span>surface-2 · цитата, подвал</span></div>
+      <div class="sw" style="background:#FAFAFA"><b>#FAFAFA</b><span>page · холст</span></div>
+      <div class="sw" style="background:#000000;color:#fff"><b>#000000</b><span>brand-ink · логотип, витрина</span></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Смысл цвета в этом продукте</h3>
+    <p>Соответствие жёсткое. Один цвет — одно значение, во всех трёх ролях одинаково.</p>
+    <div class="demo">
+      <div class="kv"><span>Зелёный</span><span>требование выполнено, работа зачтена, главное действие</span></div>
+      <div class="kv"><span>Красный</span><span>требование не выполнено, работа не зачтена, цитата не найдена</span></div>
+      <div class="kv"><span>Фиолетовый</span><span>нужен человек: оценочное требование, сигнал об ИИ, работа на ревью</span></div>
+      <div class="kv"><span>Оранжевый</span><span>время: просрочка, горящий срок, работа зависла в пуле</span></div>
+      <div class="kv"><span>Синий</span><span>нейтральная информация и внешние ссылки: репозиторий, Stepik, выгрузка</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ТИПОГРАФИКА ===================== -->
+<section class="sec" id="type">
+  <div class="sec__n">02</div>
+  <h2>Типографика</h2>
+  <p>Три гарнитуры и ни одной больше. <b>Unbounded</b> — только крупные заголовки и цифры, замена платному Aeroport по характеру: геометрия, широкие штрихи, плотный трекинг. <b>Onest</b> — весь интерфейс и текст. <b>JetBrains Mono</b> — всё, что является идентификатором: ID студента, номера строк, файлы, служебные метки.</p>
+
+  <div class="sub">
+    <h3>Шкала</h3>
+    <div class="ty"><span class="meta">d1 · Unbounded 700 · 64/.95/-.05em</span><span class="d1">Ревью</span></div>
+    <div class="ty"><span class="meta">d2 · Unbounded 700 · 44/1.0/-.04em</span><span class="d2">Проверь за 10 минут</span></div>
+    <div class="ty"><span class="meta">d3 · Unbounded 600 · 32/1.05/-.04em</span><span class="d3">4,5 из 6</span></div>
+    <div class="ty"><span class="meta">h1 · Onest 500 · 25/1.15/-.02em</span><span class="h1">Работа студента 4790</span></div>
+    <div class="ty"><span class="meta">h2 · Onest 500 · 20/1.25/-.02em</span><span class="h2">Разбор по требованиям</span></div>
+    <div class="ty"><span class="meta">h3 · Onest 500 · 15/1.4/-.01em</span><span class="h3">Контракты: формат, входы, выходы</span></div>
+    <div class="ty"><span class="meta">body · Onest 400 · 15/1.5</span><span>Описан только внешний интерфейс I1. Для него заданы формат и ошибки, но не входы и выходы.</span></div>
+    <div class="ty"><span class="meta">small · Onest 400 · 13.5/1.45</span><span class="small">Срок проверки 2 рабочих дня с момента, когда взяли</span></div>
+    <div class="ty"><span class="meta">caption · Onest 400 · 12/1.35</span><span class="caption">3 из них дольше 3 дней</span></div>
+    <div class="ty"><span class="meta">label · Mono 400 · 11/.1em/caps</span><span class="label">docs/architecture.md · строки 112–117</span></div>
+  </div>
+
+  <div class="sub">
+    <h3>Правила</h3>
+    <ul class="rules">
+      <li>Unbounded не опускается ниже 28px и никогда не используется в абзаце, кнопке или ячейке таблицы.</li>
+      <li>Рабочий интерфейс держится на 400 и 500. Заголовок карточки, строка требования, кнопка, заголовок экрана — всё 500.</li>
+      <li>600 остаётся цифрам, главной кнопке и выбранному значению шкалы. 700 — только дисплейным заголовкам. 800 не используется.</li>
+      <li>Заголовки прижимаются влево, не по центру. Ширина строки заголовка не больше 18 знаков.</li>
+      <li>Абзац — не шире 76 знаков. Длинные описания режем на списки.</li>
+      <li>Ровно одна цветная пилюля на заголовок, и только в витринной плашке.</li>
+      <li>Числа всегда табличные: <span class="mono num">tabular-nums</span>. Иначе баллы в колонке пляшут.</li>
+      <li class="no">Не растягиваем и не сжимаем шрифт, не пишем интерфейс капслоком: капслок только у моно-меток.</li>
+      <li class="no">Не поднимаем вес ради акцента. Если что-то надо выделить, для этого есть размер, цвет и пустота вокруг.</li>
+    </ul>
+  </div>
+
+  <div class="sub">
+    <h3>Заголовок с пилюлей</h3>
+    <div class="demo">
+      <h2 class="d3" style="max-width:20ch">Проверь за <span class="hl">10 минут</span>, а не за тридцать</h2>
+      <div style="height:var(--s-5)"></div>
+      <h2 class="d3" style="max-width:20ch">Каждый вердикт <span class="hl hl-ink">с цитатой</span></h2>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ГЕОМЕТРИЯ ===================== -->
+<section class="sec" id="geo">
+  <div class="sec__n">03</div>
+  <h2>Геометрия и пространство</h2>
+  <p>Скруглений в системе два: ноль и полное. Всё, что является блоком — карточка, таблица, поле ввода, плашка — имеет прямой угол. Всё, что нажимается или помечает — кнопка, пилюля, статус, аватар — полная пилюля или круг. Промежуточных 8 и 12 пикселей нет, именно это отличает вёрстку Авито от типового SaaS.</p>
+
+  <div class="sub">
+    <div class="two">
+      <div class="box ok">
+        <span class="label">Так</span>
+        <div class="card"><div class="card__body">
+          <div style="font-weight:600;margin-bottom:var(--s-3)">Карточка, прямой угол</div>
+          <div class="btn-row"><span class="btn btn--pri btn--s">Кнопка-пилюля</span><span class="pill pill--ok">Тег-пилюля</span></div>
+        </div></div>
+      </div>
+      <div class="box no">
+        <span class="label">Не так</span>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:var(--s-5);box-shadow:0 6px 20px rgba(0,0,0,.08)">
+          <div style="font-weight:600;margin-bottom:var(--s-3)">Карточка со скруглением 14 и тенью</div>
+          <span style="display:inline-flex;height:32px;align-items:center;padding:0 14px;border-radius:8px;background:var(--brand-green);font-weight:600;font-size:13.5px">Кнопка с радиусом 8</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Линии</h3>
+    <p>Глубина берётся не из теней, а из линий и заливок. Тень есть только у того, что физически лежит поверх страницы: модалка, выпадающий список, тост.</p>
+    <div class="demo">
+      <div style="border-bottom:1px solid var(--line);padding-bottom:var(--s-3);margin-bottom:var(--s-3)"><span class="label">1px #EDEEEF</span> — между строками списка и таблицы, границы зон: шапка, сайдбар, полоса цифр</div>
+      <div style="border-bottom:1px solid var(--line-2);padding-bottom:var(--s-3);margin-bottom:var(--s-3)"><span class="label">1px #C9CBCA</span> — граница поля ввода, кнопки, шапки таблицы, модалки</div>
+      <div style="border-bottom:1px solid var(--ink);padding-bottom:var(--s-3);margin-bottom:var(--s-3)"><span class="label">1px #1A1A1A</span> — подчёркивание активной вкладки, выбранное значение шкалы</div>
+      <div style="border-bottom:2px solid var(--ink);padding-bottom:var(--s-3)"><span class="label">2px #1A1A1A</span> — только рубрикация документов, в интерфейсе не используется</div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Вес</h3>
+    <p>Тяжесть экрана набирается незаметно: чуть более чёрный текст, чуть более жирный заголовок, чуть более тёмная граница. Поэтому вес зафиксирован так же жёстко, как цвет.</p>
+    <div class="demo">
+      <div class="kv"><span>400 Onest</span><span>основной текст, подписи, ячейки таблицы</span></div>
+      <div class="kv"><span>500 Onest</span><span>заголовок экрана и карточки, строка требования, кнопка, статус, вкладка</span></div>
+      <div class="kv"><span>600 Onest и Unbounded</span><span>цифры, главная кнопка, выбранное значение шкалы</span></div>
+      <div class="kv"><span>700 Unbounded</span><span>только дисплейные заголовки от 44px</span></div>
+      <div class="kv"><span>800</span><span>не используется</span></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Шаг 4 пикселя</h3>
+    <p>Разрешённые отступы: 4, 8, 12, 16, 20, 24, 32, 40, 56, 80. Внутри карточки 20, между карточками 16, между разделами 56 или 80. Колонка контента максимум 1280, поля страницы 28.</p>
+    <div class="demo" style="display:flex;gap:var(--s-3);align-items:flex-end">
+      <div style="width:4px;height:16px;background:var(--brand-green)"></div>
+      <div style="width:8px;height:24px;background:var(--brand-green)"></div>
+      <div style="width:12px;height:32px;background:var(--brand-green)"></div>
+      <div style="width:16px;height:40px;background:var(--brand-green)"></div>
+      <div style="width:20px;height:48px;background:var(--brand-green)"></div>
+      <div style="width:24px;height:56px;background:var(--brand-green)"></div>
+      <div style="width:32px;height:64px;background:var(--brand-green)"></div>
+      <div style="width:40px;height:72px;background:var(--brand-green)"></div>
+      <div style="width:56px;height:80px;background:var(--brand-green)"></div>
+      <div style="width:80px;height:88px;background:var(--brand-green)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ГРАФИКА ===================== -->
+<section class="sec" id="graph">
+  <div class="sec__n">04</div>
+  <h2>Фирменная графика и иконки</h2>
+  <p>Иллюстраций с персонажами в системе нет. Вместо них — круги из фирменной графики Авито: плоские, разного размера, наезжающие друг на друга и обрезанные краем блока. Они живут только в витринных плашках и пустых состояниях, в рабочей области их нет.</p>
+
+  <div class="sub">
+    <h3>Правила кругов</h3>
+    <ul class="rules">
+      <li>От трёх до пяти кругов в композиции, минимум три разных размера.</li>
+      <li>Только брендовые цвета, не больше трёх на композицию, наложение без прозрачности или с одной общей прозрачностью.</li>
+      <li>Хотя бы один круг выходит за край блока — это даёт ощущение продолжения.</li>
+      <li class="no">Ни градиентов, ни обводок, ни теней, ни анимации вращения.</li>
+      <li class="no">Круги не накладываются на текст и никогда не становятся фоном таблицы.</li>
+    </ul>
+    <div class="demo" style="padding:0;margin-top:var(--s-4)">
+      <div class="band" style="height:200px">
+        <div class="circ circ--g" style="width:220px;height:220px;left:80px;top:20px"></div>
+        <div class="circ circ--b" style="width:150px;height:150px;left:250px;top:-30px"></div>
+        <div class="circ circ--v" style="width:60px;height:60px;left:220px;top:130px"></div>
+        <div class="circ circ--r" style="width:90px;height:90px;left:370px;top:110px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Иконки</h3>
+    <p>Набор Lucide, обводка 1.75, размер 20 в интерфейсе и 16 в мелких строках. Иконки всегда одноцветные и берут цвет текста. Смысл вердикта иконкой не передаётся: для него есть маркер с формой и подпись.</p>
+    <div class="demo btn-row">
+      <span class="btn btn--s btn--quiet">↗ Открыть в репозитории</span>
+      <span class="btn btn--s btn--quiet">↺ Собрать заново</span>
+      <span class="btn btn--s btn--quiet">⤓ Выгрузить в Sheets</span>
+      <span class="btn btn--icon btn--s btn--quiet">＋</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== УПРАВЛЕНИЕ ===================== -->
+<section class="sec" id="ctl">
+  <div class="sec__n">05</div>
+  <h2>Управляющие элементы</h2>
+
+  <div class="sub">
+    <h3>Кнопки</h3>
+    <p>На экране одно главное действие. Зелёная кнопка — только оно. Чёрная кнопка — навигационное главное действие там, где зелёный занят вердиктами.</p>
+    <div class="demo btn-row">
+      <span class="btn btn--pri btn--l">Отправить на ревью</span>
+      <span class="btn btn--dark btn--l">Создать поток</span>
+      <span class="btn btn--l">Вернуть на доработку</span>
+      <span class="btn btn--quiet btn--l">Вернуть в пул</span>
+      <span class="btn btn--danger btn--l">Снять публикацию</span>
+      <span class="btn btn--link">Открыть пул целиком</span>
+    </div>
+    <div class="demo btn-row">
+      <span class="btn btn--pri">Средняя, 40</span>
+      <span class="btn">Средняя</span>
+      <span class="btn btn--s btn--pri">Мелкая, 32</span>
+      <span class="btn btn--s">Мелкая</span>
+      <span class="btn btn--s btn--off">Выключена</span>
+      <span class="btn btn--icon">＋</span>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Поля</h3>
+    <div class="demo" style="max-width:560px">
+      <label class="field">
+        <span class="field__lbl">Ссылка на репозиторий</span>
+        <input class="inp inp--mono" placeholder="https://github.com/username/wardrobe-service">
+        <span class="field__hint">Публичный репозиторий или доступ для avito-edu-bot. Проверяется ветка main.</span>
+      </label>
+      <label class="field">
+        <span class="field__lbl">Комментарий к сдаче, необязательно</span>
+        <textarea class="inp inp--area" placeholder="Какие части делали с помощью ИИ и что дорабатывали руками"></textarea>
+      </label>
+      <label class="field">
+        <span class="field__lbl">Срок сдачи в потоке</span>
+        <input class="inp inp--err" value="30 февраля 2026">
+        <span class="field__err">Такой даты нет. Укажите дату и время окончания приёма работ.</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Выбор</h3>
+    <div class="demo" style="display:flex;gap:var(--s-8);flex-wrap:wrap;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:var(--s-3)">
+        <label class="chk"><input type="checkbox" checked><span class="chk__box"></span><span>Системный дизайн</span></label>
+        <label class="chk"><input type="checkbox"><span class="chk__box"></span><span>Go</span></label>
+        <label class="chk chk--radio"><input type="radio" name="r" checked><span class="chk__box"></span><span>Ссылка на репозиторий</span></label>
+        <label class="chk chk--radio"><input type="radio" name="r"><span class="chk__box"></span><span>Файлы</span></label>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--s-4)">
+        <label style="display:flex;align-items:center;gap:var(--s-3);font-size:var(--small-size)">
+          <span class="tgl"><input type="checkbox" checked><span class="tgl__t"></span></span>Готов проверять сейчас
+        </label>
+        <div class="seg"><span class="is-on">Ссылка на репозиторий</span><span>Файлы</span></div>
+        <div>
+          <span class="label" style="display:block;margin-bottom:var(--s-2)">Шкала требования</span>
+          <span class="scale scale--max"><span>0</span><span>0,5</span><span class="is-on">1</span></span>
+          <span class="scale" style="margin-left:var(--s-2)"><span>0</span><span class="is-on">0,5</span><span>1</span></span>
+          <span class="scale scale--zero" style="margin-left:var(--s-2)"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Навигация</h3>
+    <div class="demo">
+      <div class="crumbs" style="margin-bottom:var(--s-4)"><a class="crumbs__back" href="#" title="Назад">&#8592;</a><a href="#">Мои работы</a><span>/</span><span class="cur">Студент 4790</span></div>
+      <div class="tabs">
+        <span class="tab is-on">Попытка 2<span class="c">текущая</span></span>
+        <span class="tab">Попытка 1</span>
+        <span class="tab">Работа</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== СТАТУСЫ ===================== -->
+<section class="sec" id="status">
+  <div class="sec__n">06</div>
+  <h2>Статусы и метки</h2>
+  <p>Семь статусов домашки — один набор на всю платформу. Студент, ревьюер и координатор видят одно и то же слово и один и тот же цвет.</p>
+  <div class="demo btn-row" style="gap:var(--s-3)">
+    <span class="st st--draft">Черновик</span>
+    <span class="st st--sent">Сдана</span>
+    <span class="st st--review">На ревью</span>
+    <span class="st st--fix">Нужны правки</span>
+    <span class="st st--rereview">На повторном ревью</span>
+    <span class="st st--pass">Зачтена</span>
+    <span class="st st--fail">Не зачтена</span>
+  </div>
+  <div class="demo btn-row" style="gap:var(--s-3)">
+    <span class="pill">попытка 2</span>
+    <span class="pill pill--solid">Взята вами</span>
+    <span class="pill pill--ok">Сдана в срок</span>
+    <span class="pill pill--late">Просрочка 1 день</span>
+    <span class="pill pill--human">ИИ 72%</span>
+    <span class="pill pill--info">GitHub</span>
+    <span class="pill pill--mono">0.5 из 1</span>
+    <span class="pill"><i style="background:var(--brand-red)"></i>в пуле 5 дней</span>
+  </div>
+</section>
+
+<!-- ===================== ДАННЫЕ ===================== -->
+<section class="sec" id="data">
+  <div class="sec__n">07</div>
+  <h2>Данные: цифры, таблицы, сводки</h2>
+
+  <div class="sub">
+    <h3>Полоса цифр</h3>
+    <p>Крупная цифра Unbounded, под ней объяснение обычным текстом. Число без подписи не показываем никогда.</p>
+    <div class="stats">
+      <div class="stat"><b>284</b><span>домашек в активных потоках</span></div>
+      <div class="stat"><b>46</b><span>у ревьюеров прямо сейчас</span></div>
+      <div class="stat stat--alert"><b>12</b><span>в пуле без ревьюера</span></div>
+      <div class="stat"><b>₽ 3,40</b><span>стоила эта проверка</span></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Таблица</h3>
+    <p>Шапка — моноширинный капслок на двойной чёрной линии. Горящая строка помечается красной засечкой слева, а не заливкой. Закрытые строки гаснут до серого.</p>
+    <div class="card"><div class="card__body card__body--flush">
+      <table class="tbl">
+        <thead><tr><th>Студент</th><th>Задание</th><th>Статус</th><th class="n">Взята</th><th class="n">Проверить до</th><th class="r"></th></tr></thead>
+        <tbody>
+          <tr class="is-hot">
+            <td class="n mono">4790</td>
+            <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 1</div></td>
+            <td><span class="st st--review">На ревью</span></td>
+            <td class="n">17 фев</td><td class="n" style="color:var(--late);font-weight:600">просрочено на 1 день</td>
+            <td class="r"><span class="btn btn--s btn--pri">Открыть</span></td>
+          </tr>
+          <tr>
+            <td class="n mono">4821</td>
+            <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 2, правки пришли</div></td>
+            <td><span class="st st--rereview">На повторном ревью</span></td>
+            <td class="n">21 фев</td><td class="n">23 фев</td>
+            <td class="r"><span class="btn btn--s">Открыть</span></td>
+          </tr>
+          <tr class="is-done">
+            <td class="n mono">4776</td>
+            <td><div class="who">Лабораторная 1. Декомпозиция</div><div class="sub">попытка 2</div></td>
+            <td><span class="st st--pass">Зачтена</span></td>
+            <td class="n">15 фев</td><td class="n">закрыта 18 фев</td>
+            <td class="r"><span class="btn btn--s btn--quiet">Открыть</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <div class="sub">
+    <h3>Сводка балла</h3>
+    <div class="demo" style="max-width:320px">
+      <span class="label">Итог</span>
+      <div class="d3" style="margin-top:var(--s-2)">3,5 <span style="font-family:var(--font-text);font-size:20px;font-weight:500;color:var(--ink-3)">из 6</span></div>
+      <div class="meter" style="margin-top:var(--s-3)"><i class="is-low" style="width:58%"></i></div>
+      <div style="margin-top:var(--s-4)">
+        <div class="kv"><span>По требованиям задания</span><span>4.5</span></div>
+        <div class="kv"><span>Просрочка 1 день</span><span class="neg">−1</span></div>
+        <div class="kv"><span><b>Итого</b></span><span><b>3.5</b>, порог 4</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== РАЗБОР ===================== -->
+<section class="sec" id="review">
+  <div class="sec__n">08</div>
+  <h2>Разбор по требованиям</h2>
+  <p>Главный узел продукта. Три класса требований отличаются не подписью, а формой маркера: квадрат — проверено кодом или найдено моделью, круг — решает человек. Маркеры контурные, а не заливные: выполненных требований в списке большинство, и шесть заливок подряд превращают разбор в светофор. Вердикт без цитаты не показывается как вердикт, он показывается как «не проверено».</p>
+
+  <div class="card">
+    <div class="card__head">
+      <div><h4>Предварительное ревью от модели</h4><div class="card__sub">Оценки проставлены по шкалам из задания. Меняйте там, где не согласны.</div></div>
+      <span class="btn btn--s">Принять все</span>
+    </div>
+    <div class="card__body">
+      <div class="acc">
+        <div class="acc__h">
+          <span class="ck ck--y">✓</span>
+          <span class="acc__t">Декомпозиция по двум и более признакам</span>
+          <span class="label">шкала</span>
+          <span class="scale scale--max"><span>0</span><span class="is-on">1</span></span>
+          <span class="acc__chev">▼</span>
+        </div>
+      </div>
+      <div class="acc">
+        <div class="acc__h">
+          <span class="ck ck--n">✕</span>
+          <span class="acc__t">Контракты: формат, входы, выходы, ошибки</span>
+          
+          <span class="label">шкала</span>
+          <span class="scale scale--zero"><span class="is-on">0</span><span>0,5</span><span>1</span></span>
+          <span class="acc__chev">▲</span>
+        </div>
+        <div class="acc__b">
+          <div class="finding">
+            <div class="finding__src"><span class="f">docs/architecture.md</span><span>строки 112–117</span><span class="o">Открыть в репозитории ↗</span></div>
+            <div class="code">
+              <div class="cl"><span class="n">110</span><span>## 5. Контракты интерфейсов</span></div>
+              <div class="cl is-miss"><span class="n">112</span><span>### 5.1 Единый формат ошибок для I1</span></div>
+              <div class="cl is-miss"><span class="n">113</span><span>Все ошибки возвращаются как {code, message}.</span></div>
+              <div class="cl"><span class="n">116</span><span>## 6. Нефункциональные требования</span></div>
+            </div>
+            <div class="finding__why">Описан только внешний интерфейс I1. Для него заданы формат и ошибки, но не входы и выходы. Требование просит все четыре элемента.</div>
+          </div>
+        </div>
+      </div>
+      <div class="acc">
+        <div class="acc__h">
+          <span class="ck ck--h">?</span>
+          <span class="acc__t">Отказоустойчивость описана глубоко</span>
+          <span class="pill pill--human">оценочное</span>
+          <span class="label">шкала</span>
+          <span class="scale"><span>0</span><span class="is-on">0,5</span><span>1</span></span>
+          <span class="acc__chev">▲</span>
+        </div>
+        <div class="acc__b">
+          <div class="quote quote--human">Модель рекомендует 0,5: репликация упомянута, но сценарий отказа не разобран. Оценочное требование, решение принимает ревьюер.</div>
+        </div>
+      </div>
+      <div class="acc">
+        <div class="acc__h">
+          <span class="ck ck--q">i</span>
+          <span class="acc__t">Структура и оформление документации</span>
+          <span class="pill">не проверено автоматически</span>
+          <span class="acc__chev">▲</span>
+        </div>
+        <div class="acc__b">
+          <div class="callout callout--bad"><span class="callout__mark">!</span><p>Модель вернула вердикт без цитаты, ответ отклонён схемой. Требование помечено как непроверенное и ждёт ручного просмотра. Балл по нему не предлагается.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="card__foot">
+      <span>Своё требование видит студент и координатор</span>
+      <span>Сумма по требованиям <b>4.5 из 6</b></span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== СОСТОЯНИЯ ===================== -->
+<section class="sec" id="states">
+  <div class="sec__n">09</div>
+  <h2>Состояния</h2>
+
+  <div class="sub">
+    <h3>Замечание</h3>
+    <p>Левой полосы нет: цвет несёт бледная подложка, внимание держит залитый кружок. Текст всегда чёрный, а не в цвет смысла — замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на всех пяти брендовых заливках он проходит по контрасту, белый не проходит.</p>
+    <div class="demo stack">
+      <div class="callout"><span class="callout__mark">i</span><p>Работа сдаётся одним документом в Markdown или ссылкой на репозиторий с таким документом.</p></div>
+      <div class="callout callout--warn"><span class="callout__mark">!</span><p>За каждый день после срока снимается 1 балл. Работу можно пересдать после замечаний ревьюера, срок пересдачи назначает ревьюер.</p></div>
+      <div class="callout callout--bad"><span class="callout__mark">!</span><p>Итог ниже порога зачёта. Выберите, вернуть на доработку или закрыть как не зачтено.</p></div>
+      <div class="callout callout--human"><span class="callout__mark">?</span><p>Сигнал об использовании ИИ на балл не влияет. Решение о последствиях принимает координатор.</p></div>
+      <div class="callout callout--info"><span class="callout__mark">i</span><p>Выгрузка односторонняя. Обратной синхронизации с Google Sheets нет, источник истины — платформа.</p></div>
+    </div>
+    <ul class="rules">
+      <li>Знак в кружке зависит от смысла: <b>!</b> у оранжевого и красного, <b>i</b> у нейтрального и синего, <b>?</b> у фиолетового.</li>
+      <li>Замечание объясняет правило или последствие. Если нужно действие, это не замечание, а карточка с кнопкой.</li>
+      <li class="no">Не ставим больше одного замечания подряд и не кладём их внутрь таблицы.</li>
+      <li class="no">Не пишем текст замечания цветом подложки: цветной остаётся только заливка кружка.</li>
+    </ul>
+  </div>
+
+  <div class="sub">
+    <h3>Пусто и загрузка</h3>
+    <div class="two">
+      <div class="card"><div class="empty">
+        <div class="empty__art">
+          <span class="circ circ--g" style="width:64px;height:64px;left:0;top:16px"></span>
+          <span class="circ circ--b" style="width:40px;height:40px;left:48px;top:0"></span>
+          <span class="circ circ--r" style="width:22px;height:22px;left:40px;top:56px"></span>
+        </div>
+        <h3>В пуле пусто</h3>
+        <p>Все работы по вашим курсам разобраны. Как только студенты сдадут новые, они появятся здесь.</p>
+      </div></div>
+      <div class="card"><div class="card__body">
+        <span class="label">Модель проверяет работу</span>
+        <div style="margin-top:var(--s-4);display:flex;flex-direction:column;gap:var(--s-3)">
+          <div class="skel skel--pulse" style="width:70%"></div>
+          <div class="skel skel--pulse" style="width:100%;height:44px"></div>
+          <div class="skel skel--pulse" style="width:88%;height:44px"></div>
+          <div class="skel skel--pulse" style="width:40%"></div>
+        </div>
+        <p class="caption" style="margin-top:var(--s-4)">Девять требований, обычно занимает меньше минуты. Можно закрыть страницу, результат сохранится.</p>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <h3>Слои поверх страницы</h3>
+    <div class="demo" style="display:flex;gap:var(--s-4);flex-wrap:wrap;align-items:flex-start">
+      <div class="modal">
+        <div class="card__head"><h4>Вернуть работу в пул?</h4></div>
+        <div class="card__body"><p style="margin:0;font-size:var(--small-size);color:var(--ink-2)">Закрепление снимется, работа станет доступна любому ревьюеру курса. Ваш черновик оценок сохранится и подтянется, если возьмёте её снова.</p></div>
+        <div class="card__foot" style="justify-content:flex-end;gap:var(--s-2)">
+          <span class="btn btn--s btn--quiet">Отмена</span><span class="btn btn--s btn--dark">Вернуть в пул</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--s-3)">
+        <span class="toast toast--ok">✓ Ревью отправлено студенту 4790</span>
+        <span class="toast toast--bad">Работу уже взял другой ревьюер</span>
+        <span class="toast">Черновик сохранён</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== АНТИПАТТЕРНЫ ===================== -->
+<section class="sec" id="anti">
+  <div class="sec__n">10</div>
+  <h2>Чего не делаем</h2>
+  <p>Список написан ради одной цели: яркая палитра не должна превратить рабочий инструмент в детское приложение.</p>
+  <ul class="rules">
+    <li class="no">Не заливаем цветом крупные рабочие поверхности. Пастель — витрина и плашки, не таблица.</li>
+    <li class="no">Не ставим больше трёх цветовых акцентов в одном экране.</li>
+    <li class="no">Не используем цветной текст в абзацах. Цветной текст — только вердикт, статус, цифра.</li>
+    <li class="no">Не добавляем тени, градиенты, свечения и стеклянные эффекты.</li>
+    <li class="no">Не рисуем эмодзи и цветные иконки в интерфейсе.</li>
+    <li class="no">Не скругляем карточки, поля и таблицы. Не оставляем кнопку прямоугольной.</li>
+    <li class="no">Не анимируем ничего дольше 200 мс и без причины.</li>
+    <li class="no">Не заливаем маркеры вердиктов. Маркер контурный: шесть зелёных квадратов подряд перегружают список и ничего не сообщают.</li>
+    <li class="no">Не рисуем границы зон чистым чёрным и не поднимаем вес заголовков выше 500.</li>
+    <li class="no">Не ставим зелёную кнопку рядом с зелёным вердиктом: главное действие в такой карточке чёрное.</li>
+  </ul>
+</section>
+
+</div>
+</body>
+</html>

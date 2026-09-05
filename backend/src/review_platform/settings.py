@@ -23,9 +23,18 @@ class Settings(BaseSettings):
     environment: str = "test"
     contract_version: str = "1.1.0"
     live_providers_enabled: bool = False
+    workspace_enabled: bool = False
+    workspace_fixtures: bool = False
+    workspace_ai_url: str | None = None
+    workspace_ai_token: SecretStr | None = None
+    workspace_github_token: SecretStr | None = None
+    workspace_github_repositories: str = ""
+    workspace_snapshot_max_bytes: int = Field(default=10_000_000, ge=1, le=10_000_000)
+    workspace_max_attempts: int = Field(default=3, ge=1, le=10)
     database_url: str | None = None
     redis_url: str | None = None
     s3_endpoint_url: str | None = None
+    s3_public_endpoint_url: str | None = None
     s3_bucket: str = "review-platform-offline"
     s3_region: str = "us-east-1"
     s3_access_key_id: SecretStr | None = None

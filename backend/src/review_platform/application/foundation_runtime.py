@@ -551,8 +551,25 @@ def build_foundation_runtime(
                 aws_secret_access_key=secret_key,
             ),
         )
+    signing_client = s3_client
+    if selected.s3_public_endpoint_url:
+        signing_client = cast(
+            S3Client,
+            boto3.client(
+                "s3",
+                endpoint_url=selected.s3_public_endpoint_url,
+                region_name=selected.s3_region,
+                aws_access_key_id=selected.s3_access_key_id.get_secret_value()
+                if selected.s3_access_key_id
+                else None,
+                aws_secret_access_key=selected.s3_secret_access_key.get_secret_value()
+                if selected.s3_secret_access_key
+                else None,
+            ),
+        )
     object_storage = S3ObjectStorage(
         client=s3_client,
+        signing_client=signing_client,
         bucket=selected.s3_bucket,
         max_object_bytes=selected.artifact_total_max_bytes,
     )

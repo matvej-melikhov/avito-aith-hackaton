@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Три стиля — сравнение</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=Unbounded:wght@400;600;700;800&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#e9eaec;font-family:'Onest',system-ui,sans-serif;color:#111}
+.page{max-width:1180px;margin:0 auto;padding:48px 24px 120px}
+.intro h1{font-family:'Unbounded';font-weight:800;font-size:40px;line-height:1.02;letter-spacing:-.03em;margin:0}
+.intro p{max-width:70ch;font-size:16px;line-height:1.55;color:#3a3a3a}
+.sep{margin:64px 0 0;padding-top:20px;border-top:2px solid #111;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.sep .tag{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:#111;color:#fff;padding:5px 11px;border-radius:999px}
+.sep h2{margin:0;font-size:24px;font-weight:700;letter-spacing:-.02em}
+.sep .note{font-size:14px;color:#5a5a5a;flex-basis:100%;max-width:80ch;margin:0}
+.frame{margin-top:22px;border:1px solid #cfd2d6;overflow:hidden}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="intro">
+<h1>Три стиля<br>на одном экране</h1>
+<p>Один и тот же фрагмент — карточка работы у ревьюера со списком требований, вердиктами и цитатами. Меняется только оформление. Смотри не на «красиво», а на три вещи: сколько цвета, как ведёт себя геометрия (углы и пилюли), и читается ли плотный список из девяти критериев.</p>
+</div>
+
+<!-- ============ A ============ -->
+<div class="sep">
+  <span class="tag">Вариант A</span>
+  <h2>Светлый брутализм</h2>
+  <p class="note">Прямая калька со start.avito.ru. Белый холст, чистый чёрный текст, нулевые углы у блоков и полные пилюли у кнопок и статусов. Цвет — только пятнами: плашка вердикта, пастельная полоса, точка статуса. Заголовки Unbounded, интерфейс Onest.</p>
+</div>
+<div class="frame">
+<div class="A">
+<style>
+.A{--ink:#000;--ink2:#747574;--line:#E7E9E8;--bg:#fff;--f4:#F4F4F4;
+   --green:#04E061;--green-d:#02863A;--green-p:#C9FFBF;--blue:#00AAFF;--blue-p:#BADAFB;
+   --red:#FF4053;--red-p:#F7C1C5;--violet:#965EEB;--violet-p:#DFCDF3;
+   background:var(--bg);color:var(--ink);font-family:'Onest',sans-serif;font-size:15px}
+.A *{border-radius:0}
+.A .top{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--ink)}
+.A .logo{display:flex;align-items:center;gap:9px;font-family:'Unbounded';font-weight:700;font-size:17px;letter-spacing:-.03em}
+.A .dots{display:flex;gap:3px;align-items:center}
+.A .dots i{display:block;border-radius:50%!important}
+.A .nav{display:flex;gap:26px;font-size:14px;color:var(--ink2)}
+.A .nav b{color:var(--ink);font-weight:600;border-bottom:2px solid var(--green);padding-bottom:2px}
+.A .who{font-family:'JetBrains Mono';font-size:12px;color:var(--ink2)}
+.A .band{background:var(--green-p);padding:34px 28px 30px;border-bottom:1px solid var(--ink);position:relative;overflow:hidden}
+.A .band h1{font-family:'Unbounded';font-weight:800;font-size:46px;line-height:.98;letter-spacing:-.04em;margin:0;max-width:16ch}
+.A .band h1 em{font-style:normal;background:var(--ink);color:var(--green-p);padding:0 10px;border-radius:999px!important;display:inline-block}
+.A .band .sub{margin-top:14px;font-size:15px;color:#0d3d1d;max-width:52ch}
+.A .circ{position:absolute;right:-40px;top:-40px;width:260px;height:260px;border-radius:50%!important;background:var(--green);opacity:.5}
+.A .circ2{position:absolute;right:150px;bottom:-60px;width:110px;height:110px;border-radius:50%!important;background:var(--blue);opacity:.55}
+.A .stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--ink)}
+.A .stat{padding:20px 28px;border-right:1px solid var(--line)}
+.A .stat:last-child{border-right:0}
+.A .stat b{display:block;font-family:'Unbounded';font-weight:700;font-size:34px;letter-spacing:-.045em;line-height:1}
+.A .stat span{display:block;margin-top:6px;font-size:13px;color:var(--ink2)}
+.A .body{display:grid;grid-template-columns:1fr 300px}
+.A .main{padding:26px 28px 34px;border-right:1px solid var(--line)}
+.A .crumb{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.A h2{font-family:'Unbounded';font-weight:700;font-size:26px;letter-spacing:-.035em;margin:10px 0 0}
+.A .pills{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+.A .pill{border-radius:999px!important;padding:5px 13px;font-size:13px;font-weight:500;border:1px solid var(--ink)}
+.A .pill.solid{background:var(--ink);color:#fff}
+.A .pill.g{background:var(--green);border-color:var(--green)}
+.A .pill.b{background:var(--blue-p);border-color:var(--blue-p)}
+.A .pill.v{background:var(--violet-p);border-color:var(--violet-p)}
+.A .rows{margin-top:26px;border-top:1px solid var(--ink)}
+.A .row{display:grid;grid-template-columns:38px 1fr 96px;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);align-items:start}
+.A .idx{font-family:'JetBrains Mono';font-size:12px;color:var(--ink2);padding-top:3px}
+.A .row h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.A .quote{margin-top:8px;padding:9px 13px;background:var(--f4);border-left:3px solid var(--green);font-size:13.5px;color:#333;line-height:1.45}
+.A .quote.miss{border-left-color:var(--red);background:#fff;border:1px solid var(--red-p);border-left:3px solid var(--red);color:#8c1b26}
+.A .quote.human{border-left-color:var(--violet);background:var(--violet-p);color:#3d1f6b}
+.A .src{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-top:7px;display:block}
+.A .score{text-align:right;font-family:'Unbounded';font-weight:700;font-size:20px;letter-spacing:-.04em;padding-top:1px}
+.A .score small{display:block;font-family:'Onest';font-weight:500;font-size:11.5px;letter-spacing:0;color:var(--ink2);margin-top:3px}
+.A .score.zero{color:var(--red)}
+.A .score.ask{color:var(--violet);font-size:15px}
+.A .actions{display:flex;gap:10px;margin-top:26px;align-items:center}
+.A .btn{border-radius:999px!important;padding:13px 26px;font-size:15px;font-weight:600;border:1px solid var(--ink);background:#fff;cursor:pointer;font-family:'Onest'}
+.A .btn.pri{background:var(--green);border-color:var(--green)}
+.A .btn.ghost{border-color:var(--line);color:var(--ink2)}
+.A .side{padding:26px 24px}
+.A .side h4{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin:0 0 12px;font-weight:500}
+.A .total{font-family:'Unbounded';font-weight:800;font-size:52px;letter-spacing:-.05em;line-height:.9}
+.A .total span{font-size:22px;color:var(--ink2)}
+.A .meter{height:8px;background:var(--f4);margin-top:14px;display:flex}
+.A .meter i{display:block;height:100%;background:var(--green)}
+.A .kv{margin-top:22px;font-size:14px}
+.A .kv div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.A .kv span{color:var(--ink2)}
+.A .flag{margin-top:22px;border:1px solid var(--ink);padding:14px}
+.A .flag b{display:block;font-size:14px;font-weight:600}
+.A .flag p{margin:6px 0 0;font-size:13px;color:var(--ink2);line-height:1.45}
+.A .swatches{display:flex;border-top:1px solid var(--ink)}
+.A .sw{flex:1;height:56px;display:flex;align-items:flex-end;padding:6px 8px;font-family:'JetBrains Mono';font-size:10px}
+</style>
+<div class="top">
+  <div class="logo"><span class="dots"><i style="width:11px;height:11px;background:#04E061"></i><i style="width:8px;height:8px;background:#00AAFF"></i><i style="width:6px;height:6px;background:#FF4053"></i></span>Ревьюер</div>
+  <div class="nav"><b>Мои работы</b><span>Общий пул</span><span>История</span></div>
+  <div class="who">ID 4820 · ревьюер</div>
+</div>
+<div class="band">
+  <div class="circ"></div><div class="circ2"></div>
+  <h1>Проверь за <em>10 минут</em>, а не за тридцать</h1>
+  <div class="sub">Девять критериев уже сверены с работой. Каждый вердикт с цитатой из текста. Балл ставишь ты.</div>
+</div>
+<div class="stats">
+  <div class="stat"><b>7</b><span>в работе у тебя</span></div>
+  <div class="stat"><b>23</b><span>свободны в пуле</span></div>
+  <div class="stat"><b>2 дня</b><span>до дедлайна проверки</span></div>
+  <div class="stat"><b>₽ 3,40</b><span>стоила эта проверка</span></div>
+</div>
+<div class="body">
+  <div class="main">
+    <div class="crumb">Системный дизайн · Лаба 1 · попытка 2</div>
+    <h2>Работа студента 10417</h2>
+    <div class="pills"><span class="pill solid">На ревью</span><span class="pill g">Черновик готов</span><span class="pill b">Сдана вовремя</span><span class="pill v">ИИ 62%</span></div>
+    <div class="rows">
+      <div class="row">
+        <div class="idx">01</div>
+        <div>
+          <h3>Описаны функциональные требования</h3>
+          <div class="quote">«Пользователь может создать объявление, отредактировать его и снять с публикации. Модератор видит очередь на проверку.»</div>
+          <span class="src">Модель · цитата найдена в тексте · строка 34</span>
+        </div>
+        <div class="score">1<small>из 1</small></div>
+      </div>
+      <div class="row">
+        <div class="idx">02</div>
+        <div>
+          <h3>Оценена нагрузка: RPS и объём данных</h3>
+          <div class="quote">«Ожидаем около 2000 запросов в секунду на чтение.»</div>
+          <span class="src">Модель · объём данных не найден</span>
+        </div>
+        <div class="score">0,5<small>из 1</small></div>
+      </div>
+      <div class="row">
+        <div class="idx">03</div>
+        <div>
+          <h3>Обоснован выбор хранилища</h3>
+          <div class="quote miss">Цитаты нет. В работе не найдено сравнение вариантов хранилища и аргументов выбора.</div>
+          <span class="src">Модель · требование не выполнено</span>
+        </div>
+        <div class="score zero">0<small>из 1</small></div>
+      </div>
+      <div class="row">
+        <div class="idx">04</div>
+        <div>
+          <h3>Отказоустойчивость и масштабирование описаны глубоко</h3>
+          <div class="quote human">Оценочное требование. Модель рекомендует 0,5: репликация упомянута, но сценарий отказа не разобран. Решение за тобой.</div>
+          <span class="src">Требует человека</span>
+        </div>
+        <div class="score ask">?<small>решаешь ты</small></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn pri">Подтвердить и отправить</button>
+      <button class="btn">Вернуть на доработку</button>
+      <button class="btn ghost">Вернуть в пул</button>
+    </div>
+  </div>
+  <div class="side">
+    <h4>Предварительный балл</h4>
+    <div class="total">4,5<span> / 6</span></div>
+    <div class="meter"><i style="width:75%"></i></div>
+    <div class="kv">
+      <div><span>Порог зачёта</span><b>4</b></div>
+      <div><span>Штраф за просрочку</span><b>0</b></div>
+      <div><span>Попытка</span><b>2 из 3</b></div>
+    </div>
+    <div class="flag">
+      <b>Сигнал об ИИ: 62%</b>
+      <p>Студент декларировал использование ИИ. На балл не влияет, решение о последствиях принимает координатор.</p>
+    </div>
+  </div>
+</div>
+<div class="swatches">
+  <div class="sw" style="background:#04E061">04E061</div>
+  <div class="sw" style="background:#00AAFF;color:#fff">00AAFF</div>
+  <div class="sw" style="background:#FF4053;color:#fff">FF4053</div>
+  <div class="sw" style="background:#965EEB;color:#fff">965EEB</div>
+  <div class="sw" style="background:#C9FFBF">C9FFBF</div>
+  <div class="sw" style="background:#BADAFB">BADAFB</div>
+  <div class="sw" style="background:#F7C1C5">F7C1C5</div>
+  <div class="sw" style="background:#DFCDF3">DFCDF3</div>
+  <div class="sw" style="background:#000;color:#fff">000000</div>
+  <div class="sw" style="background:#F4F4F4">F4F4F4</div>
+</div>
+</div>
+</div>
+
+<!-- ============ B ============ -->
+<div class="sep">
+  <span class="tag">Вариант B</span>
+  <h2>Тёмный техно</h2>
+  <p class="note">В духе avito.tech. Почти чёрный холст, кислотный зелёный и фиолетовый, широкие заголовки капслоком, крупные радиусы. Эффектнее на проекторе, но девять критериев подряд читаются тяжелее, а цвет уже занят «свечением», и статусам приходится драться за внимание.</p>
+</div>
+<div class="frame">
+<div class="B">
+<style>
+.B{--bg:#090909;--s1:#141416;--s2:#1E1E1E;--s3:#252528;--tx:#fff;--tx2:#BABABA;--tx3:#777;
+   --green:#04E061;--violet:#967CFF;--deep:#362078;--red:#FF4053;--yellow:#FFF705;
+   background:var(--bg);color:var(--tx);font-family:'Onest',sans-serif;font-size:15px}
+.B .top{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid #202024}
+.B .logo{font-family:'Unbounded';font-weight:700;font-size:16px;letter-spacing:.02em;text-transform:uppercase;display:flex;gap:9px;align-items:center}
+.B .logo i{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 14px var(--green)}
+.B .nav{display:flex;gap:24px;font-size:14px;color:var(--tx2)}
+.B .nav b{color:var(--green);font-weight:600}
+.B .who{font-family:'JetBrains Mono';font-size:12px;color:var(--tx3)}
+.B .band{padding:44px 28px 38px;position:relative;overflow:hidden;background:radial-gradient(680px 300px at 12% 0%,rgba(150,124,255,.22),transparent 70%),radial-gradient(520px 280px at 88% 100%,rgba(4,224,97,.14),transparent 70%)}
+.B .band h1{font-family:'Unbounded';font-weight:800;font-size:44px;line-height:1.0;letter-spacing:-.02em;margin:0;max-width:18ch;text-transform:uppercase}
+.B .band h1 em{font-style:normal;color:var(--green)}
+.B .band .sub{margin-top:16px;color:var(--tx2);max-width:54ch;font-size:15px}
+.B .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 28px 26px}
+.B .stat{background:var(--s2);border-radius:24px;padding:20px 22px}
+.B .stat b{display:block;font-family:'Unbounded';font-weight:700;font-size:30px;letter-spacing:-.03em}
+.B .stat span{display:block;margin-top:6px;font-size:13px;color:var(--tx3)}
+.B .body{display:grid;grid-template-columns:1fr 300px;gap:12px;padding:0 28px 28px}
+.B .main{background:var(--s1);border-radius:32px;padding:26px 26px 30px}
+.B .crumb{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
+.B h2{font-family:'Unbounded';font-weight:700;font-size:24px;letter-spacing:-.02em;margin:10px 0 0}
+.B .pills{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+.B .pill{border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;background:var(--s3);color:var(--tx2)}
+.B .pill.g{background:var(--green);color:#04240f;font-weight:600}
+.B .pill.v{background:var(--deep);color:#cfc0ff}
+.B .rows{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+.B .row{display:grid;grid-template-columns:34px 1fr 96px;gap:14px;padding:16px 18px;background:var(--s2);border-radius:20px;align-items:start}
+.B .idx{font-family:'JetBrains Mono';font-size:12px;color:var(--tx3);padding-top:3px}
+.B .row h3{margin:0;font-size:16px;font-weight:600}
+.B .quote{margin-top:8px;padding:10px 14px;background:#0d0d0f;border-radius:14px;font-size:13.5px;color:var(--tx2);line-height:1.45;border-left:3px solid var(--green)}
+.B .quote.miss{border-left-color:var(--red);color:#ffb3b9}
+.B .quote.human{border-left-color:var(--violet);color:#cfc0ff}
+.B .src{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-top:7px;display:block}
+.B .score{text-align:right;font-family:'Unbounded';font-weight:700;font-size:20px;color:var(--green)}
+.B .score small{display:block;font-family:'Onest';font-weight:400;font-size:11.5px;color:var(--tx3);margin-top:3px}
+.B .score.zero{color:var(--red)}
+.B .score.ask{color:var(--violet);font-size:15px}
+.B .actions{display:flex;gap:10px;margin-top:24px}
+.B .btn{border-radius:999px;padding:13px 26px;font-size:15px;font-weight:600;border:0;background:var(--s3);color:var(--tx);cursor:pointer;font-family:'Onest'}
+.B .btn.pri{background:var(--green);color:#04240f}
+.B .side{background:var(--s1);border-radius:32px;padding:24px}
+.B .side h4{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin:0 0 12px;font-weight:400}
+.B .total{font-family:'Unbounded';font-weight:800;font-size:48px;letter-spacing:-.04em;color:var(--green);line-height:.95}
+.B .total span{font-size:20px;color:var(--tx3)}
+.B .meter{height:8px;background:#0d0d0f;border-radius:999px;margin-top:14px;overflow:hidden}
+.B .meter i{display:block;height:100%;background:var(--green);box-shadow:0 0 16px var(--green)}
+.B .kv{margin-top:20px;font-size:14px}
+.B .kv div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #202024}
+.B .kv span{color:var(--tx3)}
+.B .flag{margin-top:20px;background:var(--deep);border-radius:20px;padding:16px}
+.B .flag b{display:block;font-size:14px}
+.B .flag p{margin:6px 0 0;font-size:13px;color:#cfc0ff;line-height:1.45}
+.B .swatches{display:flex;gap:0}
+.B .sw{flex:1;height:56px;display:flex;align-items:flex-end;padding:6px 8px;font-family:'JetBrains Mono';font-size:10px}
+</style>
+<div class="top">
+  <div class="logo"><i></i>Ревьюер</div>
+  <div class="nav"><b>Мои работы</b><span>Общий пул</span><span>История</span></div>
+  <div class="who">ID 4820 · ревьюер</div>
+</div>
+<div class="band">
+  <h1>Проверь за <em>10 минут</em>, а не за тридцать</h1>
+  <div class="sub">Девять критериев уже сверены с работой. Каждый вердикт с цитатой из текста. Балл ставишь ты.</div>
+</div>
+<div class="stats">
+  <div class="stat"><b>7</b><span>в работе у тебя</span></div>
+  <div class="stat"><b>23</b><span>свободны в пуле</span></div>
+  <div class="stat"><b>2 дня</b><span>до дедлайна проверки</span></div>
+  <div class="stat"><b>₽ 3,40</b><span>стоила эта проверка</span></div>
+</div>
+<div class="body">
+  <div class="main">
+    <div class="crumb">Системный дизайн · Лаба 1 · попытка 2</div>
+    <h2>Работа студента 10417</h2>
+    <div class="pills"><span class="pill g">На ревью</span><span class="pill">Сдана вовремя</span><span class="pill v">ИИ 62%</span></div>
+    <div class="rows">
+      <div class="row"><div class="idx">01</div><div><h3>Описаны функциональные требования</h3><div class="quote">«Пользователь может создать объявление, отредактировать его и снять с публикации. Модератор видит очередь на проверку.»</div><span class="src">Модель · цитата найдена · строка 34</span></div><div class="score">1<small>из 1</small></div></div>
+      <div class="row"><div class="idx">02</div><div><h3>Оценена нагрузка: RPS и объём данных</h3><div class="quote">«Ожидаем около 2000 запросов в секунду на чтение.»</div><span class="src">Модель · объём данных не найден</span></div><div class="score">0,5<small>из 1</small></div></div>
+      <div class="row"><div class="idx">03</div><div><h3>Обоснован выбор хранилища</h3><div class="quote miss">Цитаты нет. В работе не найдено сравнение вариантов хранилища и аргументов выбора.</div><span class="src">Модель · требование не выполнено</span></div><div class="score zero">0<small>из 1</small></div></div>
+      <div class="row"><div class="idx">04</div><div><h3>Отказоустойчивость и масштабирование описаны глубоко</h3><div class="quote human">Оценочное требование. Модель рекомендует 0,5: репликация упомянута, но сценарий отказа не разобран. Решение за тобой.</div><span class="src">Требует человека</span></div><div class="score ask">?<small>решаешь ты</small></div></div>
+    </div>
+    <div class="actions">
+      <button class="btn pri">Подтвердить и отправить</button>
+      <button class="btn">Вернуть на доработку</button>
+      <button class="btn">Вернуть в пул</button>
+    </div>
+  </div>
+  <div class="side">
+    <h4>Предварительный балл</h4>
+    <div class="total">4,5<span> / 6</span></div>
+    <div class="meter"><i style="width:75%"></i></div>
+    <div class="kv"><div><span>Порог зачёта</span><b>4</b></div><div><span>Штраф за просрочку</span><b>0</b></div><div><span>Попытка</span><b>2 из 3</b></div></div>
+    <div class="flag"><b>Сигнал об ИИ: 62%</b><p>Студент декларировал использование ИИ. На балл не влияет, решение принимает координатор.</p></div>
+  </div>
+</div>
+<div class="swatches">
+  <div class="sw" style="background:#04E061;color:#04240f">04E061</div>
+  <div class="sw" style="background:#967CFF;color:#1a1030">967CFF</div>
+  <div class="sw" style="background:#362078;color:#fff">362078</div>
+  <div class="sw" style="background:#FF4053;color:#fff">FF4053</div>
+  <div class="sw" style="background:#FFF705;color:#111">FFF705</div>
+  <div class="sw" style="background:#1E1E1E;color:#fff">1E1E1E</div>
+  <div class="sw" style="background:#090909;color:#fff">090909</div>
+</div>
+</div>
+</div>
+
+<!-- ============ C ============ -->
+<div class="sep">
+  <span class="tag">Вариант C</span>
+  <h2>Гибрид: тихая работа, громкая витрина</h2>
+  <p class="note">Рабочая область почти монохромная — серая подложка, белые карточки, тонкие линии, цвет только там, где несёт смысл: зелёный «выполнено», красный «не найдено», фиолетовый «нужен человек». Смелость вынесена в верхнюю плашку и в цифры: крупный Unbounded, фирменные круги, пастельная заливка. Ниже — плотный список, который можно читать час.</p>
+</div>
+<div class="frame">
+<div class="C">
+<style>
+.C{--ink:#111;--ink2:#5C5F63;--ink3:#8A8D91;--line:#E4E6E9;--line2:#D2D5D9;--page:#F1F2F4;--card:#fff;
+   --green:#04E061;--green-d:#02863A;--green-p:#EAFBEF;--blue:#00AAFF;--blue-p:#BADAFB;
+   --red:#FF4053;--red-d:#C8202F;--red-p:#FDECEE;--violet:#965EEB;--violet-d:#6B36C4;--violet-p:#F1EAFC;
+   background:var(--page);color:var(--ink);font-family:'Onest',sans-serif;font-size:15px}
+.C .top{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--card);border-bottom:1px solid var(--line)}
+.C .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;letter-spacing:-.02em}
+.C .dots{display:flex;gap:3px;align-items:center}
+.C .dots i{display:block;border-radius:50%}
+.C .nav{display:flex;gap:24px;font-size:14px;color:var(--ink2)}
+.C .nav b{color:var(--ink);font-weight:600}
+.C .who{font-family:'JetBrains Mono';font-size:12px;color:var(--ink3)}
+.C .band{background:var(--blue-p);padding:32px 28px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.C .band h1{font-family:'Unbounded';font-weight:800;font-size:40px;line-height:1;letter-spacing:-.04em;margin:0;max-width:17ch;color:#06243b}
+.C .band h1 em{font-style:normal;background:#fff;padding:0 12px;border-radius:999px;display:inline-block}
+.C .band .sub{margin-top:12px;color:#134469;max-width:52ch;font-size:15px}
+.C .circ{position:absolute;right:24px;top:-56px;width:200px;height:200px;border-radius:50%;background:#00AAFF;opacity:.35}
+.C .circ2{position:absolute;right:190px;bottom:-40px;width:96px;height:96px;border-radius:50%;background:#04E061;opacity:.45}
+.C .stats{display:flex;gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.C .stat{flex:1;background:var(--card);padding:18px 28px}
+.C .stat b{display:block;font-family:'Unbounded';font-weight:700;font-size:28px;letter-spacing:-.045em;line-height:1}
+.C .stat span{display:block;margin-top:5px;font-size:13px;color:var(--ink3)}
+.C .body{display:grid;grid-template-columns:1fr 300px;gap:16px;padding:20px 28px 28px}
+.C .main{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:22px 24px 26px}
+.C .crumb{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.C h2{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:8px 0 0}
+.C .pills{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.C .pill{border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:500;border:1px solid var(--line2);color:var(--ink2);background:#fff}
+.C .pill.g{background:var(--green-p);border-color:#B8EFCB;color:var(--green-d)}
+.C .pill.v{background:var(--violet-p);border-color:#DDCBF7;color:var(--violet-d)}
+.C .rows{margin-top:20px;border-top:1px solid var(--line)}
+.C .row{display:grid;grid-template-columns:26px 1fr 92px;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);align-items:start}
+.C .idx{font-family:'JetBrains Mono';font-size:12px;color:var(--ink3);padding-top:3px}
+.C .row h3{margin:0;font-size:15.5px;font-weight:600}
+.C .quote{margin-top:7px;padding:8px 12px;background:#FAFBFC;border-left:2px solid var(--green);font-size:13.5px;color:#3a3d41;line-height:1.45}
+.C .quote.miss{border-left-color:var(--red);background:var(--red-p);color:var(--red-d)}
+.C .quote.human{border-left-color:var(--violet);background:var(--violet-p);color:var(--violet-d)}
+.C .src{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-top:6px;display:block}
+.C .score{text-align:right;font-family:'Unbounded';font-weight:700;font-size:18px;letter-spacing:-.04em}
+.C .score small{display:block;font-family:'Onest';font-weight:400;font-size:11.5px;letter-spacing:0;color:var(--ink3);margin-top:3px}
+.C .score.zero{color:var(--red-d)}
+.C .score.ask{color:var(--violet-d);font-size:15px}
+.C .actions{display:flex;gap:9px;margin-top:22px}
+.C .btn{border-radius:999px;padding:11px 22px;font-size:14.5px;font-weight:600;border:1px solid var(--line2);background:#fff;cursor:pointer;font-family:'Onest'}
+.C .btn.pri{background:var(--ink);border-color:var(--ink);color:#fff}
+.C .side{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:22px}
+.C .side h4{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin:0 0 10px;font-weight:400}
+.C .total{font-family:'Unbounded';font-weight:800;font-size:46px;letter-spacing:-.05em;line-height:.95}
+.C .total span{font-size:19px;color:var(--ink3)}
+.C .meter{height:6px;background:var(--line);margin-top:12px;border-radius:999px;overflow:hidden}
+.C .meter i{display:block;height:100%;background:var(--green-d)}
+.C .kv{margin-top:18px;font-size:14px}
+.C .kv div{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)}
+.C .kv span{color:var(--ink3)}
+.C .flag{margin-top:18px;background:var(--violet-p);border-radius:4px;padding:14px}
+.C .flag b{display:block;font-size:14px;color:var(--violet-d)}
+.C .flag p{margin:6px 0 0;font-size:13px;color:#4a3b66;line-height:1.45}
+.C .swatches{display:flex;border-top:1px solid var(--line)}
+.C .sw{flex:1;height:56px;display:flex;align-items:flex-end;padding:6px 8px;font-family:'JetBrains Mono';font-size:10px}
+</style>
+<div class="top">
+  <div class="logo"><span class="dots"><i style="width:11px;height:11px;background:#04E061"></i><i style="width:8px;height:8px;background:#00AAFF"></i><i style="width:6px;height:6px;background:#FF4053"></i></span>Ревьюер</div>
+  <div class="nav"><b>Мои работы</b><span>Общий пул</span><span>История</span></div>
+  <div class="who">ID 4820 · ревьюер</div>
+</div>
+<div class="band">
+  <div class="circ"></div><div class="circ2"></div>
+  <h1>Проверь за <em>10 минут</em>, а не за тридцать</h1>
+  <div class="sub">Девять критериев уже сверены с работой. Каждый вердикт с цитатой из текста. Балл ставишь ты.</div>
+</div>
+<div class="stats">
+  <div class="stat"><b>7</b><span>в работе у тебя</span></div>
+  <div class="stat"><b>23</b><span>свободны в пуле</span></div>
+  <div class="stat"><b>2 дня</b><span>до дедлайна проверки</span></div>
+  <div class="stat"><b>₽ 3,40</b><span>стоила эта проверка</span></div>
+</div>
+<div class="body">
+  <div class="main">
+    <div class="crumb">Системный дизайн · Лаба 1 · попытка 2</div>
+    <h2>Работа студента 10417</h2>
+    <div class="pills"><span class="pill g">На ревью</span><span class="pill">Сдана вовремя</span><span class="pill v">ИИ 62%</span></div>
+    <div class="rows">
+      <div class="row"><div class="idx">01</div><div><h3>Описаны функциональные требования</h3><div class="quote">«Пользователь может создать объявление, отредактировать его и снять с публикации. Модератор видит очередь на проверку.»</div><span class="src">Модель · цитата найдена · строка 34</span></div><div class="score">1<small>из 1</small></div></div>
+      <div class="row"><div class="idx">02</div><div><h3>Оценена нагрузка: RPS и объём данных</h3><div class="quote">«Ожидаем около 2000 запросов в секунду на чтение.»</div><span class="src">Модель · объём данных не найден</span></div><div class="score">0,5<small>из 1</small></div></div>
+      <div class="row"><div class="idx">03</div><div><h3>Обоснован выбор хранилища</h3><div class="quote miss">Цитаты нет. В работе не найдено сравнение вариантов хранилища и аргументов выбора.</div><span class="src">Модель · требование не выполнено</span></div><div class="score zero">0<small>из 1</small></div></div>
+      <div class="row"><div class="idx">04</div><div><h3>Отказоустойчивость и масштабирование описаны глубоко</h3><div class="quote human">Оценочное требование. Модель рекомендует 0,5: репликация упомянута, но сценарий отказа не разобран. Решение за тобой.</div><span class="src">Требует человека</span></div><div class="score ask">?<small>решаешь ты</small></div></div>
+    </div>
+    <div class="actions">
+      <button class="btn pri">Подтвердить и отправить</button>
+      <button class="btn">Вернуть на доработку</button>
+      <button class="btn">Вернуть в пул</button>
+    </div>
+  </div>
+  <div class="side">
+    <h4>Предварительный балл</h4>
+    <div class="total">4,5<span> / 6</span></div>
+    <div class="meter"><i style="width:75%"></i></div>
+    <div class="kv"><div><span>Порог зачёта</span><b>4</b></div><div><span>Штраф за просрочку</span><b>0</b></div><div><span>Попытка</span><b>2 из 3</b></div></div>
+    <div class="flag"><b>Сигнал об ИИ: 62%</b><p>Студент декларировал использование ИИ. На балл не влияет, решение принимает координатор.</p></div>
+  </div>
+</div>
+<div class="swatches">
+  <div class="sw" style="background:#111;color:#fff">111111</div>
+  <div class="sw" style="background:#5C5F63;color:#fff">5C5F63</div>
+  <div class="sw" style="background:#F1F2F4">F1F2F4</div>
+  <div class="sw" style="background:#02863A;color:#fff">02863A</div>
+  <div class="sw" style="background:#C8202F;color:#fff">C8202F</div>
+  <div class="sw" style="background:#6B36C4;color:#fff">6B36C4</div>
+  <div class="sw" style="background:#BADAFB">BADAFB</div>
+  <div class="sw" style="background:#EAFBEF">EAFBEF</div>
+</div>
+</div>
+</div>
+
+</div>
+</body>
+</html>

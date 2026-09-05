@@ -10,78 +10,206 @@ import {
   useAction,
   useResource,
 } from "../ui";
+import { WorkspaceSearch } from "./WorkspaceSearch";
 import { Modal, ScreenTitle } from "../workspace-ui";
-export function WorkspaceCatalog({ ws }: { ws: WorkspaceClient }) {
+function localDate(value?: string | null) {
+  if (!value) return "";
+  const d = new Date(value);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+export function WorkspaceCatalog({
+  ws,
+  mode = "overview",
+}: {
+  ws: WorkspaceClient;
+  mode?: "overview" | "courses";
+}) {
   const r = useResource(() => ws.catalog(), "catalog");
-  const [modal, setModal] = useState<"course" | string>();
+  const [modal, setModal] = useState<string>();
+  const [editCourse, setEditCourse] = useState<W<"CourseView">>();
+  const [selectedCourse, setSelectedCourse] = useState("");
   const close = useCallback(() => setModal(undefined), []);
   const action = useAction();
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("active");
   return (
     <>
-      <ScreenTitle code="К1" title="Курсы и потоки">
+      <ScreenTitle
+        code={mode === "overview" ? "К1" : "К2"}
+        title={mode === "overview" ? "Обзор" : "Курсы"}
+        leading={mode === "overview" ? <WorkspaceSearch ws={ws} /> : undefined}
+      >
         <button className="primary" onClick={() => setModal("course")}>
           Создать курс
         </button>
+        {mode === "overview" && (
+          <button className="primary" onClick={() => setModal("run")}>
+            Создать поток
+          </button>
+        )}
       </ScreenTitle>
       {action.feedback}
-      <label>
-        Найти курс
-        <input value={search} onChange={(e) => setSearch(e.target.value)} />
-      </label>
+      {mode === "overview" && <OverviewMetrics ws={ws} />}
       <Resource value={r}>
-        <div className="cards">
-          {r.data?.courses
-            .filter((c) => c.title.toLowerCase().includes(search.toLowerCase()))
-            .map((c) => (
-              <Card
-                title={c.title}
-                key={c.id}
-                actions={<Status value={c.status} />}
-              >
-                <p>{c.description}</p>
-                {r
-                  .data!.course_runs.filter((run) => run.course_id === c.id)
-                  .map((run) => (
-                    <RunCard key={run.id} ws={ws} run={run} />
-                  ))}
-                <div className="actions">
-                  <button
-                    disabled={c.status === "archived"}
-                    onClick={() => setModal(c.id)}
+        {r.data && mode === "overview" && (
+          <Card
+            title="Потоки"
+            actions={
+              <div className="filters">
+                <label>
+                  Найти курс или поток
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Состояние
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
                   >
-                    Создать поток
-                  </button>
-                  <button
-                    disabled={action.busy}
-                    onClick={() =>
-                      void action.run(async () => {
-                        if (c.status === "archived")
-                          await ws.core.command(
-                            "restore_course",
-                            c.id,
-                            c.revision,
-                            {},
-                          );
-                        else
-                          await ws.core.command(
-                            "archive_course",
-                            c.id,
-                            c.revision,
-                            { reason: "Архивирование координатором" },
-                          );
-                        r.refresh();
-                      })
-                    }
-                  >
-                    {c.status === "archived"
-                      ? "Восстановить"
-                      : "Архивировать курс"}
-                  </button>
-                </div>
-              </Card>
-            ))}
-        </div>
+                    <option value="active">Активные</option>
+                    <option value="archived">Архив</option>
+                    <option value="">Все</option>
+                  </select>
+                </label>
+              </div>
+            }
+          >
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Курс / поток</th>
+                    <th>Студенты</th>
+                    <th>Ближайший срок</th>
+                    <th>Все работы</th>
+                    <th>В пуле</th>
+                    <th>На проверке</th>
+                    <th>Зачтено</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {r.data.course_runs
+                    .filter(
+                      (run) =>
+                        (!status || run.status === status) &&
+                        `${run.title} ${r.data!.courses.find((c) => c.id === run.course_id)?.title}`
+                          .toLowerCase()
+                          .includes(search.toLowerCase()),
+                    )
+                    .map((run) => (
+                      <RunSummary
+                        key={run.id}
+                        ws={ws}
+                        run={run}
+                        course={
+                          r.data!.courses.find((c) => c.id === run.course_id)
+                            ?.title ?? "Курс"
+                        }
+                      />
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+        {r.data && mode === "courses" && (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Курс</th>
+                  <th>Заданий</th>
+                  <th>Потоков</th>
+                  <th>Активных</th>
+                  <th>Курс в Stepik</th>
+                  <th>Состояние</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {r.data.courses.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <button
+                        className="link-button"
+                        onClick={() => {
+                          setEditCourse(c);
+                          setModal("edit-course");
+                        }}
+                      >
+                        {c.title}
+                      </button>
+                      <small>{c.description}</small>
+                    </td>
+                    <td>
+                      <HomeworkCount ws={ws} courseId={c.id} />
+                    </td>
+                    <td>
+                      {
+                        r.data!.course_runs.filter(
+                          (run) => run.course_id === c.id,
+                        ).length
+                      }
+                    </td>
+                    <td>
+                      {
+                        r.data!.course_runs.filter(
+                          (run) =>
+                            run.course_id === c.id && run.status === "active",
+                        ).length
+                      }
+                    </td>
+                    <td>
+                      {c.stepik_url ? (
+                        <a href={c.stepik_url} target="_blank" rel="noreferrer">
+                          {c.stepik_url.replace("https://", "")}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>
+                      <Status value={c.status} />
+                    </td>
+                    <td>
+                      <button
+                        disabled={action.busy}
+                        onClick={() =>
+                          void action.run(async () => {
+                            if (c.status === "archived")
+                              await ws.core.command(
+                                "restore_course",
+                                c.id,
+                                c.revision,
+                                {},
+                              );
+                            else
+                              await ws.core.command(
+                                "archive_course",
+                                c.id,
+                                c.revision,
+                                { reason: "Архивирование координатором" },
+                              );
+                            r.refresh();
+                          })
+                        }
+                      >
+                        {c.status === "archived"
+                          ? "Восстановить"
+                          : "Архивировать"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         {r.data?.courses.length === 0 && (
           <Empty>Создайте курс или импортируйте его из Stepik.</Empty>
         )}
@@ -89,48 +217,193 @@ export function WorkspaceCatalog({ ws }: { ws: WorkspaceClient }) {
       {modal && (
         <Modal
           title={
-            modal === "course" ? "К2 · Создать курс" : "К3 · Создать поток"
+            modal === "course"
+              ? "Создать курс"
+              : modal === "edit-course"
+                ? "Редактировать курс"
+                : "Создать поток"
           }
           close={close}
         >
-          {modal === "course" ? (
+          {modal === "course" || modal === "edit-course" ? (
             <CourseForm
               ws={ws}
+              course={modal === "edit-course" ? editCourse : undefined}
               done={() => {
                 close();
                 r.refresh();
               }}
             />
           ) : (
-            <RunForm
-              ws={ws}
-              course={r.data!.courses.find((c) => c.id === modal)!}
-              done={() => {
-                close();
-                r.refresh();
-              }}
-            />
+            <>
+              <label>
+                Курс
+                <select
+                  value={selectedCourse}
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                >
+                  <option value="">Выберите курс</option>
+                  {r.data?.courses
+                    .filter((c) => c.status === "active")
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              {selectedCourse && (
+                <RunForm
+                  key={selectedCourse}
+                  ws={ws}
+                  course={r.data!.courses.find((c) => c.id === selectedCourse)!}
+                  done={() => {
+                    close();
+                    r.refresh();
+                  }}
+                />
+              )}
+            </>
           )}
         </Modal>
       )}
-      <Card title="Курс из Stepik">
-        <a href="#/courses">Открыть импорт курса →</a>
-      </Card>
     </>
   );
 }
-function RunCard({
+function OverviewMetrics({ ws }: { ws: WorkspaceClient }) {
+  const r = useResource(async () => {
+    const [all, active, pool, catalog] = await Promise.all([
+      ws.works({ limit: 1 }),
+      ws.works({ state: "in_review", limit: 1 }),
+      ws.works({ state: "pending_review", limit: 1 }),
+      ws.catalog(),
+    ]);
+    const homeworks = await Promise.all(
+      catalog.course_runs
+        .filter((run) => run.status === "active")
+        .map((run) => ws.core.homeworks(run.id)),
+    );
+    const now = Date.now();
+    const deadlines = homeworks
+      .flatMap((h) => h.items)
+      .filter(
+        (h) =>
+          h.submission_deadline &&
+          new Date(h.submission_deadline).getTime() >= now &&
+          new Date(h.submission_deadline).getTime() <= now + 7 * 86400000,
+      ).length;
+    return {
+      all: all.total,
+      active: active.total,
+      pool: pool.total,
+      deadlines,
+    };
+  }, "overview-metrics");
+  return (
+    <Resource value={r}>
+      {r.data && (
+        <div className="tiles">
+          <a className="tile" href="#/registry">
+            <div className="n">{r.data.all}</div>
+            <div className="l">домашек в потоках</div>
+          </a>
+          <a className="tile" href="#/registry?state=in_review">
+            <div className="n">{r.data.active}</div>
+            <div className="l">у ревьюеров прямо сейчас</div>
+          </a>
+          <a
+            className="tile tile--alert"
+            href="#/registry?state=pending_review"
+          >
+            <div className="n">{r.data.pool}</div>
+            <div className="l">в пуле без проверки</div>
+          </a>
+          <div className="tile">
+            <div className="n">{r.data.deadlines}</div>
+            <div className="l">дедлайнов в ближайшие 7 дней</div>
+          </div>
+        </div>
+      )}
+    </Resource>
+  );
+}
+function RunSummary({
   ws,
   run,
+  course,
 }: {
   ws: WorkspaceClient;
   run: W<"CourseRunView">;
+  course: string;
+}) {
+  const r = useResource(async () => {
+    const [all, pool, review, accepted, members, homeworks] = await Promise.all(
+      [
+        ws.works({ course_run_id: run.id, limit: 1 }),
+        ws.works({ course_run_id: run.id, state: "pending_review", limit: 1 }),
+        ws.works({ course_run_id: run.id, state: "in_review", limit: 1 }),
+        ws.works({ course_run_id: run.id, state: "passed", limit: 1 }),
+        ws.assignments(run.id),
+        ws.core.homeworks(run.id),
+      ],
+    );
+    const deadline = homeworks.items
+      .map((h) => h.submission_deadline)
+      .filter((d): d is string => !!d && new Date(d).getTime() >= Date.now())
+      .sort()[0];
+    return {
+      all: all.total,
+      pool: pool.total,
+      review: review.total,
+      accepted: accepted.total,
+      students: members.items.length,
+      deadline,
+    };
+  }, run.id);
+  const link = (count: number, state = "") => (
+    <a href={`#/registry?run=${run.id}&state=${state}`}>{count}</a>
+  );
+  return (
+    <tr>
+      <td>
+        <small>{course}</small>
+        <a href={`#/courses/${run.id}`}>{run.title}</a>
+        <Status value={run.status} />
+      </td>
+      {r.data ? (
+        <>
+          <td>{r.data.students}</td>
+          <td>{r.data.deadline ? date(r.data.deadline) : "Нет предстоящих"}</td>
+          <td>{link(r.data.all)}</td>
+          <td>{link(r.data.pool, "pending_review")}</td>
+          <td>{link(r.data.review, "in_review")}</td>
+          <td>{link(r.data.accepted, "passed")}</td>
+        </>
+      ) : (
+        <td colSpan={6}>
+          <Resource value={r}>{null}</Resource>
+        </td>
+      )}
+    </tr>
+  );
+}
+export function RunCard({
+  ws,
+  run,
+  refresh,
+}: {
+  ws: WorkspaceClient;
+  run: W<"CourseRunView">;
+  refresh: () => void;
 }) {
   const work = useResource(
     () => ws.works({ course_run_id: run.id, limit: 1 }),
     run.id,
   );
   const action = useAction();
+  const [priority, setPriority] = useState(run.priority);
+  const [editing, setEditing] = useState(false);
+  const catalog = useResource(() => ws.catalog(), run.id);
   return (
     <article className="list-item">
       <div className="row">
@@ -150,7 +423,49 @@ function RunCard({
           </p>
         )}
       </Resource>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void action.run(async () => {
+            await ws.command(
+              "set_run_priority",
+              run.id,
+              run.priority_revision,
+              { priority },
+            );
+            refresh();
+          });
+        }}
+      >
+        <label>
+          Приоритет рекомендаций
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as typeof priority)}
+          >
+            <option value="assigned">Свои студенты сначала</option>
+            <option value="deadline">Ближайший срок сначала</option>
+          </select>
+        </label>
+        <button disabled={action.busy || priority === run.priority}>
+          Сохранить приоритет
+        </button>
+      </form>
+      {editing && catalog.data && (
+        <Modal title="Редактировать поток" close={() => setEditing(false)}>
+          <RunForm
+            ws={ws}
+            course={catalog.data.courses.find((c) => c.id === run.course_id)!}
+            run={run}
+            done={() => {
+              setEditing(false);
+              refresh();
+            }}
+          />
+        </Modal>
+      )}
       <div className="actions">
+        <button onClick={() => setEditing(true)}>Редактировать поток</button>
         <a href={`#/assignments/${run.id}`}>Ревьюеры и студенты</a>
         <button
           disabled={action.busy}
@@ -173,7 +488,7 @@ function RunCard({
                   fresh.revision,
                   { reason: "Архивирование потока координатором" },
                 );
-              window.location.reload();
+              refresh();
             })
           }
         >
@@ -186,10 +501,19 @@ function RunCard({
     </article>
   );
 }
-function CourseForm({ ws, done }: { ws: WorkspaceClient; done: () => void }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [owner, setOwner] = useState("");
+function CourseForm({
+  ws,
+  done,
+  course,
+}: {
+  ws: WorkspaceClient;
+  done: () => void;
+  course?: W<"CourseView">;
+}) {
+  const [title, setTitle] = useState(course?.title ?? "");
+  const [description, setDescription] = useState(course?.description ?? "");
+  const [stepikUrl, setStepikUrl] = useState(course?.stepik_url ?? "");
+  const [owner, setOwner] = useState(course?.owner_id ?? "");
   const people = useResource(() => ws.directory(), "people");
   const action = useAction();
   return (
@@ -198,11 +522,17 @@ function CourseForm({ ws, done }: { ws: WorkspaceClient; done: () => void }) {
         e.preventDefault();
         void action.run(async () => {
           const org = await ws.core.organization();
-          await ws.command("create_course", org.id, org.revision, {
-            title,
-            description,
-            owner_id: owner || null,
-          });
+          await ws.command(
+            course ? "update_course" : "create_course",
+            course?.id ?? org.id,
+            course?.revision ?? org.revision,
+            {
+              title,
+              description,
+              owner_id: owner || null,
+              stepik_url: stepikUrl || null,
+            },
+          );
           done();
         });
       }}
@@ -225,6 +555,15 @@ function CourseForm({ ws, done }: { ws: WorkspaceClient; done: () => void }) {
         />
       </label>
       <label>
+        Ссылка на курс в Stepik (необязательно)
+        <input
+          type="url"
+          value={stepikUrl}
+          onChange={(e) => setStepikUrl(e.target.value)}
+          placeholder="https://stepik.org/course/…"
+        />
+      </label>
+      <label>
         Координатор
         <select value={owner} onChange={(e) => setOwner(e.target.value)}>
           <option value="">Не выбран</option>
@@ -237,8 +576,11 @@ function CourseForm({ ws, done }: { ws: WorkspaceClient; done: () => void }) {
             ))}
         </select>
       </label>
+      <button type="button" onClick={done}>
+        Отмена
+      </button>
       <button className="primary" disabled={action.busy}>
-        Создать курс
+        {course ? "Сохранить курс" : "Создать курс"}
       </button>
     </form>
   );
@@ -247,28 +589,38 @@ function RunForm({
   ws,
   course,
   done,
+  run,
 }: {
   ws: WorkspaceClient;
   course: W<"CourseView">;
   done: () => void;
+  run?: W<"CourseRunView">;
 }) {
-  const [title, setTitle] = useState("");
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [zone, setZone] = useState("Europe/Moscow");
+  const [title, setTitle] = useState(run?.title ?? "");
+  const [start, setStart] = useState(localDate(run?.starts_at));
+  const [end, setEnd] = useState(localDate(run?.ends_at));
+  const [zone, setZone] = useState(run?.timezone ?? "Europe/Moscow");
+  const [priority, setPriority] = useState<"assigned" | "deadline">(
+    run?.priority ?? "assigned",
+  );
   const action = useAction();
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         void action.run(async () => {
-          await ws.command("create_course_run", course.id, course.revision, {
-            title,
-            starts_at: new Date(start).toISOString(),
-            ends_at: new Date(end).toISOString(),
-            timezone: zone,
-            priority: "assigned",
-          });
+          await ws.command(
+            run ? "update_course_run" : "create_course_run",
+            run?.id ?? course.id,
+            run?.revision ?? course.revision,
+            {
+              title,
+              starts_at: new Date(start).toISOString(),
+              ends_at: new Date(end).toISOString(),
+              timezone: zone,
+              priority,
+            },
+          );
           done();
         });
       }}
@@ -310,11 +662,27 @@ function RunForm({
           onChange={(e) => setZone(e.target.value)}
         />
       </label>
+      <label>
+        Порядок рекомендаций
+        <select
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as typeof priority)}
+        >
+          <option value="assigned">Свои студенты сначала</option>
+          <option value="deadline">Ближайший срок сначала</option>
+        </select>
+      </label>
+      <p className="muted">
+        Порядок рекомендаций не ограничивает доступ к общему пулу.
+      </p>
       <p className="muted">
         После создания добавьте участников или импортируйте состав из Stepik.
       </p>
+      <button type="button" onClick={done}>
+        Отмена
+      </button>
       <button className="primary" disabled={action.busy}>
-        Создать поток
+        {run ? "Сохранить поток" : "Создать поток"}
       </button>
     </form>
   );
@@ -361,17 +729,48 @@ function PreferencesForm({
   refresh: () => void;
 }) {
   const initial = preferences.value;
+  const [showPool, setShowPool] = useState(initial?.show_pool ?? true);
+  const [notifications, setNotifications] = useState(
+    initial?.notifications ?? { deadline: true, revision: true, pool: false },
+  );
   const [selected, setSelected] = useState(initial?.course_run_ids ?? []);
-  const [minutes, setMinutes] = useState(initial?.planned_minutes ?? 0);
-  const [until, setUntil] = useState(initial?.until_at?.slice(0, 16) ?? "");
-  const [from, setFrom] = useState(initial?.absent_from?.slice(0, 16) ?? "");
-  const [to, setTo] = useState(initial?.absent_until?.slice(0, 16) ?? "");
+  const [from, setFrom] = useState(localDate(initial?.absent_from));
+  const [to, setTo] = useState(localDate(initial?.absent_until));
   const action = useAction();
+  function reset() {
+    setShowPool(initial?.show_pool ?? true);
+    setNotifications(
+      initial?.notifications ?? { deadline: true, revision: true, pool: false },
+    );
+    setSelected(initial?.course_run_ids ?? []);
+    setFrom(localDate(initial?.absent_from));
+    setTo(localDate(initial?.absent_until));
+  }
   return (
     <>
-      <ScreenTitle code="Р3" title="Настройки ревьюера" />
+      <ScreenTitle code="Р3" title="Кабинет">
+        <div className="actions">
+          <button type="button" onClick={reset}>
+            Отменить
+          </button>
+          <button
+            className="primary"
+            form="reviewer-preferences"
+            disabled={action.busy}
+          >
+            Сохранить
+          </button>
+        </div>
+      </ScreenTitle>
+      <nav className="tabs">
+        <a href="#/preferences" aria-current="page">
+          Настройки
+        </a>
+        <a href="#/statistics">Статистика</a>
+      </nav>
       {action.feedback}
       <form
+        id="reviewer-preferences"
         onSubmit={(e) => {
           e.preventDefault();
           void action.run(async () => {
@@ -381,90 +780,163 @@ function PreferencesForm({
               preferences.revision,
               {
                 course_run_ids: selected,
-                planned_minutes: minutes,
-                until_at: new Date(until).toISOString(),
+                show_pool: showPool,
+                notifications,
+                planned_minutes: initial?.planned_minutes ?? 0,
+                until_at: initial?.until_at ?? new Date().toISOString(),
                 absent_from: from ? new Date(from).toISOString() : null,
-                absent_until: to ? new Date(to).toISOString() : null,
+                absent_until: from && to ? new Date(to).toISOString() : null,
               },
             );
             refresh();
           });
         }}
       >
-        <div className="two-col">
-          <Card title="Курсы и потоки">
-            {catalog.course_runs
-              .filter((r) => r.status === "active")
-              .map((run) => (
-                <label key={run.id} className="check">
+        <div className="row-side">
+          <Card title="Курсы, которые готов проверять">
+            {catalog.courses
+              .filter((course) =>
+                catalog.course_runs.some(
+                  (run) =>
+                    run.course_id === course.id && run.status === "active",
+                ),
+              )
+              .map((course) => {
+                const runs = catalog.course_runs.filter(
+                  (run) =>
+                    run.course_id === course.id && run.status === "active",
+                );
+                return (
+                  <label key={course.id} className="check list-item">
+                    <input
+                      type="checkbox"
+                      checked={runs.every((run) => selected.includes(run.id))}
+                      onChange={(e) =>
+                        setSelected(
+                          e.target.checked
+                            ? [
+                                ...new Set([
+                                  ...selected,
+                                  ...runs.map((run) => run.id),
+                                ]),
+                              ]
+                            : selected.filter(
+                                (id) => !runs.some((run) => run.id === id),
+                              ),
+                        )
+                      }
+                    />
+                    <span>{course.title}</span>
+                    <CoursePoolCount ws={ws} runs={runs} />
+                  </label>
+                );
+              })}
+          </Card>
+          <div className="stack">
+            <Card title="Доступность">
+              <label className="check">
+                <span>
+                  Показывать мне работы из пула
+                  <small className="muted">
+                    выключите, если временно не берёте новое
+                  </small>
+                </span>
+                <span className="tgl">
                   <input
                     type="checkbox"
-                    checked={selected.includes(run.id)}
-                    onChange={(e) =>
-                      setSelected(
-                        e.target.checked
-                          ? [...selected, run.id]
-                          : selected.filter((id) => id !== run.id),
-                      )
-                    }
+                    role="switch"
+                    checked={showPool}
+                    onChange={(e) => setShowPool(e.target.checked)}
                   />
-                  {run.title}
-                </label>
-              ))}
-          </Card>
-          <div>
-            <Card title="Плановое время">
-              <label>
-                Минут на проверку
-                <input
-                  type="number"
-                  min={0}
-                  required
-                  value={minutes}
-                  onChange={(e) => setMinutes(e.target.valueAsNumber)}
-                />
+                  <span className="tgl__t" />
+                </span>
               </label>
-              <label>
-                До
-                <input
-                  type="datetime-local"
-                  required
-                  value={until}
-                  onChange={(e) => setUntil(e.target.value)}
-                />
-              </label>
+              <fieldset>
+                <legend>Отпуск или отсутствие</legend>
+                <div className="actions">
+                  <input
+                    aria-label="Начало отсутствия"
+                    type="datetime-local"
+                    value={from}
+                    onChange={(e) => {
+                      setFrom(e.target.value);
+                      if (!e.target.value) setTo("");
+                    }}
+                  />
+                  <span>—</span>
+                  <input
+                    aria-label="Окончание отсутствия"
+                    type="datetime-local"
+                    required={!!from}
+                    min={from}
+                    value={to}
+                    onChange={(e) => setTo(e.target.value)}
+                  />
+                </div>
+              </fieldset>
               <p className="muted">
-                План помогает рекомендовать работы и не ограничивает доступ к
-                ним.
+                На это время новые работы не берём, уже взятые остаются за вами.
               </p>
             </Card>
-            <Card title="Отпуск или отсутствие">
-              <label>
-                С
-                <input
-                  type="datetime-local"
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                />
-              </label>
-              <label>
-                По
-                <input
-                  type="datetime-local"
-                  required={!!from}
-                  min={from}
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                />
-              </label>
+            <Card title="Уведомления">
+              {(
+                [
+                  ["deadline", "Работа, которую я взял, близка к сроку"],
+                  ["revision", "Студент прислал правки"],
+                  ["pool", "В пуле по моим курсам появилось что-то новое"],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="check">
+                  <input
+                    type="checkbox"
+                    checked={notifications[key]}
+                    onChange={(e) =>
+                      setNotifications((current) => ({
+                        ...current,
+                        [key]: e.target.checked,
+                      }))
+                    }
+                  />
+                  {label}
+                </label>
+              ))}
             </Card>
           </div>
         </div>
-        <button className="primary" disabled={action.busy}>
-          Сохранить настройки
-        </button>
       </form>
     </>
+  );
+}
+function CoursePoolCount({
+  ws,
+  runs,
+}: {
+  ws: WorkspaceClient;
+  runs: W<"CourseRunView">[];
+}) {
+  const r = useResource(
+    async () => {
+      const lists = await Promise.all(
+        runs.map((run) =>
+          ws.works({
+            course_run_id: run.id,
+            state: "pending_review",
+            limit: 1,
+          }),
+        ),
+      );
+      return lists.reduce((sum, list) => sum + list.total, 0);
+    },
+    runs.map((run) => run.id).join(":"),
+  );
+  return (
+    <span className="muted">
+      {r.data !== undefined
+        ? `в пуле ${r.data} работ`
+        : r.error
+          ? "Число работ недоступно"
+          : "…"}
+    </span>
   );
 }
 export function WorkspaceAssignments({
@@ -491,7 +963,15 @@ export function WorkspaceAssignments({
   const [recipients, setRecipients] = useState<string[]>([]);
   return (
     <>
-      <ScreenTitle code="К6" title="Студенты и ревьюеры" />
+      <ScreenTitle code="К1" title="Студенты и ревьюеры" />
+      <p>
+        <a href={`#/courses/${runId}`}>← Вернуться к потоку</a>
+      </p>
+      <p className="notice">
+        Основной ревьюер закрепляется за студентом в потоке. Участники
+        конкретной проверки могут быть другими: коллеги сохраняют доступ к
+        работе, а разовое участие не меняет закрепление.
+      </p>
       {action.feedback}
       <Resource value={r}>
         {r.data && (
@@ -679,6 +1159,270 @@ function AssignmentRow({
           </button>
         </div>
         {action.feedback}
+      </td>
+    </tr>
+  );
+}
+
+export function WorkspaceRunSettings({
+  ws,
+  runId,
+}: {
+  ws: WorkspaceClient;
+  runId: string;
+}) {
+  const r = useResource(() => ws.catalog(), runId);
+  const run = r.data?.course_runs.find((v) => v.id === runId);
+  return (
+    <Resource value={r}>
+      {run && (
+        <RunCard
+          key={`${run.id}:${run.revision}`}
+          ws={ws}
+          run={run}
+          refresh={r.refresh}
+        />
+      )}
+    </Resource>
+  );
+}
+
+function HomeworkCount({
+  ws,
+  courseId,
+}: {
+  ws: WorkspaceClient;
+  courseId: string;
+}) {
+  const r = useResource(() => ws.courseHomeworks(courseId), courseId);
+  return <Resource value={r}>{r.data?.items.length}</Resource>;
+}
+
+export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
+  const r = useResource(async () => {
+    const catalog = await ws.catalog();
+    const lists = await Promise.all(
+      catalog.courses.map((course) => ws.courseHomeworks(course.id)),
+    );
+    return {
+      ...catalog,
+      homeworks: lists.flatMap((list) =>
+        list.items.map((item) => ({ ...item, course_id: list.course_id })),
+      ),
+    };
+  }, "homework-directory");
+  const [courseId, setCourseId] = useState("");
+  const [search, setSearch] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [runId, setRunId] = useState("");
+  const [title, setTitle] = useState("");
+  const action = useAction();
+  const close = useCallback(() => setCreating(false), []);
+  return (
+    <>
+      <ScreenTitle code="К4" title="Задания">
+        <button className="primary" onClick={() => setCreating(true)}>
+          Создать задание
+        </button>
+      </ScreenTitle>
+      {action.feedback}
+      <Resource value={r}>
+        <Card
+          title="Задания курсов"
+          actions={
+            <div className="filters">
+              <label>
+                Поиск
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Название задания"
+                />
+              </label>
+              <label>
+                Курс
+                <select
+                  value={courseId}
+                  onChange={(e) => setCourseId(e.target.value)}
+                >
+                  <option value="">Все курсы</option>
+                  {r.data?.courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          }
+        >
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Задание</th>
+                  <th>Курс</th>
+                  <th>Версия</th>
+                  <th>Публикации</th>
+                  <th>Поток для настройки</th>
+                </tr>
+              </thead>
+              <tbody>
+                {r.data?.homeworks
+                  .filter(
+                    (item) =>
+                      (!courseId || item.course_id === courseId) &&
+                      item.title.toLowerCase().includes(search.toLowerCase()),
+                  )
+                  .map((item) => (
+                    <HomeworkDirectoryRow
+                      key={item.id}
+                      item={item}
+                      course={
+                        r.data!.courses.find(
+                          (course) => course.id === item.course_id,
+                        )?.title ?? "Курс"
+                      }
+                      runs={r.data!.course_runs.filter(
+                        (run) => run.course_id === item.course_id,
+                      )}
+                    />
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          {r.data &&
+            !r.data.homeworks.some(
+              (item) =>
+                (!courseId || item.course_id === courseId) &&
+                item.title.toLowerCase().includes(search.toLowerCase()),
+            ) && (
+              <Empty>
+                Заданий не найдено. Создайте задание или измените поиск.
+              </Empty>
+            )}
+        </Card>
+      </Resource>
+      {creating && (
+        <Modal title="Новое задание" close={close}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void action.run(async () => {
+                const run = r.data?.course_runs.find((run) => run.id === runId);
+                if (!run) throw new Error("Выберите поток.");
+                const fresh = (await ws.catalog()).course_runs.find(
+                  (value) => value.id === runId,
+                );
+                if (!fresh) throw new Error("Поток недоступен.");
+                const created = await ws.core.command(
+                  "create_homework",
+                  runId,
+                  fresh.revision,
+                  { title },
+                );
+                setCreating(false);
+                window.location.hash = `/homework/${created.id}?run=${runId}`;
+              });
+            }}
+          >
+            <label>
+              Курс и поток
+              <select
+                required
+                value={runId}
+                onChange={(e) => setRunId(e.target.value)}
+              >
+                <option value="">Выберите поток</option>
+                {r.data?.course_runs
+                  .filter((run) => run.status === "active")
+                  .map((run) => (
+                    <option key={run.id} value={run.id}>
+                      {
+                        r.data!.courses.find(
+                          (course) => course.id === run.course_id,
+                        )?.title
+                      }{" "}
+                      · {run.title}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label>
+              Название задания
+              <input
+                required
+                maxLength={512}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </label>
+            <p className="muted">
+              Задание сохраняется в курсе. На последнем шаге мастера задаются
+              сроки публикации в выбранном потоке.
+            </p>
+            <div className="actions">
+              <button type="button" onClick={close}>
+                Отмена
+              </button>
+              <button className="primary" disabled={action.busy}>
+                Создать задание
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </>
+  );
+}
+function HomeworkDirectoryRow({
+  item,
+  course,
+  runs,
+}: {
+  item: W<"CoordinatorHomeworkItem">;
+  course: string;
+  runs: W<"CourseRunView">[];
+}) {
+  const [runId, setRunId] = useState(
+    item.published_run_ids[0] ??
+      runs.find((run) => run.status === "active")?.id ??
+      runs[0]?.id ??
+      "",
+  );
+  return (
+    <tr>
+      <td>
+        <strong>{item.title}</strong>
+        {!item.published_run_ids.length && <small>Черновик</small>}
+      </td>
+      <td>{course}</td>
+      <td>{item.latest_version_number ?? "Не сохранена"}</td>
+      <td>
+        {item.published_run_ids.length
+          ? item.published_run_ids
+              .map((id) => runs.find((run) => run.id === id)?.title ?? "Поток")
+              .join(", ")
+          : "Не опубликовано"}
+      </td>
+      <td>
+        <div className="actions">
+          <select
+            aria-label={`Поток: ${item.title}`}
+            value={runId}
+            onChange={(e) => setRunId(e.target.value)}
+          >
+            {!runs.length && <option value="">Нет потоков</option>}
+            {runs.map((run) => (
+              <option key={run.id} value={run.id}>
+                {run.title}
+              </option>
+            ))}
+          </select>
+          {runId && (
+            <a href={`#/homework/${item.id}?run=${runId}`}>Настроить →</a>
+          )}
+        </div>
       </td>
     </tr>
   );

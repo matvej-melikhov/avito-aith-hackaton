@@ -35,6 +35,14 @@ REVISIONS = (
     "0008_delivery_recovery",
 )
 
+WORKSPACE_REVISIONS = (
+    "0009_workspace_self_review",
+    "0010_uploaded_artifacts",
+    "0011_workspace_version_fields",
+    "0012_workspace_durable",
+    "0013_review_signal_choices",
+)
+
 ORG = UUID("00000000-0000-7000-8000-000000169001")
 USER = UUID("00000000-0000-7000-8000-000000169002")
 MEMBERSHIP = UUID("00000000-0000-7000-8000-000000169003")
@@ -276,8 +284,7 @@ def _insert_homework(engine: Engine) -> None:
         )
         _run(
             connection,
-            "UPDATE course_run_homework SET current_publication_id=:publication "
-            "WHERE id=:id",
+            "UPDATE course_run_homework SET current_publication_id=:publication WHERE id=:id",
             {"publication": _u(HOMEWORK_PUBLICATION), "id": _u(RUN_HOMEWORK)},
         )
 
@@ -556,16 +563,22 @@ def _insert_delivery_recovery(engine: Engine) -> None:
 
 
 def _assert_foundation_bytes(engine: Engine) -> None:
-    assert _scalar(
-        engine,
-        "SELECT payload_digest FROM command_receipt WHERE id=:id",
-        {"id": _u(RECEIPT)},
-    ) == FOUNDATION_DIGEST
-    assert _scalar(
-        engine,
-        "SELECT revision FROM organization WHERE id=:id",
-        {"id": _u(ORG)},
-    ) == 7
+    assert (
+        _scalar(
+            engine,
+            "SELECT payload_digest FROM command_receipt WHERE id=:id",
+            {"id": _u(RECEIPT)},
+        )
+        == FOUNDATION_DIGEST
+    )
+    assert (
+        _scalar(
+            engine,
+            "SELECT revision FROM organization WHERE id=:id",
+            {"id": _u(ORG)},
+        )
+        == 7
+    )
 
 
 def _assert_revision_bytes(engine: Engine) -> None:
@@ -601,11 +614,11 @@ def test_real_mysql_alembic_walk_preserves_supported_immutable_rows(
     config = _config(async_url)
     monkeypatch.setenv("REVIEW_PLATFORM_DATABASE_URL", async_url)
     scripts = ScriptDirectory.from_config(config)
-    assert scripts.get_heads() == [REVISIONS[-1]]
+    assert scripts.get_heads() == [WORKSPACE_REVISIONS[-1]]
     ordered_revisions = tuple(
         revision.revision for revision in reversed(list(scripts.walk_revisions()))
     )
-    assert ordered_revisions == REVISIONS
+    assert ordered_revisions == REVISIONS + WORKSPACE_REVISIONS
 
     try:
         _clean_database(engine)
@@ -636,23 +649,38 @@ def test_real_mysql_alembic_walk_preserves_supported_immutable_rows(
             introductions[revision](engine)
             _assert_foundation_bytes(engine)
 
-        assert _scalar(
-            engine,
-            "SELECT content_digest FROM artifact_version WHERE id=:id",
-            {"id": _u(ARTIFACT_VERSION)},
-        ) == ARTIFACT_DIGEST
-        assert _scalar(
-            engine,
-            "SELECT input_fingerprint FROM ai_review_run WHERE id=:id",
-            {"id": _u(AI_RUN)},
-        ) == INPUT_FINGERPRINT
-        assert _scalar(
-            engine,
-            "SELECT result_digest FROM delivery_reconciliation_observation WHERE id=:id",
-            {"id": _u(OBSERVATION)},
-        ) == RECONCILE_RESULT_DIGEST
+        assert (
+            _scalar(
+                engine,
+                "SELECT content_digest FROM artifact_version WHERE id=:id",
+                {"id": _u(ARTIFACT_VERSION)},
+            )
+            == ARTIFACT_DIGEST
+        )
+        assert (
+            _scalar(
+                engine,
+                "SELECT input_fingerprint FROM ai_review_run WHERE id=:id",
+                {"id": _u(AI_RUN)},
+            )
+            == INPUT_FINGERPRINT
+        )
+        assert (
+            _scalar(
+                engine,
+                "SELECT result_digest FROM delivery_reconciliation_observation WHERE id=:id",
+                {"id": _u(OBSERVATION)},
+            )
+            == RECONCILE_RESULT_DIGEST
+        )
         _assert_revision_bytes(engine)
         _assert_publication_snapshot(engine)
+        for workspace_revision in WORKSPACE_REVISIONS:
+            command.upgrade(config, workspace_revision)
+            assert _version(engine) == workspace_revision
+            _assert_foundation_bytes(engine)
+            _assert_revision_bytes(engine)
+            _assert_publication_snapshot(engine)
         command.check(config)
 
         downgrade_checks = (
@@ -680,7 +708,7 @@ def test_real_mysql_alembic_walk_preserves_supported_immutable_rows(
         assert "organization" not in _tables(engine)
 
         command.upgrade(config, "head")
-        assert _version(engine) == REVISIONS[-1]
+        assert _version(engine) == WORKSPACE_REVISIONS[-1]
         assert set(introduced_tables).issubset(_tables(engine))
         for table_name in introduced_tables:
             assert _scalar(engine, f"SELECT COUNT(*) FROM `{table_name}`", {}) == 0

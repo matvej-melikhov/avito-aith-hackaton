@@ -3,6 +3,7 @@ import { ApiClient, type Model, type Transport } from "../api/client";
 import type { W, WorkspaceInputs } from "../api/workspace-routes";
 import type { createDemoCore } from "./transport";
 import * as fixture from "./fixtures";
+import { fixtureExport } from "./export";
 type Core = ReturnType<typeof createDemoCore>;
 type Command = {
   [K in keyof WorkspaceInputs]: {
@@ -91,8 +92,12 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
   const quotas = new Map<string, W<"QuotaView">>();
   const policies = new Map<string, W<"PublicationPolicyView">>();
   const selfRuns = new Map<string, W<"SelfReviewView">>();
+  const preparations = new Map<string, W<"PreparationView">>();
+  const preparedDrafts = new Map<string, string>();
+  const assists = new Map<string, W<"ReviewAssistView">>();
   const editors = new Map<string, W<"EditorDraftView">>();
   const privateDetails = new Map<string, W<"PrivateHomeworkView">>();
+  const privateVersions = new Map<string, Model<"HomeworkVersionSummary">>();
   const uploads = new Map<string, { view: W<"UploadView">; url: string }>();
   const exports = new Map<string, W<"ExportView">>();
   const notices: W<"NotificationView">[] = [];
@@ -105,6 +110,8 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
     revision: 0,
     value: {
       course_run_ids: runs.map((r) => r.id),
+      show_pool: true,
+      notifications: { deadline: true, revision: true, pool: false },
       planned_minutes: 120,
       until_at: "2026-12-01T18:00:00Z",
       absent_from: null,
@@ -144,7 +151,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
         {
           id: c.seed.ids.user,
           student_id: c.seed.ids.user,
-          student_name: c === first ? "Алексей Смирнов" : "Мария Иванова",
+          student_name: `Студент ${c.seed.ids.user.slice(-12)}`,
           reviewer_id: user,
           reviewer_name: "Алексей Смирнов",
           revision: 0,
@@ -157,6 +164,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
       cores.find(
         (c) =>
           Object.values(c.seed.ids).includes(identity) ||
+          c.review.review_iteration_id === identity ||
           !!c.histories[identity] ||
           c.homeworks.some((h) => h.course_run_homework_id === identity),
       ) ?? first
@@ -229,8 +237,14 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
         homework_id: c.seed.ids.homework,
         title: c.seed.homework.title,
         course_run_title: c.run.title,
+        course_title: c.seed.course.title,
+        submission_deadline: c.seed.homework.submission_deadline,
+        taken_at: c.review.responsibility_events.at(-1)?.occurred_at ?? null,
+        participant_ids: c.review.responsibility_events
+          .filter((e) => e.action === "started" || e.action === "joined")
+          .map((e) => e.reviewer_id),
         student_id: c.seed.ids.user,
-        student_name: c === first ? "Алексей Смирнов" : "Мария Иванова",
+        student_name: `Студент ${c.seed.ids.user.slice(-12)}`,
         submitted_at: current?.submitted_at ?? "2026-09-04T10:00:00Z",
         submission_version_id: current?.id ?? null,
         attempt: current?.sequence ?? 0,
@@ -331,6 +345,114 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
     initialize();
     try {
       if (method === "GET") {
+        if (path.endsWith("/assist"))
+          return response(assists.get(identity) ?? null);
+        if (path.startsWith("/v2/preparations/"))
+          return preparations.has(identity)
+            ? response(preparations.get(identity))
+            : error("Подготовка не найдена.", 404);
+        if (path.startsWith("/v2/review-assists/"))
+          return response(
+            [...assists.values()].find((r) => r.id === identity) ?? null,
+          );
+        if (path.startsWith("/v2/reviews/") && path.endsWith("/draft")) {
+          const c = owner(identity);
+          return response({
+            revision: c.review.revision,
+            status: c.review.status,
+            current_review_revision_id: c.review.current_review_revision_id,
+            current_review_revision: c.review.current_review_revision,
+            criterion_decisions: c.review.criterion_decisions,
+            review_notes: c.review.review_notes,
+          });
+        }
+        if (path.endsWith("/grade-preview")) {
+          const c = owner(identity);
+          const raw = c.review.current_review_revision?.total_score ?? 0;
+          return response({
+            raw_score: raw,
+            penalty_days: 0,
+            penalty_rate: 0,
+            penalty: 0,
+            final_score: raw,
+            pass_score:
+              policies.get(c.seed.ids.publication)?.pass_score ?? null,
+            policy_revision:
+              policies.get(c.seed.ids.publication)?.revision ?? null,
+          });
+        }
+        if (/^\/v2\/courses\/[^/]+\/homeworks$/.test(path)) {
+          const c = cores.find((c) => c.seed.ids.course === identity);
+          return response({
+            course_id: identity,
+            items: c
+              ? Object.values(c.histories).map((h) => ({
+                  id: h.homework_id,
+                  title:
+                    c.homeworks.find((w) => w.homework_id === h.homework_id)
+                      ?.title ?? "Задание",
+                  revision: h.homework_revision,
+                  latest_version_number:
+                    h.versions.at(-1)?.version_number ?? null,
+                  published_run_ids: h.course_run_publications
+                    .filter((p) => p.is_current)
+                    .map((p) => p.course_run_id),
+                }))
+              : [],
+          });
+        }
+        if (path === "/v2/search") {
+          const q = (url.searchParams.get("q") ?? "").toLowerCase();
+          return response({
+            students: q
+              ? workItems().filter((w) =>
+                  w.student_id.toLowerCase().includes(q),
+                )
+              : [],
+            homeworks: q
+              ? cores.flatMap((c) =>
+                  c.homeworks
+                    .filter((h) => h.title.toLowerCase().includes(q))
+                    .map((h) => ({
+                      id: h.homework_id,
+                      title: h.title,
+                      course_run_id: c.run.id,
+                    })),
+                )
+              : [],
+          });
+        }
+        if (path === "/v2/student/homeworks") {
+          const state = url.searchParams.get("state") ?? "";
+          let items = workItems()
+            .filter((w) => w.student_id === user)
+            .map((w) => ({
+              publication_id: w.publication_id,
+              title: w.title,
+              course_title: w.course_title,
+              course_run_title: w.course_run_title,
+              submission_deadline: w.submission_deadline,
+              status: w.status,
+              attempt: w.attempt,
+              score: w.score,
+              submission_id: w.submission_id,
+              draft_id: drafts.get(w.publication_id)?.id ?? null,
+            }));
+          if (state)
+            items = items.filter((w) =>
+              state === "completed"
+                ? ["passed", "failed", "published"].includes(w.status)
+                : !["passed", "failed", "published"].includes(w.status),
+            );
+          const offset = Number(url.searchParams.get("offset") ?? 0),
+            limit = Number(url.searchParams.get("limit") ?? 20);
+          return response({
+            items: items.slice(offset, offset + limit),
+            total: items.length,
+            offset,
+            limit,
+          });
+        }
         if (path === "/v2/catalog")
           return response({ courses, course_runs: runs });
         if (path === "/v2/directory") return response({ items: people });
@@ -368,12 +490,21 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
                 (p) => p.is_current,
               )?.course_run_id ?? c.run.id,
             title: h.title,
+            course_title: c.seed.course.title,
+            run_title: c.run.title,
+            max_score: version.max_score,
+            submission_id: c.submission.submission_id,
+            material_upload_ids:
+              privateDetails.get(version.id)?.material_upload_ids ?? [],
             student_text: version.student_text,
-            criteria: version.criteria.map(({ id, key, title }) => ({
-              id,
-              key,
-              title,
-            })),
+            criteria: version.criteria.map(
+              ({ id, key, title, max_points }) => ({
+                max_points,
+                id,
+                key,
+                title,
+              }),
+            ),
             submission_deadline: h.submission_deadline,
             draft: drafts.get(identity) ?? null,
             quota: policies.has(identity) ? quota(identity) : null,
@@ -398,7 +529,32 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             items = items.filter((w) =>
               `${w.title} ${w.student_name}`.toLowerCase().includes(q),
             );
-          if (state) items = items.filter((w) => w.status === state);
+          if (state)
+            items = items.filter((w) =>
+              state === "completed"
+                ? [
+                    "accepted",
+                    "rejected",
+                    "passed",
+                    "failed",
+                    "published",
+                  ].includes(w.status)
+                : state === "in_progress"
+                  ? ![
+                      "accepted",
+                      "rejected",
+                      "passed",
+                      "failed",
+                      "published",
+                    ].includes(w.status)
+                  : w.status === state,
+            );
+          if (view === "pool")
+            items = items.filter((w) =>
+              ["pending_review", "in_review", "ready_to_publish"].includes(
+                w.status,
+              ),
+            );
           if (view === "assigned")
             items = items.filter((w) => w.primary_reviewer_id === user);
           if (view === "active")
@@ -429,12 +585,23 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
         if (path.startsWith("/v2/reviews/") && path.endsWith("/context")) {
           const c = owner(identity),
             v =
+              privateVersions.get(
+                c.review.immutable_inputs.homework_version_id,
+              ) ??
               Object.values(c.histories)
                 .flatMap((h) => h.versions)
                 .find(
                   (v) => v.id === c.review.immutable_inputs.homework_version_id,
-                ) ?? c.seed.version;
+                ) ??
+              c.seed.version;
           return response({
+            submission_id: c.submission.submission_id,
+            latest_review_iteration_id: c.review.review_iteration_id,
+            artifact_label: "work.md",
+            title: c.seed.homework.title,
+            student_name: `Студент ${c.seed.ids.user.slice(-12)}`,
+            attempt: c.submission.versions.at(-1)?.sequence ?? 1,
+            submitted_at: c.submission.versions.at(-1)?.submitted_at ?? null,
             homework_id: c.seed.ids.homework,
             criterion_set_id: v.criterion_set_id,
             homework_version_id: v.id,
@@ -464,6 +631,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             attempts: c.submission.versions.map((v) => ({
               id: v.id,
               sequence: v.sequence,
+              comment: "",
               submitted_at: v.submitted_at,
               status: v.status,
               artifact_id: v.artifact_version_id,
@@ -512,6 +680,104 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
           : error("Ключ запроса уже использован.");
       let result: unknown;
       switch (cmd.command_name) {
+        case "update_course": {
+          const course = courses.find((c) => c.id === cmd.target_id);
+          if (!course) return error("Курс не найден.", 404);
+          if (course.revision !== cmd.expected_revision)
+            return error("Курс изменился.");
+          Object.assign(course, cmd.payload, { revision: course.revision + 1 });
+          result = { id: course.id, revision: course.revision };
+          break;
+        }
+        case "update_course_run": {
+          const run = runs.find((c) => c.id === cmd.target_id);
+          if (!run) return error("Поток не найден.", 404);
+          if (run.revision !== cmd.expected_revision)
+            return error("Поток изменился.");
+          Object.assign(run, cmd.payload, { revision: run.revision + 1 });
+          result = { id: run.id, revision: run.revision };
+          break;
+        }
+        case "prepare_work_draft": {
+          const draft = [...drafts.values()].find(
+            (d) => d.id === cmd.target_id,
+          );
+          if (!draft) return error("Черновик не найден.", 404);
+          if (draft.revision !== cmd.expected_revision)
+            return error("Черновик изменился.");
+          const key = `${draft.id}:${draft.revision}`;
+          const existing = preparedDrafts.get(key);
+          if (existing) {
+            result = preparations.get(existing);
+            break;
+          }
+          const id = crypto.randomUUID();
+          const snapshot = draft.upload_id ?? crypto.randomUUID();
+          result = {
+            id,
+            draft_revision: draft.revision,
+            status: "succeeded",
+            artifact_id: snapshot,
+            filename: uploads.get(snapshot)?.view.filename ?? "fixture.md",
+            error_code: null,
+          };
+          preparations.set(id, result as W<"PreparationView">);
+          preparedDrafts.set(key, id);
+          break;
+        }
+        case "start_review_assist": {
+          const c = owner(cmd.target_id);
+          if (c.review.revision !== cmd.expected_revision)
+            return error("Ревью изменилось.");
+          const version =
+            privateVersions.get(
+              c.review.immutable_inputs.homework_version_id,
+            ) ?? c.seed.version;
+          const view: W<"ReviewAssistView"> = {
+            id: crypto.randomUUID(),
+            status: "succeeded",
+            revision: 0,
+            result: {
+              suggestions: version.criteria.map((criterion) => ({
+                criterion_id: criterion.id,
+                status: "suggested",
+                proposed_points: criterion.max_points,
+                reason: "Демо: проверьте вывод по снимку работы.",
+                evidence: [
+                  "Локальный пример: решение для проверки интерфейса.",
+                ],
+                confidence: "medium",
+                reviewer_note: null,
+                student_feedback: null,
+              })),
+            },
+            error_code: null,
+            created_at: new Date().toISOString(),
+          };
+          assists.set(cmd.target_id, view);
+          result = view;
+          break;
+        }
+        case "retry_review_assist": {
+          result = [...assists.values()].find((r) => r.id === cmd.target_id);
+          if (!result) return error("Запуск не найден.", 404);
+          break;
+        }
+        case "save_workspace_review": {
+          const c = owner(cmd.target_id);
+          const core = new ApiClient(c.transport);
+          const saved = await core.command(
+            "save_review_revision",
+            cmd.target_id,
+            cmd.expected_revision,
+            cmd.payload.draft,
+          );
+          result = {
+            id: saved.review_revision_id,
+            revision: saved.review_iteration_revision,
+          };
+          break;
+        }
         case "create_course": {
           const id = crypto.randomUUID();
           courses.push({
@@ -707,6 +973,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
           result = view;
           break;
         }
+        case "submit_work_draft":
         case "submit_uploaded_draft": {
           const draft = [...drafts.values()].find(
             (d) => d.id === cmd.target_id,
@@ -726,11 +993,74 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             cap.submission_revision,
             { artifact_reference_id: cap.artifact_reference_id! },
           );
-          c.submission.versions.at(-1)!.artifact_version_id = draft.upload_id;
+          const preparationId = preparedDrafts.get(
+            `${draft.id}:${draft.revision}`,
+          );
+          c.submission.versions.at(-1)!.artifact_version_id =
+            draft.upload_id ??
+            (preparationId
+              ? preparations.get(preparationId)?.artifact_id
+              : null) ??
+            null;
           result = {
             id: submitted.submission_id,
             revision: submitted.submission_revision,
           };
+          break;
+        }
+        case "publish_workspace_review": {
+          const c = owner(cmd.target_id);
+          const core = new ApiClient(c.transport);
+          const publication = await core.command(
+            "publish_review",
+            cmd.target_id,
+            cmd.expected_revision,
+            { review_revision_id: cmd.payload.review_revision_id },
+          );
+          const raw = c.review.current_review_revision?.total_score ?? 0;
+          result = {
+            id: publication.id,
+            grade: {
+              raw_score: raw,
+              penalty_days: 0,
+              penalty_rate: 0,
+              penalty: 0,
+              final_score: raw,
+              pass_score:
+                policies.get(c.seed.ids.publication)?.pass_score ?? null,
+              policy_revision:
+                policies.get(c.seed.ids.publication)?.revision ?? null,
+            },
+          };
+          break;
+        }
+        case "add_review_requirement": {
+          const c = owner(cmd.target_id);
+          if (c.review.revision !== cmd.expected_revision)
+            return error("Ревью изменилось.");
+          const original =
+            privateVersions.get(
+              c.review.immutable_inputs.homework_version_id,
+            ) ?? c.seed.version;
+          const version = structuredClone(original);
+          version.id = crypto.randomUUID();
+          version.criterion_set_id = crypto.randomUUID();
+          version.max_score += cmd.payload.max_points;
+          version.criteria.push({
+            id: crypto.randomUUID(),
+            key: crypto.randomUUID(),
+            title: cmd.payload.title,
+            description: cmd.payload.description ?? "",
+            max_points: cmd.payload.max_points,
+            position: version.criteria.length + 1,
+          });
+          privateVersions.set(version.id, version);
+          c.review.review_iteration_id = crypto.randomUUID();
+          c.review.immutable_inputs.homework_version_id = version.id;
+          c.review.immutable_inputs.criterion_set_id = version.criterion_set_id;
+          c.review.revision = 0;
+          c.review.status = "in_review";
+          result = { id: c.review.review_iteration_id, revision: 0 };
           break;
         }
         case "open_work": {
@@ -848,30 +1178,26 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
               w.course_run_id === cmd.payload.course_run_id &&
               (cmd.payload.include_unpublished || w.score !== null),
           );
-          const text = [
-            cmd.payload.columns.join(","),
+          const rows: (string | number)[][] = [
+            cmd.payload.columns,
             ...items.map((w) =>
-              cmd.payload.columns
-                .map((c) =>
-                  JSON.stringify(
-                    c === "score"
-                      ? (w.score ?? "")
-                      : c === "student_id"
-                        ? w.student_id
-                        : c === "status"
-                          ? w.status
-                          : c === "attempt"
-                            ? w.attempt
-                            : c === "feedback"
-                              ? (w.feedback ?? "")
-                              : (w.published_by ?? ""),
-                  ),
-                )
-                .join(","),
+              cmd.payload.columns.map((column) =>
+                column === "score"
+                  ? (w.score ?? "")
+                  : column === "student_id"
+                    ? w.student_id
+                    : column === "status"
+                      ? w.status
+                      : column === "attempt"
+                        ? w.attempt
+                        : column === "feedback"
+                          ? (w.feedback ?? "")
+                          : (w.published_by ?? ""),
+              ),
             ),
-          ].join("\n");
+          ];
           const url = URL.createObjectURL(
-            new Blob([text], { type: "text/csv;charset=utf-8" }),
+            fixtureExport(rows, cmd.payload.format),
           );
           const value: W<"ExportView"> = {
             id,

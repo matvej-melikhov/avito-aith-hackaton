@@ -110,6 +110,120 @@
         "title": "AssignmentsView",
         "type": "object"
       },
+      "AssistEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "line_end": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line End"
+          },
+          "line_start": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Start"
+          },
+          "locator": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locator"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          },
+          "quote": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Quote",
+            "type": "string"
+          },
+          "verified": {
+            "const": false,
+            "default": false,
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "quote"
+        ],
+        "title": "AssistEvidence",
+        "type": "object"
+      },
+      "AuthorshipSignal": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/AssistEvidence"
+            },
+            "maxItems": 50,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "explanation": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "probability": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probability"
+          }
+        },
+        "required": [
+          "id",
+          "explanation"
+        ],
+        "title": "AuthorshipSignal",
+        "type": "object"
+      },
       "CatalogView": {
         "additionalProperties": false,
         "properties": {
@@ -135,6 +249,76 @@
         "title": "CatalogView",
         "type": "object"
       },
+      "CoordinatorHomeworkItem": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "latest_version_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Version Number"
+          },
+          "published_run_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Published Run Ids",
+            "type": "array"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "revision",
+          "latest_version_number",
+          "published_run_ids"
+        ],
+        "title": "CoordinatorHomeworkItem",
+        "type": "object"
+      },
+      "CoordinatorHomeworkList": {
+        "additionalProperties": false,
+        "properties": {
+          "course_id": {
+            "format": "uuid",
+            "title": "Course Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CoordinatorHomeworkItem"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "course_id",
+          "items"
+        ],
+        "title": "CoordinatorHomeworkList",
+        "type": "object"
+      },
       "CourseInput": {
         "additionalProperties": false,
         "properties": {
@@ -155,6 +339,18 @@
               }
             ],
             "title": "Owner Id"
+          },
+          "stepik_url": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stepik Url"
           },
           "title": {
             "maxLength": 512,
@@ -327,6 +523,17 @@
             "title": "Status",
             "type": "string"
           },
+          "stepik_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stepik Url"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -341,6 +548,61 @@
           "status"
         ],
         "title": "CourseView",
+        "type": "object"
+      },
+      "CriterionChangeStatistic": {
+        "additionalProperties": false,
+        "properties": {
+          "change_percent": {
+            "title": "Change Percent",
+            "type": "number"
+          },
+          "changed_works": {
+            "minimum": 0.0,
+            "title": "Changed Works",
+            "type": "integer"
+          },
+          "compared_works": {
+            "minimum": 0.0,
+            "title": "Compared Works",
+            "type": "integer"
+          },
+          "criterion_id": {
+            "format": "uuid",
+            "title": "Criterion Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "criterion_id",
+          "title",
+          "compared_works",
+          "changed_works",
+          "change_percent"
+        ],
+        "title": "CriterionChangeStatistic",
+        "type": "object"
+      },
+      "CriterionSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "evaluate_quality": {
+            "default": false,
+            "title": "Evaluate Quality",
+            "type": "boolean"
+          },
+          "score_step": {
+            "default": 0.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Score Step",
+            "type": "number"
+          }
+        },
+        "title": "CriterionSettings",
         "type": "object"
       },
       "DirectoryMember": {
@@ -395,6 +657,17 @@
             "format": "date-time",
             "title": "Expires At",
             "type": "string"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
           },
           "url": {
             "title": "Url",
@@ -525,6 +798,11 @@
             "title": "Description",
             "type": "string"
           },
+          "evaluate_quality": {
+            "default": false,
+            "title": "Evaluate Quality",
+            "type": "boolean"
+          },
           "key": {
             "maxLength": 128,
             "minLength": 1,
@@ -535,6 +813,12 @@
             "default": 0,
             "minimum": 0.0,
             "title": "Max Points",
+            "type": "number"
+          },
+          "score_step": {
+            "default": 0.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Score Step",
             "type": "number"
           },
           "title": {
@@ -584,6 +868,15 @@
             "minimum": 1.0,
             "title": "Estimated Review Minutes",
             "type": "integer"
+          },
+          "material_upload_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Material Upload Ids",
+            "type": "array"
           },
           "max_score": {
             "default": 0,
@@ -809,6 +1102,34 @@
         "title": "ExportView",
         "type": "object"
       },
+      "ExtraRequirementInput": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "default": "",
+            "maxLength": 20000,
+            "title": "Description",
+            "type": "string"
+          },
+          "max_points": {
+            "minimum": 0.0,
+            "title": "Max Points",
+            "type": "number"
+          },
+          "title": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "max_points"
+        ],
+        "title": "ExtraRequirementInput",
+        "type": "object"
+      },
       "GradePreview": {
         "additionalProperties": false,
         "properties": {
@@ -882,6 +1203,69 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "LocalIdentities": {
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LocalIdentity"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "enabled",
+          "items"
+        ],
+        "title": "LocalIdentities",
+        "type": "object"
+      },
+      "LocalIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "roles"
+        ],
+        "title": "LocalIdentity",
+        "type": "object"
+      },
+      "LocalLoginInput": {
+        "additionalProperties": false,
+        "properties": {
+          "identity": {
+            "title": "Identity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "identity"
+        ],
+        "title": "LocalLoginInput",
+        "type": "object"
+      },
       "MembershipInput": {
         "additionalProperties": false,
         "properties": {
@@ -936,6 +1320,28 @@
           "text"
         ],
         "title": "NotificationInput",
+        "type": "object"
+      },
+      "NotificationPreferences": {
+        "additionalProperties": false,
+        "properties": {
+          "deadline": {
+            "default": true,
+            "title": "Deadline",
+            "type": "boolean"
+          },
+          "pool": {
+            "default": false,
+            "title": "Pool",
+            "type": "boolean"
+          },
+          "revision": {
+            "default": true,
+            "title": "Revision",
+            "type": "boolean"
+          }
+        },
+        "title": "NotificationPreferences",
         "type": "object"
       },
       "NotificationView": {
@@ -1045,6 +1451,67 @@
         "title": "OutcomeInput",
         "type": "object"
       },
+      "PeerComparisonStatistic": {
+        "additionalProperties": false,
+        "properties": {
+          "compared_criteria": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Compared Criteria",
+            "type": "integer"
+          },
+          "course_divergence_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Divergence Percent"
+          },
+          "divergence_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Divergence Percent"
+          },
+          "fully_agreed_criteria": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Fully Agreed Criteria",
+            "type": "integer"
+          },
+          "sample_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Sample Count",
+            "type": "integer"
+          },
+          "softer_criteria": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Softer Criteria",
+            "type": "array"
+          },
+          "stricter_criteria": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Stricter Criteria",
+            "type": "array"
+          }
+        },
+        "title": "PeerComparisonStatistic",
+        "type": "object"
+      },
       "PreferencesInput": {
         "additionalProperties": false,
         "properties": {
@@ -1081,10 +1548,18 @@
             "title": "Course Run Ids",
             "type": "array"
           },
+          "notifications": {
+            "$ref": "#/components/schemas/NotificationPreferences"
+          },
           "planned_minutes": {
             "minimum": 0.0,
             "title": "Planned Minutes",
             "type": "integer"
+          },
+          "show_pool": {
+            "default": true,
+            "title": "Show Pool",
+            "type": "boolean"
           },
           "until_at": {
             "format": "date-time",
@@ -1126,6 +1601,75 @@
         "title": "PreferencesView",
         "type": "object"
       },
+      "PreparationView": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "draft_revision": {
+            "minimum": 0.0,
+            "title": "Draft Revision",
+            "type": "integer"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "processing",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "draft_revision",
+          "status",
+          "artifact_id",
+          "filename",
+          "error_code"
+        ],
+        "title": "PreparationView",
+        "type": "object"
+      },
       "PriorityInput": {
         "additionalProperties": false,
         "properties": {
@@ -1158,6 +1702,22 @@
             },
             "title": "Criterion Classes",
             "type": "object"
+          },
+          "criterion_settings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CriterionSettings"
+            },
+            "title": "Criterion Settings",
+            "type": "object"
+          },
+          "material_upload_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Material Upload Ids",
+            "type": "array"
           },
           "reference_upload_id": {
             "anyOf": [
@@ -1196,6 +1756,22 @@
             "title": "Criterion Classes",
             "type": "object"
           },
+          "criterion_settings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CriterionSettings"
+            },
+            "title": "Criterion Settings",
+            "type": "object"
+          },
+          "material_upload_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Material Upload Ids",
+            "type": "array"
+          },
           "reference_upload_id": {
             "anyOf": [
               {
@@ -1226,6 +1802,26 @@
         "title": "PrivateHomeworkView",
         "type": "object"
       },
+      "ProfileView": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name"
+        ],
+        "title": "ProfileView",
+        "type": "object"
+      },
       "PublicCriterion": {
         "additionalProperties": false,
         "properties": {
@@ -1237,6 +1833,12 @@
           "key": {
             "title": "Key",
             "type": "string"
+          },
+          "max_points": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Max Points",
+            "type": "number"
           },
           "title": {
             "title": "Title",
@@ -1563,9 +2165,136 @@
         "title": "ResourceResult",
         "type": "object"
       },
+      "ReviewAssistResult": {
+        "additionalProperties": false,
+        "properties": {
+          "authorship_signal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorshipSignal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "feedback_draft": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Draft"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewerSuggestion"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "suggestions"
+        ],
+        "title": "ReviewAssistResult",
+        "type": "object"
+      },
+      "ReviewAssistView": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewAssistResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "unknown_outcome",
+              "succeeded",
+              "failed",
+              "stale"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "revision",
+          "result",
+          "error_code",
+          "created_at"
+        ],
+        "title": "ReviewAssistView",
+        "type": "object"
+      },
       "ReviewContext": {
         "additionalProperties": false,
         "properties": {
+          "ai_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Run Id"
+          },
+          "artifact_label": {
+            "default": "Снимок работы",
+            "title": "Artifact Label",
+            "type": "string"
+          },
+          "attempt": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Attempt",
+            "type": "integer"
+          },
           "criteria": {
             "items": {
               "$ref": "#/components/schemas/ReviewCriterionView"
@@ -1587,6 +2316,18 @@
             "format": "uuid",
             "title": "Homework Version Id",
             "type": "string"
+          },
+          "latest_review_iteration_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Review Iteration Id"
           },
           "max_score": {
             "title": "Max Score",
@@ -1624,8 +2365,53 @@
             "title": "Self Reviews",
             "type": "array"
           },
+          "signal_decisions": {
+            "additionalProperties": {
+              "enum": [
+                "confirm",
+                "reject"
+              ],
+              "type": "string"
+            },
+            "title": "Signal Decisions",
+            "type": "object"
+          },
+          "student_name": {
+            "default": "",
+            "title": "Student Name",
+            "type": "string"
+          },
           "student_text": {
             "title": "Student Text",
+            "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submission Id"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "title": {
+            "default": "",
+            "title": "Title",
             "type": "string"
           }
         },
@@ -1651,6 +2437,11 @@
             "title": "Description",
             "type": "string"
           },
+          "evaluate_quality": {
+            "default": false,
+            "title": "Evaluate Quality",
+            "type": "boolean"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -1670,6 +2461,329 @@
             "title": "Position",
             "type": "integer"
           },
+          "score_step": {
+            "default": 0.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Score Step",
+            "type": "number"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "max_points",
+          "id",
+          "key",
+          "title",
+          "description",
+          "position"
+        ],
+        "title": "ReviewCriterionView",
+        "type": "object"
+      },
+      "ReviewDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "criterion_id": {
+            "format": "uuid",
+            "title": "Criterion Id",
+            "type": "string"
+          },
+          "decision": {
+            "enum": [
+              "accepted",
+              "changed",
+              "manual"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "evidence_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "points": {
+            "minimum": 0.0,
+            "title": "Points",
+            "type": "number"
+          },
+          "reason": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "criterion_id",
+          "points",
+          "decision",
+          "reason"
+        ],
+        "title": "ReviewDecision",
+        "type": "object"
+      },
+      "ReviewDraftView": {
+        "additionalProperties": false,
+        "properties": {
+          "criterion_decisions": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewDecision"
+            },
+            "title": "Criterion Decisions",
+            "type": "array"
+          },
+          "current_review_revision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkspaceRevisionSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_review_revision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Review Revision Id"
+          },
+          "review_notes": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceNoteView"
+            },
+            "title": "Review Notes",
+            "type": "array"
+          },
+          "revision": {
+            "minimum": 0.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "in_review",
+              "ready_to_publish",
+              "published",
+              "canceled"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "status",
+          "current_review_revision_id",
+          "current_review_revision",
+          "criterion_decisions",
+          "review_notes"
+        ],
+        "title": "ReviewDraftView",
+        "type": "object"
+      },
+      "ReviewNote": {
+        "additionalProperties": false,
+        "properties": {
+          "criterion_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criterion Id"
+          },
+          "text": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "ReviewNote",
+        "type": "object"
+      },
+      "ReviewerSuggestion": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "default": "medium",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "criterion_id": {
+            "format": "uuid",
+            "title": "Criterion Id",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "proposed_points": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed Points"
+          },
+          "reason": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "requirement_met": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requirement Met"
+          },
+          "reviewer_note": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Note"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/AssistEvidence"
+            },
+            "maxItems": 50,
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "suggested",
+              "needs_human",
+              "not_checked"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "student_feedback": {
+            "anyOf": [
+              {
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student Feedback"
+          }
+        },
+        "required": [
+          "criterion_id",
+          "status",
+          "proposed_points",
+          "reason"
+        ],
+        "title": "ReviewerSuggestion",
+        "type": "object"
+      },
+      "SaveReviewRevisionPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "criterion_decisions": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewDecision"
+            },
+            "maxItems": 500,
+            "title": "Criterion Decisions",
+            "type": "array"
+          },
+          "feedback": {
+            "maxLength": 50000,
+            "title": "Feedback",
+            "type": "string"
+          },
+          "review_notes": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewNote"
+            },
+            "maxItems": 500,
+            "title": "Review Notes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "feedback",
+          "criterion_decisions",
+          "review_notes"
+        ],
+        "title": "SaveReviewRevisionPayload",
+        "type": "object"
+      },
+      "SearchHomeworkView": {
+        "additionalProperties": false,
+        "properties": {
+          "course_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Run Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -1677,13 +2791,10 @@
         },
         "required": [
           "id",
-          "key",
           "title",
-          "description",
-          "max_points",
-          "position"
+          "course_run_id"
         ],
-        "title": "ReviewCriterionView",
+        "title": "SearchHomeworkView",
         "type": "object"
       },
       "SelfReviewEvent": {
@@ -1919,6 +3030,17 @@
       "StatisticView": {
         "additionalProperties": false,
         "properties": {
+          "ai_acceptance_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Acceptance Percent"
+          },
           "average_elapsed_minutes": {
             "anyOf": [
               {
@@ -1930,6 +3052,17 @@
             ],
             "title": "Average Elapsed Minutes"
           },
+          "average_wait_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Wait Minutes"
+          },
           "changed_decisions": {
             "minimum": 0.0,
             "title": "Changed Decisions",
@@ -1940,20 +3073,104 @@
             "title": "Compared Decisions",
             "type": "integer"
           },
+          "course_ai_acceptance_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Ai Acceptance Percent"
+          },
+          "course_average_elapsed_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Average Elapsed Minutes"
+          },
+          "course_average_overdue_publications": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Average Overdue Publications"
+          },
+          "course_average_wait_minutes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Average Wait Minutes"
+          },
+          "criterion_changes": {
+            "items": {
+              "$ref": "#/components/schemas/CriterionChangeStatistic"
+            },
+            "title": "Criterion Changes",
+            "type": "array"
+          },
+          "elapsed_sample_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Elapsed Sample Count",
+            "type": "integer"
+          },
           "from_date": {
             "format": "date-time",
             "title": "From Date",
             "type": "string"
+          },
+          "overdue_publications": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Overdue Publications",
+            "type": "integer"
+          },
+          "overdue_sample_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Overdue Sample Count",
+            "type": "integer"
+          },
+          "peer_comparison": {
+            "$ref": "#/components/schemas/PeerComparisonStatistic"
           },
           "publications": {
             "minimum": 0.0,
             "title": "Publications",
             "type": "integer"
           },
+          "repeated_publications": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Repeated Publications",
+            "type": "integer"
+          },
           "until_date": {
             "format": "date-time",
             "title": "Until Date",
             "type": "string"
+          },
+          "wait_sample_count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Wait Sample Count",
+            "type": "integer"
           }
         },
         "required": [
@@ -1973,6 +3190,11 @@
           "course_run_id": {
             "format": "uuid",
             "title": "Course Run Id",
+            "type": "string"
+          },
+          "course_title": {
+            "default": "",
+            "title": "Course Title",
             "type": "string"
           },
           "criteria": {
@@ -2002,6 +3224,20 @@
             "title": "Homework Version Id",
             "type": "string"
           },
+          "material_upload_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Material Upload Ids",
+            "type": "array"
+          },
+          "max_score": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Max Score",
+            "type": "number"
+          },
           "policy": {
             "anyOf": [
               {
@@ -2027,6 +3263,11 @@
               }
             ]
           },
+          "run_title": {
+            "default": "",
+            "title": "Run Title",
+            "type": "string"
+          },
           "self_reviews": {
             "items": {
               "$ref": "#/components/schemas/SelfReviewView"
@@ -2042,6 +3283,18 @@
             "format": "date-time",
             "title": "Submission Deadline",
             "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submission Id"
           },
           "title": {
             "title": "Title",
@@ -2065,6 +3318,127 @@
         "title": "StudentContext",
         "type": "object"
       },
+      "StudentHomeworkItem": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "minimum": 0.0,
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "course_run_title": {
+            "title": "Course Run Title",
+            "type": "string"
+          },
+          "course_title": {
+            "title": "Course Title",
+            "type": "string"
+          },
+          "draft_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Id"
+          },
+          "publication_id": {
+            "format": "uuid",
+            "title": "Publication Id",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submission_deadline": {
+            "format": "date-time",
+            "title": "Submission Deadline",
+            "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submission Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "publication_id",
+          "title",
+          "course_title",
+          "course_run_title",
+          "submission_deadline",
+          "status",
+          "attempt",
+          "score",
+          "submission_id",
+          "draft_id"
+        ],
+        "title": "StudentHomeworkItem",
+        "type": "object"
+      },
+      "StudentHomeworkList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StudentHomeworkItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "minimum": 0.0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "StudentHomeworkList",
+        "type": "object"
+      },
       "StudentReviewView": {
         "additionalProperties": false,
         "properties": {
@@ -2086,9 +3460,30 @@
             ],
             "title": "Decision"
           },
+          "decision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Reason"
+          },
           "feedback": {
             "title": "Feedback",
             "type": "string"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GradePreview"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "format": "uuid",
@@ -2229,6 +3624,10 @@
             ],
             "title": "Capture Operation Id"
           },
+          "comment": {
+            "title": "Comment",
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -2251,6 +3650,7 @@
         },
         "required": [
           "id",
+          "comment",
           "sequence",
           "submitted_at",
           "status",
@@ -2384,6 +3784,11 @@
             "title": "Course Run Title",
             "type": "string"
           },
+          "course_title": {
+            "default": "",
+            "title": "Course Title",
+            "type": "string"
+          },
           "feedback": {
             "anyOf": [
               {
@@ -2399,6 +3804,14 @@
             "format": "uuid",
             "title": "Homework Id",
             "type": "string"
+          },
+          "participant_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Participant Ids",
+            "type": "array"
           },
           "primary_reviewer_id": {
             "anyOf": [
@@ -2523,6 +3936,18 @@
             "title": "Student Name",
             "type": "string"
           },
+          "submission_deadline": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submission Deadline"
+          },
           "submission_id": {
             "format": "uuid",
             "title": "Submission Id",
@@ -2549,6 +3974,18 @@
             "format": "date-time",
             "title": "Submitted At",
             "type": "string"
+          },
+          "taken_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taken At"
           },
           "title": {
             "title": "Title",
@@ -2933,6 +4370,51 @@
           "payload"
         ],
         "title": "WorkspaceCommand[ExportInput]",
+        "type": "object"
+      },
+      "WorkspaceCommand_ExtraRequirementInput_": {
+        "additionalProperties": false,
+        "properties": {
+          "command_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Command Name",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 16,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ExtraRequirementInput"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "idempotency_key",
+          "command_name",
+          "target_id",
+          "expected_revision",
+          "payload"
+        ],
+        "title": "WorkspaceCommand[ExtraRequirementInput]",
         "type": "object"
       },
       "WorkspaceCommand_MembershipInput_": {
@@ -3474,6 +4956,207 @@
         ],
         "title": "WorkspaceCommand[UploadInput]",
         "type": "object"
+      },
+      "WorkspaceCommand_WorkspaceReviewSaveInput_": {
+        "additionalProperties": false,
+        "properties": {
+          "command_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Command Name",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 16,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/WorkspaceReviewSaveInput"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_id",
+          "idempotency_key",
+          "command_name",
+          "target_id",
+          "expected_revision",
+          "payload"
+        ],
+        "title": "WorkspaceCommand[WorkspaceReviewSaveInput]",
+        "type": "object"
+      },
+      "WorkspaceNoteView": {
+        "additionalProperties": false,
+        "properties": {
+          "author_user_id": {
+            "format": "uuid",
+            "title": "Author User Id",
+            "type": "string"
+          },
+          "criterion_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criterion Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "position": {
+            "minimum": 0.0,
+            "title": "Position",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "criterion_id",
+          "text",
+          "author_user_id",
+          "position"
+        ],
+        "title": "WorkspaceNoteView",
+        "type": "object"
+      },
+      "WorkspaceReviewSaveInput": {
+        "additionalProperties": false,
+        "properties": {
+          "ai_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Run Id"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/SaveReviewRevisionPayload"
+          },
+          "signal_decisions": {
+            "additionalProperties": {
+              "enum": [
+                "confirm",
+                "reject"
+              ],
+              "type": "string"
+            },
+            "maxProperties": 1,
+            "title": "Signal Decisions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "draft"
+        ],
+        "title": "WorkspaceReviewSaveInput",
+        "type": "object"
+      },
+      "WorkspaceRevisionSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "author_user_id": {
+            "format": "uuid",
+            "title": "Author User Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "feedback": {
+            "title": "Feedback",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "review_iteration_id": {
+            "format": "uuid",
+            "title": "Review Iteration Id",
+            "type": "string"
+          },
+          "revision_number": {
+            "minimum": 0.0,
+            "title": "Revision Number",
+            "type": "integer"
+          },
+          "total_score": {
+            "title": "Total Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "review_iteration_id",
+          "revision_number",
+          "author_user_id",
+          "feedback",
+          "total_score",
+          "created_at"
+        ],
+        "title": "WorkspaceRevisionSummary",
+        "type": "object"
+      },
+      "WorkspaceSearchView": {
+        "additionalProperties": false,
+        "properties": {
+          "homeworks": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHomeworkView"
+            },
+            "title": "Homeworks",
+            "type": "array"
+          },
+          "students": {
+            "items": {
+              "$ref": "#/components/schemas/WorkItem"
+            },
+            "title": "Students",
+            "type": "array"
+          }
+        },
+        "required": [
+          "students",
+          "homeworks"
+        ],
+        "title": "WorkspaceSearchView",
+        "type": "object"
       }
     }
   },
@@ -3745,6 +5428,60 @@
         "tags": [
           "workspace-v2"
         ]
+      }
+    },
+    "/v2/course-runs/{identity}": {
+      "post": {
+        "operationId": "update_course_run_api_v2_course_runs__identity__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_CourseRunInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Course Run",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "update_course_run"
       }
     },
     "/v2/course-runs/{identity}/assignments": {
@@ -4046,6 +5783,60 @@
         "x-command-name": "create_course"
       }
     },
+    "/v2/courses/{identity}": {
+      "post": {
+        "operationId": "update_course_api_v2_courses__identity__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_CourseInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Course",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "update_course"
+      }
+    },
     "/v2/courses/{identity}/course-runs": {
       "post": {
         "operationId": "create_run_api_v2_courses__identity__course_runs_post",
@@ -4098,6 +5889,49 @@
           "workspace-v2"
         ],
         "x-command-name": "create_course_run"
+      }
+    },
+    "/v2/courses/{identity}/homeworks": {
+      "get": {
+        "operationId": "homeworks_api_v2_courses__identity__homeworks_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoordinatorHomeworkList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Homeworks",
+        "tags": [
+          "workspace-v2"
+        ]
       }
     },
     "/v2/directory": {
@@ -4597,6 +6431,146 @@
         "x-command-name": "read_notification"
       }
     },
+    "/v2/preparations/{identity}": {
+      "get": {
+        "operationId": "preparation_api_v2_preparations__identity__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preparation",
+        "tags": [
+          "workspace-v2"
+        ]
+      }
+    },
+    "/v2/review-assists/{identity}": {
+      "get": {
+        "operationId": "get_assist_api_v2_review_assists__identity__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewAssistView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Assist",
+        "tags": [
+          "workspace-v2"
+        ]
+      }
+    },
+    "/v2/review-assists/{identity}/retry": {
+      "post": {
+        "operationId": "retry_assist_api_v2_review_assists__identity__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_EmptyInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewAssistView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry Assist",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "retry_review_assist"
+      }
+    },
     "/v2/reviewer/preferences": {
       "get": {
         "operationId": "preferences_api_v2_reviewer_preferences_get",
@@ -4658,6 +6632,109 @@
         "x-command-name": "save_preferences"
       }
     },
+    "/v2/reviews/{identity}/assist": {
+      "get": {
+        "operationId": "latest_assist_api_v2_reviews__identity__assist_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ReviewAssistView"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Latest Assist Api V2 Reviews  Identity  Assist Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Latest Assist",
+        "tags": [
+          "workspace-v2"
+        ]
+      },
+      "post": {
+        "operationId": "start_assist_api_v2_reviews__identity__assist_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_EmptyInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewAssistView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Assist",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "start_review_assist"
+      }
+    },
     "/v2/reviews/{identity}/context": {
       "get": {
         "operationId": "review_context_api_v2_reviews__identity__context_get",
@@ -4699,6 +6776,101 @@
         "tags": [
           "workspace-v2"
         ]
+      }
+    },
+    "/v2/reviews/{identity}/draft": {
+      "get": {
+        "operationId": "get_review_draft_api_v2_reviews__identity__draft_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewDraftView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Review Draft",
+        "tags": [
+          "workspace-v2"
+        ]
+      },
+      "post": {
+        "operationId": "save_assisted_draft_api_v2_reviews__identity__draft_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_WorkspaceReviewSaveInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Assisted Draft",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "save_workspace_review"
       }
     },
     "/v2/reviews/{identity}/grade-preview": {
@@ -4852,6 +7024,104 @@
         "x-command-name": "publish_workspace_review"
       }
     },
+    "/v2/reviews/{identity}/requirements": {
+      "post": {
+        "operationId": "add_review_requirement_api_v2_reviews__identity__requirements_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_ExtraRequirementInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Review Requirement",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "add_review_requirement"
+      }
+    },
+    "/v2/search": {
+      "get": {
+        "operationId": "search_workspace_api_v2_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 200,
+              "title": "Q",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceSearchView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search Workspace",
+        "tags": [
+          "workspace-v2"
+        ]
+      }
+    },
     "/v2/self-reviews/{identity}": {
       "get": {
         "operationId": "self_review_api_v2_self_reviews__identity__get",
@@ -4964,6 +7234,23 @@
               "title": "Days",
               "type": "integer"
             }
+          },
+          {
+            "in": "query",
+            "name": "course_run_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Course Run Id"
+            }
           }
         ],
         "responses": {
@@ -4989,6 +7276,77 @@
           }
         },
         "summary": "Statistics",
+        "tags": [
+          "workspace-v2"
+        ]
+      }
+    },
+    "/v2/student/homeworks": {
+      "get": {
+        "operationId": "list_student_homeworks_api_v2_student_homeworks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "default": "",
+              "enum": [
+                "",
+                "in_progress",
+                "completed"
+              ],
+              "title": "State",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentHomeworkList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Student Homeworks",
         "tags": [
           "workspace-v2"
         ]
@@ -5133,6 +7491,60 @@
         "x-command-name": "upload_artifact"
       }
     },
+    "/v2/work-drafts/{identity}/prepare": {
+      "post": {
+        "operationId": "prepare_work_draft_api_v2_work_drafts__identity__prepare_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_EmptyInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreparationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Prepare Work Draft",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "prepare_work_draft"
+      }
+    },
     "/v2/work-drafts/{identity}/self-reviews": {
       "post": {
         "operationId": "start_self_review_api_v2_work_drafts__identity__self_reviews_post",
@@ -5185,6 +7597,60 @@
           "workspace-v2"
         ],
         "x-command-name": "start_self_review"
+      }
+    },
+    "/v2/work-drafts/{identity}/submit": {
+      "post": {
+        "operationId": "submit_work_draft_api_v2_work_drafts__identity__submit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identity",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Identity",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceCommand_EmptyInput_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit Work Draft",
+        "tags": [
+          "workspace-v2"
+        ],
+        "x-command-name": "submit_work_draft"
       }
     },
     "/v2/work-drafts/{identity}/submit-upload": {
@@ -5315,9 +7781,19 @@
             "name": "priority",
             "required": false,
             "schema": {
-              "default": "assigned",
-              "title": "Priority",
-              "type": "string"
+              "anyOf": [
+                {
+                  "enum": [
+                    "assigned",
+                    "deadline"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Priority"
             }
           },
           {

@@ -140,12 +140,14 @@ class S3ObjectStorage:
         bucket: str,
         max_object_bytes: int,
         chunk_bytes: int = _DEFAULT_CHUNK_BYTES,
+        signing_client: S3Client | None = None,
     ) -> None:
         if not bucket:
             raise ValueError("bucket is required")
         if max_object_bytes < 1 or chunk_bytes < 1:
             raise ValueError("object and chunk limits must be positive")
         self._client = client
+        self._signing_client = signing_client or client
         self._bucket = bucket
         self._max_object_bytes = max_object_bytes
         self._chunk_bytes = chunk_bytes
@@ -304,7 +306,7 @@ class S3ObjectStorage:
         )
         if not 1 <= expires_in_seconds <= 3600:
             raise ValueError("signed read TTL must be between 1 and 3600 seconds")
-        return self._client.generate_presigned_url(
+        return self._signing_client.generate_presigned_url(
             "get_object",
             Params={"Bucket": self._bucket, "Key": key},
             ExpiresIn=expires_in_seconds,

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from uuid import UUID
 from typing import Literal, cast
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +17,7 @@ from review_platform.application.workspace.common import (
     revision,
     row,
 )
+from review_platform.application.workspace.student_alias import student_labels
 from review_platform.contracts.workspace import (
     AssignmentInput,
     AssignmentsView,
@@ -44,8 +45,8 @@ from review_platform.infrastructure.db.models import (
 )
 from review_platform.infrastructure.db.models.workspace import (
     StudentReviewerAssignment,
-    WorkspacePreferences,
     WorkspaceCourseDetails,
+    WorkspacePreferences,
     WorkspaceRunSettings,
 )
 
@@ -64,12 +65,19 @@ class CatalogService:
                     OrganizationMembership.organization_id == actor.organization_id,
                     OrganizationMembership.status == "active",
                 )
-                .order_by(User.display_name, User.id)
+                .order_by(User.id)
             )
         ).all()
+        aliases = await student_labels(
+            self.session, actor.organization_id, [u.id for u, _ in entries]
+        )
         return DirectoryView(
             items=[
-                DirectoryMember(id=u.id, display_name=u.display_name, roles=m.roles)
+                DirectoryMember(
+                    id=u.id,
+                    display_name=aliases[u.id] if set(m.roles) == {"student"} else u.display_name,
+                    roles=m.roles,
+                )
                 for u, m in entries
             ]
         )
@@ -101,6 +109,7 @@ class CatalogService:
             )
         ).all()
         owners = {d.id: d.owner_id for d in details}
+        stepik_links = {d.id: d.stepik_url for d in details}
         run_settings = (
             await self.session.scalars(
                 select(WorkspaceRunSettings).where(
@@ -114,6 +123,7 @@ class CatalogService:
                 CourseView(
                     id=c.id,
                     owner_id=owners.get(c.id),
+                    stepik_url=stepik_links.get(c.id),
                     title=c.title,
                     description=c.description,
                     revision=c.revision,
@@ -167,7 +177,10 @@ class CatalogService:
         await self.session.flush()
         self.session.add(
             WorkspaceCourseDetails(
-                id=course.id, organization_id=actor.organization_id, owner_id=payload.owner_id
+                id=course.id,
+                organization_id=actor.organization_id,
+                owner_id=payload.owner_id,
+                stepik_url=payload.stepik_url,
             )
         )
         await self.session.flush()
@@ -180,7 +193,7 @@ class CatalogService:
         course = await row(self.session, Course, actor.organization_id, course_id, lock=True)
         revision(course.revision, expected)
         if course.status != "active":
-            raise WorkspaceFailure("archived", "Курс архивирован.")
+            raise WorkspaceFailure("archived", "Этот курс архивирован.")
         run = CourseRun(
             id=self.runtime.id_factory(),
             organization_id=actor.organization_id,
@@ -359,7 +372,7 @@ class CatalogService:
                         CourseMembership.kind == "student",
                         CourseMembership.status == "active",
                     )
-                    .order_by(User.display_name, User.id)
+                    .order_by(User.id)
                 )
             )
             .scalars()
@@ -382,12 +395,15 @@ class CatalogService:
             )
         ).all()
         names: dict[UUID | None, str] = {u.id: u.display_name for u in reviewers}
+        aliases = await student_labels(
+            self.session, actor.organization_id, [u.id for u in students]
+        )
         return AssignmentsView(
             items=[
                 AssignmentView(
                     id=by_student[u.id].id if u.id in by_student else u.id,
                     student_id=u.id,
-                    student_name=u.display_name,
+                    student_name=aliases[u.id],
                     reviewer_id=by_student[u.id].reviewer_id if u.id in by_student else None,
                     reviewer_name=names.get(by_student[u.id].reviewer_id)
                     if u.id in by_student

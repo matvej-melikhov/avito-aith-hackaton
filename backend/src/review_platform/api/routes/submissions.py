@@ -43,6 +43,11 @@ from review_platform.application.services.submissions import (
     SubmissionService,
     SubmissionServiceError,
 )
+from review_platform.application.workspace.common import WorkspaceFailure
+from review_platform.application.workspace.grading import (
+    snapshot_submission_policy,
+    validate_submission_limit,
+)
 from review_platform.contracts.commands import (
     OpenReviewIterationPayload,
     PreflightSubmissionPayload,
@@ -252,6 +257,18 @@ async def submit_work(submissionId: UUID, request: Request, body: Mapping[str, A
         async with runtime.transaction() as transaction:
             replay = await _reserve(runtime, transaction, command, actor.organization_id)
             if replay is None:
+                submission_row = await transaction.scalar(
+                    select(Submission)
+                    .where(
+                        Submission.organization_id == actor.organization_id,
+                        Submission.id == submissionId,
+                    )
+                    .with_for_update()
+                )
+                if submission_row is not None:
+                    await validate_submission_limit(
+                        transaction, actor.organization_id, submission_row, runtime.clock()
+                    )
                 result = await SubmissionService(
                     repository=SqlSubmissionRepository(),
                     scope_authorization=SqlSubmissionScopeAuthorization(),
@@ -278,6 +295,9 @@ async def submit_work(submissionId: UUID, request: Request, body: Mapping[str, A
                     request_id=command.request_id,
                     trace_id=runtime.id_factory(),
                 )
+                await snapshot_submission_policy(
+                    transaction, actor.organization_id, result.version.version_id
+                )
                 response_payload = {
                     "submission_id": str(result.submission_id),
                     "submission_revision": result.submission_revision,
@@ -290,6 +310,10 @@ async def submit_work(submissionId: UUID, request: Request, body: Mapping[str, A
                 response_payload = replay
             await runtime.user_auth_guard.lock_and_revalidate(actor=actor, transaction=transaction)
         return JSONResponse(response_payload, status_code=201)
+    except WorkspaceFailure as error:
+        return JSONResponse(
+            {"code": error.code, "message": str(error), "action": None}, status_code=error.status
+        )
     except _ERRORS as error:
         return _error(error, unavailable=isinstance(error, ArtifactReferenceUnavailable))
 

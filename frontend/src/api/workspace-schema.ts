@@ -85,6 +85,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/course-runs/{identity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update Course Run */
+        post: operations["update_course_run_api_v2_course_runs__identity__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/course-runs/{identity}/assignments": {
         parameters: {
             query?: never;
@@ -171,6 +188,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/courses/{identity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update Course */
+        post: operations["update_course_api_v2_courses__identity__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/courses/{identity}/course-runs": {
         parameters: {
             query?: never;
@@ -182,6 +216,23 @@ export interface paths {
         put?: never;
         /** Create Run */
         post: operations["create_run_api_v2_courses__identity__course_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/courses/{identity}/homeworks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Homeworks */
+        get: operations["homeworks_api_v2_courses__identity__homeworks_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -360,6 +411,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/preparations/{identity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preparation */
+        get: operations["preparation_api_v2_preparations__identity__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/review-assists/{identity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Assist */
+        get: operations["get_assist_api_v2_review_assists__identity__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/review-assists/{identity}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry Assist */
+        post: operations["retry_assist_api_v2_review_assists__identity__retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/reviewer/preferences": {
         parameters: {
             query?: never;
@@ -378,6 +480,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/reviews/{identity}/assist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest Assist */
+        get: operations["latest_assist_api_v2_reviews__identity__assist_get"];
+        put?: never;
+        /** Start Assist */
+        post: operations["start_assist_api_v2_reviews__identity__assist_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/reviews/{identity}/context": {
         parameters: {
             query?: never;
@@ -389,6 +509,24 @@ export interface paths {
         get: operations["review_context_api_v2_reviews__identity__context_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/reviews/{identity}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Review Draft */
+        get: operations["get_review_draft_api_v2_reviews__identity__draft_get"];
+        put?: never;
+        /** Save Assisted Draft */
+        post: operations["save_assisted_draft_api_v2_reviews__identity__draft_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -446,6 +584,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/reviews/{identity}/requirements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Review Requirement */
+        post: operations["add_review_requirement_api_v2_reviews__identity__requirements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Workspace */
+        get: operations["search_workspace_api_v2_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/self-reviews/{identity}": {
         parameters: {
             query?: never;
@@ -489,6 +661,23 @@ export interface paths {
         };
         /** Statistics */
         get: operations["statistics_api_v2_statistics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/student/homeworks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Student Homeworks */
+        get: operations["list_student_homeworks_api_v2_student_homeworks_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -548,6 +737,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/work-drafts/{identity}/prepare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Prepare Work Draft */
+        post: operations["prepare_work_draft_api_v2_work_drafts__identity__prepare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/work-drafts/{identity}/self-reviews": {
         parameters: {
             query?: never;
@@ -559,6 +765,23 @@ export interface paths {
         put?: never;
         /** Start Self Review */
         post: operations["start_self_review_api_v2_work_drafts__identity__self_reviews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/work-drafts/{identity}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Work Draft */
+        post: operations["submit_work_draft_api_v2_work_drafts__identity__submit_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -641,12 +864,68 @@ export interface components {
             /** Items */
             items: components["schemas"]["AssignmentView"][];
         };
+        /** AssistEvidence */
+        AssistEvidence: {
+            /** Line End */
+            line_end?: number | null;
+            /** Line Start */
+            line_start?: number | null;
+            /** Locator */
+            locator?: string | null;
+            /** Path */
+            path?: string | null;
+            /** Quote */
+            quote: string;
+            /**
+             * Verified
+             * @default false
+             * @constant
+             */
+            verified: false;
+        };
+        /** AuthorshipSignal */
+        AuthorshipSignal: {
+            /** Evidence */
+            evidence?: components["schemas"]["AssistEvidence"][];
+            /** Explanation */
+            explanation: string;
+            /** Id */
+            id: string;
+            /** Probability */
+            probability?: number | null;
+        };
         /** CatalogView */
         CatalogView: {
             /** Course Runs */
             course_runs: components["schemas"]["CourseRunView"][];
             /** Courses */
             courses: components["schemas"]["CourseView"][];
+        };
+        /** CoordinatorHomeworkItem */
+        CoordinatorHomeworkItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Latest Version Number */
+            latest_version_number: number | null;
+            /** Published Run Ids */
+            published_run_ids: string[];
+            /** Revision */
+            revision: number;
+            /** Title */
+            title: string;
+        };
+        /** CoordinatorHomeworkList */
+        CoordinatorHomeworkList: {
+            /**
+             * Course Id
+             * Format: uuid
+             */
+            course_id: string;
+            /** Items */
+            items: components["schemas"]["CoordinatorHomeworkItem"][];
         };
         /** CourseInput */
         CourseInput: {
@@ -657,6 +936,8 @@ export interface components {
             description: string;
             /** Owner Id */
             owner_id?: string | null;
+            /** Stepik Url */
+            stepik_url?: string | null;
             /** Title */
             title: string;
         };
@@ -733,8 +1014,39 @@ export interface components {
             revision: number;
             /** Status */
             status: string;
+            /** Stepik Url */
+            stepik_url?: string | null;
             /** Title */
             title: string;
+        };
+        /** CriterionChangeStatistic */
+        CriterionChangeStatistic: {
+            /** Change Percent */
+            change_percent: number;
+            /** Changed Works */
+            changed_works: number;
+            /** Compared Works */
+            compared_works: number;
+            /**
+             * Criterion Id
+             * Format: uuid
+             */
+            criterion_id: string;
+            /** Title */
+            title: string;
+        };
+        /** CriterionSettings */
+        CriterionSettings: {
+            /**
+             * Evaluate Quality
+             * @default false
+             */
+            evaluate_quality: boolean;
+            /**
+             * Score Step
+             * @default 0.5
+             */
+            score_step: number;
         };
         /** DirectoryMember */
         DirectoryMember: {
@@ -760,6 +1072,8 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
+            /** Filename */
+            filename?: string | null;
             /** Url */
             url: string;
         };
@@ -817,6 +1131,11 @@ export interface components {
              * @default
              */
             description: string;
+            /**
+             * Evaluate Quality
+             * @default false
+             */
+            evaluate_quality: boolean;
             /** Key */
             key: string;
             /**
@@ -824,6 +1143,11 @@ export interface components {
              * @default 0
              */
             max_points: number;
+            /**
+             * Score Step
+             * @default 0.5
+             */
+            score_step: number;
             /**
              * Title
              * @default
@@ -846,6 +1170,8 @@ export interface components {
              * @default 30
              */
             estimated_review_minutes: number;
+            /** Material Upload Ids */
+            material_upload_ids?: string[];
             /**
              * Max Score
              * @default 0
@@ -922,6 +1248,18 @@ export interface components {
              */
             status: "queued" | "processing" | "succeeded" | "failed";
         };
+        /** ExtraRequirementInput */
+        ExtraRequirementInput: {
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Max Points */
+            max_points: number;
+            /** Title */
+            title: string;
+        };
         /** GradePreview */
         GradePreview: {
             /** Final Score */
@@ -943,6 +1281,27 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** LocalIdentities */
+        LocalIdentities: {
+            /** Enabled */
+            enabled: boolean;
+            /** Items */
+            items: components["schemas"]["LocalIdentity"][];
+        };
+        /** LocalIdentity */
+        LocalIdentity: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Roles */
+            roles: string[];
+        };
+        /** LocalLoginInput */
+        LocalLoginInput: {
+            /** Identity */
+            identity: string;
         };
         /** MembershipInput */
         MembershipInput: {
@@ -968,6 +1327,24 @@ export interface components {
             reviewer_ids: string[];
             /** Text */
             text: string;
+        };
+        /** NotificationPreferences */
+        NotificationPreferences: {
+            /**
+             * Deadline
+             * @default true
+             */
+            deadline: boolean;
+            /**
+             * Pool
+             * @default false
+             */
+            pool: boolean;
+            /**
+             * Revision
+             * @default true
+             */
+            revision: boolean;
         };
         /** NotificationView */
         NotificationView: {
@@ -1016,6 +1393,32 @@ export interface components {
             /** Revision Deadline */
             revision_deadline?: string | null;
         };
+        /** PeerComparisonStatistic */
+        PeerComparisonStatistic: {
+            /**
+             * Compared Criteria
+             * @default 0
+             */
+            compared_criteria: number;
+            /** Course Divergence Percent */
+            course_divergence_percent?: number | null;
+            /** Divergence Percent */
+            divergence_percent?: number | null;
+            /**
+             * Fully Agreed Criteria
+             * @default 0
+             */
+            fully_agreed_criteria: number;
+            /**
+             * Sample Count
+             * @default 0
+             */
+            sample_count: number;
+            /** Softer Criteria */
+            softer_criteria?: string[];
+            /** Stricter Criteria */
+            stricter_criteria?: string[];
+        };
         /** PreferencesInput */
         PreferencesInput: {
             /** Absent From */
@@ -1024,8 +1427,14 @@ export interface components {
             absent_until?: string | null;
             /** Course Run Ids */
             course_run_ids: string[];
+            notifications?: components["schemas"]["NotificationPreferences"];
             /** Planned Minutes */
             planned_minutes: number;
+            /**
+             * Show Pool
+             * @default true
+             */
+            show_pool: boolean;
             /**
              * Until At
              * Format: date-time
@@ -1037,6 +1446,27 @@ export interface components {
             /** Revision */
             revision: number;
             value: components["schemas"]["PreferencesInput"] | null;
+        };
+        /** PreparationView */
+        PreparationView: {
+            /** Artifact Id */
+            artifact_id: string | null;
+            /** Draft Revision */
+            draft_revision: number;
+            /** Error Code */
+            error_code: string | null;
+            /** Filename */
+            filename: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "processing" | "succeeded" | "failed";
         };
         /** PriorityInput */
         PriorityInput: {
@@ -1052,6 +1482,12 @@ export interface components {
             criterion_classes?: {
                 [key: string]: "formal" | "content" | "judgement";
             };
+            /** Criterion Settings */
+            criterion_settings?: {
+                [key: string]: components["schemas"]["CriterionSettings"];
+            };
+            /** Material Upload Ids */
+            material_upload_ids?: string[];
             /** Reference Upload Id */
             reference_upload_id?: string | null;
             /**
@@ -1066,6 +1502,12 @@ export interface components {
             criterion_classes?: {
                 [key: string]: "formal" | "content" | "judgement";
             };
+            /** Criterion Settings */
+            criterion_settings?: {
+                [key: string]: components["schemas"]["CriterionSettings"];
+            };
+            /** Material Upload Ids */
+            material_upload_ids?: string[];
             /** Reference Upload Id */
             reference_upload_id?: string | null;
             /**
@@ -1076,6 +1518,16 @@ export interface components {
             /** Revision */
             revision: number;
         };
+        /** ProfileView */
+        ProfileView: {
+            /** Display Name */
+            display_name: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+        };
         /** PublicCriterion */
         PublicCriterion: {
             /**
@@ -1085,6 +1537,11 @@ export interface components {
             id: string;
             /** Key */
             key: string;
+            /**
+             * Max Points
+             * @default 0
+             */
+            max_points: number;
             /** Title */
             title: string;
         };
@@ -1238,8 +1695,51 @@ export interface components {
             /** Revision */
             revision: number;
         };
+        /** ReviewAssistResult */
+        ReviewAssistResult: {
+            authorship_signal?: components["schemas"]["AuthorshipSignal"] | null;
+            /** Feedback Draft */
+            feedback_draft?: string | null;
+            /** Suggestions */
+            suggestions: components["schemas"]["ReviewerSuggestion"][];
+        };
+        /** ReviewAssistView */
+        ReviewAssistView: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error Code */
+            error_code: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            result: components["schemas"]["ReviewAssistResult"] | null;
+            /** Revision */
+            revision: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "unknown_outcome" | "succeeded" | "failed" | "stale";
+        };
         /** ReviewContext */
         ReviewContext: {
+            /** Ai Run Id */
+            ai_run_id?: string | null;
+            /**
+             * Artifact Label
+             * @default Снимок работы
+             */
+            artifact_label: string;
+            /**
+             * Attempt
+             * @default 0
+             */
+            attempt: number;
             /** Criteria */
             criteria: components["schemas"]["ReviewCriterionView"][];
             /**
@@ -1257,6 +1757,8 @@ export interface components {
              * Format: uuid
              */
             homework_version_id: string;
+            /** Latest Review Iteration Id */
+            latest_review_iteration_id?: string | null;
             /** Max Score */
             max_score: number;
             outcome: components["schemas"]["OutcomeInput"] | null;
@@ -1265,13 +1767,36 @@ export interface components {
             private_details: components["schemas"]["PrivateHomeworkView"] | null;
             /** Self Reviews */
             self_reviews: components["schemas"]["SelfReviewView"][];
+            /** Signal Decisions */
+            signal_decisions?: {
+                [key: string]: "confirm" | "reject";
+            };
+            /**
+             * Student Name
+             * @default
+             */
+            student_name: string;
             /** Student Text */
             student_text: string;
+            /** Submission Id */
+            submission_id?: string | null;
+            /** Submitted At */
+            submitted_at?: string | null;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
         };
         /** ReviewCriterionView */
         ReviewCriterionView: {
             /** Description */
             description: string;
+            /**
+             * Evaluate Quality
+             * @default false
+             */
+            evaluate_quality: boolean;
             /**
              * Id
              * Format: uuid
@@ -1283,6 +1808,108 @@ export interface components {
             max_points: number;
             /** Position */
             position: number;
+            /**
+             * Score Step
+             * @default 0.5
+             */
+            score_step: number;
+            /** Title */
+            title: string;
+        };
+        /** ReviewDecision */
+        ReviewDecision: {
+            /**
+             * Criterion Id
+             * Format: uuid
+             */
+            criterion_id: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accepted" | "changed" | "manual";
+            /** Evidence Ids */
+            evidence_ids?: string[];
+            /** Points */
+            points: number;
+            /** Reason */
+            reason: string;
+        };
+        /** ReviewDraftView */
+        ReviewDraftView: {
+            /** Criterion Decisions */
+            criterion_decisions: components["schemas"]["ReviewDecision"][];
+            current_review_revision: components["schemas"]["WorkspaceRevisionSummary"] | null;
+            /** Current Review Revision Id */
+            current_review_revision_id: string | null;
+            /** Review Notes */
+            review_notes: components["schemas"]["WorkspaceNoteView"][];
+            /** Revision */
+            revision: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "in_review" | "ready_to_publish" | "published" | "canceled";
+        };
+        /** ReviewNote */
+        ReviewNote: {
+            /** Criterion Id */
+            criterion_id?: string | null;
+            /** Text */
+            text: string;
+        };
+        /** ReviewerSuggestion */
+        ReviewerSuggestion: {
+            /**
+             * Confidence
+             * @default medium
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /**
+             * Criterion Id
+             * Format: uuid
+             */
+            criterion_id: string;
+            /** Evidence */
+            evidence?: string[];
+            /** Proposed Points */
+            proposed_points: number | null;
+            /** Reason */
+            reason: string;
+            /** Requirement Met */
+            requirement_met?: boolean | null;
+            /** Reviewer Note */
+            reviewer_note?: string | null;
+            /** Sources */
+            sources?: components["schemas"]["AssistEvidence"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "suggested" | "needs_human" | "not_checked";
+            /** Student Feedback */
+            student_feedback?: string | null;
+        };
+        /** SaveReviewRevisionPayload */
+        SaveReviewRevisionPayload: {
+            /** Criterion Decisions */
+            criterion_decisions: components["schemas"]["ReviewDecision"][];
+            /** Feedback */
+            feedback: string;
+            /** Review Notes */
+            review_notes: components["schemas"]["ReviewNote"][];
+        };
+        /** SearchHomeworkView */
+        SearchHomeworkView: {
+            /** Course Run Id */
+            course_run_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
             /** Title */
             title: string;
         };
@@ -1376,24 +2003,64 @@ export interface components {
         };
         /** StatisticView */
         StatisticView: {
+            /** Ai Acceptance Percent */
+            ai_acceptance_percent?: number | null;
             /** Average Elapsed Minutes */
             average_elapsed_minutes: number | null;
+            /** Average Wait Minutes */
+            average_wait_minutes?: number | null;
             /** Changed Decisions */
             changed_decisions: number;
             /** Compared Decisions */
             compared_decisions: number;
+            /** Course Ai Acceptance Percent */
+            course_ai_acceptance_percent?: number | null;
+            /** Course Average Elapsed Minutes */
+            course_average_elapsed_minutes?: number | null;
+            /** Course Average Overdue Publications */
+            course_average_overdue_publications?: number | null;
+            /** Course Average Wait Minutes */
+            course_average_wait_minutes?: number | null;
+            /** Criterion Changes */
+            criterion_changes?: components["schemas"]["CriterionChangeStatistic"][];
+            /**
+             * Elapsed Sample Count
+             * @default 0
+             */
+            elapsed_sample_count: number;
             /**
              * From Date
              * Format: date-time
              */
             from_date: string;
+            /**
+             * Overdue Publications
+             * @default 0
+             */
+            overdue_publications: number;
+            /**
+             * Overdue Sample Count
+             * @default 0
+             */
+            overdue_sample_count: number;
+            peer_comparison?: components["schemas"]["PeerComparisonStatistic"];
             /** Publications */
             publications: number;
+            /**
+             * Repeated Publications
+             * @default 0
+             */
+            repeated_publications: number;
             /**
              * Until Date
              * Format: date-time
              */
             until_date: string;
+            /**
+             * Wait Sample Count
+             * @default 0
+             */
+            wait_sample_count: number;
         };
         /** StudentContext */
         StudentContext: {
@@ -1402,6 +2069,11 @@ export interface components {
              * Format: uuid
              */
             course_run_id: string;
+            /**
+             * Course Title
+             * @default
+             */
+            course_title: string;
             /** Criteria */
             criteria: components["schemas"]["PublicCriterion"][];
             draft: components["schemas"]["DraftView"] | null;
@@ -1415,6 +2087,13 @@ export interface components {
              * Format: uuid
              */
             homework_version_id: string;
+            /** Material Upload Ids */
+            material_upload_ids?: string[];
+            /**
+             * Max Score
+             * @default 0
+             */
+            max_score: number;
             policy: components["schemas"]["PublicationPolicyInput"] | null;
             /**
              * Publication Id
@@ -1422,6 +2101,11 @@ export interface components {
              */
             publication_id: string;
             quota: components["schemas"]["QuotaView"] | null;
+            /**
+             * Run Title
+             * @default
+             */
+            run_title: string;
             /** Self Reviews */
             self_reviews: components["schemas"]["SelfReviewView"][];
             /** Student Text */
@@ -1431,8 +2115,50 @@ export interface components {
              * Format: date-time
              */
             submission_deadline: string;
+            /** Submission Id */
+            submission_id?: string | null;
             /** Title */
             title: string;
+        };
+        /** StudentHomeworkItem */
+        StudentHomeworkItem: {
+            /** Attempt */
+            attempt: number;
+            /** Course Run Title */
+            course_run_title: string;
+            /** Course Title */
+            course_title: string;
+            /** Draft Id */
+            draft_id: string | null;
+            /**
+             * Publication Id
+             * Format: uuid
+             */
+            publication_id: string;
+            /** Score */
+            score: number | null;
+            /** Status */
+            status: string;
+            /**
+             * Submission Deadline
+             * Format: date-time
+             */
+            submission_deadline: string;
+            /** Submission Id */
+            submission_id: string | null;
+            /** Title */
+            title: string;
+        };
+        /** StudentHomeworkList */
+        StudentHomeworkList: {
+            /** Items */
+            items: components["schemas"]["StudentHomeworkItem"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Total */
+            total: number;
         };
         /** StudentReviewView */
         StudentReviewView: {
@@ -1440,8 +2166,11 @@ export interface components {
             criteria: components["schemas"]["PublishedCriterionView"][];
             /** Decision */
             decision: string | null;
+            /** Decision Reason */
+            decision_reason?: string | null;
             /** Feedback */
             feedback: string;
+            grade?: components["schemas"]["GradePreview"] | null;
             /**
              * Id
              * Format: uuid
@@ -1499,6 +2228,8 @@ export interface components {
             artifact_id: string | null;
             /** Capture Operation Id */
             capture_operation_id: string | null;
+            /** Comment */
+            comment: string;
             /**
              * Id
              * Format: uuid
@@ -1567,6 +2298,11 @@ export interface components {
             course_run_id: string;
             /** Course Run Title */
             course_run_title: string;
+            /**
+             * Course Title
+             * @default
+             */
+            course_title: string;
             /** Feedback */
             feedback: string | null;
             /**
@@ -1574,6 +2310,8 @@ export interface components {
              * Format: uuid
              */
             homework_id: string;
+            /** Participant Ids */
+            participant_ids?: string[];
             /** Primary Reviewer Id */
             primary_reviewer_id: string | null;
             /**
@@ -1608,6 +2346,8 @@ export interface components {
             student_id: string;
             /** Student Name */
             student_name: string;
+            /** Submission Deadline */
+            submission_deadline?: string | null;
             /**
              * Submission Id
              * Format: uuid
@@ -1622,6 +2362,8 @@ export interface components {
              * Format: date-time
              */
             submitted_at: string;
+            /** Taken At */
+            taken_at?: string | null;
             /** Title */
             title: string;
         };
@@ -1765,6 +2507,26 @@ export interface components {
             /** Idempotency Key */
             idempotency_key: string;
             payload: components["schemas"]["ExportInput"];
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /** WorkspaceCommand[ExtraRequirementInput] */
+        WorkspaceCommand_ExtraRequirementInput_: {
+            /** Command Name */
+            command_name: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            payload: components["schemas"]["ExtraRequirementInput"];
             /**
              * Request Id
              * Format: uuid
@@ -2016,6 +2778,91 @@ export interface components {
              */
             target_id: string;
         };
+        /** WorkspaceCommand[WorkspaceReviewSaveInput] */
+        WorkspaceCommand_WorkspaceReviewSaveInput_: {
+            /** Command Name */
+            command_name: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            payload: components["schemas"]["WorkspaceReviewSaveInput"];
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /** WorkspaceNoteView */
+        WorkspaceNoteView: {
+            /**
+             * Author User Id
+             * Format: uuid
+             */
+            author_user_id: string;
+            /** Criterion Id */
+            criterion_id: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Position */
+            position: number;
+            /** Text */
+            text: string;
+        };
+        /** WorkspaceReviewSaveInput */
+        WorkspaceReviewSaveInput: {
+            /** Ai Run Id */
+            ai_run_id?: string | null;
+            draft: components["schemas"]["SaveReviewRevisionPayload"];
+            /** Signal Decisions */
+            signal_decisions?: {
+                [key: string]: "confirm" | "reject";
+            };
+        };
+        /** WorkspaceRevisionSummary */
+        WorkspaceRevisionSummary: {
+            /**
+             * Author User Id
+             * Format: uuid
+             */
+            author_user_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Feedback */
+            feedback: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Review Iteration Id
+             * Format: uuid
+             */
+            review_iteration_id: string;
+            /** Revision Number */
+            revision_number: number;
+            /** Total Score */
+            total_score: number;
+        };
+        /** WorkspaceSearchView */
+        WorkspaceSearchView: {
+            /** Homeworks */
+            homeworks: components["schemas"]["SearchHomeworkView"][];
+            /** Students */
+            students: components["schemas"]["WorkItem"][];
+        };
     };
     responses: never;
     parameters: never;
@@ -2195,6 +3042,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudentContext"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_course_run_api_v2_course_runs__identity__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_CourseRunInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceResult"];
                 };
             };
             /** @description Validation Error */
@@ -2412,6 +3294,41 @@ export interface operations {
             };
         };
     };
+    update_course_api_v2_courses__identity__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_CourseInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_run_api_v2_courses__identity__course_runs_post: {
         parameters: {
             query?: never;
@@ -2434,6 +3351,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResourceResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    homeworks_api_v2_courses__identity__homeworks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoordinatorHomeworkList"];
                 };
             };
             /** @description Validation Error */
@@ -2808,6 +3756,103 @@ export interface operations {
             };
         };
     };
+    preparation_api_v2_preparations__identity__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_assist_api_v2_review_assists__identity__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewAssistView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retry_assist_api_v2_review_assists__identity__retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_EmptyInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewAssistView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     preferences_api_v2_reviewer_preferences_get: {
         parameters: {
             query?: never;
@@ -2861,6 +3906,72 @@ export interface operations {
             };
         };
     };
+    latest_assist_api_v2_reviews__identity__assist_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewAssistView"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_assist_api_v2_reviews__identity__assist_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_EmptyInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewAssistView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     review_context_api_v2_reviews__identity__context_get: {
         parameters: {
             query?: never;
@@ -2879,6 +3990,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReviewContext"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_review_draft_api_v2_reviews__identity__draft_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDraftView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_assisted_draft_api_v2_reviews__identity__draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_WorkspaceReviewSaveInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceResult"];
                 };
             };
             /** @description Validation Error */
@@ -2993,6 +4170,72 @@ export interface operations {
             };
         };
     };
+    add_review_requirement_api_v2_reviews__identity__requirements_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_ExtraRequirementInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_workspace_api_v2_search_get: {
+        parameters: {
+            query?: {
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSearchView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     self_review_api_v2_self_reviews__identity__get: {
         parameters: {
             query?: never;
@@ -3063,6 +4306,7 @@ export interface operations {
         parameters: {
             query?: {
                 days?: number;
+                course_run_id?: string | null;
             };
             header?: never;
             path?: never;
@@ -3077,6 +4321,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StatisticView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_student_homeworks_api_v2_student_homeworks_get: {
+        parameters: {
+            query?: {
+                state?: "" | "in_progress" | "completed";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentHomeworkList"];
                 };
             };
             /** @description Validation Error */
@@ -3189,6 +4466,41 @@ export interface operations {
             };
         };
     };
+    prepare_work_draft_api_v2_work_drafts__identity__prepare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_EmptyInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreparationView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     start_self_review_api_v2_work_drafts__identity__self_reviews_post: {
         parameters: {
             query?: never;
@@ -3211,6 +4523,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SelfReviewView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_work_draft_api_v2_work_drafts__identity__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_EmptyInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceResult"];
                 };
             };
             /** @description Validation Error */
@@ -3267,7 +4614,7 @@ export interface operations {
                 q?: string;
                 state?: string;
                 view?: string;
-                priority?: string;
+                priority?: ("assigned" | "deadline") | null;
                 offset?: number;
                 limit?: number;
             };

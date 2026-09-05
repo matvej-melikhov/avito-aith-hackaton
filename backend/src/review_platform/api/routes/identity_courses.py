@@ -825,6 +825,13 @@ def _installation_organization_id(request: Request) -> UUID:
     actor = getattr(request.state, "request_actor", None)
     if isinstance(actor, RequestActor):
         return actor.organization_id
+    logout_org = getattr(request.state, "logout_organization_id", None)
+    if (
+        request.method == "DELETE"
+        and request.url.path == "/api/v1/session"
+        and isinstance(logout_org, UUID)
+    ):
+        return logout_org
     return _state_uuid(request, "installation_organization_id")
 
 

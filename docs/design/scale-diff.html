@@ -1,0 +1,57 @@
+<!doctype html><meta charset="utf-8"><title>Шкала: было и стало</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+body{font-family:Onest,sans-serif;background:#FAFAFA;color:#1A1A1A;margin:0;padding:48px}
+h1{font-size:22px;font-weight:500;margin:0 0 4px}
+p.sub{color:#4A4A4A;font-size:14px;margin:0 0 32px}
+.row{display:grid;grid-template-columns:120px 1fr 1fr;gap:24px;align-items:center;
+     padding:20px 0;border-bottom:1px solid #EDEEEF}
+.row.head{border-bottom:1px solid #C9CBCA;padding-bottom:8px}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;
+     text-transform:uppercase;color:#747574}
+.zoom{transform:scale(3);transform-origin:left center;display:inline-block}
+.cell{height:96px;display:flex;align-items:center}
+
+/* --- было ------------------------------------------------------------- */
+.old{display:inline-flex;border:1px solid #C9CBCA;border-radius:999px;overflow:hidden}
+.old>*{min-width:34px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+       font-family:'JetBrains Mono',monospace;font-size:12px;color:#747574;
+       border-right:1px solid #EDEEEF;background:#fff}
+.old>*:last-child{border-right:0}
+.old>.on{background:#fff;color:#1A1A1A;font-weight:600;box-shadow:inset 0 0 0 1px #1A1A1A}
+.old.zero>.on{background:#FDEDEF;color:#D91E36;box-shadow:inset 0 0 0 1px #D91E36}
+
+/* --- стало ------------------------------------------------------------ */
+.new{display:inline-flex;padding:2px;border:1px solid #C9CBCA;border-radius:999px;background:#fff}
+.new>*{min-width:32px;height:22px;display:inline-flex;align-items:center;justify-content:center;
+       font-family:'JetBrains Mono',monospace;font-size:12px;color:#747574;
+       border:0;border-radius:999px;background:transparent}
+.new>.on{color:#1A1A1A;font-weight:600;box-shadow:inset 0 0 0 1px #1A1A1A}
+.new.zero>.on{background:#FDEDEF;color:#D91E36;box-shadow:inset 0 0 0 1px #D91E36}
+.new.max>.on{background:#EFFDF3;color:#02863A;box-shadow:inset 0 0 0 1px #02863A}
+</style>
+<h1>Шкала оценки требования</h1>
+<p class="sub">Увеличено втрое. Слева то, что было в макетах до правки, справа то, что стало.</p>
+
+<div class="row head"><span class="lbl">выбрано</span><span class="lbl">было</span><span class="lbl">стало</span></div>
+
+<div class="row">
+  <span class="lbl">максимум</span>
+  <span class="cell"><span class="zoom"><span class="old"><span>0</span><span>0,5</span><span class="on">1</span></span></span></span>
+  <span class="cell"><span class="zoom"><span class="new max"><span>0</span><span>0,5</span><span class="on">1</span></span></span></span>
+</div>
+<div class="row">
+  <span class="lbl">середина</span>
+  <span class="cell"><span class="zoom"><span class="old"><span>0</span><span class="on">0,5</span><span>1</span></span></span></span>
+  <span class="cell"><span class="zoom"><span class="new"><span>0</span><span class="on">0,5</span><span>1</span></span></span></span>
+</div>
+<div class="row">
+  <span class="lbl">ноль</span>
+  <span class="cell"><span class="zoom"><span class="old zero"><span class="on">0</span><span>0,5</span><span>1</span></span></span></span>
+  <span class="cell"><span class="zoom"><span class="new zero"><span class="on">0</span><span>0,5</span><span>1</span></span></span></span>
+</div>
+<div class="row">
+  <span class="lbl">шкала 0 и 1</span>
+  <span class="cell"><span class="zoom"><span class="old"><span>0</span><span class="on">1</span></span></span></span>
+  <span class="cell"><span class="zoom"><span class="new max"><span>0</span><span class="on">1</span></span></span></span>
+</div>

@@ -1,4 +1,6 @@
-import { useCallback, useState } from "react";
+import { StudentWorks } from "./StudentWorks";
+import { ReviewerQueue } from "./ReviewerQueue";
+import { useCallback, useState, type ReactNode } from "react";
 import type { Role } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import {
@@ -12,7 +14,20 @@ import {
   useResource,
 } from "../ui";
 import { ExportMonitor, Modal, ScreenTitle } from "../workspace-ui";
-export function WorkspaceWorks({
+export function WorkspaceWorks(props: {
+  ws: WorkspaceClient;
+  role: Role;
+  coordinatorPool?: boolean;
+}) {
+  return props.role === "student" ? (
+    <StudentWorks ws={props.ws} />
+  ) : props.role === "reviewer" ? (
+    <ReviewerQueue ws={props.ws} />
+  ) : (
+    <WorksList {...props} />
+  );
+}
+function WorksList({
   ws,
   role,
   coordinatorPool = false,
@@ -21,13 +36,19 @@ export function WorkspaceWorks({
   role: Role;
   coordinatorPool?: boolean;
 }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(
+    new URLSearchParams(window.location.hash.split("?")[1]).get("q") ?? "",
+  );
   const [search, setSearch] = useState("");
   const [run, setRun] = useState(
     new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("run") ??
       "",
   );
-  const [state, setState] = useState("");
+  const [state, setState] = useState(
+    new URLSearchParams(window.location.hash.split("?")[1] ?? "").get(
+      "state",
+    ) ?? "",
+  );
   const [view, setView] = useState("all");
   const [priority, setPriority] = useState("assigned");
   const [offset, setOffset] = useState(0);
@@ -71,6 +92,26 @@ export function WorkspaceWorks({
         )}
       </ScreenTitle>
       {action.feedback}
+      {role === "student" && (
+        <div className="tabs">
+          {[
+            ["", "Все"],
+            ["in_progress", "В работе"],
+            ["completed", "Завершённые"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              aria-pressed={state === value}
+              onClick={() => {
+                setState(value);
+                setOffset(0);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
       {role === "reviewer" && (
         <div className="tabs">
           {[
@@ -91,141 +132,181 @@ export function WorkspaceWorks({
           ))}
         </div>
       )}
-      <form
-        className="filters"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSearch(query);
-          setOffset(0);
-        }}
-      >
-        <label>
-          Поиск
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Студент или задание"
-          />
-        </label>
-        <label>
-          Поток
-          <select
-            value={run}
-            onChange={(e) => {
-              setRun(e.target.value);
-              setOffset(0);
-            }}
-          >
-            <option value="">Все потоки</option>
-            {catalog.data?.course_runs.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Статус
-          <select
-            value={state}
-            onChange={(e) => {
-              setState(e.target.value);
-              setOffset(0);
-            }}
-          >
-            <option value="">Все статусы</option>
-            {[
-              "draft",
-              "pending_review",
-              "in_review",
-              "ready_to_publish",
-              "needs_changes",
-              "passed",
-              "failed",
-              "published",
-            ].map((s) => (
-              <option key={s} value={s}>
-                {
-                  {
-                    draft: "Черновик",
-                    pending_review: "Ожидает проверки",
-                    in_review: "На ревью",
-                    ready_to_publish: "Готово к публикации",
-                    needs_changes: "Нужны правки",
-                    passed: "Зачтена",
-                    failed: "Не зачтена",
-                    published: "Опубликована",
-                  }[s]
-                }
-              </option>
-            ))}
-          </select>
-        </label>
-        {role !== "student" && (
+      {role !== "student" && (
+        <form
+          className="filters"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSearch(query);
+            setOffset(0);
+          }}
+        >
           <label>
-            Приоритет
+            Поиск
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Студент или задание"
+            />
+          </label>
+          <label>
+            Поток
             <select
-              value={priority}
+              value={run}
               onChange={(e) => {
-                setPriority(e.target.value);
+                setRun(e.target.value);
                 setOffset(0);
               }}
             >
-              <option value="assigned">Свои студенты сначала</option>
-              <option value="deadline">Дедлайн сначала</option>
+              <option value="">Все потоки</option>
+              {catalog.data?.course_runs.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.title}
+                </option>
+              ))}
             </select>
           </label>
-        )}
-        <button>Найти</button>
-      </form>
+          <label>
+            Статус
+            <select
+              value={state}
+              onChange={(e) => {
+                setState(e.target.value);
+                setOffset(0);
+              }}
+            >
+              <option value="">Все статусы</option>
+              {[
+                "draft",
+                "pending_review",
+                "in_review",
+                "ready_to_publish",
+                "needs_changes",
+                "passed",
+                "failed",
+                "published",
+              ].map((s) => (
+                <option key={s} value={s}>
+                  {
+                    {
+                      draft: "Черновик",
+                      pending_review: "Ожидает проверки",
+                      in_review: "На ревью",
+                      ready_to_publish: "Готово к публикации",
+                      needs_changes: "Нужны правки",
+                      passed: "Зачтена",
+                      failed: "Не зачтена",
+                      published: "Опубликована",
+                    }[s]
+                  }
+                </option>
+              ))}
+            </select>
+          </label>
+          {
+            <label>
+              Приоритет
+              <select
+                value={priority}
+                onChange={(e) => {
+                  setPriority(e.target.value);
+                  setOffset(0);
+                }}
+              >
+                <option value="assigned">Свои студенты сначала</option>
+                <option value="deadline">Дедлайн сначала</option>
+              </select>
+            </label>
+          }
+          <button>Найти</button>
+        </form>
+      )}
       <Resource value={r}>
         {r.data && (
-          <Card title={`Работы · ${r.data.total}`}>
+          <ListFrame
+            student={role === "student"}
+            title={
+              role === "student"
+                ? "Домашние работы"
+                : `Работы · ${r.data.total}`
+            }
+          >
             <div className="table-wrap">
               <table>
                 <thead>
                   <tr>
                     {role !== "student" && <th>Студент</th>}
                     <th>Задание</th>
-                    <th>Статус</th>
-                    <th>Срок проверки</th>
-                    <th>Оценка</th>
-                    <th></th>
+                    {role === "student" ? (
+                      <>
+                        <th>Курс</th>
+                        <th>Дедлайн</th>
+                        <th>Попытка</th>
+                        <th>Балл</th>
+                        <th>Статус</th>
+                      </>
+                    ) : (
+                      <>
+                        <th>Статус</th>
+                        <th>Срок проверки</th>
+                        <th>Оценка</th>
+                      </>
+                    )}
+                    {role !== "student" && <th></th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {r.data.items.map((w, index) => (
+                  {r.data.items.map((w) => (
                     <tr key={w.submission_id}>
                       {role !== "student" && (
                         <td>
                           <strong>{w.student_name}</strong>
-                          {index === 0 && offset === 0 && (
-                            <small>Рекомендуется первой</small>
-                          )}
                         </td>
                       )}
                       <td>
-                        <strong>{w.title}</strong>
-                        <small>
-                          {w.course_run_title} · Попытка {w.attempt}
-                        </small>
-                      </td>
-                      <td>
-                        <Status value={w.status} />
-                        {w.responsible_reviewer_id && (
-                          <small>Есть ответственный</small>
-                        )}
-                      </td>
-                      <td>
-                        {w.review_deadline ? date(w.review_deadline) : "—"}
-                      </td>
-                      <td>{w.score ?? "—"}</td>
-                      <td>
                         {role === "student" ? (
                           <a href={`#/submissions/${w.submission_id}`}>
-                            Открыть →
+                            <strong>{w.title}</strong>
                           </a>
                         ) : (
+                          <strong>{w.title}</strong>
+                        )}
+                        {role !== "student" && (
+                          <small>
+                            {w.course_run_title} · Попытка {w.attempt}
+                          </small>
+                        )}
+                      </td>
+                      {role === "student" ? (
+                        <>
+                          <td>{w.course_title}</td>
+                          <td>
+                            {w.submission_deadline
+                              ? date(w.submission_deadline)
+                              : "—"}
+                          </td>
+                          <td>{w.attempt}</td>
+                          <td>{w.score?.toLocaleString("ru-RU") ?? "—"}</td>
+                          <td>
+                            <Status value={w.status} />
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td>
+                            <Status value={w.status} />
+                            {w.responsible_reviewer_id && (
+                              <small>Есть ответственный</small>
+                            )}
+                          </td>
+                          <td>
+                            {w.review_deadline ? date(w.review_deadline) : "—"}
+                          </td>
+                          <td>{w.score ?? "—"}</td>
+                        </>
+                      )}
+                      {role !== "student" && (
+                        <td>
                           <button
                             disabled={action.busy || !w.submission_version_id}
                             onClick={() =>
@@ -258,8 +339,8 @@ export function WorkspaceWorks({
                           >
                             Открыть проверку
                           </button>
-                        )}
-                      </td>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -268,25 +349,27 @@ export function WorkspaceWorks({
             {r.data.items.length === 0 && (
               <Empty>По этим условиям работ нет.</Empty>
             )}
-            <div className="pagination">
-              <button
-                disabled={offset === 0}
-                onClick={() => setOffset(Math.max(0, offset - 20))}
-              >
-                Назад
-              </button>
-              <span>
-                {offset + 1}–{Math.min(offset + 20, r.data.total)} из{" "}
-                {r.data.total}
-              </span>
-              <button
-                disabled={offset + 20 >= r.data.total}
-                onClick={() => setOffset(offset + 20)}
-              >
-                Дальше
-              </button>
-            </div>
-          </Card>
+            {(role !== "student" || r.data.total > 20) && (
+              <div className="pagination">
+                <button
+                  disabled={offset === 0}
+                  onClick={() => setOffset(Math.max(0, offset - 20))}
+                >
+                  Назад
+                </button>
+                <span>
+                  {r.data.total ? offset + 1 : 0}–
+                  {Math.min(offset + 20, r.data.total)} из {r.data.total}
+                </span>
+                <button
+                  disabled={offset + 20 >= r.data.total}
+                  onClick={() => setOffset(offset + 20)}
+                >
+                  Дальше
+                </button>
+              </div>
+            )}
+          </ListFrame>
         )}
       </Resource>
       {role === "student" && <DraftLinks ws={ws} />}{" "}
@@ -433,43 +516,215 @@ function ExportForm({
 }
 export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
   const [days, setDays] = useState(30);
-  const r = useResource(() => ws.statistics(days), String(days));
+  const [courseRun, setCourseRun] = useState("");
+  const catalog = useResource(() => ws.catalog(), "statistics-catalog");
+  const r = useResource(
+    () => ws.statistics(days, courseRun || undefined),
+    `${days}:${courseRun}`,
+  );
   return (
     <>
-      <ScreenTitle code="Р4" title="Моя статистика" />
-      <label>
-        Период
-        <select value={days} onChange={(e) => setDays(Number(e.target.value))}>
-          <option value={7}>7 дней</option>
-          <option value={30}>30 дней</option>
-          <option value={90}>90 дней</option>
-        </select>
-      </label>
+      <ScreenTitle code="Р4" title="Кабинет">
+        <div className="actions">
+          <label>
+            Поток
+            <select
+              value={courseRun}
+              onChange={(e) => setCourseRun(e.target.value)}
+            >
+              <option value="">Все потоки</option>
+              {catalog.data?.course_runs.map((run) => (
+                <option key={run.id} value={run.id}>
+                  {run.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Период
+            <select
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+            >
+              <option value={7}>7 дней</option>
+              <option value={30}>30 дней</option>
+              <option value={90}>90 дней</option>
+            </select>
+          </label>
+        </div>
+      </ScreenTitle>
+      <nav className="tabs">
+        <a href="#/preferences">Настройки</a>
+        <a href="#/statistics" aria-current="page">
+          Статистика
+        </a>
+      </nav>
       <Resource value={r}>
         {r.data && (
-          <div className="stat-grid">
-            <Card title="Опубликовано проверок">
-              <p className="stat-number">{r.data.publications}</p>
-            </Card>
-            <Card title="От начала до публикации">
-              <p className="stat-number">
-                {r.data.average_elapsed_minutes === null
-                  ? "Нет данных"
-                  : `${Math.round(r.data.average_elapsed_minutes)} мин`}
-              </p>
-              <p className="muted">Время между событиями, включая перерывы.</p>
-            </Card>
-            <Card title="Изменены предложения AI">
-              <p className="stat-number">
-                {r.data.changed_decisions} / {r.data.compared_decisions}
-              </p>
-              <p className="muted">
-                Считаются только решения, связанные с предложением AI.
-              </p>
-            </Card>
+          <div className="stack">
+            <div className="tiles">
+              <div className="tile">
+                <div className="n">{r.data.publications}</div>
+                <div className="l">работ проверено</div>
+                <div className="d">
+                  из них {r.data.repeated_publications} повторных
+                </div>
+              </div>
+              <div className="tile">
+                <div className="n">
+                  {r.data.average_elapsed_minutes == null
+                    ? "—"
+                    : `${Math.round(r.data.average_elapsed_minutes)} мин`}
+                </div>
+                <div className="l">в среднем на работу</div>
+                <div className="d">
+                  От открытия до публикации, включая перерывы
+                  {r.data.course_average_elapsed_minutes == null
+                    ? ""
+                    : `; по курсу ${Math.round(r.data.course_average_elapsed_minutes)} мин`}
+                </div>
+              </div>
+              <div className="tile">
+                <div className="n">
+                  {r.data.average_wait_minutes == null
+                    ? "—"
+                    : r.data.average_wait_minutes < 60
+                      ? `${Math.round(r.data.average_wait_minutes)} мин`
+                      : `${(r.data.average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дня`}
+                </div>
+                <div className="l">ждёт студент от сдачи до ответа</div>
+                <div className="d">
+                  {r.data.course_average_wait_minutes == null
+                    ? "Нет данных по курсу"
+                    : `по курсу ${(r.data.course_average_wait_minutes / 1440).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} дня`}
+                </div>
+              </div>
+              <div className="tile">
+                <div className="n">
+                  {r.data.ai_acceptance_percent == null
+                    ? "—"
+                    : `${r.data.ai_acceptance_percent.toLocaleString("ru-RU", { maximumFractionDigits: 1 })}%`}
+                </div>
+                <div className="l">вердиктов модели принято без правок</div>
+                <div className="d">
+                  {r.data.course_ai_acceptance_percent == null
+                    ? "Нет данных по курсу"
+                    : `по курсу ${r.data.course_ai_acceptance_percent.toLocaleString("ru-RU", { maximumFractionDigits: 1 })}%`}
+                </div>
+              </div>
+              <div className="tile">
+                <div className="n">{r.data.overdue_publications}</div>
+                <div className="l">просрочек за период</div>
+                <div className="d">
+                  {r.data.course_average_overdue_publications == null
+                    ? "Нет данных по курсу"
+                    : `по курсу в среднем ${r.data.course_average_overdue_publications.toLocaleString("ru-RU", { maximumFractionDigits: 1 })}`}
+                </div>
+              </div>
+            </div>
+            <div className="two-col">
+              <Card title="Где вы чаще правите модель">
+                <p className="muted">
+                  Доля работ, где вы изменили предложенную оценку
+                </p>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Требование</th>
+                        <th>Работ</th>
+                        <th>Правили</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {r.data.criterion_changes?.length ? (
+                        r.data.criterion_changes.map((c) => (
+                          <tr key={c.criterion_id}>
+                            <td>{c.title}</td>
+                            <td>{c.compared_works}</td>
+                            <td>
+                              {c.change_percent.toLocaleString("ru-RU", {
+                                maximumFractionDigits: 1,
+                              })}
+                              %
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={3}>
+                            Нет данных по отдельным требованиям.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+              <Card title="Расхождение с другими ревьюерами">
+                <p className="muted">
+                  По одинаковым требованиям на одинаковых работах. Сравнений:{" "}
+                  {r.data.peer_comparison?.sample_count}.
+                </p>
+                {r.data.peer_comparison?.divergence_percent == null ? (
+                  <Empty>Данные для сравнения пока недоступны.</Empty>
+                ) : (
+                  <>
+                    <p className="stat-number">
+                      {r.data.peer_comparison?.divergence_percent.toLocaleString(
+                        "ru-RU",
+                        { maximumFractionDigits: 1 },
+                      )}
+                      %
+                    </p>
+                    <dl>
+                      <dt>Строже коллег</dt>
+                      <dd>
+                        {r.data.peer_comparison?.stricter_criteria?.join(
+                          ", ",
+                        ) || "—"}
+                      </dd>
+                      <dt>Мягче коллег</dt>
+                      <dd>
+                        {r.data.peer_comparison?.softer_criteria?.join(", ") ||
+                          "—"}
+                      </dd>
+                      <dt>Совпадение полное</dt>
+                      <dd>
+                        {r.data.peer_comparison?.fully_agreed_criteria}{" "}
+                        требований из{" "}
+                        {r.data.peer_comparison?.compared_criteria}
+                      </dd>
+                    </dl>
+                  </>
+                )}
+                <p className="notice">
+                  Расхождение само по себе не ошибка. Оно показывает требования,
+                  которые сформулированы так, что их можно понять по-разному.
+                </p>
+              </Card>
+            </div>
           </div>
         )}
       </Resource>
     </>
+  );
+}
+
+function ListFrame({
+  student,
+  title,
+  children,
+}: {
+  student: boolean;
+  title: string;
+  children: ReactNode;
+}) {
+  return student ? (
+    <section className="card">
+      <div className="card-body">{children}</div>
+    </section>
+  ) : (
+    <Card title={title}>{children}</Card>
   );
 }

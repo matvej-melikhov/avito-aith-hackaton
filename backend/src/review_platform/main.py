@@ -2,33 +2,40 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import uvicorn
-import asyncio
-import os
-import contextlib
-import logging
-from review_platform.application.workspace.worker import (
-    SelfReviewWorker,
-    FixtureSelfReviewProvider,
-    SelfReviewProvider,
-)
-from review_platform.application.workspace.exports import ExportWorker
 from fastapi import FastAPI
 
 from review_platform.api.middleware import (
     RequestBodyLimitMiddleware,
     SanitizedExceptionMiddleware,
 )
+from review_platform.api.routes import build_api_router
 from review_platform.api.session_middleware import SessionActorMiddleware
 from review_platform.api.upload_limit import UploadBodyLimitMiddleware
-from review_platform.api.routes import build_api_router
 from review_platform.application.foundation_runtime import (
     FoundationRuntime,
     RuntimeConfigurationError,
     build_foundation_runtime,
+)
+from review_platform.application.workspace.ai_adapter import (
+    FixtureArtifactPreparer,
+    FixtureWorkspaceAI,
+    HTTPWorkspaceAI,
+)
+from review_platform.application.workspace.exports import ExportWorker
+from review_platform.application.workspace.notifications import NotificationWorker
+from review_platform.application.workspace.ports import StudentAIProvider
+from review_platform.application.workspace.preparation import PreparationWorker
+from review_platform.application.workspace.review_assist import ReviewAssistWorker
+from review_platform.application.workspace.sources import SourcePreparer
+from review_platform.application.workspace.worker import (
+    SelfReviewWorker,
 )
 from review_platform.infrastructure.composition.ai_review import (
     build_sql_ai_review_start_service_factory,
@@ -44,7 +51,7 @@ def create_app(
     settings: Settings | None = None,
     *,
     runtime: FoundationRuntime | None = None,
-    workspace_provider: SelfReviewProvider | None = None,
+    workspace_provider: StudentAIProvider | None = None,
 ) -> FastAPI:
     selected = settings or get_settings()
     configuration_error: str | None = None
@@ -57,27 +64,53 @@ def create_app(
     async def workspace_loop() -> None:
         assert runtime is not None
         provider = workspace_provider
-        if provider is None and os.environ.get("REVIEW_PLATFORM_WORKSPACE_FIXTURES") == "true":
-            if selected.environment not in {"local", "test"}:
-                raise RuntimeError("workspace fixtures require a local environment")
-            provider = FixtureSelfReviewProvider()
+        if selected.workspace_fixtures:
+            if selected.environment != "local":
+                raise RuntimeError("workspace fixtures require environment=local")
+            provider = provider or FixtureWorkspaceAI()
+        elif selected.workspace_ai_url:
+            provider = provider or HTTPWorkspaceAI(selected)
         reviewer = SelfReviewWorker(runtime, provider, runtime.object_storage) if provider else None
+        assist = (
+            ReviewAssistWorker(runtime, provider)
+            if isinstance(provider, FixtureWorkspaceAI | HTTPWorkspaceAI)
+            else None
+        )
+        preparer = (
+            FixtureArtifactPreparer() if selected.workspace_fixtures else SourcePreparer(selected)
+        )
+        preparation = PreparationWorker(runtime, preparer, runtime.object_storage)
         exporter = ExportWorker(runtime)
+        notifier = NotificationWorker(runtime)
+        jobs = [preparation.tick, exporter.tick, notifier.tick]
+        if assist:
+            jobs.append(assist.tick)
+        if reviewer:
+            jobs.append(reviewer.tick)
         while True:
-            try:
-                if reviewer:
-                    await reviewer.tick()
-                await exporter.tick()
-            except Exception:
-                logging.getLogger(__name__).error(
-                    "workspace worker iteration failed; durable lease retained"
-                )
+            for tick in jobs:
+                try:
+                    await tick()
+                except Exception:
+                    logging.getLogger(__name__).error(
+                        "workspace worker iteration failed; durable lease retained"
+                    )
             await asyncio.sleep(1)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         worker = None
-        if runtime is not None and os.environ.get("REVIEW_PLATFORM_WORKSPACE_ENABLED") == "true":
+        if runtime is not None and selected.workspace_enabled:
+            if selected.workspace_fixtures and selected.environment != "local":
+                raise RuntimeError("workspace fixtures require environment=local")
+            if (
+                workspace_provider is None
+                and not selected.workspace_fixtures
+                and not selected.workspace_ai_url
+            ):
+                raise RuntimeError("Workspace workers require an explicitly configured AI provider")
+            if selected.workspace_ai_url and not selected.workspace_fixtures:
+                HTTPWorkspaceAI(selected)  # Validate before declaring application startup complete.
             worker = asyncio.create_task(workspace_loop())
         try:
             yield

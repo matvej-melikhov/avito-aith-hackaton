@@ -6,7 +6,7 @@ import hmac
 import os
 from collections.abc import Awaitable, Callable, Coroutine
 from datetime import timedelta
-from typing import cast
+from typing import Literal, cast
 from uuid import UUID, uuid5
 
 from fastapi import APIRouter, Query, Request, Response
@@ -30,7 +30,9 @@ from review_platform.application.workspace.common import (
     revision,
     row,
 )
+from review_platform.application.workspace.preparation import PreparationService
 from review_platform.application.workspace.projections import WorkspaceQueries
+from review_platform.application.workspace.reviews import lock_review_scope
 from review_platform.application.workspace.self_review import SelfReviewService, draft_view
 from review_platform.contracts.workspace import (
     AssignmentInput,
@@ -43,49 +45,74 @@ from review_platform.contracts.workspace import (
     DraftInput,
     DraftList,
     DraftView,
+    EditorDraftInput,
+    EditorDraftView,
     EmptyInput,
     ExportInput,
     ExportView,
+    ExtraRequirementInput,
+    GradePreview,
     MembershipInput,
     NotificationInput,
+    NotificationsView,
+    NotificationView,
     OpenWorkInput,
     OutcomeInput,
     PreferencesInput,
     PreferencesView,
+    PreparationView,
+    PriorityInput,
     PrivateHomeworkInput,
     PrivateHomeworkView,
     PublicationPolicyInput,
+    PublicationPolicyView,
+    PublishedGradeView,
+    PublishedWorkspaceHomework,
+    PublishWithPolicyInput,
+    PublishWorkspaceReviewInput,
     ReleaseInput,
     ResourceResult,
     ReviewContext,
+    ReviewDraftView,
     SelfReviewEvent,
     SelfReviewView,
     StatisticView,
     StudentContext,
+    StudentSubmissionView,
     UploadInput,
     UploadView,
     WorkList,
     WorkspaceCommand,
+    WorkspaceSearchView,
 )
 from review_platform.infrastructure.db.models import (
+    Course,
     CourseMembership,
     CourseRun,
     CourseRunHomework,
+    CourseRunHomeworkPublication,
+    Homework,
     HomeworkVersion,
     Organization,
+    OrganizationMembership,
     ReviewCase,
     ReviewIteration,
     Submission,
 )
 from review_platform.infrastructure.db.models.workspace import (
+    HomeworkEditorDraft,
     HomeworkPrivateDetails,
+    PublicationPolicy,
     ReviewOutcome,
     SelfReviewQuota,
     SelfReviewRun,
     WorkDraft,
     WorkspaceArtifact,
+    WorkspaceCourseDetails,
     WorkspaceExport,
     WorkspaceNotification,
+    WorkspacePublishedGrade,
+    WorkspaceRunSettings,
 )
 
 
@@ -139,7 +166,7 @@ async def mutate[T: BaseModel, R: BaseModel](
         if not created:
             return model.model_validate(replay(receipt))
         value = await work(runtime, session, actor)
-        await runtime.user_auth_guard.revalidate(actor=actor)
+        await runtime.user_auth_guard.lock_and_revalidate(actor=actor, transaction=session)
         audit = {
             k: v
             for k, v in body.payload.model_dump(mode="json").items()
@@ -303,7 +330,7 @@ async def works(
     q: str = Query(default="", max_length=200),
     state: str = "",
     view: str = "all",
-    priority: str = "assigned",
+    priority: Literal["assigned", "deadline"] | None = None,
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=30, ge=1, le=100),
 ) -> WorkList:
@@ -488,25 +515,138 @@ async def upload_artifact(request: Request, body: WorkspaceCommand[UploadInput])
 async def artifact_download(identity: UUID, request: Request) -> DownloadView:
     runtime, actor = await context(request)
     async with runtime.transaction() as session:
-        artifact = await row(session, WorkspaceArtifact, actor.organization_id, identity)
-        if artifact.owner_id != actor.user_id and "methodologist" not in actor.roles:
-            require_roles(actor, "reviewer")
-            run = await session.scalar(
-                select(SelfReviewRun).where(
-                    SelfReviewRun.organization_id == actor.organization_id,
-                    SelfReviewRun.artifact_id == identity,
+        from review_platform.infrastructure.db.models import (
+            ArtifactVersion,
+            SubmissionVersion,
+        )
+
+        artifact = await session.scalar(
+            select(WorkspaceArtifact).where(
+                WorkspaceArtifact.organization_id == actor.organization_id,
+                WorkspaceArtifact.id == identity,
+            )
+        )
+        legacy = (
+            await session.scalar(
+                select(ArtifactVersion).where(
+                    ArtifactVersion.organization_id == actor.organization_id,
+                    ArtifactVersion.id == identity,
                 )
             )
-            if run is None or artifact.private:
-                raise WorkspaceFailure("forbidden", "Файл недоступен.", 403)
-            draft = await row(session, WorkDraft, actor.organization_id, run.draft_id)
-            publication = await row(
-                session, CourseRunHomework, actor.organization_id, draft.publication_id
+            if artifact is None
+            else None
+        )
+        if artifact is None and legacy is None:
+            raise WorkspaceFailure("not_found", "Файл недоступен.", 404)
+        allowed = artifact is not None and artifact.owner_id == actor.user_id
+        if (
+            artifact
+            and artifact.private
+            and not actor.roles.intersection({"reviewer", "methodologist"})
+        ):
+            allowed = False
+        if not allowed:
+            # Public homework attachments and private rubric references use different audiences.
+            details_rows = (
+                await session.execute(
+                    select(HomeworkPrivateDetails, HomeworkVersion)
+                    .join(
+                        HomeworkVersion,
+                        (HomeworkVersion.id == HomeworkPrivateDetails.id)
+                        & (
+                            HomeworkVersion.organization_id
+                            == HomeworkPrivateDetails.organization_id
+                        ),
+                    )
+                    .where(HomeworkPrivateDetails.organization_id == actor.organization_id)
+                )
+            ).all()
+            for details, version in details_rows:
+                public_material = str(identity) in (details.material_upload_ids or [])
+                private_reference = details.reference_upload_id == identity and bool(
+                    actor.roles.intersection({"reviewer", "methodologist"})
+                )
+                if not public_material and not private_reference:
+                    continue
+                relations = (
+                    await session.scalars(
+                        select(CourseRunHomework).where(
+                            CourseRunHomework.organization_id == actor.organization_id,
+                            CourseRunHomework.homework_id == version.homework_id,
+                        )
+                    )
+                ).all()
+                for relation in relations:
+                    try:
+                        await course_scope(session, actor, relation.course_run_id)
+                        # Students see files only after this exact version has been published.
+                        if not actor.roles.intersection({"reviewer", "methodologist"}):
+                            published_version = await session.scalar(
+                                select(CourseRunHomeworkPublication.id).where(
+                                    CourseRunHomeworkPublication.organization_id
+                                    == actor.organization_id,
+                                    CourseRunHomeworkPublication.course_run_homework_id
+                                    == relation.id,
+                                    CourseRunHomeworkPublication.homework_version_id == version.id,
+                                )
+                            )
+                            if published_version is None:
+                                continue
+                        allowed = True
+                        break
+                    except WorkspaceFailure as error:
+                        if error.status != 403:
+                            raise
+                if allowed:
+                    break
+        if not allowed and (artifact is None or not artifact.private):
+            submitted = (
+                (
+                    await session.execute(
+                        select(Submission)
+                        .join(
+                            SubmissionVersion,
+                            (SubmissionVersion.submission_id == Submission.id)
+                            & (SubmissionVersion.organization_id == Submission.organization_id),
+                        )
+                        .where(
+                            Submission.organization_id == actor.organization_id,
+                            SubmissionVersion.artifact_version_id == identity,
+                        )
+                    )
+                )
+                .scalars()
+                .all()
             )
-            await course_scope(session, actor, publication.course_run_id)
+            for submission in submitted:
+                if submission.student_id == actor.user_id or actor.roles.intersection(
+                    {"reviewer", "methodologist"}
+                ):
+                    await course_scope(session, actor, submission.course_run_id)
+                    allowed = True
+                    break
+            if not allowed and actor.roles.intersection({"reviewer", "methodologist"}):
+                run = await session.scalar(
+                    select(SelfReviewRun).where(
+                        SelfReviewRun.organization_id == actor.organization_id,
+                        SelfReviewRun.artifact_id == identity,
+                    )
+                )
+                if run:
+                    draft = await row(session, WorkDraft, actor.organization_id, run.draft_id)
+                    relation = await row(
+                        session, CourseRunHomework, actor.organization_id, draft.publication_id
+                    )
+                    await course_scope(session, actor, relation.course_run_id)
+                    allowed = True
+        if not allowed:
+            raise WorkspaceFailure("forbidden", "Файл недоступен.", 403)
+        selected_artifact = artifact or legacy
+        assert selected_artifact is not None
         return DownloadView(
+            filename=artifact.filename if artifact else None,
             url=runtime.object_storage.sign_read(
-                key=artifact.object_key,
+                key=selected_artifact.object_key,
                 organization_id=str(actor.organization_id),
                 artifact_version_id=str(identity),
                 requested_by_organization_id=str(actor.organization_id),
@@ -544,6 +684,28 @@ async def save_private(
             .with_for_update()
         )
         revision(current.revision if current else 0, body.expected_revision)
+        from review_platform.infrastructure.db.models import Criterion, CriterionSet
+
+        stable_keys = set(
+            (
+                await session.scalars(
+                    select(Criterion.stable_key)
+                    .join(
+                        CriterionSet,
+                        (CriterionSet.id == Criterion.criterion_set_id)
+                        & (CriterionSet.organization_id == Criterion.organization_id),
+                    )
+                    .where(
+                        Criterion.organization_id == actor.organization_id,
+                        CriterionSet.homework_version_id == identity,
+                    )
+                )
+            ).all()
+        )
+        if not set(body.payload.criterion_settings).issubset(stable_keys):
+            raise WorkspaceFailure(
+                "unknown_criterion", "Настройки относятся к неизвестному критерию.", 422
+            )
         if body.payload.reference_upload_id:
             reference = await row(
                 session, WorkspaceArtifact, actor.organization_id, body.payload.reference_upload_id
@@ -557,9 +719,22 @@ async def save_private(
                 id=identity, organization_id=actor.organization_id, revision=0
             )
             session.add(current)
+        for material_id in body.payload.material_upload_ids:
+            material = await row(session, WorkspaceArtifact, actor.organization_id, material_id)
+            if material.private:
+                raise WorkspaceFailure(
+                    "material_private",
+                    "Открытые материалы должны быть загружены как общедоступные.",
+                    422,
+                )
+        current.material_upload_ids = [str(i) for i in body.payload.material_upload_ids]
         current.reviewer_guidance = body.payload.reviewer_guidance
         current.reference_upload_id = body.payload.reference_upload_id
         current.criterion_classes = dict(body.payload.criterion_classes)
+        current.criterion_settings = {
+            key: value.model_dump(mode="json")
+            for key, value in body.payload.criterion_settings.items()
+        }
         current.revision += 1
         return PrivateHomeworkView(**body.payload.model_dump(), revision=current.revision)
 
@@ -585,8 +760,7 @@ async def save_outcome(
     async def work(
         runtime: FoundationRuntime, session: AsyncSession, actor: RequestActor
     ) -> ResourceResult:
-        iteration = await row(session, ReviewIteration, actor.organization_id, identity, lock=True)
-        await course_scope(session, actor, iteration.course_run_id, write=True)
+        iteration = await lock_review_scope(session, actor, identity)
         if iteration.status in {"published", "canceled"}:
             raise WorkspaceFailure(
                 "closed", "Для изменения опубликованного результата создайте исправление."
@@ -606,6 +780,7 @@ async def save_outcome(
         current.revision_deadline = body.payload.revision_deadline
         current.reason = body.payload.reason
         current.revision += 1
+        iteration.revision += 1
         return ResourceResult(id=identity, revision=current.revision)
 
     return await mutate(
@@ -678,6 +853,31 @@ async def open_work(
         iteration = await row(
             session, ReviewIteration, actor.organization_id, result.review_iteration_id
         )
+        from review_platform.infrastructure.db.models import ReviewResponsibility
+
+        latest = await session.scalar(
+            select(ReviewResponsibility)
+            .where(
+                ReviewResponsibility.organization_id == actor.organization_id,
+                ReviewResponsibility.review_iteration_id == iteration.id,
+                ReviewResponsibility.reviewer_id == actor.user_id,
+            )
+            .order_by(ReviewResponsibility.occurred_at.desc(), ReviewResponsibility.id.desc())
+            .limit(1)
+        )
+        if latest is None or latest.action == "released":
+            session.add(
+                ReviewResponsibility(
+                    id=runtime.id_factory(),
+                    organization_id=actor.organization_id,
+                    review_case_id=iteration.review_case_id,
+                    review_iteration_id=iteration.id,
+                    reviewer_id=actor.user_id,
+                    actor_id=actor.user_id,
+                    action="joined",
+                    occurred_at=runtime.clock(),
+                )
+            )
         return ResourceResult(id=result.review_iteration_id, revision=iteration.revision)
 
     return await mutate(
@@ -687,12 +887,15 @@ async def open_work(
 
 @router.get("/statistics", response_model=StatisticView)
 async def statistics(
-    request: Request, days: int = Query(default=30, ge=1, le=365)
+    request: Request, days: int = Query(default=30, ge=1, le=365), course_run_id: UUID | None = None
 ) -> StatisticView:
     runtime, actor = await context(request)
     async with runtime.transaction() as session:
         return await WorkspaceQueries(runtime, session).statistics(
-            actor, runtime.clock() - timedelta(days=days), runtime.clock()
+            actor,
+            runtime.clock() - timedelta(days=days),
+            runtime.clock(),
+            course_run_id=course_run_id,
         )
 
 
@@ -814,9 +1017,6 @@ async def submit_upload(
     )
 
 
-from review_platform.contracts.workspace import StudentSubmissionView
-
-
 @router.get("/submissions/{identity}", response_model=StudentSubmissionView)
 async def get_student_submission(identity: UUID, request: Request) -> StudentSubmissionView:
     from review_platform.application.workspace.submissions import student_submission
@@ -824,10 +1024,6 @@ async def get_student_submission(identity: UUID, request: Request) -> StudentSub
     runtime, actor = await context(request)
     async with runtime.transaction() as session:
         return await student_submission(runtime, session, actor, identity)
-
-
-from review_platform.contracts.workspace import NotificationsView, NotificationView, PriorityInput
-from review_platform.infrastructure.db.models.workspace import WorkspaceRunSettings
 
 
 @router.get("/notifications", response_model=NotificationsView)
@@ -920,20 +1116,6 @@ async def set_run_priority(
     return await mutate(
         request, body, "set_run_priority", identity, ("methodologist",), ResourceResult, work
     )
-
-
-from review_platform.contracts.workspace import (
-    EditorDraftInput,
-    EditorDraftView,
-    PublicationPolicyView,
-    PublishWithPolicyInput,
-    PublishedWorkspaceHomework,
-)
-from review_platform.infrastructure.db.models import Homework, CourseRunHomeworkPublication
-from review_platform.infrastructure.db.models.workspace import (
-    HomeworkEditorDraft,
-    PublicationPolicy,
-)
 
 
 @router.get("/homeworks/{identity}/editor-draft", response_model=EditorDraftView)
@@ -1041,9 +1223,11 @@ async def get_private(identity: UUID, request: Request) -> PrivateHomeworkView:
             PrivateHomeworkView.model_validate(
                 {
                     "revision": details.revision,
+                    "material_upload_ids": details.material_upload_ids or [],
                     "reviewer_guidance": details.reviewer_guidance,
                     "reference_upload_id": details.reference_upload_id,
                     "criterion_classes": details.criterion_classes,
+                    "criterion_settings": details.criterion_settings or {},
                 }
             )
             if details
@@ -1103,38 +1287,336 @@ async def publish_workspace(
         work,
     )
 
-from review_platform.contracts.workspace import GradePreview, PublishWorkspaceReviewInput, PublishedGradeView, ExtraRequirementInput
-from review_platform.infrastructure.db.models.workspace import WorkspacePublishedGrade
 
-@router.get('/reviews/{identity}/grade-preview',response_model=GradePreview)
-async def preview_grade(identity: UUID,request: Request) -> GradePreview:
+@router.get("/reviews/{identity}/grade-preview", response_model=GradePreview)
+async def preview_grade(identity: UUID, request: Request) -> GradePreview:
     from review_platform.application.workspace.grading import grade_preview
-    runtime,actor=await context(request);require_roles(actor,'reviewer','methodologist')
+
+    runtime, actor = await context(request)
+    require_roles(actor, "reviewer", "methodologist")
     async with runtime.transaction() as session:
-        iteration=await row(session,ReviewIteration,actor.organization_id,identity);await course_scope(session,actor,iteration.course_run_id)
-        return await grade_preview(session,actor.organization_id,iteration)
+        iteration = await row(session, ReviewIteration, actor.organization_id, identity)
+        await course_scope(session, actor, iteration.course_run_id)
+        return await grade_preview(session, actor.organization_id, iteration)
 
-@router.post('/reviews/{identity}/publish',response_model=PublishedGradeView,openapi_extra={'x-command-name':'publish_workspace_review'})
-async def publish_workspace_review(identity: UUID,request: Request,body: WorkspaceCommand[PublishWorkspaceReviewInput]) -> PublishedGradeView:
+
+@router.post(
+    "/reviews/{identity}/publish",
+    response_model=PublishedGradeView,
+    openapi_extra={"x-command-name": "publish_workspace_review"},
+)
+async def publish_workspace_review(
+    identity: UUID, request: Request, body: WorkspaceCommand[PublishWorkspaceReviewInput]
+) -> PublishedGradeView:
     from decimal import Decimal
+
     from review_platform.api.routes.review_composition import dispatch_review_mutation
-    from review_platform.contracts.commands import WireCommand
     from review_platform.application.workspace.grading import grade_preview
-    async def work(runtime: FoundationRuntime,session: AsyncSession,actor: RequestActor) -> PublishedGradeView:
-        iteration=await row(session,ReviewIteration,actor.organization_id,identity,lock=True);await course_scope(session,actor,iteration.course_run_id,write=True)
-        revision(iteration.revision,body.expected_revision)
-        if iteration.status in {'published','canceled'} or iteration.current_revision_id!=body.payload.review_revision_id:raise WorkspaceFailure('revision_conflict','Нужна текущая сохранённая версия ревью.')
-        grade=await grade_preview(session,actor.organization_id,iteration,apply_penalty=body.payload.apply_penalty)
-        outcome=await session.scalar(select(ReviewOutcome).where(ReviewOutcome.organization_id==actor.organization_id,ReviewOutcome.id==identity))
+    from review_platform.contracts.commands import WireCommand
+
+    async def work(
+        runtime: FoundationRuntime, session: AsyncSession, actor: RequestActor
+    ) -> PublishedGradeView:
+        iteration = await lock_review_scope(session, actor, identity)
+        revision(iteration.revision, body.expected_revision)
+        if (
+            iteration.status in {"published", "canceled"}
+            or iteration.current_revision_id != body.payload.review_revision_id
+        ):
+            raise WorkspaceFailure("revision_conflict", "Нужна текущая сохранённая версия ревью.")
+        grade = await grade_preview(
+            session, actor.organization_id, iteration, apply_penalty=body.payload.apply_penalty
+        )
+        outcome = await session.scalar(
+            select(ReviewOutcome).where(
+                ReviewOutcome.organization_id == actor.organization_id, ReviewOutcome.id == identity
+            )
+        )
         if outcome and grade.pass_score is not None:
-            if outcome.decision=='passed' and grade.final_score<grade.pass_score:raise WorkspaceFailure('outcome_conflict','Итоговый балл ниже порога зачёта.',422)
-            if outcome.decision=='failed' and grade.final_score>=grade.pass_score:raise WorkspaceFailure('outcome_conflict','Итоговый балл достигает порога зачёта.',422)
-        core=WireCommand.model_validate({**body.model_dump(mode='json'),'command_name':'publish_review','revision_target':'review_iteration','payload':{'review_revision_id':str(body.payload.review_revision_id)}})
-        result=await dispatch_review_mutation(runtime=runtime,actor=actor,command=core,transaction=session,score_adjustment=Decimal(str(grade.penalty)))
+            if outcome.decision == "passed" and grade.final_score < grade.pass_score:
+                raise WorkspaceFailure("outcome_conflict", "Итоговый балл ниже порога зачёта.", 422)
+            if outcome.decision == "failed" and grade.final_score >= grade.pass_score:
+                raise WorkspaceFailure(
+                    "outcome_conflict", "Итоговый балл достигает порога зачёта.", 422
+                )
+        core = WireCommand.model_validate(
+            {
+                **body.model_dump(mode="json"),
+                "command_name": "publish_review",
+                "revision_target": "review_iteration",
+                "payload": {"review_revision_id": str(body.payload.review_revision_id)},
+            }
+        )
+        result = await dispatch_review_mutation(
+            runtime=runtime,
+            actor=actor,
+            command=core,
+            transaction=session,
+            score_adjustment=Decimal(str(grade.penalty)),
+        )
         assert result is not None
-        publication_id=UUID(str(result['id']))
-        session.add(WorkspacePublishedGrade(id=publication_id,organization_id=actor.organization_id,details=grade.model_dump(mode='json')))
+        publication_id = UUID(str(result["id"]))
+        session.add(
+            WorkspacePublishedGrade(
+                id=publication_id,
+                organization_id=actor.organization_id,
+                details=grade.model_dump(mode="json"),
+            )
+        )
         if outcome is None and grade.pass_score is not None:
-            session.add(ReviewOutcome(id=identity,organization_id=actor.organization_id,revision=0,decision='passed' if grade.final_score>=grade.pass_score else 'failed',reason='Опубликованная оценка по порогу задания',revision_deadline=None))
-        return PublishedGradeView(id=publication_id,grade=grade)
-    return await mutate(request,body,'publish_workspace_review',identity,('reviewer','methodologist'),PublishedGradeView,work)
+            session.add(
+                ReviewOutcome(
+                    id=identity,
+                    organization_id=actor.organization_id,
+                    revision=0,
+                    decision="passed" if grade.final_score >= grade.pass_score else "failed",
+                    reason="Опубликованная оценка по порогу задания",
+                    revision_deadline=None,
+                )
+            )
+        return PublishedGradeView(id=publication_id, grade=grade)
+
+    return await mutate(
+        request,
+        body,
+        "publish_workspace_review",
+        identity,
+        ("reviewer", "methodologist"),
+        PublishedGradeView,
+        work,
+    )
+
+
+@router.post(
+    "/reviews/{identity}/requirements",
+    response_model=ResourceResult,
+    openapi_extra={"x-command-name": "add_review_requirement"},
+)
+async def add_review_requirement(
+    identity: UUID, request: Request, body: WorkspaceCommand[ExtraRequirementInput]
+) -> ResourceResult:
+    from review_platform.application.workspace.reviews import add_requirement
+
+    async def work(
+        runtime: FoundationRuntime, session: AsyncSession, actor: RequestActor
+    ) -> ResourceResult:
+        return await add_requirement(runtime, session, actor, body)
+
+    return await mutate(
+        request,
+        body,
+        "add_review_requirement",
+        identity,
+        ("reviewer", "methodologist"),
+        ResourceResult,
+        work,
+    )
+
+
+@router.post(
+    "/work-drafts/{identity}/prepare",
+    response_model=PreparationView,
+    status_code=202,
+    openapi_extra={"x-command-name": "prepare_work_draft"},
+)
+async def prepare_work_draft(
+    identity: UUID, request: Request, body: WorkspaceCommand[EmptyInput]
+) -> PreparationView:
+    async def work(
+        runtime: FoundationRuntime, session: AsyncSession, actor: RequestActor
+    ) -> PreparationView:
+        return await PreparationService(runtime, session).start(
+            actor, identity, body.expected_revision
+        )
+
+    return await mutate(
+        request, body, "prepare_work_draft", identity, ("student",), PreparationView, work
+    )
+
+
+@router.get("/preparations/{identity}", response_model=PreparationView)
+async def preparation(identity: UUID, request: Request) -> PreparationView:
+    runtime, actor = await context(request)
+    async with runtime.transaction() as session:
+        return await PreparationService(runtime, session).get(actor, identity)
+
+
+@router.post(
+    "/work-drafts/{identity}/submit",
+    response_model=ResourceResult,
+    openapi_extra={"x-command-name": "submit_work_draft"},
+)
+async def submit_work_draft(
+    identity: UUID, request: Request, body: WorkspaceCommand[EmptyInput]
+) -> ResourceResult:
+    from review_platform.application.workspace.submissions import submit_uploaded_draft
+
+    async def work(
+        runtime: FoundationRuntime, session: AsyncSession, actor: RequestActor
+    ) -> ResourceResult:
+        return await submit_uploaded_draft(
+            runtime, session, actor, identity, body.expected_revision
+        )
+
+    return await mutate(
+        request, body, "submit_work_draft", identity, ("student",), ResourceResult, work
+    )
+
+
+@router.post(
+    "/courses/{identity}",
+    response_model=ResourceResult,
+    openapi_extra={"x-command-name": "update_course"},
+)
+async def update_course(
+    identity: UUID, request: Request, body: WorkspaceCommand[CourseInput]
+) -> ResourceResult:
+    async def work(
+        runtime: FoundationRuntime, session: AsyncSession, actor: RequestActor
+    ) -> ResourceResult:
+        course = await row(session, Course, actor.organization_id, identity, lock=True)
+        revision(course.revision, body.expected_revision)
+        if body.payload.owner_id:
+            owner = await session.scalar(
+                select(OrganizationMembership).where(
+                    OrganizationMembership.organization_id == actor.organization_id,
+                    OrganizationMembership.user_id == body.payload.owner_id,
+                    OrganizationMembership.status == "active",
+                )
+            )
+            if owner is None or "methodologist" not in owner.roles:
+                raise WorkspaceFailure(
+                    "invalid_owner", "Ответственный должен быть координатором.", 422
+                )
+        course.title, course.description = body.payload.title, body.payload.description
+        details = await session.scalar(
+            select(WorkspaceCourseDetails).where(
+                WorkspaceCourseDetails.organization_id == actor.organization_id,
+                WorkspaceCourseDetails.id == identity,
+            )
+        )
+        if details is None:
+            details = WorkspaceCourseDetails(id=identity, organization_id=actor.organization_id)
+            session.add(details)
+        details.owner_id = body.payload.owner_id
+        details.stepik_url = body.payload.stepik_url
+        course.revision += 1
+        return ResourceResult(id=identity, revision=course.revision)
+
+    return await mutate(
+        request, body, "update_course", identity, ("methodologist",), ResourceResult, work
+    )
+
+
+@router.post(
+    "/course-runs/{identity}",
+    response_model=ResourceResult,
+    openapi_extra={"x-command-name": "update_course_run"},
+)
+async def update_course_run(
+    identity: UUID, request: Request, body: WorkspaceCommand[CourseRunInput]
+) -> ResourceResult:
+    async def work(
+        runtime: FoundationRuntime, session: AsyncSession, actor: RequestActor
+    ) -> ResourceResult:
+        run = await row(session, CourseRun, actor.organization_id, identity, lock=True)
+        revision(run.revision, body.expected_revision)
+        run.title, run.starts_at, run.ends_at, run.timezone = (
+            body.payload.title,
+            body.payload.starts_at,
+            body.payload.ends_at,
+            body.payload.timezone,
+        )
+        settings = await session.scalar(
+            select(WorkspaceRunSettings).where(
+                WorkspaceRunSettings.organization_id == actor.organization_id,
+                WorkspaceRunSettings.id == identity,
+            )
+        )
+        if settings is None:
+            settings = WorkspaceRunSettings(
+                id=identity, organization_id=actor.organization_id, revision=0
+            )
+            session.add(settings)
+        settings.priority = body.payload.priority
+        settings.revision += 1
+        run.revision += 1
+        return ResourceResult(id=identity, revision=run.revision)
+
+    return await mutate(
+        request, body, "update_course_run", identity, ("methodologist",), ResourceResult, work
+    )
+
+
+@router.get("/reviews/{identity}/draft", response_model=ReviewDraftView)
+async def get_review_draft(identity: UUID, request: Request) -> ReviewDraftView:
+    from review_platform.application.projections.review_detail import (
+        _decision,
+        _note,
+        _revision_summary,
+    )
+    from review_platform.infrastructure.db.models import (
+        ReviewCriterionDecision,
+        ReviewNote,
+        ReviewRevision,
+    )
+
+    runtime, actor = await context(request)
+    require_roles(actor, "reviewer", "methodologist")
+    async with runtime.transaction() as session:
+        iteration = await row(session, ReviewIteration, actor.organization_id, identity)
+        await course_scope(session, actor, iteration.course_run_id)
+        current = (
+            await row(session, ReviewRevision, actor.organization_id, iteration.current_revision_id)
+            if iteration.current_revision_id
+            else None
+        )
+        decisions = (
+            (
+                await session.scalars(
+                    select(ReviewCriterionDecision)
+                    .where(
+                        ReviewCriterionDecision.organization_id == actor.organization_id,
+                        ReviewCriterionDecision.review_revision_id == current.id,
+                    )
+                    .order_by(ReviewCriterionDecision.criterion_id)
+                )
+            ).all()
+            if current
+            else []
+        )
+        notes = (
+            (
+                await session.scalars(
+                    select(ReviewNote)
+                    .where(
+                        ReviewNote.organization_id == actor.organization_id,
+                        ReviewNote.review_revision_id == current.id,
+                    )
+                    .order_by(ReviewNote.position)
+                )
+            ).all()
+            if current
+            else []
+        )
+        return ReviewDraftView.model_validate(
+            {
+                "revision": iteration.revision,
+                "status": iteration.status,
+                "current_review_revision_id": current.id if current else None,
+                "current_review_revision": _revision_summary(current) if current else None,
+                "criterion_decisions": [_decision(d) for d in decisions],
+                "review_notes": [_note(n) for n in notes],
+            }
+        )
+
+
+@router.get("/search", response_model=WorkspaceSearchView)
+async def search_workspace(
+    request: Request, q: str = Query(default="", max_length=200)
+) -> WorkspaceSearchView:
+    from review_platform.application.workspace.search import workspace_search
+
+    runtime, actor = await context(request)
+    async with runtime.transaction() as session:
+        return await workspace_search(runtime, session, actor, q)

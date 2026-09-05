@@ -49,15 +49,18 @@ export function ScreenTitle({
   code,
   title,
   children,
+  leading,
 }: {
   code: string;
   title: string;
+  leading?: ReactNode;
   children?: ReactNode;
 }) {
   return (
     <div className="page-heading" data-screen={code}>
-      <div>
+      <div className="row">
         <h1>{title}</h1>
+        {leading}
       </div>
       {children}
     </div>
@@ -81,32 +84,47 @@ export function Quota({ value }: { value: W<"QuotaView"> | null }) {
   );
 }
 export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
+  const findings = value.result?.findings ?? [];
+  const attention = findings.some((f) => f.status === "needs_attention");
+  const checked = findings.some(
+    (f) => f.status !== "not_checked" && f.evidence,
+  );
   return (
     <article className="self-review-result" data-screen="С2">
       <div className="row">
-        <strong>Самопроверка · {date(value.created_at)}</strong>
+        <strong>Проверка от {date(value.created_at)}</strong>
         <Status value={value.status} />
       </div>
-      {value.result?.findings.map((f) => (
-        <div className="finding" key={f.criterion_id}>
-          <span
-            className={`status ${f.status === "met" ? "ok" : f.status === "needs_attention" ? "warn" : ""}`}
-          >
-            {f.status === "met"
-              ? "Проверено"
-              : f.status === "needs_attention"
-                ? "Требует внимания"
-                : "Не проверено"}
-          </span>
-          <p>{f.feedback}</p>
-          {f.evidence && <blockquote>{f.evidence}</blockquote>}
-        </div>
-      ))}
+      {findings.length > 0 && (
+        <>
+          <p>
+            <strong>
+              {attention
+                ? "Перед отправкой стоит доработать работу."
+                : checked
+                  ? "По проверенным местам замечаний нет."
+                  : "Работу не удалось проверить автоматически."}
+            </strong>
+          </p>
+          <ul>
+            {findings.map((f, index) => (
+              <li key={`${f.criterion_id}:${index}`}>
+                <p>{f.feedback}</p>
+                {f.evidence && <blockquote>{f.evidence}</blockquote>}
+              </li>
+            ))}
+          </ul>
+          <p className="notice">
+            ИИ-ревью не гарантирует, что работу примут. Замечания не означают,
+            что её отклонят. Итоговое решение принимает ревьюер.
+          </p>
+        </>
+      )}
       {value.error_code && (
         <p className="notice warn">
-          Проверка не завершилась: {value.error_code}.{" "}
+          Проверка не завершилась.{" "}
           {value.disposition === "released"
-            ? "Попытка возвращена."
+            ? "Попытка возвращена. Можно повторить проверку."
             : "Ожидаем подтверждения результата."}
         </p>
       )}
@@ -114,7 +132,7 @@ export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
         {value.disposition === "consumed"
           ? "За результат списана одна попытка."
           : value.disposition === "reserved"
-            ? "Попытка зарезервирована до завершения."
+            ? "Проверка выполняется. Попытка зарезервирована до завершения."
             : "Попытка не потрачена."}
       </p>
     </article>

@@ -3,13 +3,22 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Generic, Literal, TypeVar
+from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    JsonValue,
+    PositiveFloat,
+    field_validator,
+    model_validator,
+)
+
+from review_platform.contracts.commands import ReviewDecision, SaveReviewRevisionPayload
 
 VERSION = "2.0.0"
-T = TypeVar("T")
 Nonnegative = Annotated[int, Field(ge=0, strict=True)]
 Points = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 
@@ -18,7 +27,7 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class WorkspaceCommand(StrictModel, Generic[T]):
+class WorkspaceCommand[T](StrictModel):
     request_id: UUID
     idempotency_key: str = Field(min_length=16, max_length=128)
     command_name: str = Field(min_length=1, max_length=100)
@@ -81,6 +90,7 @@ class DraftView(StrictModel):
 
 
 class PublicCriterion(StrictModel):
+    max_points: Points = 0
     id: UUID
     key: str
     title: str
@@ -148,6 +158,24 @@ class SelfReviewView(StrictModel):
 
 
 class CourseInput(StrictModel):
+    stepik_url: str | None = Field(default=None, max_length=2048)
+
+    @model_validator(mode="after")
+    def stepik_link(self) -> CourseInput:
+        from urllib.parse import urlsplit
+
+        if self.stepik_url is not None:
+            parts = urlsplit(self.stepik_url)
+            if (
+                parts.scheme != "https"
+                or parts.hostname != "stepik.org"
+                or parts.username
+                or parts.password
+                or parts.port not in (None, 443)
+            ):
+                raise ValueError("use an HTTPS stepik.org course URL")
+        return self
+
     title: str = Field(min_length=1, max_length=512)
     description: str = Field(default="", max_length=100000)
     owner_id: UUID | None = None
@@ -170,7 +198,15 @@ class CourseRunInput(StrictModel):
         return self
 
 
+class NotificationPreferences(StrictModel):
+    deadline: bool = True
+    revision: bool = True
+    pool: bool = False
+
+
 class PreferencesInput(StrictModel):
+    show_pool: bool = True
+    notifications: NotificationPreferences = Field(default_factory=NotificationPreferences)
     course_run_ids: list[UUID] = Field(max_length=1000)
     planned_minutes: Nonnegative
     until_at: datetime
@@ -194,7 +230,14 @@ class AssignmentInput(StrictModel):
     reason: str = Field(min_length=1, max_length=2048)
 
 
+class CriterionSettings(StrictModel):
+    score_step: PositiveFloat = Field(default=0.5, allow_inf_nan=False)
+    evaluate_quality: bool = False
+
+
 class PrivateHomeworkInput(StrictModel):
+    criterion_settings: dict[str, CriterionSettings] = Field(default_factory=dict)
+    material_upload_ids: list[UUID] = Field(default_factory=list, max_length=50)
     reviewer_guidance: str = Field(default="", max_length=50000)
     reference_upload_id: UUID | None = None
     criterion_classes: dict[str, Literal["formal", "content", "judgement"]] = Field(
@@ -206,6 +249,14 @@ class OutcomeInput(StrictModel):
     decision: Literal["needs_changes", "passed", "failed"]
     revision_deadline: datetime | None = None
     reason: str = Field(min_length=1, max_length=10000)
+
+    @model_validator(mode="after")
+    def requires_deadline(self) -> OutcomeInput:
+        if self.decision == "needs_changes" and self.revision_deadline is None:
+            raise ValueError("a revision deadline is required when requesting changes")
+        if self.revision_deadline and self.revision_deadline.tzinfo is None:
+            raise ValueError("revision deadline must include a timezone")
+        return self
 
 
 class ExportInput(StrictModel):
@@ -253,6 +304,7 @@ class DirectoryView(StrictModel):
 
 
 class CourseView(StrictModel):
+    stepik_url: str | None = None
     id: UUID
     owner_id: UUID | None
     title: str
@@ -298,6 +350,10 @@ class AssignmentsView(StrictModel):
 
 
 class WorkItem(StrictModel):
+    taken_at: datetime | None = None
+    participant_ids: list[UUID] = Field(default_factory=list)
+    course_title: str = ""
+    submission_deadline: datetime | None = None
     submission_id: UUID
     submission_revision: Nonnegative
     review_submission_version_id: UUID | None
@@ -336,6 +392,11 @@ class DraftList(StrictModel):
 
 
 class StudentContext(StrictModel):
+    material_upload_ids: list[UUID] = Field(default_factory=list)
+    course_title: str = ""
+    run_title: str = ""
+    max_score: Points = 0
+    submission_id: UUID | None = None
     publication_id: UUID
     homework_id: UUID
     homework_version_id: UUID
@@ -350,11 +411,42 @@ class StudentContext(StrictModel):
     policy: PublicationPolicyInput | None
 
 
+class CriterionChangeStatistic(StrictModel):
+    criterion_id: UUID
+    title: str
+    compared_works: Nonnegative
+    changed_works: Nonnegative
+    change_percent: float
+
+
+class PeerComparisonStatistic(StrictModel):
+    sample_count: Nonnegative = 0
+    divergence_percent: float | None = None
+    course_divergence_percent: float | None = None
+    stricter_criteria: list[str] = Field(default_factory=list)
+    softer_criteria: list[str] = Field(default_factory=list)
+    fully_agreed_criteria: Nonnegative = 0
+    compared_criteria: Nonnegative = 0
+
+
 class StatisticView(StrictModel):
     publications: Nonnegative
+    repeated_publications: Nonnegative = 0
     average_elapsed_minutes: float | None
+    elapsed_sample_count: Nonnegative = 0
+    average_wait_minutes: float | None = None
+    wait_sample_count: Nonnegative = 0
+    overdue_publications: Nonnegative = 0
+    overdue_sample_count: Nonnegative = 0
+    ai_acceptance_percent: float | None = None
     changed_decisions: Nonnegative
     compared_decisions: Nonnegative
+    course_average_elapsed_minutes: float | None = None
+    course_average_wait_minutes: float | None = None
+    course_ai_acceptance_percent: float | None = None
+    course_average_overdue_publications: float | None = None
+    criterion_changes: list[CriterionChangeStatistic] = Field(default_factory=list)
+    peer_comparison: PeerComparisonStatistic = Field(default_factory=PeerComparisonStatistic)
     from_date: datetime
     until_date: datetime
 
@@ -368,6 +460,7 @@ class UploadView(StrictModel):
 
 
 class DownloadView(StrictModel):
+    filename: str | None = None
     url: str
     expires_at: datetime
 
@@ -377,12 +470,23 @@ class PrivateHomeworkView(PrivateHomeworkInput):
 
 
 class ReviewCriterionView(PublicCriterion):
+    score_step: PositiveFloat = Field(default=0.5, allow_inf_nan=False)
+    evaluate_quality: bool = False
     description: str
     max_points: Points
     position: Nonnegative
 
 
 class ReviewContext(StrictModel):
+    submission_id: UUID | None = None
+    latest_review_iteration_id: UUID | None = None
+    artifact_label: str = "Снимок работы"
+    ai_run_id: UUID | None = None
+    signal_decisions: dict[str, Literal["confirm", "reject"]] = Field(default_factory=dict)
+    title: str = ""
+    student_name: str = ""
+    attempt: Nonnegative = 0
+    submitted_at: datetime | None = None
     homework_id: UUID
     criterion_set_id: UUID
     homework_version_id: UUID
@@ -435,6 +539,7 @@ class ExportView(StrictModel):
 
 class SubmissionAttemptView(StrictModel):
     id: UUID
+    comment: str
     sequence: Nonnegative
     submitted_at: datetime
     status: str
@@ -450,7 +555,9 @@ class PublishedCriterionView(StrictModel):
 
 
 class StudentReviewView(StrictModel):
+    decision_reason: str | None = None
     id: UUID
+    grade: GradePreview | None = None
     iteration_id: UUID
     submission_version_id: UUID
     published_at: datetime
@@ -492,6 +599,8 @@ class PublicationPolicyView(PublicationPolicyInput):
 
 
 class EditorCriterion(StrictModel):
+    score_step: PositiveFloat = Field(default=0.5, allow_inf_nan=False)
+    evaluate_quality: bool = False
     key: str = Field(min_length=1, max_length=128)
     title: str = Field(default="", max_length=512)
     description: str = Field(default="", max_length=20000)
@@ -500,6 +609,7 @@ class EditorCriterion(StrictModel):
 
 
 class EditorDraftInput(StrictModel):
+    material_upload_ids: list[UUID] = Field(default_factory=list, max_length=50)
     course_run_id: UUID
     student_text: str = Field(default="", max_length=100000)
     max_score: Points = 0
@@ -534,6 +644,7 @@ class PublishedWorkspaceHomework(StrictModel):
     revision: Nonnegative
     policy_revision: Nonnegative
 
+
 class GradePreview(StrictModel):
     raw_score: float
     penalty_days: Nonnegative
@@ -543,15 +654,218 @@ class GradePreview(StrictModel):
     pass_score: float | None
     policy_revision: Nonnegative | None
 
+
 class PublishWorkspaceReviewInput(StrictModel):
     review_revision_id: UUID
     apply_penalty: bool
+
 
 class PublishedGradeView(StrictModel):
     id: UUID
     grade: GradePreview
 
+
 class ExtraRequirementInput(StrictModel):
-    title: str = Field(min_length=1,max_length=512)
-    description: str = Field(default='',max_length=20000)
+    title: str = Field(min_length=1, max_length=512)
+    description: str = Field(default="", max_length=20000)
     max_points: Points
+
+
+class PreparationView(StrictModel):
+    id: UUID
+    draft_revision: Nonnegative
+    status: Literal["pending", "processing", "succeeded", "failed"]
+    artifact_id: UUID | None
+    filename: str | None
+    error_code: str | None
+
+
+class AssistEvidence(StrictModel):
+    quote: str = Field(min_length=1, max_length=10000)
+    locator: str | None = Field(default=None, max_length=2048)
+    path: str | None = Field(default=None, max_length=2048)
+    line_start: int | None = Field(default=None, ge=1)
+    line_end: int | None = Field(default=None, ge=1)
+    # Provider-supplied locations are claims, not locally verified source matches.
+    verified: Literal[False] = False
+
+    @model_validator(mode="after")
+    def ordered_lines(self) -> AssistEvidence:
+        if self.line_end is not None and (
+            self.line_start is None or self.line_end < self.line_start
+        ):
+            raise ValueError("line_end requires an ordered line_start")
+        return self
+
+
+class AuthorshipSignal(StrictModel):
+    id: str = Field(min_length=1, max_length=128)
+    probability: float | None = Field(default=None, ge=0, le=1)
+    explanation: str = Field(min_length=1, max_length=10000)
+    evidence: list[AssistEvidence] = Field(default_factory=list, max_length=50)
+
+
+class ReviewerSuggestion(StrictModel):
+    requirement_met: bool | None = None
+    sources: list[AssistEvidence] = Field(default_factory=list, max_length=50)
+    criterion_id: UUID
+    status: Literal["suggested", "needs_human", "not_checked"]
+    proposed_points: Points | None
+    reason: str = Field(min_length=1, max_length=10000)
+    evidence: list[str] = Field(default_factory=list, max_length=50)
+    confidence: Literal["low", "medium", "high"] = "medium"
+    reviewer_note: str | None = Field(default=None, max_length=10000)
+    student_feedback: str | None = Field(default=None, max_length=10000)
+
+
+class ReviewAssistResult(StrictModel):
+    authorship_signal: AuthorshipSignal | None = None
+    feedback_draft: str | None = Field(default=None, max_length=20000)
+    suggestions: list[ReviewerSuggestion] = Field(min_length=1, max_length=500)
+
+
+class ReviewAssistRequest(StrictModel):
+    contract_version: Literal["2.0.0"] = "2.0.0"
+    purpose: Literal["reviewer_assist"] = "reviewer_assist"
+    run_id: UUID
+    attempt: Annotated[int, Field(ge=1)]
+    input_fingerprint: str
+    review_iteration_id: UUID
+    artifact_id: UUID
+    artifact_url: str
+    artifact_digest: str
+    media_type: str
+    student_text: str
+    criteria: list[ReviewCriterionView]
+    reviewer_guidance: str
+    reference_url: str | None
+
+
+class ReviewAssistEvent(StrictModel):
+    contract_version: Literal["2.0.0"]
+    event_id: UUID
+    run_id: UUID
+    attempt: Annotated[int, Field(ge=1, strict=True)]
+    sequence: Nonnegative
+    input_fingerprint: str
+    status: Literal["running", "succeeded", "failed"]
+    result: ReviewAssistResult | None = None
+    error_code: (
+        Literal["unavailable", "invalid_artifact", "unsupported_format", "invalid_result"] | None
+    ) = None
+
+    @model_validator(mode="after")
+    def coherent(self) -> ReviewAssistEvent:
+        if (self.status == "succeeded") != (self.result is not None):
+            raise ValueError("only successful results contain suggestions")
+        if (self.status == "failed") != (self.error_code is not None):
+            raise ValueError("only failed results contain an error code")
+        return self
+
+
+class ReviewAssistView(StrictModel):
+    id: UUID
+    status: Literal["queued", "running", "unknown_outcome", "succeeded", "failed", "stale"]
+    revision: Nonnegative
+    result: ReviewAssistResult | None
+    error_code: str | None
+    created_at: datetime
+
+
+class WorkspaceReviewSaveInput(StrictModel):
+    signal_decisions: dict[str, Literal["confirm", "reject"]] = Field(
+        default_factory=dict, max_length=1
+    )
+    draft: SaveReviewRevisionPayload
+    ai_run_id: UUID | None = None
+
+
+class LocalIdentity(StrictModel):
+    key: str
+    label: str
+    roles: list[str]
+
+
+class LocalIdentities(StrictModel):
+    enabled: bool
+    items: list[LocalIdentity]
+
+
+class LocalLoginInput(StrictModel):
+    identity: str
+
+
+class ProfileView(StrictModel):
+    user_id: UUID
+    display_name: str
+
+
+class CoordinatorHomeworkItem(StrictModel):
+    id: UUID
+    title: str
+    revision: Nonnegative
+    latest_version_number: int | None
+    published_run_ids: list[UUID]
+
+
+class CoordinatorHomeworkList(StrictModel):
+    course_id: UUID
+    items: list[CoordinatorHomeworkItem]
+
+
+class WorkspaceRevisionSummary(StrictModel):
+    id: UUID
+    review_iteration_id: UUID
+    revision_number: Nonnegative
+    author_user_id: UUID
+    feedback: str
+    total_score: float
+    created_at: datetime
+
+
+class WorkspaceNoteView(StrictModel):
+    id: UUID
+    criterion_id: UUID | None
+    text: str
+    author_user_id: UUID
+    position: Nonnegative
+
+
+class ReviewDraftView(StrictModel):
+    revision: Nonnegative
+    status: Literal["queued", "in_review", "ready_to_publish", "published", "canceled"]
+    current_review_revision_id: UUID | None
+    current_review_revision: WorkspaceRevisionSummary | None
+    criterion_decisions: list[ReviewDecision]
+    review_notes: list[WorkspaceNoteView]
+
+
+class SearchHomeworkView(StrictModel):
+    id: UUID
+    title: str
+    course_run_id: UUID | None
+
+
+class WorkspaceSearchView(StrictModel):
+    students: list[WorkItem]
+    homeworks: list[SearchHomeworkView]
+
+
+class StudentHomeworkItem(StrictModel):
+    publication_id: UUID
+    title: str
+    course_title: str
+    course_run_title: str
+    submission_deadline: datetime
+    status: str
+    attempt: Nonnegative
+    score: float | None
+    submission_id: UUID | None
+    draft_id: UUID | None
+
+
+class StudentHomeworkList(StrictModel):
+    items: list[StudentHomeworkItem]
+    total: Nonnegative
+    offset: Nonnegative
+    limit: Annotated[int, Field(ge=1, le=100)]

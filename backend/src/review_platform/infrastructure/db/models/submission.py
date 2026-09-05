@@ -33,7 +33,7 @@ from review_platform.infrastructure.db.base import (
     tenant_foreign_key,
 )
 
-ARTIFACT_PROVIDERS = ("github", "google_docs", "upload")
+ARTIFACT_PROVIDERS = ("github", "google_docs", "upload", "workspace")
 READ_CAPABILITIES = ("available", "requires_action", "unavailable")
 FEEDBACK_CAPABILITIES = ("available", "not_supported", "requires_action")
 SUBMISSION_VERSION_PHASES = ("before_deadline", "revision")
@@ -127,7 +127,10 @@ class ArtifactReference(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
         ),
         CheckConstraint(string_enum_check("provider", ARTIFACT_PROVIDERS), name="provider"),
         CheckConstraint(
-            "(provider = 'upload' AND credential_binding_id IS NULL AND credential_binding_version IS NULL) OR (provider != 'upload' AND credential_binding_id IS NOT NULL AND credential_binding_version IS NOT NULL)",
+            "(provider IN ('upload','workspace') AND credential_binding_id IS NULL "
+            "AND credential_binding_version IS NULL) OR "
+            "(provider NOT IN ('upload','workspace') AND credential_binding_id IS NOT NULL "
+            "AND credential_binding_version IS NOT NULL)",
             name="credential_source",
         ),
         CheckConstraint(
@@ -278,7 +281,7 @@ class SubmissionVersion(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
     submission_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     course_run_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     homework_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
-    comment: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default=text("('')"))
+    comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
     sequence: Mapped[int] = mapped_column(nullable=False)
     homework_version_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     artifact_reference_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)

@@ -1,0 +1,11 @@
+{
+  "contract_version": "2.0.0",
+  "event_id": "e73756a2-8749-56c7-8ac7-0b978767c1bd",
+  "run_id": "50bed680-e2df-5558-9928-7a9a1c7496ee",
+  "attempt": 1,
+  "sequence": 1,
+  "input_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "running",
+  "result": null,
+  "error_code": null
+}

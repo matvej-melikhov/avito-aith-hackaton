@@ -1,0 +1,26 @@
+{
+  "contract_version": "2.0.0",
+  "event_id": "bafea42d-ee0a-5ae0-b671-8dbb51190823",
+  "run_id": "50bed680-e2df-5558-9928-7a9a1c7496ee",
+  "attempt": 1,
+  "sequence": 2,
+  "input_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "succeeded",
+  "result": {
+    "findings": [
+      {
+        "criterion_id": "c160fa4e-37ce-589c-a2ad-91509ead9b4e",
+        "status": "not_checked",
+        "feedback": "Недостаточно данных для проверки.",
+        "evidence": ""
+      },
+      {
+        "criterion_id": "25a1b9f3-503c-594b-a4d5-ba40b9e3a754",
+        "status": "not_checked",
+        "feedback": "Недостаточно данных для проверки.",
+        "evidence": ""
+      }
+    ]
+  },
+  "error_code": null
+}

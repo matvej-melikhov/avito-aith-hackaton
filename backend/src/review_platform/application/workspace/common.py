@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import TypeVar, cast
+from typing import cast
 from uuid import UUID
 
 from pydantic import BaseModel, JsonValue
@@ -25,8 +25,6 @@ from review_platform.infrastructure.db.models import (
     CourseRun,
 )
 
-M = TypeVar("M", bound=Base)
-
 
 class WorkspaceFailure(Exception):
     def __init__(self, code: str, message: str, status: int = 409, quota: QuotaView | None = None):
@@ -43,12 +41,12 @@ def digest(value: JsonValue) -> str:
     )
 
 
-async def row(
+async def row[M: Base](
     session: AsyncSession, model: type[M], org: UUID, identity: UUID, *, lock: bool = False
 ) -> M:
     statement = select(model).filter_by(organization_id=org, id=identity)
     if lock:
-        statement = statement.with_for_update()
+        statement = statement.with_for_update().execution_options(populate_existing=True)
     result = await session.scalar(statement)
     if result is None:
         raise WorkspaceFailure("not_found", "Объект не найден или недоступен.", 404)
@@ -116,7 +114,7 @@ async def reserve[T: BaseModel](
     found, created = await SqlIdempotencyReceiptRepository().reserve(proposed, transaction=session)
     if found.payload_digest != proposed.payload_digest:
         raise WorkspaceFailure(
-            "idempotency_conflict", "Ключ запроса уже использован с другим содержимым."
+            "idempotency_conflict", "Ключ запроса уже использован: содержимое отличается."
         )
     receipt = await row(session, CommandReceipt, actor.organization_id, found.receipt_id, lock=True)
     if not created and receipt.status != "succeeded":
@@ -164,3 +162,45 @@ def revision(actual: int, expected: int) -> None:
         raise WorkspaceFailure(
             "revision_conflict", "Данные изменились. Обновите их перед сохранением."
         )
+
+
+async def student_epoch_valid(
+    session: AsyncSession,
+    org: UUID,
+    user: UUID,
+    course_run_id: UUID,
+    membership_revision: int,
+    auth_epoch: int,
+) -> bool:
+    """Fence asynchronous completion against the same enrollment and auth epoch."""
+    from review_platform.infrastructure.db.models import CourseMembership, OrganizationMembership
+
+    member = await session.scalar(
+        select(OrganizationMembership)
+        .where(
+            OrganizationMembership.organization_id == org,
+            OrganizationMembership.user_id == user,
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if (
+        member is None
+        or member.status != "active"
+        or "student" not in member.roles
+        or member.revision != membership_revision
+        or member.auth_epoch != auth_epoch
+    ):
+        return False
+    enrolled = await session.scalar(
+        select(CourseMembership.id)
+        .where(
+            CourseMembership.organization_id == org,
+            CourseMembership.user_id == user,
+            CourseMembership.course_run_id == course_run_id,
+            CourseMembership.status == "active",
+            CourseMembership.kind == "student",
+        )
+        .with_for_update()
+    )
+    return enrolled is not None

@@ -1,8 +1,10 @@
 {
   "sha256": {
-    "openapi.json": "f7f3c42c9bcae573929c100a7ac6b8babdfb7c44e622a682fb556d5c2bf91b56",
+    "openapi.json": "cc343cf65b2ca6d1695421ccde0f26f8edcf50f54afaa4a633cd7f12ba97332c",
+    "review-assist-event.schema.json": "7ea38dcaa95d75dcb681d57d293dfc9255f55d96202b0e97ef60e9ae67299c89",
+    "review-assist-request.schema.json": "966555672a5b9fde6cc66d1b999e1f3e6a4d94c132d537a7a3d06a21f21b1b4d",
     "self-review-event.schema.json": "2482e3dc88e524844f1d192c9d8200b5fa50ae330017f3ae5235ffc78440f87c",
-    "self-review-request.schema.json": "13e121a0b3b0e2b8852b8c637304a0a77bc975e51f0e12e24d577e7c1b63eb0b"
+    "self-review-request.schema.json": "3140495b0b169487944f46f0f00c39eb6c6aa192c157ea97e9c34074cc444f48"
   },
   "version": "2.0.0"
 }

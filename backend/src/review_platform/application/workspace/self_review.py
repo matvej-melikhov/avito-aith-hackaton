@@ -18,7 +18,9 @@ from review_platform.application.workspace.common import (
     require_roles,
     revision,
     row,
+    student_epoch_valid,
 )
+from review_platform.application.workspace.preparation import prepared_artifact
 from review_platform.contracts.workspace import (
     DraftInput,
     DraftView,
@@ -156,14 +158,17 @@ class SelfReviewService:
 
     async def start(self, actor: RequestActor, draft_id: UUID, expected: int) -> SelfReviewView:
         user_id = require_roles(actor, "student")
-        draft = await row(self.session, WorkDraft, actor.organization_id, draft_id, lock=True)
+        draft = await row(self.session, WorkDraft, actor.organization_id, draft_id)
         if draft.student_id != user_id:
             raise WorkspaceFailure("not_found", "Черновик недоступен.", 404)
         publication = await row(
-            self.session, CourseRunHomework, actor.organization_id, draft.publication_id
+            self.session, CourseRunHomework, actor.organization_id, draft.publication_id, lock=True
         )
+        draft = await row(self.session, WorkDraft, actor.organization_id, draft_id, lock=True)
         await course_scope(self.session, actor, publication.course_run_id, write=True)
         revision(draft.revision, expected)
+        if not self.runtime.settings.workspace_enabled:
+            raise WorkspaceFailure("configuration_required", "Самопроверка ещё не настроена.", 503)
         policy = await self.policy(actor.organization_id, publication.id, lock=True)
         quota, view = await self.get_quota(draft, policy, lock=True)
         if quota.reserved:
@@ -174,6 +179,7 @@ class SelfReviewService:
             raise WorkspaceFailure(
                 "self_review_limit_exhausted", "Лимит самопроверок исчерпан.", quota=view
             )
+        artifact_id = await prepared_artifact(self.session, draft)
         if publication.current_publication_id is None:
             raise WorkspaceFailure("not_published", "Задание ещё не опубликовано.")
         published = await row(
@@ -212,10 +218,20 @@ class SelfReviewService:
             draft_id=draft.id,
             draft_revision=draft.revision,
             homework_version_id=homework.id,
-            artifact_id=draft.upload_id,
+            artifact_id=artifact_id,
+            membership_revision=actor.membership_revision or 0,
+            auth_epoch=actor.auth_epoch or 0,
             artifact_url=draft.artifact_url,
             student_text=homework.student_text,
-            criteria=[{"id": str(c.id), "key": c.stable_key, "title": c.title} for c in criteria],
+            criteria=[
+                {
+                    "id": str(c.id),
+                    "key": c.stable_key,
+                    "title": c.title,
+                    "max_points": float(c.max_points),
+                }
+                for c in criteria
+            ],
             status="queued",
             disposition="reserved",
             attempt=0,
@@ -304,13 +320,25 @@ class SelfReviewService:
                 raise WorkspaceFailure(
                     "invalid_coverage", "Result criterion coverage is invalid.", 422
                 )
+        draft = await row(self.session, WorkDraft, org, run.draft_id)
+        publication = await row(self.session, CourseRunHomework, org, draft.publication_id)
+        access_valid = await student_epoch_valid(
+            self.session,
+            org,
+            draft.student_id,
+            publication.course_run_id,
+            run.membership_revision,
+            run.auth_epoch,
+        )
         quota = await row(self.session, SelfReviewQuota, org, run.quota_id, lock=True)
         run.sequence = event.sequence
-        if event.status == "running":
+        if event.status == "running" and access_valid:
             run.status = "running"
         else:
-            valid = event.result is not None and any(
-                f.status != "not_checked" for f in event.result.findings
+            valid = (
+                access_valid
+                and event.result is not None
+                and any(f.status != "not_checked" for f in event.result.findings)
             )
             if valid:
                 assert event.result is not None
@@ -320,7 +348,9 @@ class SelfReviewService:
                 self.record(run, "consume")
             else:
                 run.status, run.disposition = "failed", "released"
-                run.error_code = event.error_code or "invalid_result"
+                run.error_code = (
+                    "access_revoked" if not access_valid else event.error_code or "invalid_result"
+                )
                 self.record(run, "release")
             quota.reserved -= 1
             run.finished_at = self.runtime.clock()

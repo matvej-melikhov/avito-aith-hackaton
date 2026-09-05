@@ -126,6 +126,9 @@ const statuses: Record<string, string> = {
   archived: "В архиве",
   draft: "Черновик",
   queued: "В очереди",
+  submitted: "Сдана",
+  resubmitted: "На повторном ревью",
+  capturing: "Подготовка снимка",
   in_review: "На проверке",
   ready_to_publish: "Готово к публикации",
   published: "Опубликовано",
@@ -156,7 +159,7 @@ const statuses: Record<string, string> = {
 export function Status({ value }: { value: string }) {
   return (
     <span
-      className={`status ${["succeeded", "published", "active", "ready", "available"].includes(value) ? "ok" : /failed|error|action|unknown/.test(value) ? "warn" : ""}`}
+      className={`status ${["passed", "succeeded", "published", "active", "ready", "available"].includes(value) ? "ok" : /failed|error/.test(value) ? "bad" : ["in_review", "pending_review", "resubmitted"].includes(value) ? "human" : value === "needs_changes" || /action|unknown/.test(value) ? "warn" : value === "submitted" ? "info" : ""}`}
     >
       {statuses[value] ?? value}
     </span>

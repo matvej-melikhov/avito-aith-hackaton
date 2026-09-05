@@ -1,0 +1,26 @@
+{
+  "contract_version": "2.0.0",
+  "purpose": "student_self_review",
+  "run_id": "50bed680-e2df-5558-9928-7a9a1c7496ee",
+  "attempt": 1,
+  "input_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "artifact_id": "bd7030cf-8add-51ce-92e2-c31ff5736451",
+  "artifact_url": "https://objects.example.invalid/read-only/README.md?signature=example",
+  "artifact_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "media_type": "text/markdown",
+  "student_text": "Реализуйте HTTP API списка задач и опишите проверки в README.",
+  "criteria": [
+    {
+      "max_points": 6.0,
+      "id": "c160fa4e-37ce-589c-a2ad-91509ead9b4e",
+      "key": "api",
+      "title": "HTTP API выполняет требования"
+    },
+    {
+      "max_points": 4.0,
+      "id": "25a1b9f3-503c-594b-a4d5-ba40b9e3a754",
+      "key": "checks",
+      "title": "Проверки описаны в README"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# Explicit local fixture runtime; use a separate project name and volumes.
+services:
+  api:
+    environment:
+      REVIEW_PLATFORM_ENVIRONMENT: local
+      REVIEW_PLATFORM_WORKSPACE_ENABLED: 'true'
+      REVIEW_PLATFORM_WORKSPACE_FIXTURES: 'true'
+      REVIEW_PLATFORM_LIVE_PROVIDERS_ENABLED: 'false'
+      REVIEW_PLATFORM_S3_PUBLIC_ENDPOINT_URL: http://127.0.0.1:19000
+      REVIEW_PLATFORM_BROWSER_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+    command: ["sh", "-ec", "alembic upgrade head && python -m review_platform.application.workspace.local_fixture && exec python -m review_platform.main"]

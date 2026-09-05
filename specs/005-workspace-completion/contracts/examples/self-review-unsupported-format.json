@@ -1,0 +1,11 @@
+{
+  "contract_version": "2.0.0",
+  "event_id": "02f8da3f-8508-5bfb-ac91-4bf5d30f7c20",
+  "run_id": "50bed680-e2df-5558-9928-7a9a1c7496ee",
+  "attempt": 1,
+  "sequence": 2,
+  "input_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "failed",
+  "result": null,
+  "error_code": "unsupported_format"
+}

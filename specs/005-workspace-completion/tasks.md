@@ -2,29 +2,33 @@
 
 - [x] P01 Isolated baseline `1a1a0b4` in `codex/frontend-self-review`; original checkout preserved.
 - [x] P02 Extension specification; quota scope and consume-on-result semantics carried forward.
-- [ ] P03 Versioned contracts, schemas, types and migrations.
+- [x] P03 Versioned contracts, schemas, types and migrations.
 - [ ] P04 Full screen navigation and scenario fixtures.
-- [ ] P05 Real server session boundary and local authentication flow.
-- [ ] P06 Persistent drafts and immutable prepared artifacts.
-- [ ] P07 Atomic quota/reservation ledger.
-- [ ] P08 Durable AI dispatch and fixture component.
-- [ ] P09 Event ingestion, result projection, fencing/recovery.
+- [x] P05 Real server session boundary and local authentication flow.
+- [x] P06 Persistent drafts and immutable prepared artifacts.
+- [x] P07 Atomic quota/reservation ledger.
+- [x] P08 Durable AI dispatch and fixture component.
+- [x] P09 Event ingestion, result projection, fencing/recovery.
 - [ ] P10 Student screens С1–С5.
-- [ ] P11 Scoped lists, pagination, counters and statuses.
-- [ ] P12 Primary reviewer assignment and advisory priorities.
-- [ ] P13 Saved preferences, absence and measured statistics.
-- [ ] P14 Course/course-run CRUD and publication links.
-- [ ] P15 Assignment/private fields/files/outcome policy.
+- [x] P11 Scoped lists, pagination, counters and statuses.
+- [x] P12 Primary reviewer assignment and advisory priorities.
+- [x] P13 Saved preferences, absence and measured statistics.
+- [x] P14 Course/course-run CRUD and publication links.
+- [x] P15 Assignment/private fields/files/outcome policy.
 - [ ] P16 Reviewer screens and coordinator edit capability.
 - [ ] P17 Coordinator lists and explicit reminders.
 - [ ] P18 Scoped CSV/XLSX export.
 - [ ] P19 End-to-end tests and browser QA for all 19 screens.
-- [ ] P20 AI handoff package; external component compatibility remains an external gate.
+- [x] P20 AI handoff package; external component compatibility remains an external gate.
 
-## Continuation checkpoint
+## Implementation checkpoint — 2026-09-05
 
-Implementation is paused for the user's request to document startup and defer further polishing. The implementation lives in the isolated `codex/frontend-self-review` worktree; documentation was copied to the original checkout as well. This is an implementation checkpoint, not a claim of completed acceptance.
+Implementation is in the `backend` checkout. The frontend follows the design pack from `matvej` at `e473d01464975f3d9b5739e26b19d4b9499a8699` and the screen flows, with the agreed authentication, numeric scoring and nonexclusive review changes. The updated pack includes repeated-review, search and course-directory states in addition to the original 19-screen matrix.
 
-Verified before the pause: 8 MySQL quota/service tests, 4 HTTP/session/upload/self-review/open-review tests, and the 17 frontend tests. Startup verification additionally confirmed API import, one migration head, and upgrade of an empty MySQL database to all runtime tables through `0011_workspace_version_fields`.
+Implemented: persistent preparation and draft snapshots; finite self-review quota and revocation fencing; durable reviewer AI with explicit signal choices; real local sessions and idempotent fixture setup; published grade policy; unified student list and pseudonymous search; course/homework editing and criterion configuration; notifications and scoped exports. The v1 published-only review projection remains unchanged; the editor reads its current human draft through the additive v2 draft endpoint.
 
-Remaining acceptance work must not be reported complete: full 19-screen browser scenarios, real local sign-in setup, external AI adapter/handoff compatibility, completion of additional scored requirements and grading-policy projections, and a fresh full regression/contract regeneration after the latest changes. Generated v2 schemas and TypeScript types were refreshed before the checkpoint. The demo XLSX export and several richer fixture scenarios also still need completion. `RUNNING.md` separates a working demo from a configured authenticated backend.
+Verified before this checkpoint: 26 frontend tests and production build; 41 focused backend/local tests before the latest criterion/search additions, followed by their focused regressions; a broad backend run reached 889 passed and exposed two regressions (logout replay and migration walk), both subsequently fixed and independently passed. A fresh complete backend run is in progress. These are concrete implementation checks, not a claim that all browser acceptance scenarios are complete.
+
+Browser evidence so far: real reviewer login, queue/open work, AI fixture suggestions, save/reload of a human draft, publication of a needs-changes outcome with deadline, reviewer preferences and statistics, student login/list/grade status. A seed-only missing quota was found during the student continuation and repaired without resetting used counters.
+
+Remaining acceptance: finish student self-review/resubmission and coordinator screens in the browser, narrow viewport and console checks; verify final contracts/examples and current full-suite result. External AI and live-provider compatibility remain explicitly unverified. RUNNING.md documents the ordinary local login flow, and ai-handoff.md plus contracts/examples describe the external component boundary.

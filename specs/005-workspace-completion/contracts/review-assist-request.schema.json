@@ -1,0 +1,150 @@
+{
+  "$defs": {
+    "ReviewCriterionView": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evaluate_quality": {
+          "default": false,
+          "title": "Evaluate Quality",
+          "type": "boolean"
+        },
+        "id": {
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "max_points": {
+          "minimum": 0,
+          "title": "Max Points",
+          "type": "number"
+        },
+        "position": {
+          "minimum": 0,
+          "title": "Position",
+          "type": "integer"
+        },
+        "score_step": {
+          "default": 0.5,
+          "exclusiveMinimum": 0,
+          "title": "Score Step",
+          "type": "number"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "max_points",
+        "id",
+        "key",
+        "title",
+        "description",
+        "position"
+      ],
+      "title": "ReviewCriterionView",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "artifact_digest": {
+      "title": "Artifact Digest",
+      "type": "string"
+    },
+    "artifact_id": {
+      "format": "uuid",
+      "title": "Artifact Id",
+      "type": "string"
+    },
+    "artifact_url": {
+      "title": "Artifact Url",
+      "type": "string"
+    },
+    "attempt": {
+      "minimum": 1,
+      "title": "Attempt",
+      "type": "integer"
+    },
+    "contract_version": {
+      "const": "2.0.0",
+      "default": "2.0.0",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "criteria": {
+      "items": {
+        "$ref": "#/$defs/ReviewCriterionView"
+      },
+      "title": "Criteria",
+      "type": "array"
+    },
+    "input_fingerprint": {
+      "title": "Input Fingerprint",
+      "type": "string"
+    },
+    "media_type": {
+      "title": "Media Type",
+      "type": "string"
+    },
+    "purpose": {
+      "const": "reviewer_assist",
+      "default": "reviewer_assist",
+      "title": "Purpose",
+      "type": "string"
+    },
+    "reference_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Reference Url"
+    },
+    "review_iteration_id": {
+      "format": "uuid",
+      "title": "Review Iteration Id",
+      "type": "string"
+    },
+    "reviewer_guidance": {
+      "title": "Reviewer Guidance",
+      "type": "string"
+    },
+    "run_id": {
+      "format": "uuid",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "student_text": {
+      "title": "Student Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "attempt",
+    "input_fingerprint",
+    "review_iteration_id",
+    "artifact_id",
+    "artifact_url",
+    "artifact_digest",
+    "media_type",
+    "student_text",
+    "criteria",
+    "reviewer_guidance",
+    "reference_url"
+  ],
+  "title": "ReviewAssistRequest",
+  "type": "object"
+}

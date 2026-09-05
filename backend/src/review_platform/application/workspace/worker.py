@@ -7,18 +7,21 @@ uncertain dispatch is looked up by stable run ID before a repeated submission.
 
 from __future__ import annotations
 
-import asyncio
-from dataclasses import dataclass
 from datetime import timedelta
-from typing import Protocol, cast
-from uuid import UUID
+from typing import cast
 
+import httpx
 from pydantic import JsonValue
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from review_platform.application.foundation_runtime import FoundationRuntime
 from review_platform.application.workspace.common import WorkspaceFailure, digest, row
+from review_platform.application.workspace.ports import (
+    DefinitivePreparationFailure,
+    PreparedBytes,
+    StudentAIProvider,
+)
 from review_platform.application.workspace.self_review import SelfReviewService
 from review_platform.contracts.workspace import (
     PublicCriterion,
@@ -41,26 +44,9 @@ from review_platform.infrastructure.db.models.workspace import (
 from review_platform.infrastructure.object_storage.s3 import S3ObjectStorage
 
 
-@dataclass(frozen=True)
-class PreparedBytes:
-    content: bytes
-    media_type: str
-    filename: str
-
-
-class DefinitivePreparationFailure(Exception):
-    """No AI result can arrive; release the reserved student attempt."""
-
-
-class SelfReviewProvider(Protocol):
-    async def prepare(self, artifact_url: str) -> PreparedBytes: ...
-    async def submit(self, request: SelfReviewRequest) -> SelfReviewEvent | None: ...
-    async def lookup(self, request: SelfReviewRequest) -> SelfReviewEvent | None: ...
-
-
 class SelfReviewWorker:
     def __init__(
-        self, runtime: FoundationRuntime, provider: SelfReviewProvider, storage: S3ObjectStorage
+        self, runtime: FoundationRuntime, provider: StudentAIProvider, storage: S3ObjectStorage
     ):
         self.runtime, self.provider, self.storage = runtime, provider, storage
 
@@ -105,50 +91,19 @@ class SelfReviewWorker:
                     CourseMembership.status == "active",
                 )
             )
-            if membership is None or "student" not in membership.roles or enrolled is None:
+            if (
+                membership is None
+                or "student" not in membership.roles
+                or enrolled is None
+                or membership.revision != run.membership_revision
+                or membership.auth_epoch != run.auth_epoch
+            ):
                 await self._release(session, run, "access_revoked")
                 return True
-            artifact_id, source_url, owner = run.artifact_id, run.artifact_url, draft.student_id
+            artifact_id, owner = run.artifact_id, draft.student_id
         try:
             if artifact_id is None:
-                prepared = await self.provider.prepare(source_url)
-                if not prepared.content:
-                    raise DefinitivePreparationFailure("empty artifact")
-                artifact_id = run_id
-                stored = await asyncio.to_thread(
-                    self.storage.upload,
-                    organization_id=str(org),
-                    artifact_version_id=str(artifact_id),
-                    source=[prepared.content],
-                    media_type=prepared.media_type,
-                    max_bytes=10_000_000,
-                )
-                async with self.runtime.transaction() as session:
-                    current = await row(session, SelfReviewRun, org, run_id, lock=True)
-                    if current.lease_token != token or current.disposition != "reserved":
-                        return True
-                    artifact = await session.scalar(
-                        select(WorkspaceArtifact).where(
-                            WorkspaceArtifact.organization_id == org,
-                            WorkspaceArtifact.id == artifact_id,
-                        )
-                    )
-                    if artifact is None:
-                        session.add(
-                            WorkspaceArtifact(
-                                id=artifact_id,
-                                organization_id=org,
-                                owner_id=owner,
-                                filename=prepared.filename,
-                                media_type=prepared.media_type,
-                                object_key=stored.key,
-                                digest=stored.content_digest,
-                                byte_size=stored.byte_size,
-                                private=False,
-                            )
-                        )
-                        await session.flush()
-                    current.artifact_id = artifact_id
+                raise DefinitivePreparationFailure("Snapshot is missing")
             async with self.runtime.transaction() as session:
                 current = await row(session, SelfReviewRun, org, run_id, lock=True)
                 if current.lease_token != token or current.disposition != "reserved":
@@ -204,12 +159,12 @@ class SelfReviewWorker:
                     if current.lease_token == token and current.disposition == "reserved":
                         current.status = "running"
                         current.lease_until = self.runtime.clock() + timedelta(seconds=5)
-        except DefinitivePreparationFailure:
+        except DefinitivePreparationFailure as error:
             async with self.runtime.transaction() as session:
                 current = await row(session, SelfReviewRun, org, run_id, lock=True)
                 if current.lease_token == token and current.disposition == "reserved":
-                    await self._release(session, current, "invalid_artifact")
-        except (OSError, TimeoutError, WorkspaceFailure):
+                    await self._release(session, current, error.code)
+        except (OSError, TimeoutError, WorkspaceFailure, httpx.HTTPError):
             async with self.runtime.transaction() as session:
                 current = await row(session, SelfReviewRun, org, run_id, lock=True)
                 if current.lease_token == token and current.disposition == "reserved":
@@ -258,7 +213,10 @@ class FixtureSelfReviewProvider:
                     SelfReviewFinding(
                         criterion_id=c.id,
                         status="needs_attention",
-                        feedback=f"Демо: проверьте выполнение требования «{c.title}». Реальная модель не вызывалась.",
+                        feedback=(
+                            f"Демо: проверьте выполнение требования «{c.title}». "
+                            "Реальная модель не вызывалась."
+                        ),
                     )
                     for c in request.criteria
                 ]

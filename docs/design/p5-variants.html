@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Р5: четыре варианта плотности</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=Unbounded:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============ страница сравнения ============ */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:#fff;color:#111;font-family:'Onest',system-ui,sans-serif;font-size:15px;line-height:1.55}
+.page{max-width:1160px;margin:0 auto;padding:56px 28px 120px}
+.intro h1{font-family:'Unbounded';font-weight:700;font-size:42px;line-height:1.0;letter-spacing:-.04em;margin:0}
+.intro p{max-width:78ch;color:#404040}
+.sep{margin:80px 0 0;padding-top:20px;border-top:1px solid #111;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.sep .tag{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+          background:#111;color:#fff;padding:5px 11px;border-radius:999px}
+.sep h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em}
+.sep .note{flex-basis:100%;margin:0;max-width:82ch;font-size:14px;color:#5c5f63}
+.sep .cost{flex-basis:100%;margin:6px 0 0;max-width:82ch;font-size:13.5px;color:#8a8d91}
+.sep .cost b{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:400;margin-right:8px}
+.frame{margin-top:20px;border:1px solid #d2d5d9;overflow:hidden}
+.scale{width:1440px;transform:scale(.766);transform-origin:top left}
+
+/* ============ ОБЩИЙ СКЕЛЕТ МАКЕТА ============ */
+.mock{width:1440px;background:#fff;font-family:'Onest',sans-serif;font-size:14px;color:#111;
+      --gr:#04E061;--gr-i:#02863A;--gr-w:#EFFDF3;--gr-p:#C9FFBF;
+      --rd:#FF4053;--rd-i:#C8202F;--rd-w:#FDEDEF;
+      --vi:#965EEB;--vi-i:#6B36C4;--vi-w:#F3ECFC;
+      --or:#FF891D;--or-i:#B85A00;--or-w:#FFF2E4;
+      --ink:#111;--ink2:#5c5f63;--ink3:#8a8d91;--line:#E7E9E8;--line2:#C9CBCA;--s2:#F7F7F7}
+.mock a{color:inherit}
+
+.bar{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:20px 28px;border-bottom:1px solid var(--line)}
+.crumbs{font-size:12.5px;color:var(--ink3)}
+.bar h1{margin:5px 0 0;font-size:24px;font-weight:600;letter-spacing:-.02em}
+.acts{display:flex;gap:8px;align-items:center}
+
+.b{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 18px;border-radius:999px;
+   font-family:'Onest';font-size:13.5px;font-weight:500;background:#fff;color:var(--ink);
+   border:1px solid var(--line2);cursor:pointer;white-space:nowrap}
+.b-pri{background:var(--gr);border-color:var(--gr);font-weight:600}
+.b-dark{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.b-q{border-color:var(--line);color:var(--ink3)}
+.b-lg{height:40px;padding:0 22px;font-size:14.5px}
+
+.st{display:inline-flex;align-items:center;gap:7px;height:26px;padding:0 12px;border-radius:999px;
+    font-size:13px;font-weight:500;background:var(--vi-w);color:var(--vi-i)}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+
+.body{display:grid;grid-template-columns:368px 1fr;gap:16px;padding:20px 28px 40px;background:var(--s2)}
+.col{display:flex;flex-direction:column;gap:16px}
+
+.card{background:#fff;border:1px solid var(--line)}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.ch h4{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.ch .csub{margin-top:2px;font-size:12.5px;color:var(--ink3);font-weight:400}
+.cb{padding:16px 18px}
+.cb.tight{padding:4px 18px}
+.cf{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 18px;
+    border-top:1px solid var(--line);background:var(--s2);font-size:12.5px;color:var(--ink3)}
+
+.kv{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;
+    border-bottom:1px solid var(--line);font-size:13.5px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--ink3)}
+.mono{font-family:'JetBrains Mono';font-variant-numeric:tabular-nums}
+.lab{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+
+.pct{font-family:'Unbounded';font-weight:600;font-size:30px;letter-spacing:-.04em;color:var(--vi-i)}
+.meter{height:6px;background:#EEE;flex:1}
+.meter i{display:block;height:100%;background:var(--vi)}
+.bul{margin:14px 0 0;padding-left:1.05em;font-size:13px;color:var(--ink2);line-height:1.6}
+
+.total{font-family:'Unbounded';font-weight:600;font-size:34px;letter-spacing:-.045em;line-height:1}
+.total small{font-family:'Onest';font-size:15px;font-weight:400;color:var(--ink3);letter-spacing:0}
+
+/* --- строки разбора --- */
+.rows{padding:2px 18px 6px}
+.row{position:relative;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.rh{display:flex;align-items:center;gap:12px;padding:14px 0}
+.rail{display:none;position:absolute;left:-18px;top:0;bottom:0;width:3px}
+.ck{flex:none;width:20px;height:20px;display:grid;place-items:center;font-size:11px;font-weight:600;border:1px solid}
+.row.ok  .ck{background:var(--gr);border-color:var(--gr);color:#111}
+.row.no  .ck{background:#fff;border-color:var(--rd);color:var(--rd-i)}
+.row.hu  .ck{background:var(--vi-w);border-color:var(--vi);color:var(--vi-i);border-radius:50%}
+.t{flex:1;font-size:14.5px;font-weight:600;letter-spacing:-.005em}
+.vl{display:none;font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.09em;text-transform:uppercase}
+.row.ok .vl{color:var(--gr-i)} .row.no .vl{color:var(--rd-i)} .row.hu .vl{color:var(--vi-i)}
+.cnt{font-family:'JetBrains Mono';font-size:11px;color:var(--ink3);border:1px solid var(--line);
+     border-radius:999px;padding:2px 9px}
+.sc{display:inline-flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden}
+.sc i{min-width:32px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-style:normal;
+      font-family:'JetBrains Mono';font-size:11px;color:var(--ink3);border-right:1px solid var(--line);background:#fff}
+.sc i:last-child{border-right:0}
+.sc i.on{background:var(--ink);color:#fff;font-weight:500}
+.row.no .sc i.on{background:var(--rd);color:#fff}
+.ch-v{color:var(--ink3);font-size:10px}
+.rb{padding:0 0 16px 32px}
+.fnd{border:1px solid var(--line);margin-top:10px}
+.fsrc{display:flex;gap:12px;align-items:center;padding:7px 12px;background:var(--s2);border-bottom:1px solid var(--line);
+      font-family:'JetBrains Mono';font-size:11px;color:var(--ink3)}
+.fsrc .f{color:var(--ink)} .fsrc .o{margin-left:auto;color:#0070B8}
+.code{font-family:'JetBrains Mono';font-size:11.5px;line-height:1.75;padding:6px 0}
+.cl{display:flex;gap:14px;padding:0 12px;white-space:pre}
+.cl .n{color:#bbb;min-width:26px;text-align:right}
+.cl.hit{background:var(--rd-w);box-shadow:inset 3px 0 0 var(--rd)}
+.fwhy{padding:11px 12px;font-size:13px;color:var(--ink2)}
+.qh{padding:11px 13px;background:var(--vi-w);box-shadow:inset 3px 0 0 var(--vi);font-size:13px;color:var(--vi-i)}
+.empt{padding:10px 13px;background:var(--s2);font-size:13px;color:var(--ink3)}
+.ta{width:100%;min-height:76px;padding:12px 14px;border:1px solid var(--line2);font-family:'Onest';
+    font-size:13.5px;line-height:1.6;color:var(--ink2);resize:none}
+
+/* =======================================================================
+   ВАРИАНТ 1 — ВОЗДУХ. Та же система, но легче: серо-чёрный вместо чистого
+   чёрного, начертания на ступень ниже, вертикальный ритм крупнее,
+   акцентная заливка снята с маркеров и оставлена только главному действию.
+   ======================================================================= */
+.v1{--ink:#1a1a1a;--line:#EDEEEF}
+.v1 .bar{padding:24px 32px}
+.v1 .bar h1{font-weight:500;font-size:25px}
+.v1 .ch h4{font-weight:500}
+.v1 .t{font-weight:500;font-size:15px}
+.v1 .rh{padding:18px 0}
+.v1 .cb{padding:20px}
+.v1 .rows{padding:6px 20px 10px}
+.v1 .kv{padding:12px 0}
+.v1 .row.ok .ck{background:#fff;border-color:var(--gr-i);color:var(--gr-i)}
+.v1 .row.no .ck{background:#fff;border-color:var(--rd-i);color:var(--rd-i)}
+.v1 .row.hu .ck{background:#fff;border-color:var(--vi-i);color:var(--vi-i)}
+.v1 .sc i.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:inset 0 0 0 1px var(--ink)}
+.v1 .row.no .sc i.on{background:var(--rd-w);color:var(--rd-i)}
+.v1 .total{font-weight:500}
+.v1 .pct{font-weight:500;font-size:28px}
+.v1 .body{background:#FAFAFA;gap:20px;padding:24px 32px 44px}
+.v1 .col{gap:20px}
+
+/* =======================================================================
+   ВАРИАНТ 2 — ТИХИЙ ВЕРДИКТ. Цвет уходит из списка совсем. Вердикт несут
+   моноширинная подпись и тонкая засечка слева. Акцент остаётся ровно в
+   двух местах на экране: главная кнопка и полоса итога.
+   ======================================================================= */
+.v2{--ink:#141414;--line:#EAEBEC}
+.v2 .ck{display:none}
+.v2 .vl{display:inline-block}
+.v2 .rail{display:block}
+.v2 .row.ok .rail{background:#dfe1e0}
+.v2 .row.no .rail{background:var(--rd)}
+.v2 .row.hu .rail{background:var(--vi)}
+.v2 .t{font-weight:500;font-size:15px}
+.v2 .rh{padding:17px 0}
+.v2 .rows{padding:6px 20px 10px}
+.v2 .sc i.on{background:var(--ink);color:#fff}
+.v2 .row.no .sc i.on{background:var(--rd-i)}
+.v2 .cl.hit{background:#F7F7F7;box-shadow:inset 3px 0 0 var(--rd)}
+.v2 .qh{background:#F7F7F7;box-shadow:inset 3px 0 0 var(--vi);color:var(--ink2)}
+.v2 .pct{color:var(--ink);font-weight:500}
+.v2 .meter i{background:var(--ink3)}
+.v2 .st{background:#F0F0F0;color:var(--ink2)}
+.v2 .body{background:#FAFAFA}
+
+/* =======================================================================
+   ВАРИАНТ 3 — БОЛЬШИЕ ЗАЛИВКИ. Цвета столько же, но он крупный и слабый:
+   вместо шести маленьких кислотных квадратов — светлые подложки строк.
+   Насыщенное остаётся только в точке, куда надо смотреть.
+   ======================================================================= */
+.v3{--ink:#141414;--line:#EDEEEF}
+.v3 .rows{padding:8px 12px 12px}
+.v3 .row{border-bottom:0;margin-bottom:4px}
+.v3 .rh{padding:13px 14px}
+.v3 .row.ok{background:var(--gr-w)}
+.v3 .row.no{background:var(--rd-w)}
+.v3 .row.hu{background:var(--vi-w)}
+.v3 .ck{background:transparent!important;border:0!important;font-size:13px}
+.v3 .row.ok .ck{color:var(--gr-i)} .v3 .row.no .ck{color:var(--rd-i)} .v3 .row.hu .ck{color:var(--vi-i)}
+.v3 .t{font-weight:500;font-size:15px}
+.v3 .sc{background:#fff}
+.v3 .sc i.on{background:var(--ink);color:#fff}
+.v3 .row.no .sc i.on{background:var(--rd-i)}
+.v3 .rb{padding:0 14px 14px 46px}
+.v3 .fnd{background:#fff}
+.v3 .cl.hit{background:var(--rd-w)}
+.v3 .qh{background:#fff;box-shadow:inset 3px 0 0 var(--vi)}
+.v3 .empt{background:#fff}
+.v3 .body{background:#F4F4F4}
+
+/* =======================================================================
+   ВАРИАНТ 4 — ДОКУМЕНТ. Карточек нет вообще: ревью читается как документ.
+   Только волосяные линии, крупные поля, лёгкие начертания. Вердикт —
+   моноширинная подпись и точка. Цвет появляется трижды на весь экран.
+   ======================================================================= */
+.v4{--ink:#1a1a1a;--line:#E9EAEB}
+.v4 .body{background:#fff;grid-template-columns:340px 1fr;gap:56px;padding:32px 44px 56px}
+.v4 .col{gap:40px}
+.v4 .card{border:0;background:transparent}
+.v4 .ch{padding:0 0 12px;border-bottom:1px solid var(--ink)}
+.v4 .ch h4{font-size:13px;font-weight:500;font-family:'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.v4 .ch .csub{font-family:'Onest';letter-spacing:0;text-transform:none;font-size:12.5px;margin-top:6px}
+.v4 .cb{padding:14px 0 0}
+.v4 .cb.tight{padding:2px 0 0}
+.v4 .cf{padding:12px 0 0;background:transparent;border-top:1px solid var(--line)}
+.v4 .rows{padding:4px 0 0}
+.v4 .rh{padding:20px 0;gap:14px}
+.v4 .ck{display:none}
+.v4 .vl{display:inline-block}
+.v4 .rail{display:block;left:-14px;width:2px;top:14px;bottom:14px}
+.v4 .row.ok .rail{background:var(--gr)}
+.v4 .row.no .rail{background:var(--rd)}
+.v4 .row.hu .rail{background:var(--vi)}
+.v4 .t{font-weight:400;font-size:16px;letter-spacing:-.01em}
+.v4 .sc{border-color:var(--line)}
+.v4 .sc i{height:26px;min-width:34px}
+.v4 .sc i.on{background:transparent;color:var(--ink);font-weight:600;box-shadow:inset 0 -2px 0 var(--ink)}
+.v4 .row.no .sc i.on{background:transparent;color:var(--rd-i);box-shadow:inset 0 -2px 0 var(--rd)}
+.v4 .rb{padding:0 0 20px 0}
+.v4 .fnd{border:0;border-left:1px solid var(--line);padding-left:16px;margin-top:0}
+.v4 .fsrc{background:transparent;border-bottom:0;padding:0 0 8px}
+.v4 .code{background:#FAFAFA;padding:10px 0}
+.v4 .cl.hit{background:#F1F1F1;box-shadow:inset 3px 0 0 var(--rd)}
+.v4 .fwhy{padding:12px 0 0}
+.v4 .qh{background:transparent;box-shadow:none;padding:0;color:var(--ink2)}
+.v4 .empt{background:transparent;padding:0;font-size:13px}
+.v4 .kv{font-size:14px;padding:11px 0}
+.v4 .total{font-weight:400;font-size:40px}
+.v4 .pct{font-weight:400;color:var(--vi-i)}
+.v4 .bar{padding:28px 44px;border-bottom:1px solid var(--ink)}
+.v4 .bar h1{font-weight:400;font-size:28px;letter-spacing:-.025em}
+.v4 .ta{border:0;border-left:1px solid var(--line);padding:0 0 0 16px;min-height:70px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="intro">
+  <h1>Р5, четыре степени<br>плотности</h1>
+  <p>Один и тот же экран карточки работы. Содержание, размеры колонок и логика не меняются — меняется только то, сколько веса берут на себя шрифт, линии и цвет. От первого к четвёртому экран становится легче, но и тише: вердикт всё труднее выхватить боковым зрением.</p>
+  <p style="font-size:14px;color:#8a8d91">Что именно давало тяжесть в исходном варианте: чистый чёрный <span class="mono">#000</span> в тексте и в границах зон, начертания 600–700 в заголовках и строках требований, двойная линия под шапкой таблицы и шесть кислотно-зелёных квадратов подряд в списке из девяти требований.</p>
+</div>
+
+<!-- ================= V1 ================= -->
+<div class="sep">
+  <span class="tag">Вариант 1</span>
+  <h2>Воздух</h2>
+  <p class="note">Та же система, ничего не выброшено. Чистый чёрный заменён на <span class="mono">#1a1a1a</span>, начертания сняты на ступень (заголовки 500 вместо 600–700), вертикальный ритм крупнее: строка требования 18px против 14. Маркеры вердикта перестали быть заливками и стали контурами тёмного цвета — кислота исчезла из списка и осталась только на главной кнопке.</p>
+  <p class="cost"><b>Цена</b> Экран стал длиннее примерно на 12%, на первый экран влезает на одно требование меньше.</p>
+</div>
+<div class="frame"><div class="scale"><div class="mock v1" id="m1"></div></div></div>
+
+<!-- ================= V2 ================= -->
+<div class="sep">
+  <span class="tag">Вариант 2</span>
+  <h2>Тихий вердикт</h2>
+  <p class="note">Цвет уходит из списка полностью. Вердикт несут моноширинная подпись словом и тонкая засечка слева: серая у выполненного, красная у невыполненного, фиолетовая у оценочного. На всём экране остаётся ровно два цветных пятна — главная кнопка и итог. Список читается как таблица, а не как светофор.</p>
+  <p class="cost"><b>Цена</b> «Выполнено» больше не выхватывается взглядом, ревьюер вынужден читать подписи. Для девяти требований это нормально, для двадцати — уже нет.</p>
+</div>
+<div class="frame"><div class="scale"><div class="mock v2" id="m2"></div></div></div>
+
+<!-- ================= V3 ================= -->
+<div class="sep">
+  <span class="tag">Вариант 3</span>
+  <h2>Большие заливки</h2>
+  <p class="note">Цвета столько же, но он крупный и слабый вместо мелкого и кислотного. Строка требования целиком ложится на светлую подложку своего смысла, маркер теряет рамку и заливку и становится просто знаком. Насыщенный цвет остаётся только там, куда надо смотреть: ноль в шкале и итог.</p>
+  <p class="cost"><b>Цена</b> Уходит вглубь от стиля Авито: цветные полосы на рабочей поверхности — это то, чего дизайн-пак прямо просит не делать. Ближе к обычному SaaS.</p>
+</div>
+<div class="frame"><div class="scale"><div class="mock v3" id="m3"></div></div></div>
+
+<!-- ================= V4 ================= -->
+<div class="sep">
+  <span class="tag">Вариант 4</span>
+  <h2>Документ</h2>
+  <p class="note">Карточек нет вообще. Ревью читается как документ: волосяные линии вместо рамок, поля вдвое шире, начертания 400, заголовки блоков превращены в моноширинные надрубрики. Выбранное значение шкалы подчёркнуто, а не залито. Цвет появляется трижды на весь экран.</p>
+  <p class="cost"><b>Цена</b> Самый лёгкий и самый медленный. Границы блоков надо угадывать по пустоте, а не видеть, и на маленьком экране это разваливается первым.</p>
+</div>
+<div class="frame"><div class="scale"><div class="mock v4" id="m4"></div></div></div>
+
+</div>
+
+<template id="tpl">
+  <div class="bar">
+    <div>
+      <div class="crumbs">Мои работы / Студент 4790</div>
+      <h1>Лабораторная 1. Декомпозиция сервиса</h1>
+    </div>
+    <div class="acts">
+      <span class="st">На ревью</span>
+      <span class="b b-q">Вернуть в пул</span>
+      <span class="b">Сохранить черновик</span>
+    </div>
+  </div>
+  <div class="body">
+    <div class="col">
+      <div class="card">
+        <div class="ch"><h4>Работа</h4><span class="lab">попытка 1</span></div>
+        <div class="cb tight">
+          <div class="kv"><span class="mono">github.com/s4790/wardrobe</span><span class="b b-q" style="height:28px;font-size:12.5px">Открыть</span></div>
+          <div class="kv"><span class="k">Сдана</span><span>18 февраля, 21:40</span></div>
+          <div class="kv"><span class="k">Срок сдачи был</span><span style="color:#B85A00">17 февраля, 23:59</span></div>
+          <div class="kv"><span class="k">Саморевью до сдачи</span><span>3 запуска</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><div><h4>Признаки генерации ИИ</h4><div class="csub">Оценка модели, на балл не влияет</div></div></div>
+        <div class="cb">
+          <div style="display:flex;align-items:center;gap:16px">
+            <span class="pct">72%</span>
+            <span class="meter"><i style="width:72%"></i></span>
+          </div>
+          <ul class="bul">
+            <li>однородная длина абзацев по всему документу,</li>
+            <li>разделы, которых нет в задании,</li>
+            <li>документ добавлен одним коммитом,</li>
+            <li>декларации об использовании ИИ нет.</li>
+          </ul>
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <span class="b">Подтвердить сигнал</span><span class="b b-q">Отклонить</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><h4>Итог</h4><span class="total" style="font-size:24px">3.5 <small>из 6</small></span></div>
+        <div class="cb tight">
+          <div class="kv"><span class="k">По требованиям задания</span><span>4.5</span></div>
+          <div class="kv"><span class="k">Просрочка 1 день</span><span style="color:#C8202F;font-weight:600">−1</span></div>
+          <div class="kv"><span>Итого</span><span><b>3.5</b>, порог 4</span></div>
+        </div>
+        <div class="cf" style="display:block">
+          <div style="margin-bottom:10px">Ниже порога зачёта. Выберите, что делать дальше.</div>
+          <div style="display:flex;gap:8px">
+            <span class="b b-dark b-lg" style="flex:1">Вернуть на доработку</span>
+            <span class="b b-lg" style="flex:1">Зачесть</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <div class="ch">
+          <div><h4>Предварительное ревью от модели</h4><div class="csub">Оценки проставлены по шкалам из задания. Меняйте там, где не согласны.</div></div>
+          <span class="b b-q">Принять все</span>
+        </div>
+        <div class="rows">
+          <div class="row ok">
+            <span class="rail"></span>
+            <div class="rh"><span class="ck">✓</span><span class="t">Декомпозиция по двум и более признакам</span>
+              <span class="vl">выполнено</span><span class="lab">шкала</span>
+              <span class="sc"><i>0</i><i class="on">1</i></span><span class="ch-v">▾</span></div>
+          </div>
+          <div class="row ok">
+            <span class="rail"></span>
+            <div class="rh"><span class="ck">✓</span><span class="t">Диаграмма C4, контекст и компоненты</span>
+              <span class="vl">выполнено</span><span class="lab">шкала</span>
+              <span class="sc"><i>0</i><i class="on">1</i></span><span class="ch-v">▾</span></div>
+          </div>
+          <div class="row ok">
+            <span class="rail"></span>
+            <div class="rh"><span class="ck">✓</span><span class="t">Интерфейсы между компонентами описаны</span>
+              <span class="vl">выполнено</span><span class="lab">шкала</span>
+              <span class="sc"><i>0</i><i class="on">0.5</i></span><span class="ch-v">▾</span></div>
+          </div>
+          <div class="row no">
+            <span class="rail"></span>
+            <div class="rh"><span class="ck">✕</span><span class="t">Контракты: формат, входы, выходы, ошибки</span>
+              <span class="vl">не найдено</span><span class="cnt">2 места</span><span class="lab">шкала</span>
+              <span class="sc"><i class="on">0</i><i>0.5</i><i>1</i></span><span class="ch-v">▴</span></div>
+            <div class="rb">
+              <div class="fnd">
+                <div class="fsrc"><span class="f">docs/architecture.md</span><span>строки 112–117</span><span class="o">Открыть в репозитории</span></div>
+                <div class="code">
+                  <div class="cl"><span class="n">110</span><span>## 5. Контракты интерфейсов</span></div>
+                  <div class="cl hit"><span class="n">112</span><span>### 5.1 Единый формат ошибок для I1</span></div>
+                  <div class="cl hit"><span class="n">113</span><span>Все ошибки возвращаются как {code, message}.</span></div>
+                  <div class="cl"><span class="n">116</span><span>## 6. Нефункциональные требования</span></div>
+                </div>
+                <div class="fwhy">Описан только внешний интерфейс I1. Для него заданы формат и ошибки, но не входы и выходы. Требование просит все четыре элемента.</div>
+              </div>
+            </div>
+          </div>
+          <div class="row no">
+            <span class="rail"></span>
+            <div class="rh"><span class="ck">✕</span><span class="t">Анализ связности компонентов</span>
+              <span class="vl">не найдено</span><span class="cnt">1 место</span><span class="lab">шкала</span>
+              <span class="sc"><i class="on">0</i><i>0.5</i></span><span class="ch-v">▾</span></div>
+          </div>
+          <div class="row hu">
+            <span class="rail"></span>
+            <div class="rh"><span class="ck">?</span><span class="t">Обосновано соблюдение SRP</span>
+              <span class="vl">решает человек</span><span class="lab">шкала</span>
+              <span class="sc"><i>0</i><i class="on">0.5</i></span><span class="ch-v">▴</span></div>
+            <div class="rb"><div class="qh">Модель рекомендует 0.5: принцип назван и применён к двум компонентам из четырёх. Оценочное требование, решение принимает ревьюер.</div></div>
+          </div>
+          <div class="row ok">
+            <span class="rail"></span>
+            <div class="rh"><span class="ck">✓</span><span class="t">Структура и оформление документации</span>
+              <span class="vl">выполнено</span><span class="lab">шкала</span>
+              <span class="sc"><i>0</i><i class="on">0.5</i></span><span class="ch-v">▾</span></div>
+          </div>
+        </div>
+        <div class="cf"><span>Своё требование видит студент и координатор</span><span>Сумма по требованиям <b style="color:#111">4.5 из 6</b></span></div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><div><h4>Ответ студенту</h4><div class="csub">Черновик собран из ваших отметок, правьте свободно</div></div><span class="b b-q">Собрать заново</span></div>
+        <div class="cb"><textarea class="ta">Привет! Диаграммы и декомпозиция в порядке. Что поправить: опиши входы и выходы для внутренних вызовов между Outfits и Wardrobe, добавь раздел с анализом связности, укажи в работе, пользовался ли ты ИИ.</textarea></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  var tpl = document.getElementById('tpl').innerHTML;
+  ['m1','m2','m3','m4'].forEach(function (id) { document.getElementById(id).innerHTML = tpl; });
+  // Высота кадра равна реальной высоте макета, умноженной на масштаб
+  function fit() {
+    document.querySelectorAll('.frame').forEach(function (f) {
+      f.style.height = Math.ceil(f.querySelector('.mock').getBoundingClientRect().height) + 'px';
+    });
+  }
+  fit();
+  window.addEventListener('load', fit);
+  window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fit); }
+</script>
+</body>
+</html>

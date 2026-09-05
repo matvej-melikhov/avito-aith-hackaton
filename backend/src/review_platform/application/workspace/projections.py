@@ -3,21 +3,25 @@
 from __future__ import annotations
 
 from datetime import datetime
-from uuid import UUID
 from typing import Literal, cast
+from uuid import UUID
 
-from sqlalchemy import and_, case, func, select
+from sqlalchemy import String, and_, case, false, func, select, true
+from sqlalchemy import cast as sql_cast
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from review_platform.application.foundation_runtime import FoundationRuntime
 from review_platform.application.request_context import RequestActor
 from review_platform.application.workspace.common import WorkspaceFailure, course_scope, row
+from review_platform.application.workspace.grading import published_grades
 from review_platform.application.workspace.self_review import SelfReviewService, draft_view
+from review_platform.application.workspace.student_alias import student_identifier, student_labels
 from review_platform.contracts.workspace import (
+    CriterionSettings,
     PrivateHomeworkView,
-    PublicCriterion,
     PublicationPolicyInput,
+    PublicCriterion,
     QuotaView,
     ReviewContext,
     ReviewCriterionView,
@@ -27,6 +31,7 @@ from review_platform.contracts.workspace import (
     WorkList,
 )
 from review_platform.infrastructure.db.models import (
+    Course,
     CourseMembership,
     CourseRun,
     CourseRunHomework,
@@ -39,6 +44,7 @@ from review_platform.infrastructure.db.models import (
     ReviewCriterionDecision,
     ReviewIteration,
     ReviewPublication,
+    ReviewResponsibility,
     ReviewRevision,
     Submission,
     SubmissionVersion,
@@ -47,10 +53,14 @@ from review_platform.infrastructure.db.models import (
 from review_platform.infrastructure.db.models.workspace import (
     HomeworkPrivateDetails,
     PublicationPolicy,
+    ReviewAIChoice,
+    ReviewAssistRun,
     ReviewOutcome,
     SelfReviewRun,
     StudentReviewerAssignment,
     WorkDraft,
+    WorkspacePreferences,
+    WorkspaceRunSettings,
 )
 
 
@@ -130,14 +140,41 @@ class WorkspaceQueries:
                     remaining=policy.self_review_limit,
                     policy_revision=policy.revision,
                 )
+        run = await row(self.session, CourseRun, actor.organization_id, publication.course_run_id)
+        course = await row(self.session, Course, actor.organization_id, run.course_id)
+        submission_id = await self.session.scalar(
+            select(Submission.id).where(
+                Submission.organization_id == actor.organization_id,
+                Submission.course_run_homework_id == publication.id,
+                Submission.student_id == actor.user_id,
+            )
+        )
+        private = await self.session.scalar(
+            select(HomeworkPrivateDetails).where(
+                HomeworkPrivateDetails.id == homework.id,
+                HomeworkPrivateDetails.organization_id == actor.organization_id,
+            )
+        )
         return StudentContext(
+            material_upload_ids=[UUID(value) for value in (private.material_upload_ids or [])]
+            if private
+            else [],
+            course_title=course.title,
+            run_title=run.title,
+            max_score=float(homework.max_score),
+            submission_id=submission_id,
             publication_id=publication.id,
             homework_id=homework.homework_id,
             homework_version_id=homework.id,
             course_run_id=publication.course_run_id,
             title=title.title,
             student_text=homework.student_text,
-            criteria=[PublicCriterion(id=c.id, key=c.stable_key, title=c.title) for c in criteria],
+            criteria=[
+                PublicCriterion(
+                    id=c.id, key=c.stable_key, title=c.title, max_points=float(c.max_points)
+                )
+                for c in criteria
+            ],
             submission_deadline=published.submission_deadline,
             draft=draft_view(draft) if draft else None,
             quota=quota,
@@ -154,7 +191,7 @@ class WorkspaceQueries:
         search: str = "",
         state: str = "",
         view: str = "all",
-        priority: str = "assigned",
+        priority: str | None = None,
         offset: int = 0,
         limit: int = 30,
     ) -> WorkList:
@@ -178,6 +215,7 @@ class WorkspaceQueries:
         published = (
             select(
                 ReviewIteration.review_case_id,
+                ReviewPublication.id.label("publication_id"),
                 ReviewPublication.review_revision_id,
                 ReviewPublication.published_by,
                 ReviewPublication.review_iteration_id,
@@ -198,13 +236,37 @@ class WorkspaceQueries:
             .where(ReviewIteration.organization_id == org)
             .subquery()
         )
+        participation = (
+            select(
+                ReviewResponsibility.review_iteration_id,
+                ReviewResponsibility.action,
+                func.row_number()
+                .over(
+                    partition_by=ReviewResponsibility.review_iteration_id,
+                    order_by=(
+                        ReviewResponsibility.occurred_at.desc(),
+                        ReviewResponsibility.id.desc(),
+                    ),
+                )
+                .label("rank"),
+            )
+            .where(
+                ReviewResponsibility.organization_id == org,
+                ReviewResponsibility.reviewer_id == actor.user_id,
+            )
+            .subquery()
+        )
         version = aliased(SubmissionVersion)
         current = aliased(ReviewIteration)
         revision = aliased(ReviewRevision)
         publication_history = aliased(CourseRunHomeworkPublication)
         status = case(
             (
-                and_(current.status == "published", ReviewOutcome.decision.is_not(None)),
+                and_(
+                    current.status == "published",
+                    current.submission_version_id == version.id,
+                    ReviewOutcome.decision.is_not(None),
+                ),
                 ReviewOutcome.decision,
             ),
             (
@@ -217,7 +279,7 @@ class WorkspaceQueries:
         query = (
             select(
                 Submission,
-                User.display_name,
+                func.concat("Студент ", student_identifier(Submission.student_id)),
                 Homework.title,
                 CourseRun.title,
                 version,
@@ -228,6 +290,9 @@ class WorkspaceQueries:
                 published.c.published_by,
                 publication_history.review_deadline,
                 status.label("workspace_status"),
+                Course.title,
+                publication_history.submission_deadline,
+                published.c.publication_id,
             )
             .join(User, User.id == Submission.student_id)
             .join(
@@ -244,6 +309,7 @@ class WorkspaceQueries:
                     CourseRun.organization_id == Submission.organization_id,
                 ),
             )
+            .join(Course, and_(Course.id == CourseRun.course_id, Course.organization_id == org))
             .outerjoin(
                 latest_version,
                 and_(latest_version.c.submission_id == Submission.id, latest_version.c.rank == 1),
@@ -261,6 +327,17 @@ class WorkspaceQueries:
             .outerjoin(
                 current,
                 and_(current.id == ReviewCase.current_iteration_id, current.organization_id == org),
+            )
+            .outerjoin(
+                participation,
+                and_(participation.c.review_iteration_id == current.id, participation.c.rank == 1),
+            )
+            .outerjoin(
+                WorkspaceRunSettings,
+                and_(
+                    WorkspaceRunSettings.id == Submission.course_run_id,
+                    WorkspaceRunSettings.organization_id == org,
+                ),
             )
             .outerjoin(
                 published, and_(published.c.review_case_id == ReviewCase.id, published.c.rank == 1)
@@ -318,26 +395,72 @@ class WorkspaceQueries:
             query = query.where(Submission.homework_id == homework_id)
         if search:
             escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            uuid_query = escaped.replace("-", "")
             query = query.where(
                 (Homework.title.ilike(f"%{escaped}%", escape="\\"))
-                | (User.display_name.ilike(f"%{escaped}%", escape="\\"))
+                | (student_identifier(Submission.student_id).ilike(f"%{escaped}%", escape="\\"))
+                | (sql_cast(Submission.student_id, String).ilike(f"%{uuid_query}%", escape="\\"))
             )
-        if state:
+        if state == "in_progress":
+            query = query.where(status.not_in(["passed", "failed", "published"]))
+        elif state == "completed":
+            query = query.where(status.in_(["passed", "failed", "published"]))
+        elif state:
             query = query.where(status == state)
         if view == "assigned":
             query = query.where(StudentReviewerAssignment.reviewer_id == actor.user_id)
+        if view == "pool":
+            query = query.where(status.in_(["pending_review", "in_review", "ready_to_publish"]))
         if view == "active":
             query = query.where(
-                current.responsible_reviewer_id == actor.user_id,
-                current.status.in_(["in_review", "ready_to_publish"]),
+                participation.c.action.in_(["started", "joined"])
+                | and_(
+                    participation.c.action.is_(None),
+                    current.responsible_reviewer_id == actor.user_id,
+                ),
             )
+        if actor.roles.intersection({"reviewer", "methodologist"}):
+            preferences = await self.session.scalar(
+                select(WorkspacePreferences).where(
+                    WorkspacePreferences.organization_id == org,
+                    WorkspacePreferences.user_id == actor.user_id,
+                )
+            )
+            from review_platform.contracts.workspace import PreferencesInput
+
+            saved = PreferencesInput.model_validate(preferences.settings) if preferences else None
+            absent = bool(
+                saved
+                and saved.absent_from
+                and saved.absent_until
+                and saved.absent_from <= self.runtime.clock() < saved.absent_until
+            )
+            if view == "pool" and saved:
+                query = query.where(Submission.course_run_id.in_(saved.course_run_ids))
+                if not saved.show_pool or absent:
+                    query = query.where(false())
+            # Absence and priorities affect recommendations only, never access.
+            if not absent and priority != "deadline":
+                assigned_policy = (
+                    (func.coalesce(WorkspaceRunSettings.priority, "assigned") == "assigned")
+                    if priority is None
+                    else true()
+                )
+                query = query.order_by(
+                    case(
+                        (
+                            and_(
+                                assigned_policy,
+                                StudentReviewerAssignment.reviewer_id == actor.user_id,
+                            ),
+                            0,
+                        ),
+                        else_=1,
+                    )
+                )
         total = await self.session.scalar(
             select(func.count()).select_from(query.order_by(None).subquery())
         )
-        if priority == "assigned" and actor.roles.intersection({"reviewer", "methodologist"}):
-            query = query.order_by(
-                case((StudentReviewerAssignment.reviewer_id == actor.user_id, 0), else_=1)
-            )
         query = (
             query.order_by(
                 publication_history.review_deadline, Submission.created_at, Submission.id
@@ -346,6 +469,28 @@ class WorkspaceQueries:
             .limit(limit)
         )
         entries = (await self.session.execute(query)).all()
+        grades = await published_grades(
+            self.session, org, [entry[-1] for entry in entries if entry[-1] is not None]
+        )
+        iteration_ids = [entry[6].id for entry in entries if entry[6] is not None]
+        events = (
+            await self.session.scalars(
+                select(ReviewResponsibility)
+                .where(
+                    ReviewResponsibility.organization_id == org,
+                    ReviewResponsibility.review_iteration_id.in_(iteration_ids),
+                )
+                .order_by(ReviewResponsibility.occurred_at, ReviewResponsibility.id)
+            )
+        ).all()
+        taken: dict[UUID, datetime] = {}
+        participants: dict[UUID, dict[UUID, str]] = {}
+        for event in events:
+            if event.review_iteration_id is None:
+                continue
+            if event.action in {"started", "joined"}:
+                taken.setdefault(event.review_iteration_id, event.occurred_at)
+            participants.setdefault(event.review_iteration_id, {})[event.reviewer_id] = event.action
         items = []
         for (
             sub,
@@ -360,9 +505,22 @@ class WorkspaceQueries:
             published_by,
             deadline,
             item_status,
+            course_title,
+            submission_deadline,
+            publication_id,
         ) in entries:
             items.append(
                 WorkItem(
+                    course_title=course_title,
+                    submission_deadline=submission_deadline,
+                    taken_at=taken.get(iteration.id) if iteration else None,
+                    participant_ids=[
+                        identity
+                        for identity, action in participants.get(iteration.id, {}).items()
+                        if action in {"started", "joined"}
+                    ]
+                    if iteration
+                    else [],
                     submission_id=sub.id,
                     submission_revision=sub.revision,
                     review_submission_version_id=iteration.submission_version_id
@@ -387,7 +545,11 @@ class WorkspaceQueries:
                     else None,
                     primary_reviewer_id=primary,
                     status=item_status,
-                    score=float(pub_revision.total_score) if pub_revision else None,
+                    score=grades[publication_id].final_score
+                    if publication_id in grades
+                    else float(pub_revision.total_score)
+                    if pub_revision
+                    else None,
                     feedback=pub_revision.feedback if pub_revision else None,
                     published_by=published_by,
                     review_deadline=deadline,
@@ -460,7 +622,67 @@ class WorkspaceQueries:
         from review_platform.contracts.workspace import OutcomeInput
 
         service = SelfReviewService(self.runtime, self.session)
+        review_homework = await row(
+            self.session, Homework, actor.organization_id, homework.homework_id
+        )
+        submitted = await row(
+            self.session, SubmissionVersion, actor.organization_id, iteration.submission_version_id
+        )
+        choice = (
+            await self.session.scalar(
+                select(ReviewAIChoice).where(
+                    ReviewAIChoice.organization_id == actor.organization_id,
+                    ReviewAIChoice.id == iteration.current_revision_id,
+                )
+            )
+            if iteration.current_revision_id
+            else None
+        )
+        from review_platform.infrastructure.db.models import ArtifactReference, ArtifactVersion
+        from review_platform.infrastructure.db.models.workspace import WorkspaceArtifact
+
+        case = await row(self.session, ReviewCase, actor.organization_id, iteration.review_case_id)
+        snapshot = await self.session.scalar(
+            select(WorkspaceArtifact).where(
+                WorkspaceArtifact.organization_id == actor.organization_id,
+                WorkspaceArtifact.id == iteration.artifact_version_id,
+            )
+        )
+        source = await self.session.scalar(
+            select(ArtifactReference)
+            .join(
+                ArtifactVersion,
+                (ArtifactVersion.artifact_reference_id == ArtifactReference.id)
+                & (ArtifactVersion.organization_id == ArtifactReference.organization_id),
+            )
+            .where(
+                ArtifactVersion.organization_id == actor.organization_id,
+                ArtifactVersion.id == iteration.artifact_version_id,
+            )
+        )
+        label = (
+            source.original_url
+            if source and source.original_url.startswith("https:")
+            else snapshot.filename
+            if snapshot
+            else "Снимок работы"
+        )
         return ReviewContext(
+            submission_id=submitted.submission_id,
+            latest_review_iteration_id=case.current_iteration_id,
+            artifact_label=label,
+            ai_run_id=choice.run_id if choice else None,
+            signal_decisions=cast(
+                dict[str, Literal["confirm", "reject"]], choice.signal_decisions or {}
+            )
+            if choice
+            else {},
+            title=review_homework.title,
+            student_name=(
+                await student_labels(self.session, actor.organization_id, [iteration.student_id])
+            )[iteration.student_id],
+            attempt=submitted.sequence,
+            submitted_at=submitted.submitted_at,
             homework_id=homework.homework_id,
             criterion_set_id=iteration.criterion_set_id,
             homework_version_id=homework.id,
@@ -468,6 +690,9 @@ class WorkspaceQueries:
             max_score=float(homework.max_score),
             criteria=[
                 ReviewCriterionView(
+                    **CriterionSettings.model_validate(
+                        (private.criterion_settings or {}).get(c.stable_key, {}) if private else {}
+                    ).model_dump(),
                     id=c.id,
                     key=c.stable_key,
                     title=c.title,
@@ -481,6 +706,11 @@ class WorkspaceQueries:
                 revision=private.revision,
                 reviewer_guidance=private.reviewer_guidance,
                 reference_upload_id=private.reference_upload_id,
+                material_upload_ids=[UUID(value) for value in (private.material_upload_ids or [])],
+                criterion_settings={
+                    key: CriterionSettings.model_validate(value)
+                    for key, value in (private.criterion_settings or {}).items()
+                },
                 criterion_classes=cast(
                     dict[str, Literal["formal", "content", "judgement"]], private.criterion_classes
                 ),
@@ -499,17 +729,57 @@ class WorkspaceQueries:
         )
 
     async def statistics(
-        self, actor: RequestActor, start: datetime, end: datetime
+        self,
+        actor: RequestActor,
+        start: datetime,
+        end: datetime,
+        course_run_id: UUID | None = None,
     ) -> StatisticView:
+        from review_platform.application.workspace.statistics import (
+            PublishedMeasurement,
+            summarize_statistics,
+        )
+        from review_platform.contracts.workspace import ReviewAssistResult
+
         if not actor.roles.intersection({"reviewer", "methodologist"}):
             raise WorkspaceFailure("forbidden", "Статистика недоступна.", 403)
+        if course_run_id is not None:
+            await course_scope(self.session, actor, course_run_id)
+        # The deadline is from the publication effective when the work was submitted,
+        # not a coordinator's later publication of changed dates.
+        deadline = (
+            select(CourseRunHomeworkPublication.review_deadline)
+            .where(
+                CourseRunHomeworkPublication.organization_id == actor.organization_id,
+                CourseRunHomeworkPublication.course_run_homework_id
+                == Submission.course_run_homework_id,
+                CourseRunHomeworkPublication.published_at <= SubmissionVersion.submitted_at,
+            )
+            .order_by(CourseRunHomeworkPublication.publication_sequence.desc())
+            .limit(1)
+            .scalar_subquery()
+        )
         query = (
-            select(ReviewPublication, ReviewIteration)
+            select(ReviewPublication, ReviewIteration, SubmissionVersion, deadline)
             .join(
                 ReviewIteration,
                 and_(
                     ReviewIteration.id == ReviewPublication.review_iteration_id,
                     ReviewIteration.organization_id == ReviewPublication.organization_id,
+                ),
+            )
+            .join(
+                SubmissionVersion,
+                and_(
+                    SubmissionVersion.id == ReviewIteration.submission_version_id,
+                    SubmissionVersion.organization_id == ReviewIteration.organization_id,
+                ),
+            )
+            .join(
+                Submission,
+                and_(
+                    Submission.id == SubmissionVersion.submission_id,
+                    Submission.organization_id == SubmissionVersion.organization_id,
                 ),
             )
             .where(
@@ -518,25 +788,81 @@ class WorkspaceQueries:
                 ReviewPublication.published_at < end,
             )
         )
+        if course_run_id is not None:
+            query = query.where(ReviewIteration.course_run_id == course_run_id)
         if "methodologist" not in actor.roles:
-            query = query.where(ReviewPublication.published_by == actor.user_id)
+            allowed = select(CourseMembership.course_run_id).where(
+                CourseMembership.organization_id == actor.organization_id,
+                CourseMembership.user_id == actor.user_id,
+                CourseMembership.kind == "reviewer",
+                CourseMembership.status == "active",
+            )
+            query = query.where(ReviewIteration.course_run_id.in_(allowed))
         entries = (await self.session.execute(query)).all()
-        durations = [(p.published_at - i.created_at).total_seconds() / 60 for p, i in entries]
-        revision_ids = [p.review_revision_id for p, _ in entries]
+        revision_ids = [publication.review_revision_id for publication, _, _, _ in entries]
         decisions = (
-            await self.session.scalars(
-                select(ReviewCriterionDecision).where(
+            await self.session.execute(
+                select(ReviewCriterionDecision, Criterion)
+                .join(
+                    Criterion,
+                    and_(
+                        Criterion.id == ReviewCriterionDecision.criterion_id,
+                        Criterion.organization_id == ReviewCriterionDecision.organization_id,
+                    ),
+                )
+                .where(
                     ReviewCriterionDecision.organization_id == actor.organization_id,
                     ReviewCriterionDecision.review_revision_id.in_(revision_ids),
-                    ReviewCriterionDecision.ai_suggestion_id.is_not(None),
                 )
             )
         ).all()
-        return StatisticView(
-            publications=len(entries),
-            average_elapsed_minutes=sum(durations) / len(durations) if durations else None,
-            changed_decisions=sum(d.decision == "changed" for d in decisions),
-            compared_decisions=len(decisions),
-            from_date=start,
-            until_date=end,
+        choices = (
+            await self.session.execute(
+                select(ReviewAIChoice.id, ReviewAssistRun.result)
+                .join(
+                    ReviewAssistRun,
+                    and_(
+                        ReviewAssistRun.id == ReviewAIChoice.run_id,
+                        ReviewAssistRun.organization_id == ReviewAIChoice.organization_id,
+                    ),
+                )
+                .where(
+                    ReviewAIChoice.organization_id == actor.organization_id,
+                    ReviewAIChoice.id.in_(revision_ids),
+                    ReviewAssistRun.status == "succeeded",
+                )
+            )
+        ).all()
+        proposals = {
+            (revision_id, suggestion.criterion_id): float(suggestion.proposed_points)
+            for revision_id, result in choices
+            if result is not None
+            for suggestion in ReviewAssistResult.model_validate(result).suggestions
+            if suggestion.status == "suggested" and suggestion.proposed_points is not None
+        }
+        by_revision: dict[UUID, dict[UUID, tuple[str, float, float, float | None]]] = {}
+        for decision, criterion in decisions:
+            by_revision.setdefault(decision.review_revision_id, {})[criterion.id] = (
+                criterion.title,
+                float(criterion.max_points),
+                float(decision.points),
+                proposals.get((decision.review_revision_id, criterion.id)),
+            )
+        records = [
+            PublishedMeasurement(
+                publication_id=publication.id,
+                reviewer_id=publication.published_by,
+                artifact_id=iteration.artifact_version_id,
+                rubric_id=iteration.criterion_set_id,
+                published_at=publication.published_at,
+                opened_at=iteration.created_at,
+                submitted_at=version.submitted_at,
+                review_deadline=review_deadline,
+                attempt=version.sequence,
+                decisions=by_revision.get(publication.review_revision_id, {}),
+            )
+            for publication, iteration, version, review_deadline in entries
+        ]
+        return summarize_statistics(
+            records, actor.user_id if "methodologist" not in actor.roles else None, start, end
         )

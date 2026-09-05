@@ -1,0 +1,26 @@
+{
+  "contract_version": "2.0.0",
+  "event_id": "3deb7afc-8af7-5dfc-a37f-d7be84ef60ff",
+  "run_id": "50bed680-e2df-5558-9928-7a9a1c7496ee",
+  "attempt": 1,
+  "sequence": 2,
+  "input_fingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "succeeded",
+  "result": {
+    "findings": [
+      {
+        "criterion_id": "c160fa4e-37ce-589c-a2ad-91509ead9b4e",
+        "status": "met",
+        "feedback": "Описание GET /tasks соответствует требованию.",
+        "evidence": "README.md: раздел HTTP API"
+      },
+      {
+        "criterion_id": "25a1b9f3-503c-594b-a4d5-ba40b9e3a754",
+        "status": "needs_attention",
+        "feedback": "Добавьте шаги проверки ошибок входных данных.",
+        "evidence": "README.md: раздел Проверки"
+      }
+    ]
+  },
+  "error_code": null
+}

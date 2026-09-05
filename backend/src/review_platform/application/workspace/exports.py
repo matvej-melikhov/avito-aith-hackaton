@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import re
 from datetime import timedelta
 from io import BytesIO, StringIO
-from typing import Literal
 from uuid import UUID
 from xml.sax.saxutils import escape
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -45,6 +45,10 @@ def export_rows(options: ExportInput, items: list[WorkItem]) -> list[list[str | 
         )
     rows: list[list[str | float | int]] = [[LABELS[c] for c in options.columns]]
     for item in items:
+        if item.course_run_id != options.course_run_id or (
+            options.homework_id is not None and item.homework_id != options.homework_id
+        ):
+            raise WorkspaceFailure("export_scope", "Работа не входит в область экспорта.", 403)
         if item.score is None and not options.include_unpublished:
             continue
         values: dict[str, str | float | int] = {
@@ -85,30 +89,48 @@ def xlsx_bytes(rows: list[list[str | float | int]]) -> bytes:
         cells = []
         for index, value in enumerate(values, 1):
             location = f"{column(index)}{number}"
-            if isinstance(value, (float, int)):
+            if isinstance(value, float | int):
                 cells.append(f'<c r="{location}"><v>{value}</v></c>')
             else:
+                clean = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]", "", value)
                 cells.append(
-                    f'<c r="{location}" t="inlineStr"><is><t xml:space="preserve">{escape(value)}</t></is></c>'
+                    f'<c r="{location}" t="inlineStr"><is><t xml:space="preserve">'
+                    f"{escape(clean)}</t></is></c>"
                 )
         contents.append(f'<row r="{number}">{"".join(cells)}</row>')
     result = BytesIO()
     with ZipFile(result, "w", ZIP_DEFLATED) as z:
         z.writestr(
             "[Content_Types].xml",
-            '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+            '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/p'
+            'ackage/2006/content-types"><Default Extension="rels" ContentType="appl'
+            'ication/vnd.openxmlformats-package.relationships+xml"/><Default Extens'
+            'ion="xml" ContentType="application/xml"/><Override PartName="/xl/workb'
+            'ook.xml" ContentType="application/vnd.openxmlformats-officedocument.sp'
+            'readsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1'
+            '.xml" ContentType="application/vnd.openxmlformats-officedocument.sprea'
+            'dsheetml.worksheet+xml"/></Types>',
         )
         z.writestr(
             "_rels/.rels",
-            '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+            '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlforma'
+            'ts.org/package/2006/relationships"><Relationship Id="rId1" Type="http:'
+            "//schemas.openxmlformats.org/officeDocument/2006/relationships/officeD"
+            'ocument" Target="xl/workbook.xml"/></Relationships>',
         )
         z.writestr(
             "xl/workbook.xml",
-            '<?xml version="1.0"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Результаты" sheetId="1" r:id="rId1"/></sheets></workbook>',
+            '<?xml version="1.0"?><workbook xmlns="http://schemas.openxmlformats.or'
+            'g/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/'
+            'officeDocument/2006/relationships"><sheets><sheet name="Результаты" sh'
+            'eetId="1" r:id="rId1"/></sheets></workbook>',
         )
         z.writestr(
             "xl/_rels/workbook.xml.rels",
-            '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+            '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlforma'
+            'ts.org/package/2006/relationships"><Relationship Id="rId1" Type="http:'
+            "//schemas.openxmlformats.org/officeDocument/2006/relationships/workshe"
+            'et" Target="worksheets/sheet1.xml"/></Relationships>',
         )
         z.writestr(
             "xl/worksheets/sheet1.xml",

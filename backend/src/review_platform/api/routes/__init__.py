@@ -1,7 +1,6 @@
 """Central HTTP router registry."""
 
 from fastapi import APIRouter
-from review_platform.api.routes.workspace import router as workspace_router
 
 from review_platform.api.routes.agents import router as agents_router
 from review_platform.api.routes.ai_reviews import router as ai_reviews_router
@@ -11,11 +10,20 @@ from review_platform.api.routes.identity_courses import router as identity_cours
 from review_platform.api.routes.operations import router as operations_router
 from review_platform.api.routes.reviews import router as reviews_router
 from review_platform.api.routes.submissions import router as submissions_router
+from review_platform.api.routes.workspace import router as workspace_router
+from review_platform.api.routes.workspace_assist import router as workspace_assist_router
+from review_platform.api.routes.workspace_catalog import router as workspace_catalog_router
+from review_platform.api.routes.workspace_local import router as workspace_local_router
+from review_platform.api.routes.workspace_student import router as workspace_student_router
 
 
 def build_api_router() -> APIRouter:
     router = APIRouter(prefix="/api")
     router.include_router(workspace_router)
+    router.include_router(workspace_student_router)
+    router.include_router(workspace_catalog_router)
+    router.include_router(workspace_assist_router)
+    router.include_router(workspace_local_router)
     router.include_router(agents_router)
     router.include_router(ai_reviews_router)
     router.include_router(deliveries_router)

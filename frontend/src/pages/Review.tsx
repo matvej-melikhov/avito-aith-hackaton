@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { ApiClient, Model } from "../api/client";
 import {
   Card,
-  Empty,
   ErrorBox,
-  Id,
   Resource,
   Status,
   date,
@@ -12,10 +10,8 @@ import {
   useAction,
   useResource,
 } from "../ui";
-import { WorkspaceClient } from "../api/workspace";
-import { ReviewWorkspacePanels } from "./WorkspaceReview";
-import { useDirtyGuard } from "../workspace-ui";
-import { OperationPanel, DeliveryCards } from "./Operations";
+import { WorkspaceClient, type W } from "../api/workspace";
+import { Modal, useDirtyGuard } from "../workspace-ui";
 export async function loadReview(api: ApiClient, id: string) {
   const detail = await api.review(id);
   const published = await api.homeworks(detail.immutable_inputs.course_run_id);
@@ -46,11 +42,12 @@ export function ReviewPage({
   const resource = useResource(async () => {
     if (!ws) return loadReview(api, id);
     const [detail, context] = await Promise.all([
-      api.review(id),
+      ws.reviewDetail(id),
       ws.reviewContext(id),
     ]);
     return {
       detail,
+      context,
       version: {
         id: context.homework_version_id,
         student_text: context.student_text,
@@ -76,18 +73,11 @@ export function ReviewPage({
             {...resource.data}
             session={session}
             readOnly={!editing}
+            ws={ws}
             refresh={resource.refresh}
           />
         )}
       </Resource>
-      {ws && resource.data && (
-        <ReviewWorkspacePanels
-          ws={ws}
-          detail={resource.data.detail}
-          readOnly={!editing}
-          refresh={resource.refresh}
-        />
-      )}
     </>
   );
 }
@@ -98,6 +88,8 @@ export function ReviewEditor({
   session,
   refresh,
   readOnly = false,
+  ws,
+  context,
 }: {
   api: ApiClient;
   detail: Model<"ReviewDetail">;
@@ -108,8 +100,17 @@ export function ReviewEditor({
   session: Model<"Session">;
   refresh: () => void;
   readOnly?: boolean;
+  ws?: WorkspaceClient;
+  context?: W<"ReviewContext">;
 }) {
   const action = useAction();
+  const history = useResource(
+    () =>
+      ws && context?.submission_id
+        ? ws.submission(context.submission_id)
+        : Promise.resolve(null),
+    context?.submission_id ?? "no-submission",
+  );
   const [feedback, setFeedback] = useState(
     detail.current_review_revision?.feedback ?? "",
   );
@@ -126,7 +127,7 @@ export function ReviewEditor({
         },
     ) ?? [],
   );
-  const [notes, setNotes] = useState(
+  const [notes] = useState(
     detail.review_notes.map((n) => ({
       criterion_id: n.criterion_id ?? null,
       text: n.text,
@@ -134,22 +135,48 @@ export function ReviewEditor({
   );
   const [dirty, setDirty] = useState(false);
   useDirtyGuard(dirty);
-  const [confirm, setConfirm] = useState(false);
-  const [operation, setOperation] = useState<string>();
+  const [sourceRun, setSourceRun] = useState<string | null>(
+    context?.ai_run_id ?? null,
+  );
+  const [signalDecisions, setSignalDecisions] = useState<
+    Record<string, "confirm" | "reject">
+  >(context?.signal_decisions ?? {});
+  const [outcome, setOutcome] = useState<"passed" | "needs_changes" | null>(
+    null,
+  );
+  const close = useCallback(() => setOutcome(null), []);
+  const [deadline, setDeadline] = useState("");
+  const [reason, setReason] = useState("");
+  const [penalty, setPenalty] = useState(true);
+  const [extraTitle, setExtraTitle] = useState("");
+  const [extraMax, setExtraMax] = useState(1);
+  const [unscored, setUnscored] = useState(false);
   const editable =
     !readOnly &&
     session.actor_type === "user" &&
     session.roles.some((r) => r === "reviewer" || r === "methodologist") &&
     !["published", "canceled"].includes(detail.status);
-  const ai = useResource(
-    () => api.review(detail.review_iteration_id),
+  const assist = useResource(
+    () =>
+      ws ? ws.reviewAssist(detail.review_iteration_id) : Promise.resolve(null),
     detail.review_iteration_id,
-    5000,
+    3000,
     (next) =>
-      ["pending", "running", "partial"].includes(next.ai_review?.state ?? ""),
+      !!next && ["queued", "running", "unknown_outcome"].includes(next.status),
   );
-  const suggestion = ai.data?.ai_review ?? detail.ai_review;
-  const total = decisions.reduce((sum, d) => sum + d.points, 0);
+  const grade = useResource(
+    () =>
+      ws
+        ? ws.gradePreview(detail.review_iteration_id)
+        : Promise.resolve(undefined),
+    `${detail.review_iteration_id}:${detail.revision}`,
+  );
+  const suggestions = assist.data?.result?.suggestions ?? [];
+  const signal = assist.data?.result?.authorship_signal;
+  const total = decisions.reduce(
+    (sum, d) => sum + (Number.isFinite(d.points) ? d.points : 0),
+    0,
+  );
   const canSave =
     !!version &&
     decisions.length === version.criteria.length &&
@@ -161,180 +188,392 @@ export function ReviewEditor({
         d.points <=
           (version.criteria.find((c) => c.id === d.criterion_id)?.max_points ??
             -1),
-    ) &&
-    notes.every((n) => n.text.trim());
-  function editDecision(
+    );
+  function edit(
     index: number,
     patch: Partial<Model<"ReviewCriterionDecision">>,
   ) {
     setDirty(true);
-    setConfirm(false);
     setDecisions((all) =>
       all.map((d, i) => (i === index ? { ...d, ...patch } : d)),
     );
   }
+  async function save() {
+    const draft = {
+      feedback,
+      criterion_decisions: decisions,
+      review_notes: notes,
+    };
+    if (ws)
+      await ws.command(
+        "save_workspace_review",
+        detail.review_iteration_id,
+        detail.revision,
+        { draft, ai_run_id: sourceRun, signal_decisions: signalDecisions },
+      );
+    else
+      await api.command(
+        "save_review_revision",
+        detail.review_iteration_id,
+        detail.revision,
+        draft,
+      );
+    setDirty(false);
+    refresh();
+  }
+  async function publish(revisionDeadline = deadline) {
+    if (!outcome || !detail.current_review_revision_id) return;
+    if (ws) {
+      const latest = await ws.reviewContext(detail.review_iteration_id);
+      await ws.command(
+        "save_review_outcome",
+        detail.review_iteration_id,
+        context?.outcome_revision ?? latest.outcome_revision,
+        {
+          decision: outcome,
+          reason: reason.trim() || feedback.trim() || "Работа зачтена",
+          revision_deadline:
+            outcome === "needs_changes"
+              ? new Date(revisionDeadline).toISOString()
+              : null,
+        },
+      );
+      const saved = await ws.reviewDetail(detail.review_iteration_id);
+      if (
+        saved.current_review_revision_id !== detail.current_review_revision_id
+      )
+        throw new Error(
+          "Коллега изменил черновик. Обновите проверку и проверьте сохранённую оценку перед публикацией.",
+        );
+      await ws.command(
+        "publish_workspace_review",
+        detail.review_iteration_id,
+        saved.revision,
+        {
+          review_revision_id: detail.current_review_revision_id,
+          apply_penalty: penalty,
+        },
+      );
+    } else
+      await api.command(
+        "publish_review",
+        detail.review_iteration_id,
+        detail.revision,
+        { review_revision_id: detail.current_review_revision_id },
+      );
+    close();
+    refresh();
+  }
+  const activePeople = new Map<string, string>();
+  detail.responsibility_events.forEach((e) =>
+    activePeople.set(e.reviewer_id, e.action),
+  );
+  const participants = [...activePeople.values()].filter(
+    (v) => v === "joined" || v === "started",
+  ).length;
   return (
     <>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">Проверка работы</p>
-          <h1>
-            Ревью <Id value={detail.review_iteration_id} />
-          </h1>
+          <p className="eyebrow">
+            <a href="#/works">← Мои работы</a>
+            {context?.student_name && <> / {context.student_name}</>}
+          </p>
+          <div className="row">
+            <h1>{context?.title || "Проверка работы"}</h1>
+            <Status
+              value={
+                detail.status === "published"
+                  ? (context?.outcome?.decision ?? detail.status)
+                  : detail.status
+              }
+            />
+          </div>
         </div>
-        <Status value={detail.status} />
+        {editable && (
+          <div className="actions">
+            <button
+              disabled={action.busy || dirty}
+              onClick={() =>
+                void action.run(async () => {
+                  await api.command(
+                    "record_review_responsibility",
+                    detail.review_iteration_id,
+                    detail.revision,
+                    { action: "released" },
+                  );
+                  refresh();
+                })
+              }
+            >
+              Вернуть в пул
+            </button>
+            <button
+              disabled={action.busy || !canSave}
+              onClick={() => void action.run(save, "Черновик сохранён.")}
+            >
+              Сохранить черновик
+            </button>
+          </div>
+        )}
       </div>
-      {action.feedback}
+      {!outcome && action.feedback}
+      {(history.data?.attempts.length ?? 0) > 1 && (
+        <nav className="tabs" aria-label="Попытки сдачи">
+          {[...history.data!.attempts]
+            .sort((a, b) => b.sequence - a.sequence)
+            .map((attempt) => {
+              const published = history
+                .data!.reviews.filter(
+                  (r) => r.submission_version_id === attempt.id,
+                )
+                .sort((a, b) =>
+                  b.published_at.localeCompare(a.published_at),
+                )[0];
+              const selected =
+                attempt.id === detail.immutable_inputs.submission_version_id;
+              const latest =
+                attempt.sequence ===
+                Math.max(...history.data!.attempts.map((a) => a.sequence));
+              const reviewId = selected
+                ? detail.review_iteration_id
+                : (published?.iteration_id ??
+                  (latest ? context?.latest_review_iteration_id : undefined));
+              return reviewId ? (
+                <a
+                  key={attempt.id}
+                  aria-current={selected ? "page" : undefined}
+                  href={`#/reviews/${reviewId}`}
+                >
+                  Попытка {attempt.sequence}
+                </a>
+              ) : (
+                <span key={attempt.id}>Попытка {attempt.sequence}</span>
+              );
+            })}
+        </nav>
+      )}
       <div className="review-grid">
         <div className="stack">
-          <Card title="Сдача и условия">
-            <p>
-              {version?.student_text ??
-                "Условия этой версии задания недоступны. Сохранение оценки отключено."}
-            </p>
-            <dl>
-              <dt>Версия задания</dt>
+          <Card title="Работа">
+            <div className="row">
+              <span className="mono">
+                {context?.artifact_label ?? "Снимок работы"}
+              </span>
+              <a
+                className="button"
+                href={safeUrl(detail.immutable_inputs.artifact_download_url)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Открыть ↗
+              </a>
+            </div>
+            <dl className="review-facts">
+              <dt>Попытка</dt>
+              <dd>{context?.attempt ?? "—"}</dd>
+              <dt>Сдана</dt>
               <dd>
-                <Id value={detail.immutable_inputs.homework_version_id} />
+                {context?.submitted_at ? date(context.submitted_at) : "—"}
               </dd>
-              <dt>Срок сдачи</dt>
+              <dt>Срок сдачи был</dt>
               <dd>{date(detail.immutable_inputs.effective_deadline)}</dd>
+              <dt>ИИ-ревью до сдачи</dt>
+              <dd>{context?.self_reviews.length ?? 0} запусков</dd>
             </dl>
-            <a
-              className="button"
-              href={safeUrl(detail.immutable_inputs.artifact_download_url)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Открыть снимок работы ↗
-            </a>
             <p className="muted">
-              Ссылка действует до{" "}
-              {date(detail.immutable_inputs.artifact_download_expires_at)}. Для
-              новой ссылки обновите страницу.
+              Участников проверки: {participants}. Коллеги могут подключаться.
             </p>
-          </Card>
-          <Card
-            title="AI-проверка"
-            actions={
-              suggestion ? <Status value={suggestion.state} /> : undefined
-            }
-          >
-            {!!ai.error && <ErrorBox error={ai.error} retry={ai.refresh} />}
-            {!suggestion && (
-              <p className="muted">Проверка ещё не запускалась.</p>
-            )}
-            {suggestion?.error && (
-              <p className="notice warn">
-                {suggestion.error.message} {suggestion.error.action}
-              </p>
-            )}
-            {suggestion?.suggestions.map((s) => (
-              <article className="suggestion" key={s.id}>
-                <strong>
-                  {version?.criteria.find((c) => c.id === s.criterion_id)
-                    ?.title ?? "Критерий"}{" "}
-                  · {s.proposed_points ?? "—"}
-                </strong>
-                <p>{s.reason}</p>
-                {s.evidence.map((e, i) => (
-                  <blockquote key={i}>
-                    {e.quote}
-                    <small>
-                      {e.locator} ·{" "}
-                      {e.verified ? "Цитата проверена" : "Цитата не проверена"}
-                    </small>
-                  </blockquote>
-                ))}
-                <p className="muted">
-                  Уверенность: {s.confidence}. {s.reviewer_note}
-                </p>
-              </article>
-            ))}
-            {suggestion?.signal && (
-              <div className="notice">
-                <strong>
-                  Сигнал об использовании ИИ: {suggestion.signal.level}
-                </strong>
-                <p>{suggestion.signal.limitations.join(" ")}</p>
-                <p>Сам по себе этот сигнал не меняет оценку.</p>
-              </div>
-            )}
             {editable && (
               <button
-                disabled={
-                  action.busy ||
-                  ["pending", "running"].includes(suggestion?.state ?? "")
-                }
+                disabled={action.busy || dirty}
                 onClick={() =>
                   void action.run(async () => {
-                    const result = await api.command(
-                      "start_ai_review",
+                    await api.command(
+                      "record_review_responsibility",
                       detail.review_iteration_id,
                       detail.revision,
-                      {},
+                      { action: "joined" },
                     );
-                    setOperation(result.id);
-                    ai.refresh();
+                    refresh();
                   })
                 }
               >
-                Запустить AI-проверку
+                Присоединиться
               </button>
             )}
           </Card>
-          <Card title="История ответственности">
-            {detail.responsibility_events.length === 0 ? (
-              <Empty>Работу пока никто не взял.</Empty>
-            ) : (
-              detail.responsibility_events.map((e) => (
-                <p key={e.id}>
-                  <Id value={e.reviewer_id} /> ·{" "}
-                  {
-                    {
-                      started: "Взял в работу",
-                      joined: "Присоединился",
-                      released: "Вернул в пул",
-                      completed: "Завершил",
-                    }[e.action]
-                  }
-                  <small>{date(e.occurred_at)}</small>
+          <Card title="Признаки генерации ИИ">
+            <p className="muted">Оценка модели, на балл не влияет</p>
+            {signal ? (
+              <>
+                <p className="stat-number">
+                  {signal.probability == null
+                    ? "Недостаточно данных"
+                    : `${Math.round(signal.probability * 100)}%`}
                 </p>
-              ))
+                <p>{signal.explanation}</p>
+                {(signal.evidence ?? []).map((e, i) => (
+                  <blockquote key={i}>
+                    {e.quote}
+                    <small>{e.locator ?? e.path}</small>
+                  </blockquote>
+                ))}
+                {editable && (
+                  <div className="actions">
+                    <button
+                      aria-pressed={signalDecisions[signal.id] === "confirm"}
+                      onClick={() => {
+                        setSourceRun(assist.data!.id);
+                        setSignalDecisions({ [signal.id]: "confirm" });
+                        setDirty(true);
+                      }}
+                    >
+                      Подтвердить сигнал
+                    </button>
+                    <button
+                      aria-pressed={signalDecisions[signal.id] === "reject"}
+                      onClick={() => {
+                        setSourceRun(assist.data!.id);
+                        setSignalDecisions({ [signal.id]: "reject" });
+                        setDirty(true);
+                      }}
+                    >
+                      Отклонить сигнал
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p>Нет данных о признаках генерации.</p>
+            )}
+            {!!assist.error && (
+              <ErrorBox error={assist.error} retry={assist.refresh} />
+            )}{" "}
+            {assist.data && <Status value={assist.data.status} />}{" "}
+            {editable && ws && (
+              <button
+                disabled={
+                  action.busy ||
+                  ["queued", "running"].includes(assist.data?.status ?? "")
+                }
+                onClick={() =>
+                  void action.run(async () => {
+                    if (
+                      assist.data &&
+                      ["failed", "unknown_outcome"].includes(assist.data.status)
+                    )
+                      await ws.command(
+                        "retry_review_assist",
+                        assist.data.id,
+                        assist.data.revision,
+                        {},
+                      );
+                    else
+                      await ws.command(
+                        "start_review_assist",
+                        detail.review_iteration_id,
+                        detail.revision,
+                        {},
+                      );
+                    assist.refresh();
+                  })
+                }
+              >
+                {assist.data ? "Повторить проверку" : "Запустить проверку"}
+              </button>
+            )}
+          </Card>
+          <Card
+            title="Ответ студенту"
+            actions={
+              editable && (
+                <button
+                  disabled={
+                    action.busy ||
+                    (!assist.data?.result?.feedback_draft &&
+                      !suggestions.some((s) => s.student_feedback))
+                  }
+                  onClick={() => {
+                    setFeedback(
+                      assist.data?.result?.feedback_draft ??
+                        suggestions
+                          .map((s) => s.student_feedback)
+                          .filter(Boolean)
+                          .join("\n\n"),
+                    );
+                    setDirty(true);
+                  }}
+                >
+                  Собрать заново
+                </button>
+              )
+            }
+          >
+            <p className="muted">Уходит вместе с вердиктом</p>
+            <textarea
+              aria-label="Обратная связь студенту"
+              disabled={!editable || action.busy}
+              rows={6}
+              value={feedback}
+              onChange={(e) => {
+                setFeedback(e.target.value);
+                setDirty(true);
+              }}
+            />
+          </Card>
+          <Card title="Результат">
+            <dl className="review-facts">
+              <dt>По требованиям задания</dt>
+              <dd>{total.toLocaleString("ru-RU")}</dd>
+              <dt>Просрочка</dt>
+              <dd>
+                {grade.data
+                  ? `−${grade.data.penalty.toLocaleString("ru-RU")}`
+                  : "—"}
+              </dd>
+              <dt>Итог</dt>
+              <dd>
+                {(dirty
+                  ? total
+                  : (grade.data?.final_score ?? total)
+                ).toLocaleString("ru-RU")}{" "}
+                из {version?.max_score.toLocaleString("ru-RU") ?? "—"}
+              </dd>
+            </dl>
+            {grade.data?.pass_score != null && (
+              <p>
+                Порог зачёта: {grade.data.pass_score.toLocaleString("ru-RU")} из{" "}
+                {version?.max_score.toLocaleString("ru-RU")}.
+              </p>
+            )}
+            {dirty && (
+              <p className="muted">Сохраните черновик перед публикацией.</p>
             )}
             {editable && (
               <div className="actions">
                 <button
-                  disabled={action.busy || dirty}
-                  onClick={() =>
-                    void action.run(async () => {
-                      await api.command(
-                        "record_review_responsibility",
-                        detail.review_iteration_id,
-                        detail.revision,
-                        { action: "started" },
-                      );
-                      refresh();
-                    })
+                  disabled={
+                    action.busy || dirty || !detail.current_review_revision_id
                   }
+                  onClick={() => {
+                    setOutcome("needs_changes");
+                    setReason("");
+                  }}
                 >
-                  Взять в работу
+                  Вернуть на доработку
                 </button>
                 <button
-                  disabled={action.busy || dirty}
-                  onClick={() =>
-                    void action.run(async () => {
-                      await api.command(
-                        "record_review_responsibility",
-                        detail.review_iteration_id,
-                        detail.revision,
-                        { action: "released" },
-                      );
-                      refresh();
-                    })
+                  className="primary"
+                  disabled={
+                    action.busy || dirty || !detail.current_review_revision_id
                   }
+                  onClick={() => {
+                    setOutcome("passed");
+                    setReason("");
+                  }}
                 >
-                  Вернуть в пул
+                  Зачесть
                 </button>
               </div>
             )}
@@ -342,192 +581,271 @@ export function ReviewEditor({
         </div>
         <div className="stack">
           <Card
-            title="Оценка по критериям"
+            title="Предварительное ревью от модели"
             actions={
-              <strong>
-                {total} / {version?.max_score ?? "—"}
-              </strong>
+              editable && (
+                <button
+                  disabled={action.busy || !suggestions.length}
+                  onClick={() => {
+                    setSourceRun(assist.data?.id ?? null);
+                    suggestions.forEach((s) => {
+                      const i = decisions.findIndex(
+                        (d) => d.criterion_id === s.criterion_id,
+                      );
+                      if (i >= 0 && s.proposed_points !== null)
+                        edit(i, {
+                          points: s.proposed_points,
+                          reason: s.reason,
+                          decision: "accepted",
+                        });
+                    });
+                  }}
+                >
+                  Принять все
+                </button>
+              )
             }
           >
             <fieldset disabled={!editable || action.busy}>
-              {version?.criteria.map((c, i) => (
-                <div className="criterion" key={c.id}>
-                  <div className="row">
-                    <div>
-                      <strong>
-                        {i + 1}. {c.title}
-                      </strong>
-                      <p className="muted">{c.description}</p>
-                    </div>
-                    <label className="score">
-                      Баллы
-                      <input
-                        aria-label={`Баллы: ${c.title}`}
-                        type="number"
-                        min="0"
-                        max={c.max_points}
-                        step="any"
-                        value={decisions[i]?.points ?? 0}
-                        onChange={(e) =>
-                          editDecision(i, {
-                            points: e.target.valueAsNumber,
-                            decision: "manual",
-                          })
-                        }
+              {version?.criteria.map((c, i) => {
+                const suggestion = suggestions.find(
+                  (s) => s.criterion_id === c.id,
+                );
+                const needsHuman = suggestion?.status === "needs_human" || context?.private_details?.criterion_classes?.[c.key] === "judgement";
+                const hasEvidence = !!(suggestion?.sources?.length || suggestion?.evidence?.length);
+                const met = suggestion?.requirement_met ?? ((suggestion?.proposed_points ?? 0) > 0);
+                const marker = needsHuman ? "h" : !hasEvidence ? "q" : met ? "y" : "n";
+                return (
+                  <details
+                    className="criterion"
+                    key={c.id}
+                    open={
+                      suggestion?.status === "needs_human" ||
+                      (!!suggestion &&
+                        suggestion.proposed_points !== c.max_points)
+                    }
+                  >
+                    <summary className="row">
+                      <span className={`ck ck--${marker}`} aria-hidden="true">{marker === "y" ? "✓" : marker === "n" ? "✕" : "?"}</span>
+                      <strong>{c.title}</strong>
+                      <label className="score">
+                        <span className="sr-only">Баллы</span>
+                        <input
+                          aria-label={`Баллы: ${c.title}`}
+                          type="number"
+                          min={0}
+                          max={c.max_points}
+                          step="any"
+                          value={
+                            Number.isFinite(decisions[i]?.points)
+                              ? decisions[i].points
+                              : ""
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) =>
+                            edit(i, {
+                              points: e.target.valueAsNumber,
+                              decision: "manual",
+                            })
+                          }
+                        />
+                        <span>из {c.max_points.toLocaleString("ru-RU")}</span>
+                      </label>
+                    </summary>
+                    {suggestion && (
+                      <article className="suggestion">
+                        <p>{suggestion.reason}</p>
+                        {(suggestion.sources ?? []).map((source, index) => (
+                          <blockquote key={`source:${index}`}>
+                            <small>
+                              {source.path ?? source.locator ?? "Снимок работы"}
+                              {source.line_start
+                                ? ` · строки ${source.line_start}${source.line_end ? `–${source.line_end}` : ""}`
+                                : ""}
+                            </small>
+                            <pre className="preserve">{source.quote}</pre>
+                          </blockquote>
+                        ))}
+                        {(!suggestion.sources?.length
+                          ? (suggestion.evidence ?? [])
+                          : []
+                        ).map((quote, index) => (
+                          <blockquote key={index}>
+                            <pre className="preserve">{quote}</pre>
+                          </blockquote>
+                        ))}
+                        {suggestion.reviewer_note && (
+                          <p className="muted">{suggestion.reviewer_note}</p>
+                        )}
+                        {editable && suggestion.proposed_points !== null && (
+                          <button
+                            onClick={() => {
+                              setSourceRun(assist.data?.id ?? null);
+                              edit(i, {
+                                points: suggestion.proposed_points!,
+                                reason: suggestion.reason,
+                                decision: "accepted",
+                              });
+                            }}
+                          >
+                            Принять предложение
+                          </button>
+                        )}
+                      </article>
+                    )}
+                    <label>
+                      Обоснование
+                      <textarea
+                        value={decisions[i]?.reason ?? ""}
+                        onChange={(e) => edit(i, { reason: e.target.value })}
                       />
-                      <span>из {c.max_points}</span>
+                    </label>
+                  </details>
+                );
+              })}
+              {editable && ws && (
+                <div className="criterion">
+                  <strong>Своё требование</strong>
+                  <div className="row">
+                    <input
+                      aria-label="Своё требование"
+                      placeholder="Текст требования"
+                      value={extraTitle}
+                      onChange={(e) => setExtraTitle(e.target.value)}
+                    />
+                    <label className="score">
+                      Максимум
+                      <input
+                        type="number"
+                        min={0}
+                        step="any"
+                        disabled={unscored}
+                        value={extraMax}
+                        onChange={(e) => setExtraMax(e.target.valueAsNumber)}
+                      />
                     </label>
                   </div>
-                  <label>
-                    Обоснование
-                    <textarea
-                      value={decisions[i]?.reason ?? ""}
-                      onChange={(e) =>
-                        editDecision(i, { reason: e.target.value })
+                  <div className="row">
+                    <label className="check">
+                      <input
+                        type="checkbox"
+                        checked={unscored}
+                        onChange={(e) => setUnscored(e.target.checked)}
+                      />
+                      Не влияет на балл
+                    </label>
+                    <button
+                      disabled={
+                        dirty ||
+                        !extraTitle.trim() ||
+                        !Number.isFinite(extraMax) ||
+                        extraMax < 0
                       }
-                    />
-                  </label>
+                      onClick={() =>
+                        void action.run(async () => {
+                          const result = await ws.command(
+                            "add_review_requirement",
+                            detail.review_iteration_id,
+                            detail.revision,
+                            {
+                              title: extraTitle,
+                              description: "",
+                              max_points: unscored ? 0 : extraMax,
+                            },
+                          );
+                          window.location.hash = `/reviews/${result.id}`;
+                        })
+                      }
+                    >
+                      Добавить ещё требование
+                    </button>
+                  </div>
+                  {dirty && <small>Сначала сохраните черновик.</small>}
                 </div>
-              ))}
-              <label>
-                Обратная связь студенту
-                <textarea
-                  rows={6}
-                  value={feedback}
-                  onChange={(e) => {
-                    setFeedback(e.target.value);
-                    setDirty(true);
-                    setConfirm(false);
-                  }}
-                />
-              </label>
-              {notes.map((note, i) => (
-                <label key={i}>
-                  Замечание {i + 1}
-                  <textarea
-                    value={note.text}
-                    onChange={(e) => {
-                      setNotes((all) =>
-                        all.map((n, j) =>
-                          i === j ? { ...n, text: e.target.value } : n,
-                        ),
-                      );
-                      setDirty(true);
-                      setConfirm(false);
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNotes((all) => all.filter((_, j) => i !== j));
-                      setDirty(true);
-                      setConfirm(false);
-                    }}
-                  >
-                    Убрать замечание
-                  </button>
-                </label>
-              ))}
-              <button
-                onClick={() => {
-                  setNotes((all) => [...all, { criterion_id: null, text: "" }]);
-                  setDirty(true);
-                  setConfirm(false);
-                }}
-              >
-                Добавить замечание
-              </button>
+              )}
             </fieldset>
-            {editable && (
-              <div className="review-footer">
-                <p className="muted">
-                  {dirty
-                    ? "Есть несохранённые изменения"
-                    : "Изменения сохранены"}{" "}
-                  · Публикацию подтверждает человек.
-                </p>
-                <div className="actions">
-                  <button
-                    disabled={action.busy || !canSave}
-                    onClick={() =>
-                      void action.run(async () => {
-                        await api.command(
-                          "save_review_revision",
-                          detail.review_iteration_id,
-                          detail.revision,
-                          {
-                            feedback,
-                            criterion_decisions: decisions,
-                            review_notes: notes,
-                          },
-                        );
-                        refresh();
-                      }, "Оценка сохранена.")
-                    }
-                  >
-                    Сохранить черновик
-                  </button>
-                  <button
-                    className="primary"
-                    disabled={
-                      action.busy || dirty || !detail.current_review_revision_id
-                    }
-                    onClick={() => setConfirm(true)}
-                  >
-                    Опубликовать ревью
-                  </button>
-                </div>
-              </div>
-            )}
-            {confirm && (
-              <div
-                className="notice"
-                role="group"
-                aria-label="Подтверждение публикации"
-              >
-                <strong>
-                  Опубликовать оценку{" "}
-                  {detail.current_review_revision?.total_score}?
-                </strong>
-                <p>
-                  Студент получит сохранённую обратную связь. Внешние доставки
-                  выполняются отдельно.
-                </p>
-                <div className="actions">
-                  <button
-                    disabled={action.busy}
-                    onClick={() => setConfirm(false)}
-                  >
-                    Отмена
-                  </button>
-                  <button
-                    className="primary"
-                    disabled={action.busy}
-                    onClick={() =>
-                      void action.run(async () => {
-                        await api.command(
-                          "publish_review",
-                          detail.review_iteration_id,
-                          detail.revision,
-                          {
-                            review_revision_id:
-                              detail.current_review_revision_id!,
-                          },
-                        );
-                        refresh();
-                      })
-                    }
-                  >
-                    Подтвердить публикацию
-                  </button>
-                </div>
-              </div>
-            )}
+            <p className="row">
+              <strong>Сумма по требованиям</strong>
+              <span>
+                {total.toLocaleString("ru-RU")} из{" "}
+                {version?.max_score.toLocaleString("ru-RU") ?? "—"}
+              </span>
+            </p>
           </Card>
-          <DeliveryCards items={detail.deliveries} />
-          {operation && <OperationPanel api={api} id={operation} />}
         </div>
       </div>
+      {outcome && (
+        <Modal
+          title={
+            outcome === "needs_changes"
+              ? "Вернуть на доработку"
+              : "Зачесть работу"
+          }
+          close={close}
+        >
+          {action.feedback}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const revisionDeadline = String(
+                new FormData(e.currentTarget).get("revision_deadline") ?? "",
+              );
+              void action.run(() => publish(revisionDeadline));
+            }}
+          >
+            {outcome === "needs_changes" && (
+              <>
+                <label>
+                  Срок доработки
+                  <input
+                    required
+                    type="datetime-local"
+                    name="revision_deadline"
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Что нужно исправить
+                  <textarea
+                    required
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                </label>
+              </>
+            )}
+            <p>
+              Студент получит сохранённый отзыв и оценку{" "}
+              {grade.data
+                ? (penalty
+                    ? grade.data.final_score
+                    : grade.data.raw_score
+                  ).toLocaleString("ru-RU")
+                : detail.current_review_revision?.total_score}
+              .
+            </p>
+            {grade.data && grade.data.penalty > 0 && (
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={penalty}
+                  onChange={(e) => setPenalty(e.target.checked)}
+                />
+                Применить просрочку
+              </label>
+            )}
+            <button
+              className="primary"
+              disabled={
+                action.busy || (!!ws && (grade.loading || !!grade.error))
+              }
+            >
+              Подтвердить публикацию
+            </button>
+          </form>
+        </Modal>
+      )}
     </>
   );
 }

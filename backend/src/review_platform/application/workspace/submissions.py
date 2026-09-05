@@ -16,6 +16,12 @@ from review_platform.application.workspace.common import (
     revision,
     row,
 )
+from review_platform.application.workspace.grading import (
+    published_grades,
+    snapshot_submission_policy,
+    validate_submission_limit,
+)
+from review_platform.application.workspace.preparation import prepared_artifact
 from review_platform.contracts.workspace import (
     PublishedCriterionView,
     ResourceResult,
@@ -53,15 +59,15 @@ async def submit_uploaded_draft(
     expected: int,
 ) -> ResourceResult:
     user = require_roles(actor, "student")
-    draft = await row(session, WorkDraft, actor.organization_id, identity, lock=True)
+    draft = await row(session, WorkDraft, actor.organization_id, identity)
     if draft.student_id != user:
         raise WorkspaceFailure("forbidden", "Черновик недоступен.", 403)
     revision(draft.revision, expected)
-    if draft.upload_id is None:
-        raise WorkspaceFailure("upload_required", "В черновике нет загруженного файла.", 422)
     publication = await row(
         session, CourseRunHomework, actor.organization_id, draft.publication_id, lock=True
     )
+    draft = await row(session, WorkDraft, actor.organization_id, identity, lock=True)
+    revision(draft.revision, expected)
     await course_scope(session, actor, publication.course_run_id, write=True)
     if publication.current_publication_id is None:
         raise WorkspaceFailure("not_published", "Задание не опубликовано.")
@@ -71,7 +77,9 @@ async def submit_uploaded_draft(
         actor.organization_id,
         publication.current_publication_id,
     )
-    uploaded = await row(session, WorkspaceArtifact, actor.organization_id, draft.upload_id)
+    uploaded = await row(
+        session, WorkspaceArtifact, actor.organization_id, await prepared_artifact(session, draft)
+    )
     if uploaded.owner_id != user or uploaded.private:
         raise WorkspaceFailure("forbidden", "Артефакт недоступен.", 403)
     submission = await session.scalar(
@@ -95,6 +103,7 @@ async def submit_uploaded_draft(
         )
         session.add(submission)
         await session.flush()
+    await validate_submission_limit(session, actor.organization_id, submission, runtime.clock())
     artifact = await session.scalar(
         select(ArtifactVersion).where(
             ArtifactVersion.organization_id == actor.organization_id,
@@ -105,10 +114,10 @@ async def submit_uploaded_draft(
         reference = ArtifactReference(
             id=runtime.id_factory(),
             organization_id=actor.organization_id,
-            provider="upload",
+            provider="workspace" if draft.artifact_url else "upload",
             credential_binding_id=None,
             credential_binding_version=None,
-            original_url=f"upload:{uploaded.id}",
+            original_url=draft.artifact_url or f"upload:{uploaded.id}",
             locator={"workspace_artifact_id": str(uploaded.id)},
             read_capability="available",
             feedback_capability="not_supported",
@@ -127,7 +136,11 @@ async def submit_uploaded_draft(
             media_type=uploaded.media_type,
             byte_size=uploaded.byte_size,
             captured_at=runtime.clock(),
-            artifact_metadata={"source": "upload", "filename": uploaded.filename},
+            artifact_metadata={
+                "source": "workspace" if draft.artifact_url else "upload",
+                "filename": uploaded.filename,
+                "provenance": uploaded.provenance,
+            },
         )
         session.add(artifact)
         await session.flush()
@@ -174,6 +187,7 @@ async def submit_uploaded_draft(
     if version.phase == "before_deadline":
         submission.current_predeadline_version_id = version.id
     submission.revision += 1
+    await snapshot_submission_policy(session, actor.organization_id, version.id)
     return ResourceResult(id=submission.id, revision=submission.revision)
 
 
@@ -228,6 +242,9 @@ async def student_submission(
             .order_by(ReviewIteration.iteration_number)
         )
     ).all()
+    grades = await published_grades(
+        session, actor.organization_id, [pub.id for pub, _, _, _ in publications]
+    )
     revision_ids = [rev.id for _, rev, _, _ in publications]
     decisions = (
         await session.execute(
@@ -264,6 +281,7 @@ async def student_submission(
             SubmissionAttemptView(
                 id=v.id,
                 sequence=v.sequence,
+                comment=v.comment,
                 submitted_at=v.submitted_at,
                 status=v.status,
                 artifact_id=v.artifact_version_id,
@@ -277,9 +295,11 @@ async def student_submission(
                 iteration_id=i.id,
                 submission_version_id=i.submission_version_id,
                 published_at=p.published_at,
-                score=float(rev.total_score),
+                score=grades[p.id].final_score if p.id in grades else float(rev.total_score),
+                grade=grades.get(p.id),
                 feedback=rev.feedback,
                 decision=outcome.decision if outcome else None,
+                decision_reason=outcome.reason if outcome else None,
                 revision_deadline=outcome.revision_deadline if outcome else None,
                 criteria=by_revision.get(rev.id, []),
             )

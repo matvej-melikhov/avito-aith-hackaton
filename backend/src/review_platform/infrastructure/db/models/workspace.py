@@ -3,14 +3,23 @@
 from __future__ import annotations
 
 from datetime import datetime
-from uuid import UUID
 from typing import cast
-from sqlalchemy import Table
-from sqlalchemy.sql.selectable import FromClause
+from uuid import UUID
 
 from pydantic import JsonValue
-from sqlalchemy import JSON, CheckConstraint, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    ForeignKey,
+    ForeignKeyConstraint,
+    String,
+    Table,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql.selectable import FromClause
 
 from review_platform.infrastructure.db.base import (
     UUID_TYPE,
@@ -39,6 +48,7 @@ class WorkspaceArtifact(TenantEntityMixin, TimestampMixin, Base):
     __tablename__ = "workspace_artifact"
     __table_args__ = (tenant_candidate_key(),)
     owner_id: Mapped[UUID] = mapped_column(UUID_TYPE, ForeignKey("user.id"), nullable=False)
+    provenance: Mapped[dict[str, JsonValue] | None] = mapped_column(JSON, nullable=True)
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     media_type: Mapped[str] = mapped_column(String(128), nullable=False)
     object_key: Mapped[str] = mapped_column(String(1024), nullable=False)
@@ -86,11 +96,16 @@ class SelfReviewRun(TenantEntityMixin, TimestampMixin, Base):
         tenant_foreign_key("artifact_id", "workspace_artifact", name="fk_ws_run_artifact"),
         tenant_foreign_key("homework_version_id", "homework_version", name="fk_ws_run_homework"),
         CheckConstraint(
-            "status IN ('queued','capturing','pending','running','unknown_outcome','succeeded','failed')",
+            "status IN ('queued','capturing','pending','running',"
+            "'unknown_outcome','succeeded','failed')",
             name="status",
         ),
         CheckConstraint("disposition IN ('reserved','consumed','released')", name="disposition"),
     )
+    membership_revision: Mapped[int] = mapped_column(
+        nullable=False, default=0, server_default=text("0")
+    )
+    auth_epoch: Mapped[int] = mapped_column(nullable=False, default=0, server_default=text("0"))
     quota_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     draft_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
     draft_revision: Mapped[int] = mapped_column(nullable=False)
@@ -161,6 +176,8 @@ class StudentReviewerAssignment(TenantEntityMixin, RevisionMixin, TimestampMixin
 
 
 class HomeworkPrivateDetails(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
+    criterion_settings: Mapped[dict[str, JsonValue] | None] = mapped_column(JSON, nullable=True)
+    material_upload_ids: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     __tablename__ = "homework_private_details"
     __table_args__ = (
         tenant_candidate_key(),
@@ -241,6 +258,7 @@ class WorkspaceCourseDetails(TenantEntityMixin, Base):
         tenant_foreign_key("id", "course", name="fk_ws_course_details"),
     )
     owner_id: Mapped[UUID | None] = mapped_column(UUID_TYPE, nullable=True)
+    stepik_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
 
 
 class WorkspaceRunSettings(TenantEntityMixin, RevisionMixin, Base):
@@ -256,7 +274,6 @@ class WorkspaceRunSettings(TenantEntityMixin, RevisionMixin, Base):
 WORKSPACE_TABLES += (WorkspaceCourseDetails.__table__, WorkspaceRunSettings.__table__)
 
 # A global User foreign key alone does not establish tenant membership.
-from sqlalchemy import ForeignKeyConstraint
 
 for _model, _fields in (
     (WorkspaceArtifact, ("owner_id",)),
@@ -295,15 +312,104 @@ class HomeworkEditorDraft(TenantEntityMixin, RevisionMixin, TimestampMixin, Base
 
 WORKSPACE_TABLES += (HomeworkEditorDraft.__table__,)
 
+
 class SubmissionPolicySnapshot(TenantEntityMixin, Base):
-    __tablename__='submission_policy_snapshot'
-    __table_args__=(tenant_candidate_key(),tenant_foreign_key('id','submission_version',name='fk_ws_submission_policy'))
-    policy: Mapped[dict[str,JsonValue]] = mapped_column(JSON,nullable=False)
+    __tablename__ = "submission_policy_snapshot"
+    __table_args__ = (
+        tenant_candidate_key(),
+        tenant_foreign_key("id", "submission_version", name="fk_ws_submission_policy"),
+    )
+    policy: Mapped[dict[str, JsonValue]] = mapped_column(JSON, nullable=False)
     policy_revision: Mapped[int] = mapped_column(nullable=False)
 
-class WorkspacePublishedGrade(TenantEntityMixin, Base):
-    __tablename__='workspace_published_grade'
-    __table_args__=(tenant_candidate_key(),tenant_foreign_key('id','review_publication',name='fk_ws_published_grade'))
-    details: Mapped[dict[str,JsonValue]] = mapped_column(JSON,nullable=False)
 
-WORKSPACE_TABLES += (SubmissionPolicySnapshot.__table__,WorkspacePublishedGrade.__table__)
+class WorkspacePublishedGrade(TenantEntityMixin, Base):
+    __tablename__ = "workspace_published_grade"
+    __table_args__ = (
+        tenant_candidate_key(),
+        tenant_foreign_key("id", "review_publication", name="fk_ws_published_grade"),
+    )
+    details: Mapped[dict[str, JsonValue]] = mapped_column(JSON, nullable=False)
+
+
+WORKSPACE_TABLES += (SubmissionPolicySnapshot.__table__, WorkspacePublishedGrade.__table__)
+
+
+class ArtifactPreparation(TenantEntityMixin, TimestampMixin, Base):
+    __tablename__ = "workspace_artifact_preparation"
+    __table_args__ = (
+        tenant_candidate_key(),
+        tenant_foreign_key("draft_id", "work_draft", name="fk_ws_preparation_draft"),
+        tenant_foreign_key("artifact_id", "workspace_artifact", name="fk_ws_preparation_artifact"),
+        UniqueConstraint(
+            "organization_id", "draft_id", "draft_revision", name="uq_ws_preparation_revision"
+        ),
+    )
+    draft_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    draft_revision: Mapped[int] = mapped_column(nullable=False)
+    source_url: Mapped[str] = mapped_column(String(2048), nullable=False)
+    artifact_id: Mapped[UUID | None] = mapped_column(UUID_TYPE, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
+    error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    lease_token: Mapped[UUID | None] = mapped_column(UUID_TYPE, nullable=True)
+    lease_until: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    attempts: Mapped[int] = mapped_column(nullable=False, default=0)
+
+
+class ReviewAssistRun(TenantEntityMixin, RevisionMixin, TimestampMixin, Base):
+    __tablename__ = "workspace_review_assist_run"
+    __table_args__ = (
+        tenant_candidate_key(),
+        tenant_foreign_key("iteration_id", "review_iteration", name="fk_ws_assist_iteration"),
+        tenant_foreign_key("artifact_id", "artifact_version", name="fk_ws_assist_artifact"),
+        tenant_foreign_key("homework_version_id", "homework_version", name="fk_ws_assist_homework"),
+        ForeignKeyConstraint(
+            ["organization_id", "owner_id"],
+            ["organization_membership.organization_id", "organization_membership.user_id"],
+            name="fk_ws_assist_owner",
+        ),
+    )
+    iteration_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    owner_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    membership_revision: Mapped[int] = mapped_column(nullable=False)
+    auth_epoch: Mapped[int] = mapped_column(nullable=False)
+    artifact_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    homework_version_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    input_fingerprint: Mapped[str] = mapped_column(String(71), nullable=False)
+    inputs: Mapped[dict[str, JsonValue]] = mapped_column(JSON, nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="queued")
+    result: Mapped[dict[str, JsonValue] | None] = mapped_column(JSON, nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    sequence: Mapped[int] = mapped_column(nullable=False, default=-1)
+    attempt: Mapped[int] = mapped_column(nullable=False, default=1)
+    lease_token: Mapped[UUID | None] = mapped_column(UUID_TYPE, nullable=True)
+    lease_until: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+
+
+class ReviewAssistEventReceipt(TenantEntityMixin, Base):
+    __tablename__ = "workspace_review_assist_event"
+    __table_args__ = (
+        tenant_candidate_key(),
+        tenant_foreign_key("run_id", "workspace_review_assist_run", name="fk_ws_assist_event_run"),
+    )
+    run_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+    digest: Mapped[str] = mapped_column(String(71), nullable=False)
+
+
+class ReviewAIChoice(TenantEntityMixin, Base):
+    __tablename__ = "workspace_review_ai_choice"
+    __table_args__ = (
+        tenant_candidate_key(),
+        tenant_foreign_key("id", "review_revision", name="fk_ws_ai_choice_revision"),
+        tenant_foreign_key("run_id", "workspace_review_assist_run", name="fk_ws_ai_choice_run"),
+    )
+    signal_decisions: Mapped[dict[str, JsonValue] | None] = mapped_column(JSON, nullable=True)
+    run_id: Mapped[UUID] = mapped_column(UUID_TYPE, nullable=False)
+
+
+WORKSPACE_TABLES += (
+    ArtifactPreparation.__table__,
+    ReviewAssistRun.__table__,
+    ReviewAssistEventReceipt.__table__,
+    ReviewAIChoice.__table__,
+)

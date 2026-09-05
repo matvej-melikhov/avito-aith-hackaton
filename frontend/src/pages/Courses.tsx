@@ -1,3 +1,5 @@
+import { WorkspaceClient } from "../api/workspace";
+import { WorkspaceRunSettings } from "./WorkspaceCatalog";
 import { useState } from "react";
 import type { ApiClient, Model, Role } from "../api/client";
 import {
@@ -108,7 +110,12 @@ export function CoursePage({
       api.courses(),
       api.homeworks(id),
     ]);
-    return { run: courses.course_runs.find((r) => r.id === id), homeworks };
+    const run = courses.course_runs.find((r) => r.id === id);
+    const allHomeworks =
+      role === "methodologist" && run
+        ? await new WorkspaceClient(api).courseHomeworks(run.course_id)
+        : undefined;
+    return { run, homeworks, allHomeworks };
   }, id);
   const action = useAction();
   const [title, setTitle] = useState("");
@@ -118,7 +125,9 @@ export function CoursePage({
         <>
           <div className="page-heading">
             <div>
-              <a href="#/courses">Курсы /</a>
+              <a href={role === "methodologist" ? "#/dashboard" : "#/courses"}>
+                Курсы /
+              </a>
               <h1>{state.data.run?.title ?? "Поток"}</h1>
             </div>
             {state.data.run && <Status value={state.data.run.status} />}
@@ -137,6 +146,34 @@ export function CoursePage({
                   </tr>
                 </thead>
                 <tbody>
+                  {state.data.allHomeworks?.items
+                    .filter(
+                      (h) =>
+                        !state.data!.homeworks.items.some(
+                          (p) => p.homework_id === h.id,
+                        ),
+                    )
+                    .map((h) => (
+                      <tr key={h.id}>
+                        <td>
+                          <strong>{h.title}</strong>
+                          <small>
+                            Черновик ·{" "}
+                            {h.latest_version_number
+                              ? `Версия ${h.latest_version_number}`
+                              : "Версия ещё не сохранена"}
+                          </small>
+                        </td>
+                        <td>Не опубликовано в потоке</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>
+                          <a href={`#/homework/${h.id}?run=${id}`}>
+                            Настроить →
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
                   {state.data.homeworks.items.map((h) => (
                     <tr key={h.course_run_homework_id}>
                       <td>
@@ -161,9 +198,10 @@ export function CoursePage({
                 </tbody>
               </table>
             </div>
-            {state.data.homeworks.items.length === 0 && (
-              <Empty>Опубликованных заданий пока нет.</Empty>
-            )}
+            {state.data.homeworks.items.length === 0 &&
+              !state.data.allHomeworks?.items.length && (
+                <Empty>Опубликованных заданий пока нет.</Empty>
+              )}
           </Card>
           {role === "reviewer" && (
             <a className="button primary" href={`#/queue/${id}`}>
@@ -203,6 +241,7 @@ export function CoursePage({
                   </button>
                 </form>
               </Card>
+              <WorkspaceRunSettings ws={new WorkspaceClient(api)} runId={id} />
               <CourseMembers api={api} id={id} />
             </>
           )}
@@ -212,14 +251,23 @@ export function CoursePage({
   );
 }
 function CourseMembers({ api, id }: { api: ApiClient; id: string }) {
-  const s = useResource(() => api.courseMembers(id), id);
+  const s = useResource(async () => {
+    const [members, people] = await Promise.all([
+      api.courseMembers(id),
+      new WorkspaceClient(api).directory(),
+    ]);
+    return { ...members, people: people.items };
+  }, id);
   return (
     <Card title="Участники потока">
       <Resource value={s}>
         {s.data?.items.map((m) => (
           <p key={`${m.user_id}:${m.kind}`}>
-            <span className="identifier">{m.user_id}</span> ·{" "}
-            {m.kind === "student" ? "Студент" : "Ревьюер"} · {m.status}
+            <span>
+              {s.data?.people.find((p) => p.id === m.user_id)?.display_name ??
+                "Участник"}
+            </span>{" "}
+            · {m.kind === "student" ? "Студент" : "Ревьюер"} · {m.status}
           </p>
         ))}
         {s.data?.items.length === 0 && <Empty>Участников пока нет.</Empty>}

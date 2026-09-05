@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 from review_platform.main import create_app
-from review_platform.contracts.workspace import SelfReviewRequest, SelfReviewEvent
+from review_platform.contracts.workspace import SelfReviewRequest, SelfReviewEvent, ReviewAssistRequest, ReviewAssistEvent
 
 ROOT=Path(__file__).resolve().parents[1]
 DEST=ROOT/'specs/005-workspace-completion/contracts'
@@ -16,7 +16,7 @@ def main() -> None:
     schema['info']={'title':'Review Workspace Extension','version':'2.0.0'}
     schema['servers']=[{'url':'/api'}]
     schema['paths']={path.removeprefix('/api'):value for path,value in schema['paths'].items() if path.startswith('/api/v2/')}
-    documents={'openapi.json':schema,'self-review-request.schema.json':SelfReviewRequest.model_json_schema(),'self-review-event.schema.json':SelfReviewEvent.model_json_schema()}
+    documents={'openapi.json':schema,'self-review-request.schema.json':SelfReviewRequest.model_json_schema(),'self-review-event.schema.json':SelfReviewEvent.model_json_schema(),'review-assist-request.schema.json':ReviewAssistRequest.model_json_schema(),'review-assist-event.schema.json':ReviewAssistEvent.model_json_schema()}
     manifest={}
     for name,value in documents.items():
         text=json.dumps(value,ensure_ascii=False,indent=2,sort_keys=True)+'\n';manifest[name]=hashlib.sha256(text.encode()).hexdigest()

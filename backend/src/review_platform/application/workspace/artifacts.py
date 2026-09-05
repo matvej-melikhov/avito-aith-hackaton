@@ -6,7 +6,6 @@ import asyncio
 import base64
 from io import BytesIO
 from pathlib import PurePath
-from uuid import UUID
 from zipfile import BadZipFile, ZipFile
 
 from sqlalchemy.ext.asyncio import AsyncSession

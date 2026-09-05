@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite --host localhost",
     "dev:demo": "vite --host localhost --mode demo",
-    "generate:api": "node scripts/generate-api.mjs",
-    "check:api": "node scripts/generate-api.mjs --check",
+    "generate:api": "node scripts/generate-api.mjs && node scripts/generate-workspace.mjs",
+    "check:api": "node scripts/generate-api.mjs --check && node scripts/generate-workspace.mjs --check",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "preview": "vite preview --host localhost",

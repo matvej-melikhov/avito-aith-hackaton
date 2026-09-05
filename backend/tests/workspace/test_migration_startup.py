@@ -1,10 +1,11 @@
 """A clean checkout can migrate an empty database to every runtime table."""
+
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
 import subprocess
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -26,7 +27,9 @@ def migration_database(docker_host: str) -> Iterator[MySqlContainer]:
 
 def test_fresh_database_has_complete_workspace_schema(migration_database: MySqlContainer) -> None:
     root = Path(__file__).resolve().parents[2]
-    environment = dict(os.environ, REVIEW_PLATFORM_DATABASE_URL=migration_database.get_connection_url())
+    environment = dict(
+        os.environ, REVIEW_PLATFORM_DATABASE_URL=migration_database.get_connection_url()
+    )
     result = subprocess.run(
         [sys.executable, "-m", "alembic", "upgrade", "head"],
         cwd=root,
@@ -40,7 +43,10 @@ def test_fresh_database_has_complete_workspace_schema(migration_database: MySqlC
     try:
         inspector = inspect(engine)
         assert set(inspector.get_table_names()) == set(Base.metadata.tables) | {"alembic_version"}
-        for table, column in (("homework_version", "review_only"), ("submission_version", "comment")):
+        for table, column in (
+            ("homework_version", "review_only"),
+            ("submission_version", "comment"),
+        ):
             assert column in {field["name"] for field in inspector.get_columns(table)}
     finally:
         engine.dispose()

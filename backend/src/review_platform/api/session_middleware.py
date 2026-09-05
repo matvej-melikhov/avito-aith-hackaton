@@ -64,6 +64,14 @@ class SessionActorMiddleware(BaseHTTPMiddleware):
                     auth_epoch=view.auth_epoch,
                 )
         except AuthenticationError:
+            if (
+                request.method == "DELETE"
+                and request.url.path == "/api/v1/session"
+                and organization_id is not None
+            ):
+                # A revoked secret can repeat logout without authenticating other actions.
+                request.state.logout_organization_id = organization_id
+                return await call_next(request)
             # Login protocols must be able to replace an expired cookie.
             if request.url.path.startswith("/api/v1/auth/"):
                 return await call_next(request)
