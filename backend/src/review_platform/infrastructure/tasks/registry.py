@@ -93,6 +93,7 @@ HANDLER_MODULES: tuple[str, ...] = (
     "review_platform.infrastructure.tasks.artifacts",
     "review_platform.infrastructure.tasks.ai_review",
     "review_platform.infrastructure.tasks.review_impacts",
+    "review_platform.infrastructure.tasks.deliveries",
 )
 
 

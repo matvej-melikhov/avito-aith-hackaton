@@ -55,6 +55,8 @@ from review_platform.infrastructure.db.repositories.deliveries import (
 from review_platform.infrastructure.db.repositories.operations import OutboxMessageRepository
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 
+from .registry import task_handler
+
 DELIVERY_TASK_RUNTIME_FACTORY_ENV = "REVIEW_PLATFORM_DELIVERY_TASK_RUNTIME_FACTORY"
 DELIVERY_EVENT = "ExternalDeliveryRequested"
 RECONCILIATION_EVENT = "ExternalDeliveryReconciliationRequested"
@@ -1180,6 +1182,48 @@ def load_delivery_task_runtime() -> DeliveryTaskRuntime:
     return runtime
 
 
+def validate_delivery_task_configuration() -> None:
+    """Fail worker startup before binding tasks when runtime DI is incomplete."""
+
+    load_delivery_task_runtime()
+
+
+@task_handler(
+    name="review_platform.external_delivery",
+    kind="external_delivery",
+    event_type=DELIVERY_EVENT,
+    requires_auth_revalidation=False,
+    startup_validator=validate_delivery_task_configuration,
+)
+async def handle_external_delivery(
+    *,
+    organization_id: str,
+    message_id: str,
+) -> Mapping[str, Any]:
+    return await DeliveryTaskHandler(
+        load_delivery_task_runtime(),
+        worker_identity="taskiq-external-delivery",
+    )(organization_id=organization_id, message_id=message_id)
+
+
+@task_handler(
+    name="review_platform.external_delivery_reconciliation",
+    kind="external_delivery",
+    event_type=RECONCILIATION_EVENT,
+    requires_auth_revalidation=False,
+    startup_validator=validate_delivery_task_configuration,
+)
+async def handle_external_delivery_reconciliation(
+    *,
+    organization_id: str,
+    message_id: str,
+) -> Mapping[str, Any]:
+    return await DeliveryReconciliationTaskHandler(
+        load_delivery_task_runtime(),
+        worker_identity="taskiq-external-delivery",
+    )(organization_id=organization_id, message_id=message_id)
+
+
 _scheduler_protocol: ReviewDeliveryScheduler = SqlReviewDeliveryScheduler()
 
 
@@ -1193,5 +1237,8 @@ __all__ = [
     "DeliveryTaskRuntime",
     "SqlReviewDeliveryScheduler",
     "StaleDeliveryClaim",
+    "handle_external_delivery",
+    "handle_external_delivery_reconciliation",
     "load_delivery_task_runtime",
+    "validate_delivery_task_configuration",
 ]

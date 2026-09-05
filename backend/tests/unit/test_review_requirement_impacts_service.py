@@ -26,7 +26,11 @@ from review_platform.infrastructure.db.models.operations import (
 )
 from review_platform.infrastructure.db.session import AsyncSessionFactory, session_scope
 from review_platform.infrastructure.tasks.broker import BrokerPolicy
-from review_platform.infrastructure.tasks.registry import REGISTRY, bind_handlers
+from review_platform.infrastructure.tasks.registry import (
+    REGISTRY,
+    HandlerRegistry,
+    bind_handlers,
+)
 from review_platform.infrastructure.tasks.review_impacts import (
     IN_TREE_REVIEW_IMPACT_FACTORY,
     REVIEW_IMPACT_HANDLER_FACTORY_ENV,
@@ -338,6 +342,20 @@ def _policy() -> BrokerPolicy:
     )
 
 
+def _impact_registry() -> HandlerRegistry:
+    source = REGISTRY.resolve_event("HomeworkRequirementsChanged")
+    registry = HandlerRegistry()
+    registry.register(
+        name=source.name,
+        kind=source.kind,
+        event_type=source.event_type,
+        handler=source.handler,
+        requires_auth_revalidation=source.requires_auth_revalidation,
+        startup_validator=source.startup_validator,
+    )
+    return registry
+
+
 def test_worker_bind_validates_review_impact_configuration_before_registering(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -348,6 +366,7 @@ def test_worker_bind_validates_review_impact_configuration_before_registering(
             broker=cast(AsyncBroker, broker),
             policy=_policy(),
             queue_name="review-platform:worker",
+            registry=_impact_registry(),
         )
     assert broker.tasks == []
 
@@ -360,6 +379,7 @@ def test_worker_bind_validates_review_impact_configuration_before_registering(
             broker=cast(AsyncBroker, broker),
             policy=_policy(),
             queue_name="review-platform:worker",
+            registry=_impact_registry(),
         )
     assert broker.tasks == []
 
@@ -383,6 +403,7 @@ def test_worker_bind_accepts_explicit_offline_handler_factory(
         broker=cast(AsyncBroker, broker),
         policy=_policy(),
         queue_name="review-platform:worker",
+        registry=_impact_registry(),
     )
 
     assert "review_platform.review_requirement_impacts" in names

@@ -238,7 +238,7 @@ description: "Dependency-ordered TDD implementation tasks for backend core"
 - [X] T139 [US6] Implement scheduling, bounded retry, unknown outcome, reconciliation-before-retry, supersession, and manual recovery in `backend/src/review_platform/application/services/deliveries.py`
 - [X] T140 [US6] Implement tenant-scoped attempt/observation repositories and stale-publication guards in `backend/src/review_platform/infrastructure/db/repositories/deliveries.py`
 - [X] T141 [US6] Implement schema-backed delivery and reconciliation workers with stable logical keys, exact credential binding provenance, and Operation attempts in `backend/src/review_platform/infrastructure/tasks/deliveries.py`
-- [ ] T142 [US6] Register delivery/reconciliation handlers and concurrency limits in `backend/src/review_platform/infrastructure/tasks/registry.py`
+- [X] T142 [US6] Register delivery/reconciliation handlers and concurrency limits in `backend/src/review_platform/infrastructure/tasks/registry.py`
 - [ ] T143 [US6] Implement and register delivery list and exact-command human-only retry routes in `backend/src/review_platform/api/routes/deliveries.py` and `backend/src/review_platform/api/routes/__init__.py`
 - [ ] T144 [US6] Add typed delivery attempt history, error/action, reconciliation observations, provenance, and independent destination states to `backend/src/review_platform/application/projections/review_detail.py`
 
