@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Защита, вариант Б. Avito AI Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=Unbounded:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- css:start -->
+<style>
+/* ===== tokens.css ===== */
+/* ===========================================================================
+   Avito AI Reviewer — токены дизайн-системы
+   Вариант «Светлый брутализм», плотность «Воздух». Источник: ребрендинг
+   Авито 2024 (бюро «Щука»)
+   и разбор вёрстки start.avito.ru от 4 сентября 2026.
+   Все значения из этого файла. Хардкодить цвета и размеры в компонентах нельзя.
+   =========================================================================== */
+
+:root {
+
+  /* --- Брендовые цвета. Ровно четыре плюс оранжевый для просрочки ---------- */
+  --brand-green:        #04E061;   /* основной. Заливка, метки «выполнено»    */
+  --brand-blue:         #00AAFF;
+  --brand-red:          #FF4053;
+  --brand-violet:       #965EEB;
+  --brand-orange:       #FF891D;
+
+  /* Тёмные варианты: только для текста и тонких линий на белом.
+     Чистые брендовые на белом тексте не проходят по контрасту.               */
+  --green-ink:          #02863A;   /* 5.3:1 на белом */
+  --blue-ink:           #0070B8;   /* 5.2:1 */
+  --red-ink:            #C8202F;   /* 6.4:1 */
+  --violet-ink:         #6B36C4;   /* 7.4:1 */
+  --orange-ink:         #B85A00;   /* 4.6:1 */
+
+  /* Пастельные. Заливка целых блоков и плашек. Текст поверх — только чёрный. */
+  --green-pale:         #C9FFBF;
+  --blue-pale:          #BADAFB;
+  --red-pale:           #F7C1C5;
+  --violet-pale:        #DFCDF3;
+  --orange-pale:        #FFD9B0;
+
+  /* Разбавленные. Подложка строки, цитаты, инлайн-подсветки.                 */
+  --green-wash:         #EFFDF3;
+  --blue-wash:          #EAF5FE;
+  --red-wash:           #FDEDEF;
+  --violet-wash:        #F3ECFC;
+  --orange-wash:        #FFF2E4;
+
+  /* --- Нейтрали. База системы, 90% экрана состоит из них -------------------
+     Чистый чёрный оставлен бренду и витрине. В интерфейсе основной текст
+     #1A1A1A: на плотном экране из девяти требований чистый чёрный вместе
+     с чёрными границами зон даёт лишний вес.                                */
+  --ink:                #1A1A1A;   /* основной текст                          */
+  --ink-2:              #4A4A4A;   /* вторичный текст, длинные абзацы         */
+  --ink-3:              #747574;   /* подписи, мета, плейсхолдеры             */
+  --ink-4:              #A9AAA9;   /* выключенное состояние                   */
+  --line:               #EDEEEF;   /* волосяная линия между строками и зонами */
+  --line-2:             #C9CBCA;   /* граница поля ввода, кнопки, шапки табл. */
+  --line-hard:          #1A1A1A;   /* структурная линия, почти не нужна       */
+  --surface:            #FFFFFF;   /* карточка                                */
+  --surface-2:          #F7F7F7;   /* подложка цитаты, подвал карточки        */
+  --surface-3:          #EFEFEF;   /* полоса метра, разделитель               */
+  --page:               #FAFAFA;   /* холст под карточками                    */
+  --surface-inv:        #1A1A1A;   /* тёмная плашка                           */
+  --ink-inv:            #FFFFFF;
+  --brand-ink:          #000000;   /* чистый чёрный: логотип, витринный текст */
+
+  /* --- Семантика. Компоненты обращаются только к этим переменным ----------- */
+  --ok:                 var(--green-ink);
+  --ok-fill:            var(--brand-green);
+  --ok-bg:              var(--green-wash);
+  --bad:                var(--red-ink);
+  --bad-fill:           var(--brand-red);
+  --bad-bg:             var(--red-wash);
+  --human:              var(--violet-ink);   /* «решает человек», оценочное   */
+  --human-fill:         var(--brand-violet);
+  --human-bg:           var(--violet-wash);
+  --info:               var(--blue-ink);
+  --info-fill:          var(--brand-blue);
+  --info-bg:            var(--blue-wash);
+  --late:               var(--orange-ink);   /* просрочка, горит срок         */
+  --late-fill:          var(--brand-orange);
+  --late-bg:            var(--orange-wash);
+
+  /* --- Шрифты ------------------------------------------------------------- */
+  --font-display: 'Unbounded', 'Onest', system-ui, sans-serif;
+  --font-text:    'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Размер / интерлиньяж / трекинг. Чем крупнее, тем плотнее трекинг.        */
+  --d1-size: 64px;  --d1-lh: .95;  --d1-ls: -.05em;   /* обложка, лендинг     */
+  --d2-size: 44px;  --d2-lh: 1.0;  --d2-ls: -.04em;   /* витринная плашка     */
+  --d3-size: 32px;  --d3-lh: 1.05; --d3-ls: -.04em;   /* крупная цифра        */
+  --h1-size: 25px;  --h1-lh: 1.15; --h1-ls: -.02em;
+  --h2-size: 20px;  --h2-lh: 1.25; --h2-ls: -.02em;
+  --h3-size: 15px;  --h3-lh: 1.4;  --h3-ls: -.01em;
+  --body-size: 15px;   --body-lh: 1.5;
+  --small-size: 13.5px; --small-lh: 1.45;
+  --caption-size: 12px; --caption-lh: 1.35;
+  --label-size: 11px;   --label-ls: .1em;   /* mono, uppercase, служебное     */
+
+  /* Веса. Рабочий интерфейс держится на 400 и 500. 600 — только цифры и
+     главная кнопка, 700 — только дисплейные заголовки. 800 не используется. */
+  --w-light: 300; --w-regular: 400; --w-medium: 500; --w-semi: 600; --w-bold: 700;
+
+  /* --- Геометрия. Система бинарная: либо прямой угол, либо полная пилюля --- */
+  --r-0: 0;
+  --r-pill: 999px;
+  --r-circle: 50%;
+  --bw-hair: 1px;      /* волосяная линия                                    */
+  --bw-struct: 2px;    /* структурная граница блока и раздела                */
+  --bw-focus: 3px;
+
+  /* --- Шаг 4px ------------------------------------------------------------ */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-14: 56px; --s-20: 80px;
+
+  /* --- Размеры управляющих элементов -------------------------------------- */
+  --ctl-l: 48px; --ctl-m: 40px; --ctl-s: 32px;
+  --review-score-w: 136px; /* общая колонка оценки и предпросмотр шкалы */
+  --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px; /* стартовая ширина, дальше её тянут за край */
+
+  /* --- Замечание ---------------------------------------------------------- */
+  --callout-mark: 20px;   /* диаметр залитого кружка со знаком                */
+
+  /* --- Тень. Только у слоёв поверх страницы. У карточек тени нет ---------- */
+  --shadow-overlay: 0 24px 60px rgba(0,0,0,.18);
+
+  /* Полупрозрачная подложка круглой кнопки. Не сплошной серый: кнопка стоит
+     и на белом, и на зелёной плашке, и должна работать на обоих.          */
+  --tint-soft:       rgba(26,26,26,.06);
+  --tint-soft-hover: rgba(26,26,26,.12);
+
+  /* --- Движение ----------------------------------------------------------- */
+  --t-fast: 120ms cubic-bezier(.2,0,.2,1);
+  --t-base: 200ms cubic-bezier(.2,0,.2,1);
+}
+
+/* Тёмной темы в системе нет. Роль «тёмного» играет чёрная плашка .inv:
+   она инвертирует нейтрали внутри себя и оставляет брендовые цвета как есть. */
+.inv {
+  --ink: #FFFFFF; --ink-2: #C9CBCA; --ink-3: #8E908F; --ink-4: #5A5B5A;
+  --line: #2E2E2E; --line-2: #414141; --line-hard: #FFFFFF;
+  --surface: #121212; --surface-2: #1A1A1A; --surface-3: #242424; --page: #121212;
+  --surface-inv: #FFFFFF; --ink-inv: #121212;
+  --ok: var(--brand-green); --bad: #FF8A94; --human: #C4A6FA; --info: #6ECBFF; --late: #FFB265;
+  --ok-bg: #0A2216; --bad-bg: #2A1114; --human-bg: #1C1230; --info-bg: #06222F; --late-bg: #2A1B08;
+  background: #121212; color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-base: 0ms; }
+}
+
+/* ===== deck.css ===== */
+/* ===========================================================================
+   Avito AI Reviewer — слайды презентации
+   Надстройка над tokens.css. Своих цветов и размеров не заводит, берёт всё
+   из токенов. Кадр 1920 на 1080, минимальный кегль на слайде 30px:
+   с последнего ряда зала мельче не читается.
+   =========================================================================== */
+
+/* --- Кадр -----------------------------------------------------------------
+   .deck-frame масштабирует кадр под ширину колонки, .slide рисуется всегда
+   в натуральную величину 1920 на 1080.                                      */
+/* overflow-x: auto, а не hidden: если скрипт не отработал, правый край
+   кадра можно доскроллить, а не потерять молча. Тот же приём, что в
+   screens.html.                                                            */
+.deck-frame { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--page); }
+.slide {
+  width: 1920px; height: 1080px; transform-origin: top left; transform: scale(.6);
+  position: relative; overflow: hidden;
+  background: var(--surface); color: var(--ink);
+  font-family: var(--font-text); font-size: 30px; line-height: 1.45;
+  padding: 96px 112px 88px; display: flex; flex-direction: column;
+}
+.slide--pad-0 { padding: 0; }
+
+/* Тёмный слайд. Инверсия нейтралей приходит из .inv в токенах.              */
+.slide.inv { background: var(--surface); }
+
+/* Заливка брендовым. Текст поверх только чёрный, так задано в системе.      */
+.slide--fill { background: var(--brand-green); color: var(--brand-ink); }
+.slide--fill .slide__kicker,
+.slide--fill .slide__foot { color: var(--brand-ink); opacity: .64; }
+
+/* --- Служебные элементы кадра --------------------------------------------- */
+.slide__kicker {
+  font-family: var(--font-mono); font-size: 22px; letter-spacing: var(--label-ls);
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--s-6);
+}
+.slide__num {
+  position: absolute; top: 64px; right: 112px;
+  font-family: var(--font-display); font-weight: var(--w-bold);
+  font-size: 160px; line-height: 1; letter-spacing: var(--d1-ls);
+  color: var(--ink); opacity: .07; user-select: none;
+}
+.slide__foot {
+  position: absolute; left: 112px; right: 112px; bottom: 52px;
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--font-mono); font-size: 20px; color: var(--ink-3);
+}
+.slide__foot--plain { position: static; margin-top: auto; padding-top: var(--s-8); }
+
+/* --- Типографика слайда ---------------------------------------------------
+   Заголовок слайда это вывод, а не тема. Поэтому он крупный и его немного.  */
+.s-d1 { font-family: var(--font-display); font-weight: var(--w-bold);
+        font-size: 104px; line-height: .98; letter-spacing: var(--d1-ls); margin: 0; }
+.s-d2 { font-family: var(--font-display); font-weight: var(--w-bold);
+        font-size: 72px; line-height: 1.04; letter-spacing: var(--d1-ls); margin: 0; }
+.s-h  { font-family: var(--font-display); font-weight: var(--w-semi);
+        font-size: 40px; line-height: 1.15; letter-spacing: var(--d2-ls); margin: 0; }
+.s-lead { font-size: 34px; line-height: 1.4; color: var(--ink-2); margin: var(--s-6) 0 0; max-width: 42ch; }
+.s-body { font-size: 30px; line-height: 1.45; color: var(--ink-2); margin: 0; }
+.s-small { font-size: 24px; line-height: 1.4; color: var(--ink-3); margin: 0; }
+.s-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Подсветка куска фразы. Заливка, а не цветной текст: держит контраст.      */
+.s-mark { background: var(--brand-green); color: var(--brand-ink); padding: 0 .12em; }
+.s-mark--v { background: var(--brand-violet); color: var(--ink-inv); }
+.s-mark--o { background: var(--brand-orange); color: var(--brand-ink); }
+/* Вариант для длинной фразы: заливка на полтекста читается тяжело.
+   Только на чёрной плашке, на белом фоне брендовый зелёный не проходит
+   по контрасту.                                                            */
+.s-card--ink .s-mark--slot, .slide.inv .s-mark--slot {
+  background: none; padding: 0; color: var(--brand-green);
+}
+.s-em { color: var(--ink); }
+
+/* --- Сетки ---------------------------------------------------------------- */
+.s-grid { display: grid; gap: var(--s-8); }
+.s-g2 { grid-template-columns: repeat(2, 1fr); }
+.s-g3 { grid-template-columns: repeat(3, 1fr); }
+.s-g4 { grid-template-columns: repeat(4, 1fr); }
+.s-g5 { grid-template-columns: repeat(5, 1fr); }
+.s-split { grid-template-columns: 1fr 1fr; gap: var(--s-14); align-items: start; }
+.s-split-w { grid-template-columns: 1.25fr 1fr; gap: var(--s-14); align-items: start; }
+.s-push { margin-top: auto; }
+
+/* --- Карточка слайда ------------------------------------------------------
+   Прямой угол, без тени, граница волосяная. Тёмная и залитая версии есть.   */
+.s-card { background: var(--surface-2); padding: var(--s-8) var(--s-10);
+          display: flex; flex-direction: column; gap: var(--s-3); }
+.s-card--line { background: var(--surface); border: var(--bw-hair) solid var(--line-2); }
+.s-card--ink  { background: var(--surface-inv); color: var(--ink-inv); }
+.s-card--ink .s-body, .s-card--ink .s-small { color: var(--ink-4); }
+.s-card--fill { background: var(--brand-green); color: var(--brand-ink); }
+.s-card--fill .s-body { color: var(--brand-ink); }
+.s-card__label { font-family: var(--font-mono); font-size: 20px; letter-spacing: var(--label-ls);
+                 text-transform: uppercase; color: var(--ink-3); }
+.s-card--ink .s-card__label { color: var(--ok); }
+.s-card--fill .s-card__label { color: var(--brand-ink); opacity: .7; }
+.s-card__t { font-family: var(--font-display); font-weight: var(--w-semi); font-size: 34px;
+             line-height: 1.15; letter-spacing: var(--d2-ls); }
+
+/* --- Крупное число --------------------------------------------------------
+   Цифра это главный аргумент слайда, поэтому дисплейный шрифт и 96px.       */
+.s-num { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 96px;
+         line-height: .92; letter-spacing: var(--d1-ls); font-variant-numeric: tabular-nums; }
+.s-num--sm { font-size: 64px; }
+.s-num--ok { color: var(--ok); }
+.s-num--bad { color: var(--bad); }
+.s-num--late { color: var(--late); }
+.s-num__cap { font-size: 26px; line-height: 1.35; color: var(--ink-2); }
+
+/* --- Пилюля ---------------------------------------------------------------- */
+.s-pill { display: inline-flex; align-items: center; gap: var(--s-2);
+          padding: var(--s-3) var(--s-6); border-radius: var(--r-pill);
+          background: var(--surface-3); color: var(--ink); font-size: 24px; white-space: nowrap; }
+.s-pill--fill { background: var(--brand-green); color: var(--brand-ink); }
+.s-pill--ink { background: var(--surface-inv); color: var(--ink-inv); }
+.s-pill--line { background: transparent; border: var(--bw-hair) solid var(--line-2); color: var(--ink-2); }
+.s-pills { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
+
+/* Метка происхождения числа: замер, цель или допущение. Обязательна рядом
+   с любой цифрой на слайде, иначе цифру нельзя показывать.                  */
+.s-src { display: inline-flex; align-items: center; gap: var(--s-2);
+         font-family: var(--font-mono); font-size: 19px; padding: var(--s-1) var(--s-4);
+         border-radius: var(--r-pill); border: var(--bw-hair) solid var(--line-2); color: var(--ink-3); }
+.s-src--fact { border-color: var(--ok); color: var(--ok); }
+.s-src--goal { border-color: var(--late); color: var(--late); }
+.s-src--guess { border-color: var(--human); color: var(--human); }
+
+/* --- Цепочка шагов --------------------------------------------------------
+   Путь пользователя к результату: вход, действие, работа системы, итог.     */
+.s-chain { display: flex; align-items: stretch; gap: 0; }
+.s-chain__i { flex: 1; background: var(--surface-2); padding: var(--s-8);
+              display: flex; flex-direction: column; gap: var(--s-3); }
+.s-chain__i + .s-chain__i { border-left: var(--bw-struct) solid var(--page); }
+.s-chain__i--on { background: var(--surface-inv); color: var(--ink-inv); }
+.s-chain__i--on .s-body { color: var(--ink-4); }
+.s-chain__n { font-family: var(--font-mono); font-size: 20px; color: var(--ink-3); }
+.s-chain__i--on .s-chain__n { color: var(--ok); }
+.s-arrow { display: flex; align-items: center; font-size: 44px; color: var(--ink-3); padding: 0 var(--s-5); }
+
+/* --- Было и стало ---------------------------------------------------------
+   Паттерн из гайда: слабая формулировка слева, сильная справа тёмной.       */
+.s-fix { display: grid; grid-template-columns: 1fr auto 1.15fr; gap: var(--s-6); align-items: center; }
+.s-fix__bad { background: var(--surface); border: var(--bw-hair) solid var(--line-2);
+              padding: var(--s-8) var(--s-10); color: var(--ink-3); }
+.s-fix__good { background: var(--surface-inv); color: var(--ink-inv); padding: var(--s-8) var(--s-10); }
+.s-fix__q { font-size: 30px; line-height: 1.4; }
+.s-fix__good .s-fix__q { font-size: 32px; }
+
+/* --- Доказательство: факт, сравнение, условия ------------------------------ */
+.s-proof { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--s-5) var(--s-6); align-items: center; }
+.s-proof__w { background: var(--surface-3); color: var(--ink-3); padding: var(--s-5) var(--s-8);
+              border-radius: var(--r-pill); font-size: 26px; }
+.s-proof__s { background: var(--surface-inv); color: var(--ink-inv); padding: var(--s-5) var(--s-8);
+              border-radius: var(--r-pill); font-size: 26px; }
+
+/* --- Рамка под скриншот интерфейса ---------------------------------------
+   Скриншот обрезается до важного места, а не вставляется экраном целиком.   */
+.s-shot { background: var(--surface); border: var(--bw-struct) solid var(--ink); overflow: hidden; }
+.s-shot__bar { display: flex; align-items: center; gap: var(--s-3);
+               padding: var(--s-4) var(--s-6); border-bottom: var(--bw-hair) solid var(--line);
+               font-family: var(--font-mono); font-size: 20px; color: var(--ink-3); }
+.s-shot__body { padding: var(--s-6); }
+.s-shot__crop { display: block; }
+
+/* --- Цитата --------------------------------------------------------------- */
+.s-quote { border-left: var(--bw-struct) solid var(--ok-fill); padding-left: var(--s-10); }
+.s-quote__q { font-family: var(--font-display); font-weight: var(--w-semi);
+              font-size: 48px; line-height: 1.22; letter-spacing: var(--d2-ls); }
+.s-quote__a { margin-top: var(--s-6); font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+
+/* --- Хронометраж питча ----------------------------------------------------- */
+.s-time { display: flex; gap: var(--s-4); }
+.s-time__i { flex: 1; padding: var(--s-6); background: var(--surface-2); }
+.s-time__i--on { background: var(--surface-inv); color: var(--ink-inv); flex: 2.2; }
+.s-time__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 52px;
+             letter-spacing: var(--d2-ls); }
+.s-time__i--on .s-time__v { color: var(--ok); }
+
+/* --- Список выводов -------------------------------------------------------- */
+.s-list { margin: 0; padding: 0; list-style: none; }
+.s-list li { position: relative; padding-left: var(--s-10); margin: var(--s-6) 0;
+             font-size: 30px; line-height: 1.4; color: var(--ink-2); }
+.s-list li::before { content: ""; position: absolute; left: 0; top: .55em;
+                     width: var(--s-6); height: var(--bw-struct); background: var(--ok-fill); }
+.s-list li b { color: var(--ink); font-weight: var(--w-semi); }
+
+/* --- Таблица на слайде -----------------------------------------------------
+   Цвет задаётся явно: без doctype браузер уводит таблицу в свой цвет.       */
+.s-table { width: 100%; border-collapse: collapse; color: var(--ink); }
+.s-table th { text-align: left; font-family: var(--font-mono); font-size: 20px;
+              letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3);
+              font-weight: var(--w-regular); padding: 0 var(--s-6) var(--s-4) 0;
+              border-bottom: var(--bw-hair) solid var(--line-2); }
+.s-table td { color: var(--ink); font-size: 28px; padding: var(--s-5) var(--s-6) var(--s-5) 0;
+              border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
+.s-table td.s-mono { font-size: 28px; }
+
+/* --- Полоса доли ----------------------------------------------------------- */
+.s-meter { height: var(--s-3); background: var(--surface-3); border-radius: var(--r-pill); overflow: hidden; }
+.s-meter i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--ok-fill); }
+.s-meter i.is-late { background: var(--late-fill); }
+.s-meter i.is-bad { background: var(--bad-fill); }
+
+/* ===========================================================================
+   Смелые кадры и инфографика
+   Всё рисуется разметкой и инлайновым SVG: внешних картинок нет, поэтому
+   графика живёт в токенах и меняет цвет вместе с системой.
+   Углы поворота и перспектива — единственное, чего нет в токенах:
+   в словаре системы такой величины не заведено.
+   =========================================================================== */
+
+/* --- Гигантское число ------------------------------------------------------
+   Один аргумент во весь кадр. Больше на слайде не должно быть ничего.       */
+.s-hero { display: flex; align-items: center; gap: var(--s-14); }
+.s-hero__n { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 420px; line-height: .78; letter-spacing: -.06em;
+             font-variant-numeric: tabular-nums; }
+.s-hero__u { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 88px; line-height: 1; letter-spacing: var(--d1-ls); }
+.s-hero__side { display: flex; flex-direction: column; gap: var(--s-6); max-width: 30ch; }
+
+/* --- Точечная матрица ------------------------------------------------------
+   Сто точек это сто студентов. Доля показывается заливкой, а не процентом:
+   глаз считает точки быстрее, чем читает число.                            */
+.s-dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: var(--s-3); }
+.s-dots i { display: block; aspect-ratio: 1; border-radius: var(--r-circle);
+            background: var(--surface-3); }
+.s-dots i.is-on { background: var(--ok-fill); }
+.s-dots i.is-late { background: var(--late-fill); }
+.s-dots i.is-bad { background: var(--bad-fill); }
+.s-dots--sm { grid-template-columns: repeat(10, 1fr); gap: var(--s-2); }
+
+/* --- Изометрический стек ---------------------------------------------------
+   Слои платформы в перспективе. Каждый слой это обычный блок, объём даёт
+   один поворот на родителе.                                                 */
+/* Повёрнутый блок занимает больше места, чем его бокс, поэтому стек живёт
+   в окне фиксированного размера и ужимается целиком.                       */
+.s-iso { perspective: 2400px; height: 620px; display: flex;
+         align-items: center; justify-content: center; overflow: hidden; }
+.s-iso__st { transform: rotateX(56deg) rotateZ(-42deg) scale(.62); transform-style: preserve-3d;
+             display: flex; flex-direction: column-reverse; gap: var(--s-10); }
+.s-iso__l { width: 620px; height: 170px; background: var(--surface-2);
+            border: var(--bw-struct) solid var(--ink); display: flex; align-items: center;
+            padding: 0 var(--s-8); position: relative; }
+.s-iso__l--on { background: var(--brand-green); }
+.s-iso__l--ink { background: var(--surface-inv); border-color: var(--ink); }
+.s-iso__t { font-family: var(--font-display); font-weight: var(--w-semi); font-size: 34px;
+            letter-spacing: var(--d2-ls); color: var(--ink); white-space: nowrap; }
+.s-iso__l--on .s-iso__t { color: var(--brand-ink); }
+.s-iso__l--ink .s-iso__t { color: var(--ink-inv); }
+/* Подписи к слоям стоят ровно, без наклона: наклонный текст не читается.   */
+.s-iso__legend { display: flex; flex-direction: column-reverse; gap: var(--s-6); }
+.s-iso__cap { display: flex; align-items: baseline; gap: var(--s-4); }
+.s-iso__cap b { font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+
+/* --- Водопад ---------------------------------------------------------------
+   Из чего складывается час и что от него остаётся.                          */
+.s-fall { display: flex; align-items: flex-end; gap: var(--s-4); height: 340px; }
+.s-fall__c { display: flex; flex-direction: column; justify-content: flex-end;
+             align-items: center; gap: var(--s-4); flex: 1; height: 100%; }
+.s-fall__b { width: 100%; background: var(--surface-3); }
+.s-fall__b--on { background: var(--ok-fill); }
+.s-fall__b--bad { background: var(--bad-fill); }
+.s-fall__b--late { background: var(--late-fill); }
+.s-fall__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 40px;
+             letter-spacing: var(--d2-ls); font-variant-numeric: tabular-nums; }
+.s-fall__k { font-size: 22px; color: var(--ink-3); text-align: center; line-height: 1.3; }
+
+/* --- Наклонённый интерфейс -------------------------------------------------
+   Продуктовый кадр: экран уходит в перспективу, поверх него всплывает
+   вырезанный кусок с главным.                                               */
+.s-tilt { perspective: 2000px; position: relative; }
+.s-tilt__s { transform: rotateY(-18deg) rotateX(6deg) rotateZ(1deg);
+             transform-origin: right center; box-shadow: var(--shadow-overlay); }
+.s-tilt__pop { position: absolute; background: var(--surface); border: var(--bw-struct) solid var(--ink);
+               box-shadow: var(--shadow-overlay); padding: var(--s-6) var(--s-8); }
+
+/* --- Диагональный раскол ---------------------------------------------------
+   Было и стало без стрелки: граница между ними и есть стрелка.             */
+/* Половины лежат друг на друге во весь кадр, а не в сетке: тогда отступ
+   текста считается от края слайда и его не режет линия раскола.           */
+.s-diag { position: absolute; inset: 0; }
+.s-diag__a, .s-diag__b { position: absolute; inset: 0;
+                         display: flex; flex-direction: column; justify-content: center; }
+/* Обе половины во весь кадр: проценты в clip-path считаются от ширины
+   самого блока, поэтому сузить его нельзя, иначе линия уедет.             */
+.s-diag__a { background: var(--surface-2); clip-path: polygon(0 0, 46% 0, 34% 100%, 0 100%);
+             padding: 120px 62% 120px 96px; }
+.s-diag__b { background: var(--surface-inv); color: var(--ink-inv);
+             clip-path: polygon(46% 0, 100% 0, 100% 100%, 34% 100%);
+             padding: 120px 96px 120px 52%; }
+
+/* --- Тепловая карта --------------------------------------------------------
+   Где спотыкается поток: строка это требование, клетка это студент.        */
+.s-heat { display: grid; gap: var(--s-2); }
+.s-heat__r { display: grid; grid-template-columns: 30ch 1fr auto; gap: var(--s-6); align-items: center; }
+.s-heat__cells { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; }
+.s-heat__cells span { display: block; aspect-ratio: 1; background: var(--ok-bg); }
+.s-heat__cells span.is-miss { background: var(--bad-fill); }
+.s-heat__cells span.is-part { background: var(--late-fill); }
+
+/* --- Кольцевая метрика (SVG) ----------------------------------------------- */
+.s-ring { display: flex; align-items: center; gap: var(--s-10); }
+.s-ring svg { display: block; }
+.s-ring__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 72px;
+             letter-spacing: var(--d1-ls); font-variant-numeric: tabular-nums; }
+
+/* --- Типографический манифест ----------------------------------------------
+   Слова разного веса и заливки, поставленные стопкой.                      */
+.s-manifest { font-family: var(--font-display); font-weight: var(--w-bold);
+              font-size: 132px; line-height: .92; letter-spacing: -.05em; }
+.s-manifest span { display: block; }
+.s-manifest .is-out { color: transparent; -webkit-text-stroke: 2px var(--ink); }
+.s-manifest .is-fill { background: var(--brand-green); color: var(--brand-ink);
+                       display: inline-block; padding: 0 var(--s-4); }
+</style>
+<!-- css:end -->
+<style>
+  body { margin:0; background:var(--page); color:var(--ink); font-family:var(--font-text); }
+  .pg { max-width:1360px; margin:0 auto; padding:var(--s-20) var(--gutter) 120px; }
+  .pg__head { padding-bottom:var(--s-8); border-bottom:var(--bw-struct) solid var(--ink); }
+  .pg__k { font-family:var(--font-mono); font-size:var(--label-size); letter-spacing:var(--label-ls);
+           text-transform:uppercase; color:var(--ink-3); }
+  .pg h1 { font-family:var(--font-display); font-weight:var(--w-bold); font-size:var(--d1-size);
+           line-height:var(--d1-lh); letter-spacing:var(--d1-ls); margin:var(--s-4) 0 0; }
+  .pg__lead { margin:var(--s-5) 0 0; max-width:74ch; color:var(--ink-2); font-size:17px; line-height:1.55; }
+  .slot { margin-top:var(--s-10); }
+  .slot__h { display:flex; align-items:baseline; gap:var(--s-3); flex-wrap:wrap; margin-bottom:var(--s-3); }
+  .slot__t { font-size:17px; font-weight:var(--w-semi); }
+  .slot__time { font-family:var(--font-mono); font-size:12px; background:var(--ink); color:var(--ink-inv);
+                padding:3px 10px; border-radius:var(--r-pill); }
+  .slot__d { font-size:14px; color:var(--ink-3); }
+  .say { margin-top:var(--s-4); padding:var(--s-5) var(--s-6); background:var(--surface);
+         border-left:var(--bw-struct) solid var(--brand-green); font-size:15px; line-height:1.6; color:var(--ink-2); }
+  .say b { color:var(--ink); }
+  .todo { margin-top:var(--s-3); padding:var(--s-4) var(--s-5); background:var(--violet-wash);
+          font-size:14px; line-height:1.55; color:var(--ink); }
+  .todo b { font-family:var(--font-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+            color:var(--violet-ink); display:block; margin-bottom:var(--s-2); }
+
+  /* Иллюстрация внутри слайда. Размер задаётся местом, а не файлом. */
+  .art { display:block; }
+  .art svg { display:block; width:100%; height:auto; }
+
+  /* Рамка под записанное видео демо. */
+  .video { position:relative; background:var(--surface-inv); aspect-ratio:16/9; width:100%;
+           display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .video__mark { width:104px; height:104px; border-radius:var(--r-circle); background:var(--brand-green);
+                 display:grid; place-items:center; }
+  .video__mark::after { content:""; width:0; height:0; margin-left:8px;
+                        border-left:34px solid var(--brand-ink);
+                        border-top:22px solid transparent; border-bottom:22px solid transparent; }
+  .video__cap { position:absolute; left:var(--s-8); bottom:var(--s-8); right:var(--s-8);
+                font-family:var(--font-mono); font-size:22px; color:var(--ink-4); }
+  .tc { display:flex; flex-direction:column; gap:var(--s-4); }
+  .tc__i { display:grid; grid-template-columns:132px 1fr; gap:var(--s-6); align-items:baseline; }
+  .tc__t { font-family:var(--font-mono); font-size:26px; color:var(--ok); }
+  .tc__x { font-size:28px; line-height:1.35; }
+  .tc__x span { display:block; font-size:22px; color:var(--ink-3); margin-top:4px; }
+</style>
+</head>
+<body>
+<div class="pg">
+
+<header class="pg__head">
+  <div class="pg__k">Avito AI Reviewer, защита</div>
+  <h1>Вариант Б</h1>
+  <p class="pg__lead">Семь слайдов на 4:50 по вашему хронометражу. Демо идёт записанным видео, слайд под него держит таймкоды и страхует, если ролик не запустится. Фиолетовым помечено то, чего ещё нет: запись демо и результаты прогонов. Числа со значком «замер» взяты из интервью с ревьюером Tech QA, со значком «цель» — пороги, объявленные заранее.</p>
+</header>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">0:00–0:30</span><span class="slot__t">01. Продукт и проблема</span><span class="slot__d">одним кадром: что это и почему больно</span></div>
+  <div class="deck-frame"><div class="slide">
+    <div class="slide__kicker">Avito AI Reviewer</div>
+    <div class="s-grid" style="grid-template-columns:1.5fr 1fr; gap:var(--s-14); flex:1; align-items:center">
+      <div>
+        <h2 class="s-d2">Проверка домашних работ<br>упирается в людей</h2>
+        <p class="s-lead">Мы делаем помощник ревьюера: он разбирает работу по требованиям задания, на каждый вердикт приводит цитату из текста и отдаёт готовый черновик. Оценку ставит человек.</p>
+        <div class="s-pills" style="margin-top:var(--s-10)">
+          <span class="s-pill s-pill--ink">~100 студентов на поток</span>
+          <span class="s-pill s-pill--fill">~60 минут на одну работу</span>
+          <span class="s-pill s-pill--line">2 дня на весь поток</span>
+        </div>
+        <div style="margin-top:var(--s-6)"><span class="s-src s-src--fact">замер, интервью с ревьюером Tech QA</span></div>
+      </div>
+      <div class="art"><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Фокус на основании</title>
+  <desc id="desc">Крупный зелёный круг с белой цитатой, строгие чёрные скобки и тонкая линия фокуса.</desc>
+  <defs>
+    <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><path d="M0 0V14" stroke="#1A1A1A" stroke-width="3"/></pattern>
+  </defs>
+  <g id="orbital-line" fill="none" stroke="#1A1A1A" stroke-width="2">
+    <ellipse cx="595" cy="410" rx="474" ry="166" transform="rotate(-24 595 410)"/>
+  </g>
+  <circle id="accent-disc" cx="584" cy="393" r="248" fill="#04E061"/>
+  <path id="left-bracket" d="M367 124H227V670H367V614H283V180H367Z" fill="#1A1A1A"/>
+  <path id="right-bracket" d="M833 124H973V670H833V614H917V180H833Z" fill="#1A1A1A"/>
+  <g id="citation" fill="#FFFFFF">
+    <path d="M409 294H555V411C555 488 510 542 430 561V502C471 485 489 465 490 432H409Z"/>
+    <path d="M605 294H751V411C751 488 706 542 626 561V502C667 485 685 465 686 432H605Z"/>
+  </g>
+  <circle cx="923" cy="205" r="45" fill="#FFFFFF"/>
+  <circle cx="923" cy="205" r="43" fill="url(#hatch)" stroke="#1A1A1A" stroke-width="2"/>
+  <circle cx="197" cy="579" r="13" fill="#1A1A1A"/>
+  <path d="M1019 574H1061M1040 553V595" stroke="#1A1A1A" stroke-width="3"/>
+  <path d="M128 190H180M154 164V216" stroke="#1A1A1A" stroke-width="3"/>
+</svg></div>
+    </div>
+    <div class="slide__foot"><span>Avito AI Reviewer</span><span>01</span></div>
+  </div></div>
+  <div class="say"><b>Спикер.</b> Курс набирает около ста студентов. Ревьюер тратит на одну работу примерно час, а весь поток нужно проверить за два дня. Это упирается не в мотивацию, а в арифметику. Мы сделали помощник, который разбирает работу по требованиям задания и на каждый вывод показывает место в тексте. Решение остаётся за человеком.</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">0:30–1:00</span><span class="slot__t">02. Ценность</span><span class="slot__d">что именно меняется и чем это подтверждено</span></div>
+  <div class="deck-frame"><div class="slide">
+    <div class="slide__num">02</div>
+    <div class="slide__kicker">Ценность</div>
+    <h2 class="s-d2">Ускорение уже существует.<br>Оно живёт в голове одного человека</h2>
+    <p class="s-lead">На курсе Tech QA ревьюер собрал себе навык для модели и стал закрывать работу за 10–15 минут вместо часа. Это не наша гипотеза, а факт с курса.</p>
+    <div class="s-grid s-g3 s-push">
+      <div class="s-card">
+        <div class="s-card__label">было</div>
+        <div class="s-num s-num--bad">~60</div>
+        <div class="s-num__cap">минут на работу, полностью вручную</div>
+        <div><span class="s-src s-src--fact">замер</span></div>
+      </div>
+      <div class="s-card s-card--fill">
+        <div class="s-card__label">стало у одного ревьюера</div>
+        <div class="s-num">10–15</div>
+        <div class="s-num__cap">минут, личный навык для модели</div>
+        <div><span class="s-src s-src--fact">замер</span></div>
+      </div>
+      <div class="s-card s-card--ink">
+        <div class="s-card__label">что делаем мы</div>
+        <div class="s-card__t" style="font-size:38px; margin-top:var(--s-2)">Превращаем навык в платформу</div>
+        <p class="s-body" style="margin-top:var(--s-3)">Требования как данные, цитата на каждый вердикт, журнал решений. Работает на любом курсе и не зависит от одного человека.</p>
+      </div>
+    </div>
+    <div class="slide__foot"><span>Год назад ту же идею пробовали на слабых моделях, стало медленнее, чем руками</span><span>02</span></div>
+  </div></div>
+  <div class="say"><b>Спикер.</b> Ценность уже доказана, но не нами. Один ревьюер на курсе Tech QA написал себе навык для модели и стал проверять работу за десять-пятнадцать минут вместо часа. Год назад та же попытка на слабых моделях провалилась, было медленнее, чем руками. Наша работа в том, чтобы этот навык перестал быть личным: критерии становятся данными, каждый вывод получает цитату, а решения пишутся в журнал.</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">1:00–1:20</span><span class="slot__t">03. Карта демо</span><span class="slot__d">что сейчас увидят, чтобы не потеряться в ролике</span></div>
+  <div class="deck-frame"><div class="slide">
+    <div class="slide__kicker">Демо, один сквозной сценарий</div>
+    <h2 class="s-d2">Одна работа проходит весь путь:<br>от сдачи до подтверждённой оценки</h2>
+    <div class="s-chain" style="margin-top:var(--s-10)">
+      <div class="s-chain__i"><div class="s-chain__n">студент</div><div class="s-card__t">Сдаёт и проверяет себя</div><p class="s-body">Приходит по ссылке из Stepik, видит незакрытые требования до сдачи</p></div>
+      <div class="s-chain__i"><div class="s-chain__n">пул</div><div class="s-card__t">Ревьюер берёт работу</div><p class="s-body">Никто ничего не раскладывает, работа закрепляется одним нажатием</p></div>
+      <div class="s-chain__i"><div class="s-chain__n">разбор</div><div class="s-card__t">Модель показывает места</div><p class="s-body">По каждому требованию вердикт, цитата и строки в файле</p></div>
+      <div class="s-chain__i s-chain__i--on"><div class="s-chain__n">решение</div><div class="s-card__t">Человек подтверждает</div><p class="s-body">Соглашается, меняет оценку, правит ответ студенту</p></div>
+    </div>
+    <div class="s-grid s-split-w s-push" style="align-items:center">
+      <p class="s-body">Смотрим за одной работой. Все четыре шага идут подряд, без перескоков во времени и без обхода остальных экранов.</p>
+      <div class="art" style="max-width:520px; margin-left:auto"><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Диалог — упрощённая версия</title>
+  <desc id="desc">Две реплики, крупная цитата и курсор человека. Без фоновых линий и декоративных элементов.</desc>
+  <g id="evidence" transform="rotate(-3 420 333)">
+    <path d="M170 185H670V460H322L240 532V460H170Z" fill="#1A1A1A"/>
+    <g id="citation" fill="#FFFFFF">
+      <path d="M268 249H369V333C369 386 337 417 284 431V389C308 379 325 362 325 345H268Z"/>
+      <path d="M397 249H498V333C498 386 466 417 413 431V389C437 379 453 362 454 345H397Z"/>
+    </g>
+  </g>
+  <g id="human-response" transform="rotate(3 765 488)">
+    <path d="M510 370H1010V600H904V671L824 600H510Z" fill="#04E061"/>
+    <path id="response-lines" d="M584 440H932V455H584ZM584 490H843V505H584Z" fill="#1A1A1A"/>
+  </g>
+  <path id="human-cursor" d="M979 523L1066 597L1026 605L1047 650L1025 661L1003 615L977 648Z" fill="#1A1A1A" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="miter"/>
+</svg></div>
+    </div>
+    <div class="slide__foot"><span>Avito AI Reviewer</span><span>03</span></div>
+  </div></div>
+  <div class="say"><b>Спикер.</b> Сейчас покажу одну работу, которая пройдёт весь путь. Студент сдаёт и до сдачи сам видит, чего не хватает. Ревьюер берёт эту работу из общего пула. Система показывает разбор по требованиям с цитатами. Ревьюер подтверждает результат. Это один сценарий целиком, а не обход функций.</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">1:20–3:10</span><span class="slot__t">04. Демо, запись</span><span class="slot__d">ролик на весь кадр, спикер комментирует поверх</span></div>
+  <div class="deck-frame"><div class="slide slide--pad-0">
+    <div class="video">
+      <div class="video__mark"></div>
+      <div class="video__cap">demo-full-run.mp4, 1:50, без звука, спикер комментирует вживую</div>
+    </div>
+    <div class="slide__foot" style="left:var(--s-8); right:var(--s-8); bottom:var(--s-5)"><span>Avito AI Reviewer</span><span>04</span></div>
+  </div></div>
+  <div class="todo"><b>Плейсхолдер, нужна запись</b>Ролик ещё не снят. Что записать: один проход по сценарию из слайда 03, без звука, курсор двигается медленно, паузы на местах, где спикер говорит. Длительность 1:50, чтобы осталось 20 секунд запаса. Соотношение 16 на 9, разрешение не ниже 1920 на 1080. Файл кладём рядом с колодой и подставляем в тег video вместо этой заглушки.</div>
+  <div class="say"><b>Спикер комментирует по таймкодам.</b> Текст ниже привязан к секундам ролика, его же держим на резервном слайде, если видео не запустится.</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">резерв</span><span class="slot__t">04а. Если видео не пошло</span><span class="slot__d">тот же сценарий словами и таймкодами, открываем только при сбое</span></div>
+  <div class="deck-frame"><div class="slide">
+    <div class="slide__num">04</div>
+    <div class="slide__kicker">Демо, что происходит в ролике</div>
+    <h2 class="s-d2">Одна работа, четыре шага, 1:50</h2>
+    <div class="tc" style="margin-top:var(--s-10)">
+      <div class="tc__i"><span class="tc__t">0:00–0:25</span><span class="tc__x">Студент открывает ссылку из Stepik и запускает самопроверку<span>Система узнаёт его по Stepik ID. Видно, что два требования из девяти не закрыты, и где именно</span></span></div>
+      <div class="tc__i"><span class="tc__t">0:25–0:45</span><span class="tc__x">Студент дорабатывает и отправляет на ревью<span>Работа попадает в общий пул со статусом «Сдана»</span></span></div>
+      <div class="tc__i"><span class="tc__t">0:45–1:05</span><span class="tc__x">Ревьюер берёт работу из пула<span>Одно нажатие, работа закрепляется за ним. Никто её не назначал</span></span></div>
+      <div class="tc__i"><span class="tc__t">1:05–1:50</span><span class="tc__x">Ревьюер проверяет разбор и подтверждает оценку<span>Раскрывает требование, видит цитату и строки в файле, меняет одну оценку, правит ответ студенту</span></span></div>
+    </div>
+    <div class="slide__foot"><span>Резервный слайд, в основном рассказе не показывается</span><span>04а</span></div>
+  </div></div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">3:10–3:45</span><span class="slot__t">05. Техника</span><span class="slot__d">четыре звена и одно свойство, которое отличает нас от чата с моделью</span></div>
+  <div class="deck-frame"><div class="slide">
+    <div class="slide__num">05</div>
+    <div class="slide__kicker">Как устроена проверка</div>
+    <h2 class="s-d2">Модель не может сослаться на то,<br>чего студент не писал</h2>
+    <div class="s-chain" style="margin-top:var(--s-8)">
+      <div class="s-chain__i"><div class="s-chain__n">01</div><div class="s-card__t">Требования как данные</div><p class="s-body">Критерии со шкалами и условием «что считается выполненным». Конфигурация задания, а не промпт в коде</p></div>
+      <div class="s-chain__i"><div class="s-chain__n">02</div><div class="s-card__t">Вызов на каждое требование</div><p class="s-body">Отдельный запрос по каждому пункту, а не один общий «оцени работу»</p></div>
+      <div class="s-chain__i s-chain__i--on"><div class="s-chain__n">03</div><div class="s-card__t">Цитату сверяет код</div><p class="s-body">Нет фрагмента в работе — вердикт отклонён и не показан. Это гейт, а не рекомендация</p></div>
+      <div class="s-chain__i"><div class="s-chain__n">04</div><div class="s-card__t">Человек и журнал</div><p class="s-body">Балл ставит ревьюер, каждая правка пишется как «предложено, изменено, финал»</p></div>
+    </div>
+    <div class="s-grid s-split-w s-push" style="align-items:center">
+      <div>
+        <div class="s-card s-card--line">
+          <div class="s-card__label">ограничения называем сами</div>
+          <p class="s-body">Оценочные критерии модель только советует. Открытые модели на этой задаче дают плохой результат, берём фронтир. Влияние на успеваемость за неделю не проверяли.</p>
+        </div>
+      </div>
+      <div class="art" style="max-width:460px; margin-left:auto"><svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Цитата из работы</title>
+  <desc id="desc">На чёрном листе выделена зелёная строка. Рядом крупная зелёная реплика с цитатой.</desc>
+  <g id="source" transform="rotate(-3 423 393)">
+    <path d="M213 144H633V646H213Z" fill="#1A1A1A"/>
+    <path d="M272 220H565V233H272ZM272 267H516V280H272Z" fill="#FFFFFF"/>
+    <path id="highlight" d="M253 321H555V388H253Z" fill="#04E061"/>
+    <path d="M273 346H530V360H273Z" fill="#1A1A1A"/>
+    <path d="M272 434H551V447H272ZM272 481H470V494H272Z" fill="#FFFFFF"/>
+  </g>
+  <g id="quotation" transform="rotate(3 797 458)">
+    <path d="M585 320H1005V573H889V644L812 573H585Z" fill="#04E061"/>
+    <g fill="#1A1A1A">
+      <path d="M654 377H755V458C755 508 725 539 671 554V513C697 501 711 487 711 470H654Z"/>
+      <path d="M789 377H890V458C890 508 860 539 806 554V513C832 501 846 487 846 470H789Z"/>
+    </g>
+  </g>
+</svg></div>
+    </div>
+    <div class="slide__foot"><span>Контрольный вариант для сравнения: те же работы одним общим промптом</span><span>05</span></div>
+  </div></div>
+  <div class="say"><b>Спикер.</b> Главное отличие от чата с моделью в третьем звене. Модель обязана привести фрагмент работы, и код проверяет, что этот фрагмент в работе действительно есть. Не нашлось — вердикт отклоняется и не показывается ревьюеру. Поэтому разбор можно проверить за секунды, а не перечитывать работу целиком.</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">3:45–4:10</span><span class="slot__t">06. Проверенные результаты</span><span class="slot__d">честно: что уже измерено, а что пока порог</span></div>
+  <div class="deck-frame"><div class="slide">
+    <div class="slide__num">06</div>
+    <div class="slide__kicker">Что измерено</div>
+    <h2 class="s-d2">Пороги объявлены до прогона,<br>а не подогнаны после</h2>
+    <table class="s-table" style="margin-top:var(--s-8)">
+      <thead><tr><th>Что меряем</th><th>Порог</th><th>Результат</th><th>Откуда</th></tr></thead>
+      <tbody>
+        <tr><td>Точность по требованиям</td><td class="s-mono">от 75%</td><td class="s-mono">—</td><td><span class="s-src s-src--goal">цель</span></td></tr>
+        <tr><td>Ошибка по сумме баллов</td><td class="s-mono">до 1 из 6</td><td class="s-mono">—</td><td><span class="s-src s-src--goal">цель</span></td></tr>
+        <tr><td>Решение о зачёте совпало</td><td class="s-mono">100%</td><td class="s-mono">—</td><td><span class="s-src s-src--goal">цель</span></td></tr>
+        <tr><td>Вердиктов принято без правок</td><td class="s-mono">от 60%</td><td class="s-mono">—</td><td><span class="s-src s-src--goal">цель</span></td></tr>
+        <tr><td>Время на работу у ревьюера</td><td class="s-mono">−30%</td><td class="s-mono">—</td><td><span class="s-src s-src--goal">цель</span></td></tr>
+      </tbody>
+    </table>
+    <div class="s-grid s-g2 s-push">
+      <div class="s-card s-card--ink">
+        <div class="s-card__label">порог провала объявлен заранее</div>
+        <p class="s-body">Точность ниже 60 процентов или принято меньше 40 процентов пунктов. Тогда система перестаёт ставить вердикты и просто собирает выжимку с цитатами, а оценку человек ставит сам.</p>
+      </div>
+      <div class="s-card s-card--line">
+        <div class="s-card__label">что сравниваем</div>
+        <p class="s-body">Те же работы прогоняем одним общим промптом «вот условие, вот критерии, оцени». Разница между ним и нашим пайплайном и есть ответ на вопрос, зачем это, если есть чат с моделью.</p>
+      </div>
+    </div>
+    <div class="slide__foot"><span>Разметка ручная, по требованиям, набор работ зафиксирован в репозитории</span><span>06</span></div>
+  </div></div>
+  <div class="todo"><b>Плейсхолдер, нужны прогоны</b>Колонка «Результат» пустая: бенчмарк ещё не прогнан, замера времени на людях не было. Как появятся числа, подставляем их и меняем метку «цель» на «замер» в тех строках, где результат получен. Пустая колонка честнее выдуманной, на защите про неё говорим прямо.</div>
+  <div class="say"><b>Спикер.</b> Пороги мы объявили до первого прогона и записали в репозиторий, включая порог провала. Сейчас в колонке результатов прочерки: прогон ещё идёт. Что уже проверено — это разбор с цитатами, вы его видели в демо. Обещать здесь цифру, которой нет, я не буду.</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">4:10–4:50</span><span class="slot__t">07. Готовность и финал</span><span class="slot__d">сделано, проверено, планируется плюс дословная финальная фраза</span></div>
+  <div class="deck-frame"><div class="slide">
+    <div class="slide__kicker">Готовность</div>
+    <h2 class="s-d2">Что работает, что измеряем<br>и о чём просим</h2>
+    <div class="s-grid s-g3" style="margin-top:var(--s-8)">
+      <div class="s-card">
+        <div class="s-card__label">сделано</div>
+        <ul class="s-list">
+          <li>Разбор по требованиям с цитатами и местами в файле</li>
+          <li>Общий пул и взятие работы ревьюером</li>
+          <li>Самопроверка студента до сдачи</li>
+          <li>Журнал решений по каждой работе</li>
+        </ul>
+      </div>
+      <div class="s-card">
+        <div class="s-card__label">проверяем сейчас</div>
+        <ul class="s-list">
+          <li>Точность разбора против ручной разметки</li>
+          <li>Сравнение с одним общим промптом</li>
+          <li>Время ревьюера на шести работах</li>
+        </ul>
+      </div>
+      <div class="s-card s-card--fill">
+        <div class="s-card__label">просим</div>
+        <ul class="s-list">
+          <li>Пилот на одном потоке</li>
+          <li>Доступ к критериям одного курса</li>
+          <li>Два ревьюера на замер времени</li>
+        </ul>
+      </div>
+    </div>
+    <div class="s-card s-card--ink s-push">
+      <div class="s-card__label">финальная фраза, 12 секунд</div>
+      <p class="s-fix__q" style="font-size:38px; margin-top:var(--s-3)">«Ускорение проверки на курсе уже есть, но держится на одном человеке. Мы сделали его воспроизводимым: каждый вывод с цитатой, решение за ревьюером, журнал на каждую правку. Просим пилот на одном потоке, чтобы измерить эффект на реальных работах»</p>
+    </div>
+    <div class="slide__foot"><span>Avito AI Reviewer</span><span>07</span></div>
+  </div></div>
+  <div class="say"><b>Спикер.</b> Финальную фразу читаем дословно, не импровизируем. После неё молчим и ждём вопросов.</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">вариант</span><span class="slot__t">01б. Открытие числом</span><span class="slot__d">то же место, другая подача: сразу цифра во весь кадр</span></div>
+  <div class="deck-frame"><div class="slide inv" style="justify-content:center">
+    <div class="slide__kicker">Avito AI Reviewer</div>
+    <div class="s-grid" style="grid-template-columns:1fr 1.45fr; gap:var(--s-14); align-items:center">
+      <div>
+        <div class="s-num" style="font-size:280px; line-height:.86">80</div>
+        <p class="s-lead" style="max-width:34ch; margin-top:var(--s-6)">часов ручной проверки на один поток. Уложить их нужно примерно в два дня.</p>
+        <div style="margin-top:var(--s-5)"><span class="s-src s-src--fact">замер, интервью</span></div>
+      </div>
+      <div>
+        <h2 class="s-d2" style="font-size:58px">Мы разбираем работу<br>по требованиям задания<br>и показываем <span class="s-mark--slot">место в тексте</span></h2>
+        <p class="s-lead">Оценку ставит ревьюер. Система готовит основания для решения.</p>
+      </div>
+    </div>
+    <div class="slide__foot"><span>Avito AI Reviewer</span><span>01б</span></div>
+  </div></div>
+  <div class="todo"><b>Проверить арифметику</b>80 часов получены умножением: около 100 студентов, сдаёт около 80 процентов, примерно час на работу. Это производная величина, а не прямой замер. Если оставляем её на слайде, на защите произносим именно так: «около восьмидесяти часов, это сто студентов на час проверки с поправкой на тех, кто не сдал».</div>
+</section>
+
+<section class="slot">
+  <div class="slot__h"><span class="slot__time">вариант</span><span class="slot__t">07б. Финал заливкой</span><span class="slot__d">то же место, минимум элементов, только фраза</span></div>
+  <div class="deck-frame"><div class="slide slide--fill" style="justify-content:center">
+    <div class="slide__kicker">Итог</div>
+    <h2 class="s-d1" style="max-width:24ch">Ускорение есть.<br>Мы делаем его<br>воспроизводимым.</h2>
+    <p class="s-lead" style="color:inherit; opacity:.78; max-width:56ch">Каждый вывод с цитатой, решение за ревьюером, журнал на каждую правку. Просим пилот на одном потоке, чтобы измерить эффект на реальных работах.</p>
+    <div class="slide__foot"><span>Avito AI Reviewer</span><span>07б</span></div>
+  </div></div>
+</section>
+
+<footer class="slot" style="border-top:var(--bw-struct) solid var(--ink); padding-top:var(--s-8)">
+  <p class="pg__lead">Стили берутся из <code>../design/tokens.css</code> и <code>../design/deck.css</code>. После правки CSS вклеить их заново: <code>python3 docs/design/build.py</code>. Иллюстрации взяты из <code>../design/illustrations-2d/</code> и вклеены в файл, поэтому колода открывается без соседних файлов.</p>
+</footer>
+
+</div>
+<script>
+  function fitSlides(){
+    document.querySelectorAll('.deck-frame').forEach(function(f){
+      var s=f.querySelector('.slide'); if(!s) return;
+      var k=Math.min(0.6, f.clientWidth/1920);
+      s.style.transform='scale('+k+')';
+      f.style.height=Math.ceil(1080*k)+'px';
+    });
+  }
+  fitSlides();
+  window.addEventListener('load', fitSlides);
+  window.addEventListener('resize', fitSlides);
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(fitSlides);}
+</script>
+</body>
+</html>

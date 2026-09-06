@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Эталон слайда. Avito AI Reviewer</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Эталон структуры. Исполнитель повторяет этот скелет и расширяет его.
+   Значения соответствуют дизайн-системе проекта, менять их нельзя.        */
+:root{
+  --green:#04E061; --blue:#00AAFF; --red:#FF4053; --violet:#965EEB; --orange:#FF891D;
+  --green-ink:#02863A; --red-ink:#C8202F; --violet-ink:#6B36C4; --orange-ink:#B85A00;
+  --ink:#1A1A1A; --ink-2:#4A4A4A; --ink-3:#747574; --ink-4:#A9AAA9;
+  --line:#EDEEEF; --line-2:#C9CBCA;
+  --surface:#FFFFFF; --surface-2:#F7F7F7; --surface-3:#EFEFEF; --page:#FAFAFA; --dark:#121212;
+  --font-display:'Unbounded',sans-serif; --font-text:'Onest',sans-serif; --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);font-family:var(--font-text);color:var(--ink)}
+.page{max-width:1240px;margin:0 auto;padding:56px 24px 100px}
+.cap{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:40px 0 10px}
+
+/* Кадр. Слайд всегда рисуется в натуральные 1920 на 1080 и ужимается. */
+.frame{width:100%;overflow-x:auto;overflow-y:hidden;background:var(--page);border:1px solid var(--line-2)}
+.slide{width:1920px;height:1080px;transform-origin:top left;transform:scale(.62);
+  position:relative;overflow:hidden;background:var(--surface);color:var(--ink);
+  font-size:30px;line-height:1.45;padding:96px 112px 88px;display:flex;flex-direction:column}
+.slide--dark{background:var(--dark);color:#fff}
+.slide--fill{background:var(--green);color:#000}
+
+.kicker{font-family:var(--font-mono);font-size:22px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px}
+.slide--dark .kicker{color:var(--ink-4)}
+.ghost{position:absolute;top:64px;right:112px;font-family:var(--font-display);font-weight:700;
+  font-size:160px;line-height:1;letter-spacing:-.05em;opacity:.07;user-select:none}
+.foot{position:absolute;left:112px;right:112px;bottom:52px;display:flex;justify-content:space-between;
+  font-family:var(--font-mono);font-size:20px;color:var(--ink-3)}
+
+h1.d1{font-family:var(--font-display);font-weight:700;font-size:104px;line-height:.98;letter-spacing:-.05em;margin:0}
+h2.d2{font-family:var(--font-display);font-weight:700;font-size:72px;line-height:1.04;letter-spacing:-.05em;margin:0}
+.lead{font-size:34px;line-height:1.4;color:var(--ink-2);margin:24px 0 0;max-width:42ch}
+.slide--dark .lead{color:var(--ink-4)}
+.mark{background:var(--green);color:#000;padding:0 .12em}
+
+.grid{display:grid;gap:32px;margin-top:auto}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--surface-2);padding:32px 40px;display:flex;flex-direction:column;gap:12px}
+.card--dark{background:var(--dark);color:#fff}
+.card__label{font-family:var(--font-mono);font-size:20px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.num{font-family:var(--font-display);font-weight:700;font-size:96px;line-height:.92;letter-spacing:-.05em}
+.num--bad{color:var(--red-ink)}
+.num__cap{font-size:26px;line-height:1.35;color:var(--ink-2)}
+
+/* Метка происхождения числа. Обязательна рядом с каждой цифрой. */
+.src{display:inline-flex;font-family:var(--font-mono);font-size:19px;padding:4px 16px;
+  border-radius:999px;border:1px solid var(--line-2);color:var(--ink-3)}
+.src--fact{border-color:var(--green-ink);color:var(--green-ink)}
+.src--goal{border-color:var(--orange-ink);color:var(--orange-ink)}
+
+/* Слот: место, которое заменяется при использовании шаблона. */
+.slot{outline:2px dashed var(--violet);outline-offset:4px}
+.slot-note{font-family:var(--font-mono);font-size:12px;color:var(--violet-ink);
+  background:#F3ECFC;padding:6px 12px;margin-top:8px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="cap">Эталон 1. Светлый слайд с числами</div>
+<div class="frame"><div class="slide">
+  <div class="ghost">03</div>
+  <div class="kicker">Проблема</div>
+  <h2 class="d2">Проверка не масштабируется<br>вместе с набором</h2>
+  <p class="lead">Курс растёт, число людей, которые могут проверять, упирается в потолок.</p>
+  <div class="grid g4">
+    <div class="card">
+      <div class="num">~100</div>
+      <div class="num__cap">студентов на поток, сдаёт около 80 процентов</div>
+      <div><span class="src src--fact">замер</span></div>
+    </div>
+    <div class="card">
+      <div class="num num--bad">~60</div>
+      <div class="num__cap">минут на одну работу при ручной проверке</div>
+      <div><span class="src src--fact">замер</span></div>
+    </div>
+    <div class="card">
+      <div class="num">до 20</div>
+      <div class="num__cap">работ на одного ревьюера за поток</div>
+      <div><span class="src src--fact">замер</span></div>
+    </div>
+    <div class="card">
+      <div class="num">75%</div>
+      <div class="num__cap">точность по требованиям, порог приёмки</div>
+      <div><span class="src src--goal">цель</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Источник: интервью с ревьюером курса Tech QA</span><span>03</span></div>
+</div></div>
+
+<div class="cap">Эталон 2. Тёмный слайд, одна мысль</div>
+<div class="frame"><div class="slide slide--dark">
+  <div class="kicker">Ставка</div>
+  <h1 class="d1">Оценку ставит<br><span class="mark">человек</span>. Всегда.</h1>
+  <p class="lead">Система готовит вердикт и цитату. Записать балл без подтверждения человеком нельзя.</p>
+  <div class="foot"><span>Avito AI Reviewer</span><span>04</span></div>
+</div></div>
+
+<div class="cap">Эталон 3. Как размечается слот под замену</div>
+<div class="frame"><div class="slide">
+  <div class="kicker slot">Раздел</div>
+  <h2 class="d2 slot">Заголовок-вывод, до 60 знаков,<br>формулируется как утверждение</h2>
+  <div class="slot-note">СЛОТ: заголовок. Вывод, а не тема. 2 строки максимум</div>
+  <p class="lead slot">Подзаголовок одним предложением, до 120 знаков. Не повторяет заголовок.</p>
+  <div class="slot-note">СЛОТ: подзаголовок, необязательный</div>
+  <div class="grid g4">
+    <div class="card slot">
+      <div class="num">00</div>
+      <div class="num__cap">подпись к числу, до 50 знаков</div>
+      <div><span class="src src--fact">замер</span></div>
+    </div>
+    <div class="card"><div class="num">00</div><div class="num__cap">подпись к числу</div><div><span class="src src--goal">цель</span></div></div>
+    <div class="card"><div class="num">00</div><div class="num__cap">подпись к числу</div><div><span class="src src--fact">замер</span></div></div>
+    <div class="card"><div class="num">00</div><div class="num__cap">подпись к числу</div><div><span class="src src--fact">замер</span></div></div>
+  </div>
+  <div class="slot-note">СЛОТ: от 3 до 4 плиток. Метка происхождения обязательна у каждой</div>
+  <div class="foot"><span>подпись источника</span><span>NN</span></div>
+</div></div>
+
+</div>
+<script>
+  function fit(){document.querySelectorAll('.frame').forEach(function(f){
+    var s=f.querySelector('.slide'); if(!s) return;
+    var k=Math.min(.62, f.clientWidth/1920);
+    s.style.transform='scale('+k+')'; f.style.height=Math.ceil(1080*k)+'px';});}
+  fit(); window.addEventListener('load',fit); window.addEventListener('resize',fit);
+  if(document.fonts&&document.fonts.ready){document.fonts.ready.then(fit);}
+</script>
+</body>
+</html>

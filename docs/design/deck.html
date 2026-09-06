@@ -1,0 +1,1818 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Кит презентации. Avito AI Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800&family=Unbounded:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- css:start -->
+<style>
+/* ===== tokens.css ===== */
+/* ===========================================================================
+   Avito AI Reviewer — токены дизайн-системы
+   Вариант «Светлый брутализм», плотность «Воздух». Источник: ребрендинг
+   Авито 2024 (бюро «Щука»)
+   и разбор вёрстки start.avito.ru от 4 сентября 2026.
+   Все значения из этого файла. Хардкодить цвета и размеры в компонентах нельзя.
+   =========================================================================== */
+
+:root {
+
+  /* --- Брендовые цвета. Ровно четыре плюс оранжевый для просрочки ---------- */
+  --brand-green:        #04E061;   /* основной. Заливка, метки «выполнено»    */
+  --brand-blue:         #00AAFF;
+  --brand-red:          #FF4053;
+  --brand-violet:       #965EEB;
+  --brand-orange:       #FF891D;
+
+  /* Тёмные варианты: только для текста и тонких линий на белом.
+     Чистые брендовые на белом тексте не проходят по контрасту.               */
+  --green-ink:          #02863A;   /* 5.3:1 на белом */
+  --blue-ink:           #0070B8;   /* 5.2:1 */
+  --red-ink:            #C8202F;   /* 6.4:1 */
+  --violet-ink:         #6B36C4;   /* 7.4:1 */
+  --orange-ink:         #B85A00;   /* 4.6:1 */
+
+  /* Пастельные. Заливка целых блоков и плашек. Текст поверх — только чёрный. */
+  --green-pale:         #C9FFBF;
+  --blue-pale:          #BADAFB;
+  --red-pale:           #F7C1C5;
+  --violet-pale:        #DFCDF3;
+  --orange-pale:        #FFD9B0;
+
+  /* Разбавленные. Подложка строки, цитаты, инлайн-подсветки.                 */
+  --green-wash:         #EFFDF3;
+  --blue-wash:          #EAF5FE;
+  --red-wash:           #FDEDEF;
+  --violet-wash:        #F3ECFC;
+  --orange-wash:        #FFF2E4;
+
+  /* --- Нейтрали. База системы, 90% экрана состоит из них -------------------
+     Чистый чёрный оставлен бренду и витрине. В интерфейсе основной текст
+     #1A1A1A: на плотном экране из девяти требований чистый чёрный вместе
+     с чёрными границами зон даёт лишний вес.                                */
+  --ink:                #1A1A1A;   /* основной текст                          */
+  --ink-2:              #4A4A4A;   /* вторичный текст, длинные абзацы         */
+  --ink-3:              #747574;   /* подписи, мета, плейсхолдеры             */
+  --ink-4:              #A9AAA9;   /* выключенное состояние                   */
+  --line:               #EDEEEF;   /* волосяная линия между строками и зонами */
+  --line-2:             #C9CBCA;   /* граница поля ввода, кнопки, шапки табл. */
+  --line-hard:          #1A1A1A;   /* структурная линия, почти не нужна       */
+  --surface:            #FFFFFF;   /* карточка                                */
+  --surface-2:          #F7F7F7;   /* подложка цитаты, подвал карточки        */
+  --surface-3:          #EFEFEF;   /* полоса метра, разделитель               */
+  --page:               #FAFAFA;   /* холст под карточками                    */
+  --surface-inv:        #1A1A1A;   /* тёмная плашка                           */
+  --ink-inv:            #FFFFFF;
+  --brand-ink:          #000000;   /* чистый чёрный: логотип, витринный текст */
+
+  /* --- Семантика. Компоненты обращаются только к этим переменным ----------- */
+  --ok:                 var(--green-ink);
+  --ok-fill:            var(--brand-green);
+  --ok-bg:              var(--green-wash);
+  --bad:                var(--red-ink);
+  --bad-fill:           var(--brand-red);
+  --bad-bg:             var(--red-wash);
+  --human:              var(--violet-ink);   /* «решает человек», оценочное   */
+  --human-fill:         var(--brand-violet);
+  --human-bg:           var(--violet-wash);
+  --info:               var(--blue-ink);
+  --info-fill:          var(--brand-blue);
+  --info-bg:            var(--blue-wash);
+  --late:               var(--orange-ink);   /* просрочка, горит срок         */
+  --late-fill:          var(--brand-orange);
+  --late-bg:            var(--orange-wash);
+
+  /* --- Шрифты ------------------------------------------------------------- */
+  --font-display: 'Unbounded', 'Onest', system-ui, sans-serif;
+  --font-text:    'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Размер / интерлиньяж / трекинг. Чем крупнее, тем плотнее трекинг.        */
+  --d1-size: 64px;  --d1-lh: .95;  --d1-ls: -.05em;   /* обложка, лендинг     */
+  --d2-size: 44px;  --d2-lh: 1.0;  --d2-ls: -.04em;   /* витринная плашка     */
+  --d3-size: 32px;  --d3-lh: 1.05; --d3-ls: -.04em;   /* крупная цифра        */
+  --h1-size: 25px;  --h1-lh: 1.15; --h1-ls: -.02em;
+  --h2-size: 20px;  --h2-lh: 1.25; --h2-ls: -.02em;
+  --h3-size: 15px;  --h3-lh: 1.4;  --h3-ls: -.01em;
+  --body-size: 15px;   --body-lh: 1.5;
+  --small-size: 13.5px; --small-lh: 1.45;
+  --caption-size: 12px; --caption-lh: 1.35;
+  --label-size: 11px;   --label-ls: .1em;   /* mono, uppercase, служебное     */
+
+  /* Веса. Рабочий интерфейс держится на 400 и 500. 600 — только цифры и
+     главная кнопка, 700 — только дисплейные заголовки. 800 не используется. */
+  --w-light: 300; --w-regular: 400; --w-medium: 500; --w-semi: 600; --w-bold: 700;
+
+  /* --- Геометрия. Система бинарная: либо прямой угол, либо полная пилюля --- */
+  --r-0: 0;
+  --r-pill: 999px;
+  --r-circle: 50%;
+  --bw-hair: 1px;      /* волосяная линия                                    */
+  --bw-struct: 2px;    /* структурная граница блока и раздела                */
+  --bw-focus: 3px;
+
+  /* --- Шаг 4px ------------------------------------------------------------ */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-14: 56px; --s-20: 80px;
+
+  /* --- Размеры управляющих элементов -------------------------------------- */
+  --ctl-l: 48px; --ctl-m: 40px; --ctl-s: 32px;
+  --review-score-w: 136px; /* общая колонка оценки и предпросмотр шкалы */
+  --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px;
+
+  /* --- Замечание ---------------------------------------------------------- */
+  --callout-mark: 20px;   /* диаметр залитого кружка со знаком                */
+
+  /* --- Тень. Только у слоёв поверх страницы. У карточек тени нет ---------- */
+  --shadow-overlay: 0 24px 60px rgba(0,0,0,.18);
+
+  /* Полупрозрачная подложка круглой кнопки. Не сплошной серый: кнопка стоит
+     и на белом, и на зелёной плашке, и должна работать на обоих.          */
+  --tint-soft:       rgba(26,26,26,.06);
+  --tint-soft-hover: rgba(26,26,26,.12);
+
+  /* --- Движение ----------------------------------------------------------- */
+  --t-fast: 120ms cubic-bezier(.2,0,.2,1);
+  --t-base: 200ms cubic-bezier(.2,0,.2,1);
+}
+
+/* Тёмной темы в системе нет. Роль «тёмного» играет чёрная плашка .inv:
+   она инвертирует нейтрали внутри себя и оставляет брендовые цвета как есть. */
+.inv {
+  --ink: #FFFFFF; --ink-2: #C9CBCA; --ink-3: #8E908F; --ink-4: #5A5B5A;
+  --line: #2E2E2E; --line-2: #414141; --line-hard: #FFFFFF;
+  --surface: #121212; --surface-2: #1A1A1A; --surface-3: #242424; --page: #121212;
+  --surface-inv: #FFFFFF; --ink-inv: #121212;
+  --ok: var(--brand-green); --bad: #FF8A94; --human: #C4A6FA; --info: #6ECBFF; --late: #FFB265;
+  --ok-bg: #0A2216; --bad-bg: #2A1114; --human-bg: #1C1230; --info-bg: #06222F; --late-bg: #2A1B08;
+  background: #121212; color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-base: 0ms; }
+}
+
+/* ===== components.css ===== */
+/* ===========================================================================
+   Avito AI Reviewer — библиотека компонентов
+   Требует tokens.css. Ни одного цвета и размера мимо переменных.
+   Правило геометрии: блоки с прямым углом, управляющие элементы — пилюли.
+   Правило веса: рабочий интерфейс на 400 и 500, границы зон волосяные.
+   =========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--body-size);
+  line-height: var(--body-lh);
+  font-weight: var(--w-regular);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Типографика --------------------------------------------------------- */
+
+.d1, .d2 { font-family: var(--font-display); font-weight: var(--w-bold); margin: 0; }
+.d3 { font-family: var(--font-display); font-weight: var(--w-semi); margin: 0; }
+.d1 { font-size: var(--d1-size); line-height: var(--d1-lh); letter-spacing: var(--d1-ls); }
+.d2 { font-size: var(--d2-size); line-height: var(--d2-lh); letter-spacing: var(--d2-ls); }
+.d3 { font-size: var(--d3-size); line-height: var(--d3-lh); letter-spacing: var(--d3-ls); }
+
+h1, .h1 { font-size: var(--h1-size); line-height: var(--h1-lh); letter-spacing: var(--h1-ls); font-weight: var(--w-medium); margin: 0; }
+h2, .h2 { font-size: var(--h2-size); line-height: var(--h2-lh); letter-spacing: var(--h2-ls); font-weight: var(--w-medium); margin: 0; }
+h3, .h3 { font-size: var(--h3-size); line-height: var(--h3-lh); letter-spacing: var(--h3-ls); font-weight: var(--w-medium); margin: 0; }
+
+.small  { font-size: var(--small-size); line-height: var(--small-lh); }
+.caption{ font-size: var(--caption-size); line-height: var(--caption-lh); color: var(--ink-3); }
+.muted  { color: var(--ink-3); }
+.dim    { color: var(--ink-2); }
+
+/* Служебная метка: моноширинный капслок. Разделы, источники, номера строк.  */
+.label {
+  font-family: var(--font-mono); font-size: var(--label-size); font-weight: var(--w-regular);
+  letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3);
+}
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.num  { font-variant-numeric: tabular-nums; }
+
+/* Заголовок с цветной пилюлей поверх слова — фирменный приём Авито.
+   Не больше одной пилюли на заголовок.                                      */
+.hl { display: inline-block; padding: 0 .28em; border-radius: var(--r-pill); background: var(--brand-green); }
+.hl-ink { background: var(--brand-ink); color: #fff; }
+
+a { color: var(--ink); text-decoration: none; border-bottom: var(--bw-hair) solid var(--line-2); }
+a:hover { border-bottom-color: var(--ink); }
+
+:focus-visible { outline: var(--bw-focus) solid var(--ink); outline-offset: 2px; }
+.inv :focus-visible { outline-color: var(--brand-green); }
+
+/* --- Кнопки. Всегда пилюля, всегда 1px граница ---------------------------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  height: var(--ctl-m); padding: 0 var(--s-5);
+  font-family: var(--font-text); font-size: var(--body-size); font-weight: var(--w-medium);
+  line-height: 1; color: var(--ink); background: var(--surface);
+  border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill);
+  cursor: pointer; white-space: nowrap; transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+.btn:hover  { background: var(--surface-2); }
+.btn:active { transform: translateY(1px); }
+
+.btn--pri   { background: var(--brand-green); border-color: var(--brand-green); font-weight: var(--w-semi); }
+.btn--pri:hover { background: #00C954; border-color: #00C954; }
+
+.btn--dark  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
+.btn--dark:hover { background: var(--ink-2); border-color: var(--ink-2); }
+
+.btn--quiet { border-color: var(--line); color: var(--ink-3); }
+.btn--quiet:hover { border-color: var(--ink); color: var(--ink); }
+
+.btn--danger{ border-color: var(--bad); color: var(--bad); }
+.btn--danger:hover { background: var(--bad-bg); }
+
+.btn--link  { border: 0; padding: 0; height: auto; background: none; color: var(--ink);
+              text-decoration: underline; text-underline-offset: 3px; font-weight: var(--w-medium); }
+.btn--link:hover { background: none; color: var(--green-ink); }
+
+.btn--l { height: var(--ctl-l); padding: 0 var(--s-6); font-size: 16px; }
+.btn--s { height: var(--ctl-s); padding: 0 var(--s-4); font-size: var(--small-size); }
+
+.btn[disabled], .btn--off { color: var(--ink-4); border-color: var(--line); background: var(--surface); cursor: not-allowed; }
+
+.btn--icon { width: var(--ctl-m); padding: 0; border-radius: var(--r-circle); }
+.btn--icon.btn--s { width: var(--ctl-s); }
+
+.btn-row { display: flex; gap: var(--s-2); flex-wrap: wrap; align-items: center; }
+
+/* --- Пилюли и теги -------------------------------------------------------- */
+
+.pill {
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  height: 26px; padding: 0 var(--s-3);
+  font-size: var(--small-size); font-weight: var(--w-medium); line-height: 1;
+  border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill);
+  background: var(--surface); color: var(--ink-2); white-space: nowrap;
+}
+.pill--solid  { background: var(--ink); border-color: var(--ink); color: var(--ink-inv); }
+.pill--ok     { background: var(--green-pale);  border-color: var(--green-pale);  color: var(--ink); }
+.pill--bad    { background: var(--red-pale);    border-color: var(--red-pale);    color: var(--ink); }
+.pill--human  { background: var(--violet-pale); border-color: var(--violet-pale); color: var(--ink); }
+.pill--info   { background: var(--blue-pale);   border-color: var(--blue-pale);   color: var(--ink); }
+.pill--late   { background: var(--orange-pale); border-color: var(--orange-pale); color: var(--ink); }
+.pill--mono   { font-family: var(--font-mono); font-size: var(--caption-size); }
+
+/* Точка-маркер перед текстом пилюли, когда цвета мало для различения        */
+.pill i { width: 7px; height: 7px; border-radius: var(--r-circle); background: currentColor; display: block; }
+
+/* --- Статусы домашки. Единый набор на всю платформу ----------------------- */
+
+.st { display: inline-flex; align-items: center; gap: var(--s-2); height: 26px; padding: 0 var(--s-3);
+      border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-medium);
+      border: var(--bw-hair) solid transparent; white-space: nowrap; }
+.st::before { content: ""; width: 8px; height: 8px; border-radius: var(--r-circle); background: currentColor; }
+.st--draft  { background: var(--surface-2);  color: var(--ink-3); border-color: var(--line); }
+.st--sent   { background: var(--blue-wash);  color: var(--info); }
+.st--review { background: var(--violet-wash);color: var(--human); }
+.st--fix    { background: var(--orange-wash);color: var(--late); }
+.st--rereview{background: var(--violet-wash);color: var(--human); }
+.st--pass   { background: var(--green-wash); color: var(--ok); }
+.st--fail   { background: var(--red-wash);   color: var(--bad); }
+
+/* --- Карточка. Прямой угол, волосяная граница, без тени ------------------- */
+
+.card { background: var(--surface); border: var(--bw-hair) solid var(--line); border-radius: var(--r-0); }
+.card--hard { border-color: var(--line-2); }
+.card__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-4) var(--s-5); border-bottom: var(--bw-hair) solid var(--line);
+}
+.card__head h3, .card__head h4 { margin: 0; font-size: var(--h3-size); font-weight: var(--w-medium); letter-spacing: var(--h3-ls); }
+.card__sub  { margin-top: 2px; font-size: var(--small-size); color: var(--ink-3); font-weight: var(--w-regular); }
+.card__body { padding: var(--s-5); }
+.card__body--tight { padding: var(--s-2) var(--s-5); }
+.card__body--compact { padding: var(--s-4) var(--s-5); }
+.card__body--compact .field { margin-bottom: var(--s-3); }
+.card__body--compact .field:last-child { margin-bottom: 0; }
+.card__body--flush { padding: 0; overflow-x: auto; }   /* широкая таблица скроллится внутри карточки, а не тянет страницу */
+.card__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+  background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3);
+}
+/* Пояснение в подвале сжимается, кнопки не переносятся                      */
+.card__foot > :first-child { min-width: 0; }
+.card__foot .btn-row { flex: none; flex-wrap: nowrap; }
+
+/* Сводка «балл из максимума» в шапке карточки                               */
+.sum { display: flex; align-items: baseline; gap: var(--s-2); }
+.sum b { font-family: var(--font-display); font-weight: var(--w-medium); font-size: 23px; letter-spacing: -.04em; }
+.sum span { font-size: var(--small-size); color: var(--ink-3); }
+
+/* --- Витринная плашка: пастельная заливка, круги, крупный заголовок ------- */
+
+.band { position: relative; overflow: hidden; padding: var(--s-8) var(--gutter); background: var(--green-pale); }
+.band--blue   { background: var(--blue-pale); }
+.band--violet { background: var(--violet-pale); }
+.band--ink    { background: var(--ink); color: var(--ink-inv); }
+.band__in { position: relative; z-index: 1; max-width: var(--page-max); margin: 0 auto; }
+.band p { margin: var(--s-3) 0 0; max-width: 54ch; font-size: 16px; }
+
+/* Фирменная графика: плоские круги. Только брендовые цвета, без градиентов. */
+.circ { position: absolute; border-radius: var(--r-circle); pointer-events: none; }
+.circ--g { background: var(--brand-green); }
+.circ--b { background: var(--brand-blue); }
+.circ--r { background: var(--brand-red); }
+.circ--v { background: var(--brand-violet); }
+
+/* --- Полоса цифр ---------------------------------------------------------- */
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+         border-top: var(--bw-hair) solid var(--line); border-bottom: var(--bw-hair) solid var(--line);
+         background: var(--surface); }
+.stat { padding: var(--s-5) var(--gutter); border-right: var(--bw-hair) solid var(--line); }
+.stat:last-child { border-right: 0; }
+.stat b { display: block; font-family: var(--font-display); font-weight: var(--w-semi);
+          font-size: var(--d3-size); line-height: 1; letter-spacing: var(--d3-ls); }
+.stat span { display: block; margin-top: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
+.stat--alert b { color: var(--bad); }
+
+/* Плитка отдельной метрикой (сетка вместо полосы)                           */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-3); }
+.tile { background: var(--surface); border: var(--bw-hair) solid var(--line); padding: var(--s-5); }
+.tile .n { font-family: var(--font-display); font-weight: var(--w-semi); font-size: var(--d3-size);
+           line-height: 1; letter-spacing: var(--d3-ls); }
+.tile .l { margin-top: var(--s-2); font-size: var(--small-size); }
+.tile .d { margin-top: var(--s-1); font-size: var(--caption-size); color: var(--ink-3); }
+.tile--alert { border-color: var(--brand-red); }
+.tile--alert .n { color: var(--bad); }
+
+/* --- Поля ввода ----------------------------------------------------------- */
+
+.field { display: block; margin-bottom: var(--s-4); }
+.field:last-child { margin-bottom: 0; }
+.field__lbl { display: block; margin-bottom: var(--s-2); font-size: var(--small-size); font-weight: var(--w-medium); }
+.field__hint { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--ink-3); }
+/* Помечаем необязательное, а не обязательное: звёздочек в форме из трёх полей
+   получается больше, чем полей без них.                                     */
+.field__opt { margin-left: var(--s-2); font-size: var(--caption-size);
+              font-weight: var(--w-regular); color: var(--ink-3); }
+.field__err  { display: block; margin-top: var(--s-2); font-size: var(--caption-size); color: var(--bad); font-weight: var(--w-medium); }
+
+.inp {
+  display: block; width: 100%; min-height: var(--ctl-l); padding: var(--s-3) var(--s-4);
+  font-family: var(--font-text); font-size: var(--body-size); line-height: 1.5; color: var(--ink);
+  background: var(--surface); border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-0);
+}
+.inp::placeholder { color: var(--ink-3); }
+.inp:hover { border-color: var(--ink-3); }
+.inp:focus { outline: 0; border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.inp--area { min-height: 96px; resize: vertical; }
+/* Компактное поле для шапки: поиск и фильтры стоят в одном ряду с кнопками. */
+.inp--s { height: 32px; padding: 0 var(--s-3); font-size: var(--small-size); }
+.inp--mono { font-family: var(--font-mono); font-size: var(--small-size); }
+.inp--err  { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+.inp[disabled] { background: var(--surface-2); color: var(--ink-4); }
+
+/* Чекбокс и радио: квадрат остаётся квадратом, радио — кругом               */
+.chk { display: inline-flex; align-items: flex-start; gap: var(--s-3); cursor: pointer; }
+.chk input { position: absolute; opacity: 0; width: 0; height: 0; }
+.chk__box { flex: none; width: 20px; height: 20px; margin-top: 1px; background: var(--surface);
+            border: var(--bw-hair) solid var(--ink); display: grid; place-items: center; }
+.chk--radio .chk__box { border-radius: var(--r-circle); }
+.chk input:checked + .chk__box { background: var(--brand-green); border-color: var(--brand-green); }
+.chk input:checked + .chk__box::after { content: "✓"; font-size: 13px; font-weight: var(--w-bold); color: var(--ink); }
+.chk--radio input:checked + .chk__box::after { content: ""; width: 9px; height: 9px; border-radius: var(--r-circle); background: var(--ink); }
+.chk input:focus-visible + .chk__box { outline: var(--bw-focus) solid var(--ink); outline-offset: 2px; }
+
+/* Тумблер — единственное место, где скругление читается как «переключатель» */
+.tgl { position: relative; display: inline-block; width: 44px; height: 24px; }
+.tgl input { position: absolute; opacity: 0; }
+.tgl__t { position: absolute; inset: 0; background: var(--surface-3); border: var(--bw-hair) solid var(--line-2);
+          border-radius: var(--r-pill); transition: background var(--t-fast); }
+.tgl__t::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+                 border-radius: var(--r-circle); background: var(--surface); border: var(--bw-hair) solid var(--line-2);
+                 transition: transform var(--t-fast); }
+.tgl input:checked + .tgl__t { background: var(--brand-green); border-color: var(--brand-green); }
+.tgl input:checked + .tgl__t::after { transform: translateX(20px); border-color: var(--brand-green); }
+
+/* Сегментированный переключатель                                            */
+.seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--surface-2);
+       border: var(--bw-hair) solid var(--line); border-radius: var(--r-pill); }
+.seg > * { display: inline-flex; align-items: center; height: 28px; padding: 0 var(--s-4);
+           border-radius: var(--r-pill); font-size: var(--small-size); font-weight: var(--w-medium);
+           color: var(--ink-3); cursor: pointer; border: 0; background: none; font-family: var(--font-text); }
+.seg > .is-on { background: var(--ink); color: var(--ink-inv); font-weight: var(--w-semi); }
+
+/* Шкала оценки требования: значения из конфигурации задания                 */
+.scale { display: inline-flex; min-width: var(--review-score-w); padding: 2px; border: var(--bw-hair) solid var(--line-2);
+         border-radius: var(--r-pill); background: var(--surface); }
+.scale > * { flex: 1; min-width: var(--ctl-s); height: var(--ctl-s); display: inline-flex; align-items: center; justify-content: center;
+             font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3);
+             border: 0; border-radius: var(--r-pill); cursor: pointer; background: transparent; }
+/* Выбранное значение — залитая пилюля внутри пилюли, углы обоих полные:
+   промежуточных радиусов в системе нет, а прямой угол внутри скруглённой
+   рамки читается как артефакт вёрстки. Заливка, а не контур: балл ставит
+   ревьюер, это главное действие на строке требования, и в ряду из девяти
+   строк выбранное значение должно находиться взглядом сразу.                */
+.scale > .is-on { background: var(--ink); color: var(--surface); font-weight: var(--w-semi); }
+/* Края шкалы окрашены: ноль красный, максимум зелёный. Промежуточные
+   значения остаются чёрными, у них нет своего смысла.                       */
+.scale--zero > .is-on { background: var(--bad); color: var(--surface); }
+.scale--max  > .is-on { background: var(--ok);  color: var(--surface); }
+
+/* --- Табы и крошки -------------------------------------------------------- */
+
+.tabs { display: flex; gap: var(--s-6); border-bottom: var(--bw-hair) solid var(--line); }
+.tab { display: inline-flex; align-items: center; gap: var(--s-2); padding: var(--s-3) 0;
+       font-size: var(--body-size); font-weight: var(--w-medium); color: var(--ink-3);
+       border-bottom: var(--bw-struct) solid transparent; margin-bottom: -1px; cursor: pointer; }
+.tab.is-on { color: var(--ink); font-weight: var(--w-medium); border-bottom-color: var(--ink); }
+.tab .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+
+.crumbs { display: flex; align-items: center; gap: var(--s-2); font-size: var(--small-size); color: var(--ink-3); }
+/* Стрелка возврата на родительский экран. Живёт первой в строке крошек:
+   так у пути и у возврата одно место, а не два разных.                      */
+.crumbs__back { position: relative; display: inline-grid; place-items: center; flex: none;
+                width: 28px; height: 28px; margin-left: -7px; margin-right: -2px;
+                border: 0; border-radius: var(--r-circle);
+                background: var(--tint-soft); color: var(--ink-2);
+                font-size: 14px; line-height: 1;
+                transition: background var(--t-fast), color var(--t-fast); }
+/* Круг 28px, зона нажатия 32px: кружок не должен спорить по весу со строкой
+   пути, но попадать в него надо по правилу доступности.                    */
+.crumbs__back::after { content: ""; position: absolute; inset: -2px; }
+.crumbs__back:hover { background: var(--tint-soft-hover); color: var(--ink); }
+.crumbs a { color: var(--ink-3); border: 0; }
+.crumbs a:hover { color: var(--ink); }
+.crumbs .cur { color: var(--ink); font-weight: var(--w-medium); }
+
+/* --- Таблица -------------------------------------------------------------- */
+
+.tbl { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+.tbl th {
+  text-align: left; padding: var(--s-3) var(--s-3); border-bottom: var(--bw-hair) solid var(--line-2);
+  font-family: var(--font-mono); font-size: var(--label-size); font-weight: var(--w-regular);
+  letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
+}
+.tbl td { padding: var(--s-5) var(--s-3); border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
+.tbl tbody tr:hover { background: var(--surface-2); }
+.tbl .r { text-align: right; }
+.tbl .n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tbl .who { font-weight: var(--w-medium); }
+.tbl .sub { font-size: var(--caption-size); color: var(--ink-3); margin-top: 2px; }
+/* Горит срок: красная засечка слева, а не заливка всей строки              */
+.tbl tr.is-hot td:first-child { box-shadow: inset 3px 0 0 var(--brand-red); }
+.tbl tr.is-done td { color: var(--ink-3); }
+.tbl tr.is-done .who { font-weight: var(--w-regular); }
+
+/* --- Разбор по требованиям: аккордеон ------------------------------------- */
+
+.acc { border-bottom: var(--bw-hair) solid var(--line); }
+.acc:last-child { border-bottom: 0; }
+.acc__h { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-5) 0; cursor: pointer; }
+.acc__t { flex: 1; font-size: var(--body-size); font-weight: var(--w-medium); letter-spacing: -.005em; }
+.acc__chev { color: var(--ink-3); font-size: 11px; }
+.acc__b { padding: 0 0 var(--s-4) 36px; }
+.acc__empty { padding: var(--s-3) var(--s-4); background: var(--surface-2); font-size: var(--small-size); color: var(--ink-3); }
+
+/* Ручка перетаскивания. Нарисована точками из градиента, а не знаком шрифта:
+   подходящего символа нет ни в одной из трёх наших гарнитур.                */
+.drag { flex: none; width: 10px; height: 16px; cursor: grab; color: var(--ink-4);
+        background-image: radial-gradient(currentColor 1px, transparent 1.2px);
+        background-size: 5px 5px; background-position: 0 2px; }
+.drag:hover { color: var(--ink-3); }
+
+/* Шкала только для показа: так критерий будет выглядеть у ревьюера.         */
+.scale--ro > * { cursor: default; }
+
+/* Открытый критерий — форма, а не строка списка. Отделена подложкой, а не
+   тем, что часть текста вдруг стала полем: в списке либо всё текст, либо
+   всё поля. Подписано каждое поле, включая название, иначе название и
+   условие читаются как два несвязанных ящика подряд.                       */
+.crit { background: var(--surface-2); padding: var(--s-5); margin-bottom: var(--s-2); }
+.crit__top { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.crit__top .label { flex: 1; }
+.crit .inp { background: var(--surface); }
+
+/* Маркер вердикта. Форма несёт смысл наравне с цветом:
+   квадрат с галочкой — выполнено, квадрат с минусом — нет,
+   круг — решает человек.                                                    */
+/* Маркеры контурные, не заливные: в списке из девяти требований шесть
+   зелёных заливок подряд перегружают экран и ничего не сообщают.           */
+.ck { flex: none; width: 21px; height: 21px; display: grid; place-items: center;
+      font-size: 11px; font-weight: var(--w-semi); border: var(--bw-hair) solid;
+      background: var(--surface); line-height: 1; }
+.ck--y { border-color: var(--ok);    color: var(--ok); }
+/* Крестик U+2715 нарисован в шрифте мельче галочки U+2713, поэтому кегль
+   у него свой: на глаз знаки должны быть одного размера.                   */
+.ck--n { border-color: var(--bad);   color: var(--bad); font-size: 13px; }
+.ck--h { border-color: var(--human); color: var(--human); border-radius: var(--r-circle); }
+.ck--q { border-color: var(--line-2); color: var(--ink-3); border-radius: var(--r-circle); }
+
+/* Находка: где именно нарушено. Цитата обязательна, без неё вердикта нет.   */
+.finding { border: var(--bw-hair) solid var(--line); margin-top: var(--s-3); }
+.finding__src { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3);
+                background: var(--surface-2); border-bottom: var(--bw-hair) solid var(--line);
+                font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+.finding__src .f { color: var(--ink); }
+.finding__src .o { margin-left: auto; color: var(--info); cursor: pointer; }
+.finding__why { padding: var(--s-3); font-size: var(--small-size); color: var(--ink-2); }
+
+.code { font-family: var(--font-mono); font-size: var(--caption-size); line-height: 1.7; background: var(--surface); }
+.code .cl { display: flex; gap: var(--s-3); padding: 0 var(--s-3); white-space: pre; }
+.code .cl .n { color: var(--ink-4); user-select: none; min-width: 28px; text-align: right; }
+.code .cl.is-hit { background: var(--green-wash); box-shadow: inset 3px 0 0 var(--brand-green); }
+.code .cl.is-miss { background: var(--red-wash); box-shadow: inset 3px 0 0 var(--brand-red); }
+
+/* Цитата в тексте без кода                                                  */
+.quote { padding: var(--s-3) var(--s-4); background: var(--surface-2);
+         box-shadow: inset 3px 0 0 var(--brand-green); font-size: var(--small-size); color: var(--ink-2); }
+.quote--bad   { background: var(--red-wash);    box-shadow: inset 3px 0 0 var(--brand-red);    color: var(--bad); }
+.quote--human { background: var(--violet-wash); box-shadow: inset 3px 0 0 var(--brand-violet); color: var(--human); }
+
+/* --- Прогресс, метр ------------------------------------------------------- */
+
+.meter { height: 8px; background: var(--surface-3); display: flex; }
+.meter i { display: block; height: 100%; background: var(--brand-green); }
+.meter i.is-low { background: var(--brand-red); }
+.meter--thin { height: 4px; }
+
+/* --- Строка «ключ — значение» --------------------------------------------- */
+
+.kv { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+      padding: var(--s-3) 0; border-bottom: var(--bw-hair) solid var(--line); font-size: var(--small-size); }
+.kv:last-child { border-bottom: 0; }
+.kv > span:first-child { color: var(--ink-3); }
+.kv .neg { color: var(--bad); font-weight: var(--w-semi); }
+
+/* --- Замечание -------------------------------------------------------------
+   Единый вид для замечаний и пояснений. Левой полосы нет: цвет несёт бледная
+   подложка, внимание держит залитый кружок. Текст всегда --ink, потому что
+   замечание нужно прочитать, а не опознать по цвету. Знак в кружке чёрный: на
+   всех пяти брендовых заливках он проходит по контрасту, белый не проходит.  */
+
+.callout { display: flex; align-items: flex-start; gap: var(--s-3); padding: var(--s-4);
+           background: var(--surface-2); color: var(--ink);
+           font-size: var(--small-size); line-height: var(--small-lh); }
+.callout__mark { flex: none; width: var(--callout-mark); height: var(--callout-mark); margin-top: 1px;
+                 border-radius: var(--r-circle); background: var(--ink-4); color: var(--brand-ink);
+                 display: grid; place-items: center;
+                 font-size: 13px; font-weight: var(--w-semi); line-height: 1; }
+.callout p { margin: 0; }
+.callout p + p { margin-top: var(--s-2); }
+.callout--warn  { background: var(--late-bg); }
+.callout--warn  .callout__mark { background: var(--late-fill); }
+.callout--bad   { background: var(--bad-bg); }
+.callout--bad   .callout__mark { background: var(--bad-fill); }
+.callout--human { background: var(--human-bg); }
+.callout--human .callout__mark { background: var(--human-fill); }
+.callout--info  { background: var(--info-bg); }
+.callout--info  .callout__mark { background: var(--info-fill); }
+
+/* --- Пустое состояние ------------------------------------------------------ */
+
+.empty { padding: var(--s-14) var(--s-6); text-align: center; }
+.empty__art { width: 96px; height: 96px; margin: 0 auto var(--s-5); position: relative; }
+.empty h3 { margin-bottom: var(--s-2); }
+.empty p  { margin: 0 auto; max-width: 46ch; color: var(--ink-3); font-size: var(--small-size); }
+
+/* Скелетон загрузки: серые прямоугольники, без мерцающих градиентов         */
+.skel { background: var(--surface-3); height: 14px; }
+.skel--pulse { animation: skel 1.2s ease-in-out infinite; }
+@keyframes skel { 0%,100% { opacity: 1 } 50% { opacity: .5 } }
+
+/* --- Оболочка приложения --------------------------------------------------- */
+
+.app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100%; background: var(--surface); }
+.aside { border-right: var(--bw-hair) solid var(--line); padding: var(--s-5) 0; display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-5);
+         font-family: var(--font-display); font-weight: var(--w-semi); font-size: 15px; letter-spacing: -.03em; }
+.brand .dots { display: flex; align-items: center; gap: 3px; }
+.brand .dots i { display: block; border-radius: var(--r-circle); }
+.menu { display: flex; flex-direction: column; }
+.menu a { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
+          padding: var(--s-3) var(--s-5); font-size: var(--small-size); color: var(--ink-2); border: 0;
+          border-left: var(--bw-focus) solid transparent; }
+.menu a:hover { background: var(--surface-2); color: var(--ink); }
+.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
+.menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
+.aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
+               display: flex; align-items: center; gap: var(--s-3); }
+.ava { width: 32px; height: 32px; border-radius: var(--r-circle); background: var(--ink); color: var(--ink-inv);
+       display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--caption-size); flex: none; }
+
+.topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-6);
+          padding: var(--s-6) var(--gutter); border-bottom: var(--bw-hair) solid var(--line); background: var(--surface); }
+.main { padding: var(--s-6) var(--gutter) var(--s-14); background: var(--page); }
+.main--flush { padding: 0; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+.row-side { display: grid; grid-template-columns: 1fr 336px; gap: var(--s-5); align-items: start; }
+.row-rev  { display: grid; grid-template-columns: 384px 1fr; gap: var(--s-5); align-items: start; }
+.stack > * + * { margin-top: var(--s-5); }
+
+/* --- Шаги мастера ---------------------------------------------------------- */
+
+.steps { display: flex; align-items: center; gap: var(--s-3); }
+.step { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--small-size);
+        color: var(--ink-3); white-space: nowrap; }
+.step .n { width: 22px; height: 22px; border-radius: var(--r-circle); display: grid; place-items: center;
+           border: var(--bw-hair) solid var(--line-2); font-family: var(--font-mono); font-size: var(--caption-size); }
+.step.is-on { color: var(--ink); font-weight: var(--w-medium); }
+.step.is-on .n { border-color: var(--ink); }
+/* Пройденный шаг — единственный способ вернуться назад. Кнопки «Назад» внизу
+   нет: карта шагов и кнопка делали бы одно и то же в двух местах.           */
+a.step { border: 0; }
+.step.is-done { color: var(--ink); cursor: pointer; }
+.step.is-done .n { background: var(--brand-green); border-color: var(--brand-green); color: var(--ink); }
+.step.is-done:hover { color: var(--green-ink); }
+/* Непройденный шаг не нажимается: вперёд ведёт только кнопка под формой.     */
+.step--next { color: var(--ink-4); }
+.step--next .n { color: var(--ink-4); border-color: var(--line); }
+.steps .bar { flex: 1; height: 1px; background: var(--line); min-width: 32px; }
+
+/* --- Зона загрузки файла --------------------------------------------------- */
+
+.drop { padding: var(--s-6); text-align: center; background: var(--surface-2);
+        border: var(--bw-hair) dashed var(--line-2); }
+.drop b { display: block; font-weight: var(--w-medium); }
+.drop span { display: block; margin-top: var(--s-1); font-size: var(--caption-size); color: var(--ink-3); }
+
+/* --- Слои поверх страницы -------------------------------------------------- */
+
+/* Затемнение под модалкой. Внутри кадра макета кладётся абсолютом.           */
+.scrim { position: absolute; inset: 0; background: rgba(26,26,26,.32); }
+.overlay { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); z-index: 2; width: 560px; }
+.overlay--wide { width: 720px; }
+
+.modal { background: var(--surface); border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); max-width: 560px; }
+.modal.overlay--wide { width: min(720px, calc(100% - 2 * var(--gutter))); max-width: 720px; }
+/* Поле поиска. Лупа нарисована в разметке, а не шрифтом: значка поиска нет
+   ни в одной из трёх наших гарнитур, а эмодзи в интерфейсе мы не ставим.    */
+.srch { position: relative; display: inline-flex; align-items: center; }
+.srch__i { position: absolute; left: 10px; width: 14px; height: 14px;
+           color: var(--ink-3); pointer-events: none; }
+.srch .inp { padding-left: 32px; }
+
+/* Выпадающий список поиска. Не модалка: якорится к полю, страницу за собой
+   не гасит и не требует решения, закрывается Escape или кликом мимо.        */
+.pop { position: absolute; z-index: 2; background: var(--surface);
+       border: var(--bw-hair) solid var(--line-2); box-shadow: var(--shadow-overlay); }
+.pop__g { padding: var(--s-4) var(--s-5) var(--s-2); font-family: var(--font-mono);
+          font-size: var(--caption-size); letter-spacing: .08em; text-transform: uppercase;
+          color: var(--ink-3); }
+.pop__row { display: flex; align-items: center; gap: var(--s-4); cursor: pointer;
+            padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line); }
+.pop__row:hover, .pop__row.is-on { background: var(--surface-2); }
+.pop__row > .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pop__row .s { margin-top: 2px; font-size: var(--caption-size); color: var(--ink-3); }
+.pop__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+             padding: var(--s-3) var(--s-5); border-top: var(--bw-hair) solid var(--line);
+             background: var(--surface-2); font-size: var(--caption-size); color: var(--ink-3); }
+.pop__empty { padding: var(--s-3) var(--s-5) var(--s-4); font-size: var(--small-size); color: var(--ink-3); }
+
+.toast { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5);
+         background: var(--ink); color: var(--ink-inv); border-radius: var(--r-pill); box-shadow: var(--shadow-overlay);
+         font-size: var(--small-size); font-weight: var(--w-medium); }
+.toast--ok  { background: var(--brand-green); color: var(--ink); }
+.toast--bad { background: var(--brand-red); color: var(--ink-inv); }
+
+/* Сдача: пояснение переносится вместе с кнопкой ИИ-ревью.                  */
+.submission-actions { display: flex; align-items: flex-start; gap: var(--s-6); flex-wrap: wrap; width: 100%; }
+.submission-actions__precheck { flex: 1; min-width: min(240px, 100%); display: grid;
+                                justify-items: start; gap: var(--s-2); }
+.submission-actions__precheck .caption { max-width: 48ch; }
+.submission-comment { min-height: 80px; height: auto; }
+
+/* Разбор: общая сетка для редактирования и просмотра без смены режима.    */
+.review-layout > * { min-width: 0; }
+.acc__h--score { display: grid; grid-template-columns: 21px minmax(0, 1fr) var(--review-score-w) 16px;
+                 column-gap: var(--s-3); padding: var(--s-4) 0; }
+.acc__h--score .acc__t { min-width: 0; overflow-wrap: anywhere; }
+.acc__h--score .acc__t > .pill { margin-left: var(--s-2); vertical-align: middle; }
+.acc__h--score .scale { width: var(--review-score-w); justify-self: end; }
+.acc__h--score > .mono { grid-column: 3; justify-self: end; white-space: nowrap; }
+.acc__h--score > .acc__chev { grid-column: 4; }
+.review-criteria .finding__src { flex-wrap: wrap; }
+.review-criteria .code { overflow-x: auto; }
+.card__head--review { align-items: flex-start; flex-direction: column; gap: var(--s-2); }
+.card__head--response { display: grid; grid-template-columns: 1fr; gap: var(--s-3); }
+.card__head--response > .btn { justify-self: start; }
+.decision-actions { display: grid; grid-template-columns: 1fr; gap: var(--s-2); }
+.decision-actions .btn { width: 100%; }
+
+/* Настройка критериев: тип, балл и стрелка стоят в общих колонках.          */
+.criteria-editor .acc__h { display: grid; grid-template-columns: 16px minmax(0, 1fr) 180px 32px 16px; }
+.criteria-editor .acc__t, .criteria-editor .caption { min-width: 0; overflow-wrap: anywhere; }
+.criteria-editor .acc__chev { grid-column: 5; }
+.criterion-condition { min-height: 96px; height: auto; line-height: var(--body-lh); }
+
+.date-range { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-3); }
+.date-range > .field { min-width: 0; margin-bottom: 0; }
+.decision-event { display: block; padding: var(--s-4) 0; }
+.decision-event > span { display: block; }
+.decision-event > .caption { margin-top: var(--s-2); white-space: nowrap; }
+.export-context { color: var(--ink); font-size: var(--body-size); line-height: var(--body-lh); overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+  .date-range { grid-template-columns: 1fr; }
+  .acc__h--score { grid-template-columns: 21px minmax(0, 1fr) 16px; }
+  .acc__h--score .scale { grid-column: 2; grid-row: 2; justify-self: start; margin-top: var(--s-2); }
+  .acc__h--score > .mono { grid-column: 2; grid-row: 2; justify-self: start; }
+  .acc__h--score > .acc__chev { grid-column: 3; grid-row: 1; }
+}
+
+@media (max-width: 1100px) {
+  .row-side, .row-rev, .row-2 { grid-template-columns: 1fr; }
+  .app { grid-template-columns: 1fr; }
+  .aside { border-right: 0; border-bottom: var(--bw-hair) solid var(--ink); }
+}
+
+/* ===== deck.css ===== */
+/* ===========================================================================
+   Avito AI Reviewer — слайды презентации
+   Надстройка над tokens.css. Своих цветов и размеров не заводит, берёт всё
+   из токенов. Кадр 1920 на 1080, минимальный кегль на слайде 30px:
+   с последнего ряда зала мельче не читается.
+   =========================================================================== */
+
+/* --- Кадр -----------------------------------------------------------------
+   .deck-frame масштабирует кадр под ширину колонки, .slide рисуется всегда
+   в натуральную величину 1920 на 1080.                                      */
+/* overflow-x: auto, а не hidden: если скрипт не отработал, правый край
+   кадра можно доскроллить, а не потерять молча. Тот же приём, что в
+   screens.html.                                                            */
+.deck-frame { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--page); }
+.slide {
+  width: 1920px; height: 1080px; transform-origin: top left; transform: scale(.6);
+  position: relative; overflow: hidden;
+  background: var(--surface); color: var(--ink);
+  font-family: var(--font-text); font-size: 30px; line-height: 1.45;
+  padding: 96px 112px 88px; display: flex; flex-direction: column;
+}
+.slide--pad-0 { padding: 0; }
+
+/* Тёмный слайд. Инверсия нейтралей приходит из .inv в токенах.              */
+.slide.inv { background: var(--surface); }
+
+/* Заливка брендовым. Текст поверх только чёрный, так задано в системе.      */
+.slide--fill { background: var(--brand-green); color: var(--brand-ink); }
+.slide--fill .slide__kicker,
+.slide--fill .slide__foot { color: var(--brand-ink); opacity: .64; }
+
+/* --- Служебные элементы кадра --------------------------------------------- */
+.slide__kicker {
+  font-family: var(--font-mono); font-size: 22px; letter-spacing: var(--label-ls);
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--s-6);
+}
+.slide__num {
+  position: absolute; top: 64px; right: 112px;
+  font-family: var(--font-display); font-weight: var(--w-bold);
+  font-size: 160px; line-height: 1; letter-spacing: var(--d1-ls);
+  color: var(--ink); opacity: .07; user-select: none;
+}
+.slide__foot {
+  position: absolute; left: 112px; right: 112px; bottom: 52px;
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--font-mono); font-size: 20px; color: var(--ink-3);
+}
+.slide__foot--plain { position: static; margin-top: auto; padding-top: var(--s-8); }
+
+/* --- Типографика слайда ---------------------------------------------------
+   Заголовок слайда это вывод, а не тема. Поэтому он крупный и его немного.  */
+.s-d1 { font-family: var(--font-display); font-weight: var(--w-bold);
+        font-size: 104px; line-height: .98; letter-spacing: var(--d1-ls); margin: 0; }
+.s-d2 { font-family: var(--font-display); font-weight: var(--w-bold);
+        font-size: 72px; line-height: 1.04; letter-spacing: var(--d1-ls); margin: 0; }
+.s-h  { font-family: var(--font-display); font-weight: var(--w-semi);
+        font-size: 40px; line-height: 1.15; letter-spacing: var(--d2-ls); margin: 0; }
+.s-lead { font-size: 34px; line-height: 1.4; color: var(--ink-2); margin: var(--s-6) 0 0; max-width: 42ch; }
+.s-body { font-size: 30px; line-height: 1.45; color: var(--ink-2); margin: 0; }
+.s-small { font-size: 24px; line-height: 1.4; color: var(--ink-3); margin: 0; }
+.s-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Подсветка куска фразы. Заливка, а не цветной текст: держит контраст.      */
+.s-mark { background: var(--brand-green); color: var(--brand-ink); padding: 0 .12em; }
+.s-mark--v { background: var(--brand-violet); color: var(--ink-inv); }
+.s-mark--o { background: var(--brand-orange); color: var(--brand-ink); }
+/* Вариант для длинной фразы: заливка на полтекста читается тяжело.
+   Только на чёрной плашке, на белом фоне брендовый зелёный не проходит
+   по контрасту.                                                            */
+.s-card--ink .s-mark--slot, .slide.inv .s-mark--slot {
+  background: none; padding: 0; color: var(--brand-green);
+}
+.s-em { color: var(--ink); }
+
+/* --- Сетки ---------------------------------------------------------------- */
+.s-grid { display: grid; gap: var(--s-8); }
+.s-g2 { grid-template-columns: repeat(2, 1fr); }
+.s-g3 { grid-template-columns: repeat(3, 1fr); }
+.s-g4 { grid-template-columns: repeat(4, 1fr); }
+.s-g5 { grid-template-columns: repeat(5, 1fr); }
+.s-split { grid-template-columns: 1fr 1fr; gap: var(--s-14); align-items: start; }
+.s-split-w { grid-template-columns: 1.25fr 1fr; gap: var(--s-14); align-items: start; }
+.s-push { margin-top: auto; }
+
+/* --- Карточка слайда ------------------------------------------------------
+   Прямой угол, без тени, граница волосяная. Тёмная и залитая версии есть.   */
+.s-card { background: var(--surface-2); padding: var(--s-8) var(--s-10);
+          display: flex; flex-direction: column; gap: var(--s-3); }
+.s-card--line { background: var(--surface); border: var(--bw-hair) solid var(--line-2); }
+.s-card--ink  { background: var(--surface-inv); color: var(--ink-inv); }
+.s-card--ink .s-body, .s-card--ink .s-small { color: var(--ink-4); }
+.s-card--fill { background: var(--brand-green); color: var(--brand-ink); }
+.s-card--fill .s-body { color: var(--brand-ink); }
+.s-card__label { font-family: var(--font-mono); font-size: 20px; letter-spacing: var(--label-ls);
+                 text-transform: uppercase; color: var(--ink-3); }
+.s-card--ink .s-card__label { color: var(--ok); }
+.s-card--fill .s-card__label { color: var(--brand-ink); opacity: .7; }
+.s-card__t { font-family: var(--font-display); font-weight: var(--w-semi); font-size: 34px;
+             line-height: 1.15; letter-spacing: var(--d2-ls); }
+
+/* --- Крупное число --------------------------------------------------------
+   Цифра это главный аргумент слайда, поэтому дисплейный шрифт и 96px.       */
+.s-num { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 96px;
+         line-height: .92; letter-spacing: var(--d1-ls); font-variant-numeric: tabular-nums; }
+.s-num--sm { font-size: 64px; }
+.s-num--ok { color: var(--ok); }
+.s-num--bad { color: var(--bad); }
+.s-num--late { color: var(--late); }
+.s-num__cap { font-size: 26px; line-height: 1.35; color: var(--ink-2); }
+
+/* --- Пилюля ---------------------------------------------------------------- */
+.s-pill { display: inline-flex; align-items: center; gap: var(--s-2);
+          padding: var(--s-3) var(--s-6); border-radius: var(--r-pill);
+          background: var(--surface-3); color: var(--ink); font-size: 24px; white-space: nowrap; }
+.s-pill--fill { background: var(--brand-green); color: var(--brand-ink); }
+.s-pill--ink { background: var(--surface-inv); color: var(--ink-inv); }
+.s-pill--line { background: transparent; border: var(--bw-hair) solid var(--line-2); color: var(--ink-2); }
+.s-pills { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
+
+/* Метка происхождения числа: замер, цель или допущение. Обязательна рядом
+   с любой цифрой на слайде, иначе цифру нельзя показывать.                  */
+.s-src { display: inline-flex; align-items: center; gap: var(--s-2);
+         font-family: var(--font-mono); font-size: 19px; padding: var(--s-1) var(--s-4);
+         border-radius: var(--r-pill); border: var(--bw-hair) solid var(--line-2); color: var(--ink-3); }
+.s-src--fact { border-color: var(--ok); color: var(--ok); }
+.s-src--goal { border-color: var(--late); color: var(--late); }
+.s-src--guess { border-color: var(--human); color: var(--human); }
+
+/* --- Цепочка шагов --------------------------------------------------------
+   Путь пользователя к результату: вход, действие, работа системы, итог.     */
+.s-chain { display: flex; align-items: stretch; gap: 0; }
+.s-chain__i { flex: 1; background: var(--surface-2); padding: var(--s-8);
+              display: flex; flex-direction: column; gap: var(--s-3); }
+.s-chain__i + .s-chain__i { border-left: var(--bw-struct) solid var(--page); }
+.s-chain__i--on { background: var(--surface-inv); color: var(--ink-inv); }
+.s-chain__i--on .s-body { color: var(--ink-4); }
+.s-chain__n { font-family: var(--font-mono); font-size: 20px; color: var(--ink-3); }
+.s-chain__i--on .s-chain__n { color: var(--ok); }
+.s-arrow { display: flex; align-items: center; font-size: 44px; color: var(--ink-3); padding: 0 var(--s-5); }
+
+/* --- Было и стало ---------------------------------------------------------
+   Паттерн из гайда: слабая формулировка слева, сильная справа тёмной.       */
+.s-fix { display: grid; grid-template-columns: 1fr auto 1.15fr; gap: var(--s-6); align-items: center; }
+.s-fix__bad { background: var(--surface); border: var(--bw-hair) solid var(--line-2);
+              padding: var(--s-8) var(--s-10); color: var(--ink-3); }
+.s-fix__good { background: var(--surface-inv); color: var(--ink-inv); padding: var(--s-8) var(--s-10); }
+.s-fix__q { font-size: 30px; line-height: 1.4; }
+.s-fix__good .s-fix__q { font-size: 32px; }
+
+/* --- Доказательство: факт, сравнение, условия ------------------------------ */
+.s-proof { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--s-5) var(--s-6); align-items: center; }
+.s-proof__w { background: var(--surface-3); color: var(--ink-3); padding: var(--s-5) var(--s-8);
+              border-radius: var(--r-pill); font-size: 26px; }
+.s-proof__s { background: var(--surface-inv); color: var(--ink-inv); padding: var(--s-5) var(--s-8);
+              border-radius: var(--r-pill); font-size: 26px; }
+
+/* --- Рамка под скриншот интерфейса ---------------------------------------
+   Скриншот обрезается до важного места, а не вставляется экраном целиком.   */
+.s-shot { background: var(--surface); border: var(--bw-struct) solid var(--ink); overflow: hidden; }
+.s-shot__bar { display: flex; align-items: center; gap: var(--s-3);
+               padding: var(--s-4) var(--s-6); border-bottom: var(--bw-hair) solid var(--line);
+               font-family: var(--font-mono); font-size: 20px; color: var(--ink-3); }
+.s-shot__body { padding: var(--s-6); }
+.s-shot__crop { display: block; }
+
+/* --- Цитата --------------------------------------------------------------- */
+.s-quote { border-left: var(--bw-struct) solid var(--ok-fill); padding-left: var(--s-10); }
+.s-quote__q { font-family: var(--font-display); font-weight: var(--w-semi);
+              font-size: 48px; line-height: 1.22; letter-spacing: var(--d2-ls); }
+.s-quote__a { margin-top: var(--s-6); font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+
+/* --- Хронометраж питча ----------------------------------------------------- */
+.s-time { display: flex; gap: var(--s-4); }
+.s-time__i { flex: 1; padding: var(--s-6); background: var(--surface-2); }
+.s-time__i--on { background: var(--surface-inv); color: var(--ink-inv); flex: 2.2; }
+.s-time__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 52px;
+             letter-spacing: var(--d2-ls); }
+.s-time__i--on .s-time__v { color: var(--ok); }
+
+/* --- Список выводов -------------------------------------------------------- */
+.s-list { margin: 0; padding: 0; list-style: none; }
+.s-list li { position: relative; padding-left: var(--s-10); margin: var(--s-6) 0;
+             font-size: 30px; line-height: 1.4; color: var(--ink-2); }
+.s-list li::before { content: ""; position: absolute; left: 0; top: .55em;
+                     width: var(--s-6); height: var(--bw-struct); background: var(--ok-fill); }
+.s-list li b { color: var(--ink); font-weight: var(--w-semi); }
+
+/* --- Таблица на слайде -----------------------------------------------------
+   Цвет задаётся явно: без doctype браузер уводит таблицу в свой цвет.       */
+.s-table { width: 100%; border-collapse: collapse; color: var(--ink); }
+.s-table th { text-align: left; font-family: var(--font-mono); font-size: 20px;
+              letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3);
+              font-weight: var(--w-regular); padding: 0 var(--s-6) var(--s-4) 0;
+              border-bottom: var(--bw-hair) solid var(--line-2); }
+.s-table td { color: var(--ink); font-size: 28px; padding: var(--s-5) var(--s-6) var(--s-5) 0;
+              border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
+.s-table td.s-mono { font-size: 28px; }
+
+/* --- Полоса доли ----------------------------------------------------------- */
+.s-meter { height: var(--s-3); background: var(--surface-3); border-radius: var(--r-pill); overflow: hidden; }
+.s-meter i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--ok-fill); }
+.s-meter i.is-late { background: var(--late-fill); }
+.s-meter i.is-bad { background: var(--bad-fill); }
+
+/* ===========================================================================
+   Смелые кадры и инфографика
+   Всё рисуется разметкой и инлайновым SVG: внешних картинок нет, поэтому
+   графика живёт в токенах и меняет цвет вместе с системой.
+   Углы поворота и перспектива — единственное, чего нет в токенах:
+   в словаре системы такой величины не заведено.
+   =========================================================================== */
+
+/* --- Гигантское число ------------------------------------------------------
+   Один аргумент во весь кадр. Больше на слайде не должно быть ничего.       */
+.s-hero { display: flex; align-items: center; gap: var(--s-14); }
+.s-hero__n { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 420px; line-height: .78; letter-spacing: -.06em;
+             font-variant-numeric: tabular-nums; }
+.s-hero__u { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 88px; line-height: 1; letter-spacing: var(--d1-ls); }
+.s-hero__side { display: flex; flex-direction: column; gap: var(--s-6); max-width: 30ch; }
+
+/* --- Точечная матрица ------------------------------------------------------
+   Сто точек это сто студентов. Доля показывается заливкой, а не процентом:
+   глаз считает точки быстрее, чем читает число.                            */
+.s-dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: var(--s-3); }
+.s-dots i { display: block; aspect-ratio: 1; border-radius: var(--r-circle);
+            background: var(--surface-3); }
+.s-dots i.is-on { background: var(--ok-fill); }
+.s-dots i.is-late { background: var(--late-fill); }
+.s-dots i.is-bad { background: var(--bad-fill); }
+.s-dots--sm { grid-template-columns: repeat(10, 1fr); gap: var(--s-2); }
+
+/* --- Изометрический стек ---------------------------------------------------
+   Слои платформы в перспективе. Каждый слой это обычный блок, объём даёт
+   один поворот на родителе.                                                 */
+/* Повёрнутый блок занимает больше места, чем его бокс, поэтому стек живёт
+   в окне фиксированного размера и ужимается целиком.                       */
+.s-iso { perspective: 2400px; height: 620px; display: flex;
+         align-items: center; justify-content: center; overflow: hidden; }
+.s-iso__st { transform: rotateX(56deg) rotateZ(-42deg) scale(.62); transform-style: preserve-3d;
+             display: flex; flex-direction: column-reverse; gap: var(--s-10); }
+.s-iso__l { width: 620px; height: 170px; background: var(--surface-2);
+            border: var(--bw-struct) solid var(--ink); display: flex; align-items: center;
+            padding: 0 var(--s-8); position: relative; }
+.s-iso__l--on { background: var(--brand-green); }
+.s-iso__l--ink { background: var(--surface-inv); border-color: var(--ink); }
+.s-iso__t { font-family: var(--font-display); font-weight: var(--w-semi); font-size: 34px;
+            letter-spacing: var(--d2-ls); color: var(--ink); white-space: nowrap; }
+.s-iso__l--on .s-iso__t { color: var(--brand-ink); }
+.s-iso__l--ink .s-iso__t { color: var(--ink-inv); }
+/* Подписи к слоям стоят ровно, без наклона: наклонный текст не читается.   */
+.s-iso__legend { display: flex; flex-direction: column-reverse; gap: var(--s-6); }
+.s-iso__cap { display: flex; align-items: baseline; gap: var(--s-4); }
+.s-iso__cap b { font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+
+/* --- Водопад ---------------------------------------------------------------
+   Из чего складывается час и что от него остаётся.                          */
+.s-fall { display: flex; align-items: flex-end; gap: var(--s-4); height: 340px; }
+.s-fall__c { display: flex; flex-direction: column; justify-content: flex-end;
+             align-items: center; gap: var(--s-4); flex: 1; height: 100%; }
+.s-fall__b { width: 100%; background: var(--surface-3); }
+.s-fall__b--on { background: var(--ok-fill); }
+.s-fall__b--bad { background: var(--bad-fill); }
+.s-fall__b--late { background: var(--late-fill); }
+.s-fall__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 40px;
+             letter-spacing: var(--d2-ls); font-variant-numeric: tabular-nums; }
+.s-fall__k { font-size: 22px; color: var(--ink-3); text-align: center; line-height: 1.3; }
+
+/* --- Наклонённый интерфейс -------------------------------------------------
+   Продуктовый кадр: экран уходит в перспективу, поверх него всплывает
+   вырезанный кусок с главным.                                               */
+.s-tilt { perspective: 2000px; position: relative; }
+.s-tilt__s { transform: rotateY(-18deg) rotateX(6deg) rotateZ(1deg);
+             transform-origin: right center; box-shadow: var(--shadow-overlay); }
+.s-tilt__pop { position: absolute; background: var(--surface); border: var(--bw-struct) solid var(--ink);
+               box-shadow: var(--shadow-overlay); padding: var(--s-6) var(--s-8); }
+
+/* --- Диагональный раскол ---------------------------------------------------
+   Было и стало без стрелки: граница между ними и есть стрелка.             */
+/* Половины лежат друг на друге во весь кадр, а не в сетке: тогда отступ
+   текста считается от края слайда и его не режет линия раскола.           */
+.s-diag { position: absolute; inset: 0; }
+.s-diag__a, .s-diag__b { position: absolute; inset: 0;
+                         display: flex; flex-direction: column; justify-content: center; }
+/* Обе половины во весь кадр: проценты в clip-path считаются от ширины
+   самого блока, поэтому сузить его нельзя, иначе линия уедет.             */
+.s-diag__a { background: var(--surface-2); clip-path: polygon(0 0, 46% 0, 34% 100%, 0 100%);
+             padding: 120px 62% 120px 96px; }
+.s-diag__b { background: var(--surface-inv); color: var(--ink-inv);
+             clip-path: polygon(46% 0, 100% 0, 100% 100%, 34% 100%);
+             padding: 120px 96px 120px 52%; }
+
+/* --- Тепловая карта --------------------------------------------------------
+   Где спотыкается поток: строка это требование, клетка это студент.        */
+.s-heat { display: grid; gap: var(--s-2); }
+.s-heat__r { display: grid; grid-template-columns: 30ch 1fr auto; gap: var(--s-6); align-items: center; }
+.s-heat__cells { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; }
+.s-heat__cells span { display: block; aspect-ratio: 1; background: var(--ok-bg); }
+.s-heat__cells span.is-miss { background: var(--bad-fill); }
+.s-heat__cells span.is-part { background: var(--late-fill); }
+
+/* --- Кольцевая метрика (SVG) ----------------------------------------------- */
+.s-ring { display: flex; align-items: center; gap: var(--s-10); }
+.s-ring svg { display: block; }
+.s-ring__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 72px;
+             letter-spacing: var(--d1-ls); font-variant-numeric: tabular-nums; }
+
+/* --- Типографический манифест ----------------------------------------------
+   Слова разного веса и заливки, поставленные стопкой.                      */
+.s-manifest { font-family: var(--font-display); font-weight: var(--w-bold);
+              font-size: 132px; line-height: .92; letter-spacing: -.05em; }
+.s-manifest span { display: block; }
+.s-manifest .is-out { color: transparent; -webkit-text-stroke: 2px var(--ink); }
+.s-manifest .is-fill { background: var(--brand-green); color: var(--brand-ink);
+                       display: inline-block; padding: 0 var(--s-4); }
+</style>
+<!-- css:end -->
+<style>
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font-text); }
+  .pg { max-width: 1360px; margin: 0 auto; padding: var(--s-20) var(--gutter) 120px; }
+  .pg__head { padding-bottom: var(--s-8); border-bottom: var(--bw-struct) solid var(--ink); }
+  .pg__k { font-family: var(--font-mono); font-size: var(--label-size); letter-spacing: var(--label-ls);
+           text-transform: uppercase; color: var(--ink-3); }
+  .pg h1 { font-family: var(--font-display); font-weight: var(--w-bold); font-size: var(--d1-size);
+           line-height: var(--d1-lh); letter-spacing: var(--d1-ls); margin: var(--s-4) 0 0; }
+  .pg__lead { margin: var(--s-5) 0 0; max-width: 74ch; color: var(--ink-2); font-size: 17px; line-height: 1.55; }
+  .pg__nav { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-6); }
+  .pg__nav a { font-family: var(--font-mono); font-size: 12px; text-decoration: none; color: var(--ink-2);
+               border: var(--bw-hair) solid var(--line-2); border-radius: var(--r-pill); padding: 4px 11px; }
+  .pg__nav a:hover { border-color: var(--ink); color: var(--ink); }
+  .sec { margin-top: var(--s-20); }
+  .sec__n { font-family: var(--font-mono); font-size: var(--label-size); letter-spacing: var(--label-ls);
+            text-transform: uppercase; color: var(--ink-3); }
+  .sec h2 { font-family: var(--font-display); font-weight: var(--w-bold); font-size: var(--d2-size);
+            line-height: var(--d2-lh); letter-spacing: var(--d2-ls); margin: var(--s-2) 0 0; }
+  .sec__lead { margin: var(--s-4) 0 0; max-width: 76ch; color: var(--ink-2); font-size: 16px; line-height: 1.55; }
+  .item { margin-top: var(--s-10); }
+  .item__h { display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap; margin-bottom: var(--s-3); }
+  .item__t { font-size: 17px; font-weight: var(--w-semi); }
+  .item__d { font-size: 14px; color: var(--ink-3); }
+  .item__code { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+                background: var(--surface-3); padding: 2px 8px; border-radius: var(--r-pill); }
+  .demo { background: var(--surface); border: var(--bw-hair) solid var(--line-2); padding: var(--s-8); }
+  .demo--flat { padding: 0; border: 0; background: transparent; }
+  .rule { margin-top: var(--s-6); padding: var(--s-5) var(--s-6); background: var(--surface-2);
+          border-left: var(--bw-struct) solid var(--ink); font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+  .rule b { color: var(--ink); }
+  .rule--no { border-left-color: var(--bad-fill); }
+</style>
+</head>
+<body>
+<div class="pg">
+
+<header class="pg__head">
+  <div class="pg__k">Avito AI Reviewer, дизайн-система</div>
+  <h1>Кит презентации</h1>
+  <p class="pg__lead">Слайды на тех же токенах, что и продукт: те же цвета, шрифты и геометрия, только крупнее. Первая половина страницы — компоненты слайда, вторая — готовые пресеты страниц, которые копируются и наполняются своим содержанием. Правила питча взяты из гайда Demo Day, он лежит в <span class="item__code">sources/demo-day-pitch-guide.pdf</span>.</p>
+  <nav class="pg__nav">
+    <a href="#rules">Правила</a>
+    <a href="#frame">Кадр</a>
+    <a href="#type">Типографика</a>
+    <a href="#cards">Карточки</a>
+    <a href="#num">Числа и метки</a>
+    <a href="#chain">Цепочка и было-стало</a>
+    <a href="#more">Цитата, таблица, скриншот</a>
+    <a href="#presets">Пресеты страниц</a>
+    <a href="#bold">Смелые кадры</a>
+  </nav>
+</header>
+
+<section class="sec" id="rules">
+  <div class="sec__n">00</div>
+  <h2>Правила, из которых собран кит</h2>
+  <p class="sec__lead">Не наши выдумки, а требования гайда Demo Day. Кит устроен так, чтобы нарушить их было трудно.</p>
+  <div class="rule"><b>Пять минут на питч, целимся в 4:40–4:50.</b> Пять-семь содержательных слайдов, одна мысль на слайд. Всё остальное уходит в appendix.</div>
+  <div class="rule"><b>Заголовок слайда — вывод, а не тема.</b> Не «Метрики», а «Точность выше общего промпта на 12 пунктов». Поэтому в ките нет мелких заголовков: если вывод не помещается крупно, он ещё не сформулирован.</div>
+  <div class="rule"><b>Минимальный кегль 30 пикселей.</b> Текст на слайде читается с последнего ряда. В <span class="item__code">deck.css</span> базовый размер слайда 30px, мельче только служебные подписи.</div>
+  <div class="rule"><b>Доказательство — это факт, сравнение и условия.</b> «Работает быстро» не доказательство. «1.2 с против 6 с на том же железе» — доказательство.</div>
+  <div class="rule"><b>Измеренное отделяем от гипотезы.</b> Рядом с каждой цифрой стоит метка: замер, цель или допущение. Компонент <span class="item__code">.s-src</span> обязателен.</div>
+  <div class="rule rule--no"><b>Чего не делаем.</b> Не дублируем голос полным текстом, не показываем весь стек списком, не вставляем экран целиком вместо обрезанного скриншота, не прячем слабые места.</div>
+</section>
+
+<section class="sec" id="frame">
+  <div class="sec__n">01</div>
+  <h2>Кадр</h2>
+  <p class="sec__lead">Слайд всегда 1920 на 1080 и рисуется в натуральную величину. Обёртка <span class="item__code">.deck-frame</span> ужимает его под ширину колонки, поэтому в вёрстке можно не думать о масштабе. Три заливки кадра: светлая, чёрная и брендовая.</p>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Светлый кадр</span><span class="item__code">.slide</span><span class="item__d">основной, 90 процентов колоды</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">01</div>
+      <div class="slide__kicker">Раздел</div>
+      <h2 class="s-d2">Заголовок слайда это вывод,<br>а не название темы</h2>
+      <p class="s-lead">Подзаголовок объясняет вывод одним предложением и не повторяет то, что говорит спикер.</p>
+      <div class="slide__foot"><span>Avito AI Reviewer</span><span>01</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Чёрный кадр</span><span class="item__code">.slide.inv</span><span class="item__d">для одной сильной мысли, не для текста</span></div>
+    <div class="deck-frame"><div class="slide inv">
+      <div class="slide__num">02</div>
+      <div class="slide__kicker">Ставка</div>
+      <h2 class="s-d1">Оценку ставит<br><span class="s-mark">человек</span>. Всегда.</h2>
+      <p class="s-lead">Система готовит вердикт и цитату. Записать балл без подтверждения человеком в платформе физически нельзя.</p>
+      <div class="slide__foot"><span>Avito AI Reviewer</span><span>02</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Брендовый кадр</span><span class="item__code">.slide--fill</span><span class="item__d">разделитель раздела и финал</span></div>
+    <div class="deck-frame"><div class="slide slide--fill" style="justify-content:center">
+      <div class="slide__kicker">Часть вторая</div>
+      <h2 class="s-d1">Демо</h2>
+      <p class="s-lead" style="color:inherit; opacity:.72">Один сценарий от ситуации до результата. Не экскурсия по продукту.</p>
+      <div class="slide__foot"><span>Avito AI Reviewer</span><span>03</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="sec" id="type">
+  <div class="sec__n">02</div>
+  <h2>Типографика слайда</h2>
+  <p class="sec__lead">Дисплейный Unbounded только на заголовках и числах, Onest на всём остальном. На слайде живут три размера текста, больше не нужно.</p>
+  <div class="item">
+    <div class="demo">
+      <div class="deck-frame"><div class="slide">
+        <div class="slide__kicker">Типографика</div>
+        <h2 class="s-d1">D1, 104 пикселя</h2>
+        <h2 class="s-d2" style="margin-top:24px">D2, 72 пикселя, рабочий заголовок слайда</h2>
+        <div class="s-h" style="margin-top:24px">H, 40 пикселей, заголовок карточки</div>
+        <p class="s-lead">Lead, 34 пикселя. Одно предложение под заголовком, максимум два.</p>
+        <p class="s-body" style="margin-top:16px">Body, 30 пикселей. Это нижняя граница читаемости с последнего ряда.</p>
+        <p class="s-small" style="margin-top:12px">Small, 24 пикселя. Только подписи, источники и мета.</p>
+        <div class="s-pills" style="margin-top:28px">
+          <span class="s-pill">Подсветка фразы</span>
+          <span class="s-body">Проверка стала <span class="s-mark">в шесть раз быстрее</span>, а решение осталось за <span class="s-mark--v">человеком</span></span>
+        </div>
+        <div class="slide__foot"><span>Unbounded для заголовков, Onest для текста</span><span>04</span></div>
+      </div></div>
+    </div>
+    <div class="rule">Подсветка делается заливкой <span class="item__code">.s-mark</span>, а не цветным текстом. Цветной текст на проекторе теряет контраст, заливка держит его при любом свете в зале.</div>
+  </div>
+</section>
+
+<section class="sec" id="cards">
+  <div class="sec__n">03</div>
+  <h2>Карточки</h2>
+  <p class="sec__lead">Четыре вида: серая, обведённая, чёрная и брендовая. Прямой угол, без теней. Чёрная карточка означает «главное в ряду», брендовая — «результат».</p>
+  <div class="item">
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Карточки</div>
+      <h2 class="s-d2">Один ряд — одна мысль,<br>выделена ровно одна карточка</h2>
+      <div class="s-grid s-g4 s-push">
+        <div class="s-card"><div class="s-card__label">серая</div><div class="s-card__t">Контекст</div><p class="s-body">Фон и вводные. Не тянет на себя внимание.</p></div>
+        <div class="s-card s-card--line"><div class="s-card__label">обведённая</div><div class="s-card__t">Альтернатива</div><p class="s-body">То, что рассматривали и не выбрали.</p></div>
+        <div class="s-card s-card--ink"><div class="s-card__label">чёрная</div><div class="s-card__t">Главное</div><p class="s-body">Мысль, ради которой слайд существует.</p></div>
+        <div class="s-card s-card--fill"><div class="s-card__label">брендовая</div><div class="s-card__t">Результат</div><p class="s-body">Что изменилось и чем это доказано.</p></div>
+      </div>
+      <div class="slide__foot"><span>Больше одной выделенной карточки в ряду не ставим</span><span>05</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="sec" id="num">
+  <div class="sec__n">04</div>
+  <h2>Числа и метки происхождения</h2>
+  <p class="sec__lead">Цифра на слайде без метки запрещена. Три метки: замер, цель и допущение. Это правило репозитория и одновременно требование гайда отделять измеренное от гипотезы.</p>
+  <div class="item">
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">06</div>
+      <div class="slide__kicker">Числа</div>
+      <h2 class="s-d2">У каждой цифры видно,<br>откуда она взялась</h2>
+      <div class="s-grid s-g4 s-push">
+        <div class="s-card">
+          <div class="s-num s-num--bad">~60</div>
+          <div class="s-num__cap">минут на одну работу при ручной проверке</div>
+          <div><span class="s-src s-src--fact">замер, интервью</span></div>
+        </div>
+        <div class="s-card">
+          <div class="s-num s-num--ok">10–15</div>
+          <div class="s-num__cap">минут с помощью модели, уже на курсе</div>
+          <div><span class="s-src s-src--fact">замер, интервью</span></div>
+        </div>
+        <div class="s-card">
+          <div class="s-num">75%</div>
+          <div class="s-num__cap">точность по требованиям, порог приёмки</div>
+          <div><span class="s-src s-src--goal">цель, объявлена заранее</span></div>
+        </div>
+        <div class="s-card">
+          <div class="s-num">~100</div>
+          <div class="s-num__cap">студентов на поток, сдаёт около 80 процентов</div>
+          <div><span class="s-src s-src--fact">замер, интервью</span></div>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Метка обязательна: замер, цель или допущение</span><span>06</span></div>
+    </div></div>
+    <div class="rule"><b>Как выбрать метку.</b> Замер — если есть протокол и число получено на данных. Цель — если порог объявлен до прогона и ещё не подтверждён. Допущение — если числа нет вовсе, а есть оценка. Четвёртого варианта на слайде быть не может.</div>
+  </div>
+</section>
+
+<section class="sec" id="chain">
+  <div class="sec__n">05</div>
+  <h2>Цепочка и «было — стало»</h2>
+  <p class="sec__lead">Два паттерна прямо из гайда. Цепочка показывает путь пользователя к результату, «было — стало» исправляет слабую формулировку на сильную.</p>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Цепочка шага</span><span class="item__code">.s-chain</span><span class="item__d">вход, действие, работа системы, результат</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Демо, один сценарий</div>
+      <h2 class="s-d2">Путь ревьюера от работы<br>к подтверждённой оценке</h2>
+      <div class="s-chain s-push">
+        <div class="s-chain__i"><div class="s-chain__n">вход</div><div class="s-card__t">Работа в пуле</div><p class="s-body">Студент сдал по ссылке из Stepik, работа свободна</p></div>
+        <div class="s-chain__i"><div class="s-chain__n">действие</div><div class="s-card__t">Ревьюер жмёт «Взять»</div><p class="s-body">Один клик, работа закрепилась за ним</p></div>
+        <div class="s-chain__i"><div class="s-chain__n">система</div><div class="s-card__t">Разбор по требованиям</div><p class="s-body">Девять вердиктов, у каждого цитата и место в файле</p></div>
+        <div class="s-chain__i s-chain__i--on"><div class="s-chain__n">результат</div><div class="s-card__t">Подтверждено за 12 минут</div><p class="s-body">Вместо часа. Балл поставил человек</p></div>
+      </div>
+      <div class="slide__foot"><span>Последний шаг всегда результат, а не функция продукта</span><span>07</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Было и стало</span><span class="item__code">.s-fix</span><span class="item__d">слабая формулировка против сильной</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Как формулировать ценность</div>
+      <h2 class="s-d2">Ценность — это измеренное изменение,<br>а не обещание пользы</h2>
+      <div class="s-fix s-push">
+        <div class="s-fix__bad">
+          <div class="s-card__label">слабо</div>
+          <p class="s-fix__q" style="margin-top:16px">«Наш продукт ускоряет проверку домашних заданий и помогает ревьюерам»</p>
+          <p class="s-small" style="margin-top:20px">Нет числа, нет базы сравнения, нет условий замера</p>
+        </div>
+        <div class="s-arrow">→</div>
+        <div class="s-fix__good">
+          <div class="s-card__label">сильно</div>
+          <p class="s-fix__q" style="margin-top:16px">«Проверка одной работы: <span class="s-mark">12 минут против 60</span> на том же задании. Замерили на шести работах курса, три против трёх»</p>
+          <p class="s-small" style="margin-top:20px; color:var(--ink-4)">Число, база сравнения, условия и объём выборки</p>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Факт плюс сравнение плюс условия</span><span>08</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Доказательства списком</span><span class="item__code">.s-proof</span><span class="item__d">когда надо исправить сразу несколько формулировок</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">09</div>
+      <div class="slide__kicker">Доказательства</div>
+      <h2 class="s-d2">Доказательство = факт + сравнение + условия</h2>
+      <div class="s-proof s-push">
+        <div class="s-proof__w">Работает быстро</div><div class="s-arrow">→</div><div class="s-proof__s">12 минут против 60 на том же задании</div>
+        <div class="s-proof__w">Хорошее качество</div><div class="s-arrow">→</div><div class="s-proof__s">Точность 0.81 против 0.69 у общего промпта</div>
+        <div class="s-proof__w">Ревьюерам нравится</div><div class="s-arrow">→</div><div class="s-proof__s">81 процент вердиктов принят без правок</div>
+        <div class="s-proof__w">Экономит время</div><div class="s-arrow">→</div><div class="s-proof__s">Сорок пять минут на работу, при 20 работах на ревьюера</div>
+      </div>
+      <div class="slide__foot"><span>Слева то, что нельзя проверить. Справа то, что можно</span><span>09</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="sec" id="more">
+  <div class="sec__n">06</div>
+  <h2>Цитата, таблица, скриншот, хронометраж</h2>
+  <p class="sec__lead">Четыре компонента, которые закрывают остальные нужды колоды.</p>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Цитата</span><span class="item__code">.s-quote</span><span class="item__d">слова пользователя, не наши</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Голос пользователя</div>
+      <div class="s-quote" style="margin-top:auto; margin-bottom:auto">
+        <div class="s-quote__q">«Было бы удобно, если бы был отдельный портал»</div>
+        <div class="s-quote__a">ревьюер курса Tech QA. Мы этого не спрашивали, он сказал сам</div>
+      </div>
+      <div class="slide__foot"><span>Цитату не пересказываем, приводим дословно</span><span>10</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Таблица и полосы</span><span class="item__code">.s-table</span><span class="item__d">не больше пяти строк</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">11</div>
+      <div class="slide__kicker">Метрики</div>
+      <h2 class="s-d2">Пороги приёмки объявлены<br>до первого прогона</h2>
+      <table class="s-table s-push">
+        <thead><tr><th>Метрика</th><th>Порог</th><th>Сейчас</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Точность по требованиям</td><td class="s-mono">≥ 75%</td><td class="s-mono">0.81</td><td><div class="s-meter" style="width:280px"><i style="width:81%"></i></div></td></tr>
+          <tr><td>Ошибка по сумме баллов</td><td class="s-mono">≤ 1 из 6</td><td class="s-mono">0.6</td><td><div class="s-meter" style="width:280px"><i style="width:40%"></i></div></td></tr>
+          <tr><td>Решение о зачёте</td><td class="s-mono">100%</td><td class="s-mono">100%</td><td><div class="s-meter" style="width:280px"><i style="width:100%"></i></div></td></tr>
+          <tr><td>Принято ревьюером без правок</td><td class="s-mono">≥ 60%</td><td class="s-mono">81%</td><td><div class="s-meter" style="width:280px"><i style="width:81%"></i></div></td></tr>
+        </tbody>
+      </table>
+      <div class="slide__foot"><span>Числа на этом слайде демонстрационные, заменить своими</span><span>11</span></div>
+    </div></div>
+    <div class="rule">График и таблицу подписываем выводом, а не названием метрики. Заголовок «Метрики» ничего не сообщает, заголовок «Пороги объявлены заранее» сообщает.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Скриншот интерфейса</span><span class="item__code">.s-shot</span><span class="item__d">обрезанный до важного места</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Как это выглядит</div>
+      <h2 class="s-d2">Модель показывает место в файле,<br>а не пересказ работы</h2>
+      <div class="s-grid s-split-w s-push">
+        <div class="s-shot">
+          <div class="s-shot__bar"><span>reviewer / работа 4790 / лабораторная 1</span></div>
+          <div class="s-shot__body">
+            <div style="display:flex; align-items:center; gap:20px; padding:14px 0; border-bottom:1px solid var(--line)">
+              <span class="s-pill s-pill--fill" style="font-size:20px">выполнено</span>
+              <span style="flex:1; font-size:26px">Декомпозиция по двум признакам</span>
+              <span class="s-mono s-small">1 из 1</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:20px; padding:14px 0">
+              <span class="s-pill" style="font-size:20px; background:var(--bad-bg); color:var(--bad)">не найдено</span>
+              <span style="flex:1; font-size:26px">Контракты: входы, выходы, ошибки</span>
+              <span class="s-mono s-small">0 из 1</span>
+            </div>
+            <div style="background:var(--surface-2); padding:18px 20px; margin-top:8px">
+              <div class="s-mono s-small" style="color:var(--info)">docs/architecture.md, строки 78–79</div>
+              <div class="s-mono" style="font-size:22px; margin-top:12px; line-height:1.7">
+                <div style="background:var(--bad-bg); padding:0 8px">78 I2: Outfits обращается к Wardrobe</div>
+                <div style="background:var(--bad-bg); padding:0 8px">79 I3: Wardrobe обращается к Catalog</div>
+              </div>
+              <div class="s-small" style="margin-top:12px">Вызовы названы, контракт не описан</div>
+            </div>
+          </div>
+        </div>
+        <ul class="s-list">
+          <li><b>Цитату проверяет код.</b> Если фрагмента нет в работе, вердикт отклонён и не показан.</li>
+          <li><b>Ревьюер видит место, а не пересказ.</b> Файл, строки, кусок контекста.</li>
+          <li><b>Оценку ставит человек.</b> Модель предлагает значение из шкалы задания.</li>
+        </ul>
+      </div>
+      <div class="slide__foot"><span>Скриншот обрезан до важного места</span><span>12</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">Хронометраж</span><span class="item__code">.s-time</span><span class="item__d">служебный слайд для репетиции, в колоду не идёт</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Регламент</div>
+      <h2 class="s-d2">Пять минут, из них демо — половина</h2>
+      <div class="s-time s-push">
+        <div class="s-time__i"><div class="s-time__v">0:30</div><div class="s-card__t" style="font-size:28px">Продукт</div><p class="s-small">что за продукт и для кого</p></div>
+        <div class="s-time__i"><div class="s-time__v">0:30</div><div class="s-card__t" style="font-size:28px">Ценность</div><p class="s-small">что станет быстрее и точнее</p></div>
+        <div class="s-time__i s-time__i--on"><div class="s-time__v">2:10</div><div class="s-card__t" style="font-size:28px">Демо</div><p class="s-small">один сценарий от ситуации до результата</p></div>
+        <div class="s-time__i"><div class="s-time__v">1:00</div><div class="s-card__t" style="font-size:28px">Техника</div><p class="s-small">2–4 компонента и поток данных</p></div>
+        <div class="s-time__i"><div class="s-time__v">0:50</div><div class="s-card__t" style="font-size:28px">Финал</div><p class="s-small">доказано, следующий шаг, запрос</p></div>
+      </div>
+      <div class="slide__foot"><span>Целимся закончить за 4:40–4:50</span><span>13</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="sec" id="presets">
+  <div class="sec__n">07</div>
+  <h2>Пресеты страниц</h2>
+  <p class="sec__lead">Готовые слайды под структуру питча из гайда: продукт, ценность, демо, техника, финал. Наполнены нашим содержанием, чтобы было видно, как пресет ведёт себя с реальным текстом. Копируем кадр целиком и меняем слова.</p>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П1. Обложка</span><span class="item__d">название, одна фраза, кто в команде</span></div>
+    <div class="deck-frame"><div class="slide inv" style="justify-content:center">
+      <div class="slide__kicker">AI Product Hack, сентябрь 2026</div>
+      <h2 class="s-d1">Avito<br>AI Reviewer</h2>
+      <p class="s-lead" style="max-width:52ch">Помощник ревьюера образовательных программ. Разбирает работу по требованиям задания, приводит цитату на каждый вердикт и отдаёт готовый черновик. Оценку ставит человек.</p>
+      <div class="s-pills" style="margin-top:56px">
+        <span class="s-pill s-pill--fill">2 AI Engineer</span>
+        <span class="s-pill s-pill--line">1 AI Product</span>
+      </div>
+      <div class="slide__foot"><span>Avito AI Reviewer</span><span>01</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П2. Открытие за 30 секунд</span><span class="item__d">продукт, пользователь, боль. Формула из гайда</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">02</div>
+      <div class="slide__kicker">Открытие</div>
+      <h2 class="s-d2">Первая фраза называет продукт,<br>пользователя и проблему</h2>
+      <div class="s-grid s-g3" style="margin-top:56px">
+        <div class="s-card"><div class="s-card__label">01, продукт</div><div class="s-card__t">Что создали</div><p class="s-body">Слой проверки поверх Stepik и GitHub</p></div>
+        <div class="s-card"><div class="s-card__label">02, пользователь</div><div class="s-card__t">Кто пользуется</div><p class="s-body">Ревьюер курса и координатор потока</p></div>
+        <div class="s-card"><div class="s-card__label">03, боль</div><div class="s-card__t">Что болит</div><p class="s-body">Час ручной работы на каждую домашку</p></div>
+      </div>
+      <div class="s-card s-card--ink s-push">
+        <div class="s-card__label">формула</div>
+        <p class="s-fix__q" style="font-size:36px">«Мы создали <span class="s-mark--slot">Avito AI Reviewer</span> для <span class="s-mark--slot">ревьюеров образовательных программ</span>, который убирает <span class="s-mark--slot">час ручного сопоставления работы с критериями</span> с помощью <span class="s-mark--slot">проверки по каждому требованию отдельно с обязательной цитатой</span>»</p>
+      </div>
+      <div class="slide__foot"><span>Ни одного термина без расшифровки</span><span>02</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П3. Проблема в числах</span><span class="item__d">четыре цифры, у каждой метка происхождения</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">03</div>
+      <div class="slide__kicker">Проблема</div>
+      <h2 class="s-d2">Проверка не масштабируется<br>вместе с набором</h2>
+      <p class="s-lead">Курс растёт, число людей, которые могут проверять, упирается в потолок. Каждый поток это заново одна и та же ручная работа.</p>
+      <div class="s-grid s-g4 s-push">
+        <div class="s-card"><div class="s-num">~100</div><div class="s-num__cap">студентов на поток, сдаёт около 80 процентов</div><div><span class="s-src s-src--fact">замер</span></div></div>
+        <div class="s-card"><div class="s-num s-num--bad">~60</div><div class="s-num__cap">минут на одну работу при ручной проверке</div><div><span class="s-src s-src--fact">замер</span></div></div>
+        <div class="s-card"><div class="s-num">до 20</div><div class="s-num__cap">работ на одного ревьюера за поток</div><div><span class="s-src s-src--fact">замер</span></div></div>
+        <div class="s-card"><div class="s-num">~2</div><div class="s-num__cap">дня от закрытия приёма до отчёта студентам</div><div><span class="s-src s-src--fact">замер</span></div></div>
+      </div>
+      <div class="slide__foot"><span>Источник: интервью с ревьюером курса Tech QA</span><span>03</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П4. Ценность</span><span class="item__d">процесс, пользователь, эффект. Что изменится</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">04</div>
+      <div class="slide__kicker">Ценность решения</div>
+      <h2 class="s-d2">Личный навык одного ревьюера<br>становится инструментом курса</h2>
+      <div class="s-grid s-g3" style="margin-top:52px">
+        <div class="s-card"><div class="s-card__label">процесс</div><div class="s-card__t">Что меняется</div><p class="s-body">Сопоставление работы с критериями делает система, человек проверяет и решает</p></div>
+        <div class="s-card"><div class="s-card__label">пользователь</div><div class="s-card__t">Кто пользуется</div><p class="s-body">Ревьюер на каждой работе, координатор один раз на задание</p></div>
+        <div class="s-card s-card--ink"><div class="s-card__label">эффект</div><div class="s-card__t">Что доказано</div><p class="s-body">На курсе ускорение уже есть. Мы переносим его в платформу и меряем у себя</p></div>
+      </div>
+      <div class="s-fix s-push">
+        <div class="s-fix__bad"><div class="s-card__label">слабо</div><p class="s-fix__q" style="margin-top:14px">«Продукт может быть полезен любым образовательным программам»</p></div>
+        <div class="s-arrow">→</div>
+        <div class="s-fix__good"><div class="s-card__label">сильно</div><p class="s-fix__q" style="margin-top:14px">«Ревьюер закрывает работу за <span class="s-mark">12 минут вместо 60</span>. Проверили на шести работах курса, три против трёх»</p></div>
+      </div>
+      <div class="slide__foot"><span>Числа в правой карточке заменить своими после замера</span><span>04</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П5. Демо</span><span class="item__d">один сценарий, путь к результату</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Демо, один сценарий</div>
+      <h2 class="s-d2">Не экскурсия по продукту,<br>а путь ревьюера к решению</h2>
+      <div class="s-chain" style="margin-top:56px">
+        <div class="s-chain__i"><div class="s-chain__n">вход</div><div class="s-card__t">Сдано 88 работ</div><p class="s-body">Студенты пришли по ссылке из Stepik, работы в общем пуле</p></div>
+        <div class="s-chain__i"><div class="s-chain__n">действие</div><div class="s-card__t">Ревьюер берёт одну</div><p class="s-body">Один клик, никто ничего не раскладывал</p></div>
+        <div class="s-chain__i"><div class="s-chain__n">система</div><div class="s-card__t">Девять вердиктов с цитатами</div><p class="s-body">У каждого файл, строки и объяснение</p></div>
+        <div class="s-chain__i s-chain__i--on"><div class="s-chain__n">результат</div><div class="s-card__t">Оценка подтверждена</div><p class="s-body">Человек согласился с семью пунктами, два поправил</p></div>
+      </div>
+      <div class="s-card s-card--line s-push" style="flex-direction:row; align-items:center; gap:24px">
+        <span class="s-pill s-pill--ink">План Б</span>
+        <p class="s-body">Записанное видео того же сценария. Демо на сцене не чиним.</p>
+      </div>
+      <div class="slide__foot"><span>Один сценарий целиком, а не обход всех экранов</span><span>05</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П6. Техминута</span><span class="item__d">2–4 компонента, поток данных, почему так</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">06</div>
+      <div class="slide__kicker">Техническая минута</div>
+      <h2 class="s-d2">Проверяем каждое требование отдельно,<br>а цитату сверяем кодом</h2>
+      <div class="s-chain" style="margin-top:48px">
+        <div class="s-chain__i"><div class="s-chain__n">01</div><div class="s-card__t">Требования как данные</div><p class="s-body">Свод критериев со шкалами, не промпт в коде</p></div>
+        <div class="s-chain__i"><div class="s-chain__n">02</div><div class="s-card__t">Вызов на каждый пункт</div><p class="s-body">Отдельный запрос к модели, тулы по необходимости</p></div>
+        <div class="s-chain__i s-chain__i--on"><div class="s-chain__n">03</div><div class="s-card__t">Валидация цитаты</div><p class="s-body">Нет фрагмента в работе — вердикт отклонён. Это наш вклад</p></div>
+        <div class="s-chain__i"><div class="s-chain__n">04</div><div class="s-card__t">Человек и журнал</div><p class="s-body">Решение и запись «предложено, изменено, финал»</p></div>
+      </div>
+      <div class="s-grid s-g2 s-push">
+        <div class="s-card"><div class="s-card__label">почему так, а не одним промптом</div><p class="s-body">Общий промпт «оцени работу» держим как контрольный вариант и сравниваем с ним на каждом прогоне. Разница между ним и пайплайном это и есть ответ на вопрос «почему не просто ChatGPT»</p></div>
+        <div class="s-card"><div class="s-card__label">ограничения, называем сами</div><p class="s-body">Оценочные критерии модель только советует. Открытые модели на этой задаче дают плохой результат, берём фронтир. Влияние на успеваемость за неделю не проверяли</p></div>
+      </div>
+      <div class="slide__foot"><span>Стек списком не показываем, детали в appendix</span><span>06</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П7. Сделано, проверено, планируется</span><span class="item__d">честное деление перед финалом</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">07</div>
+      <div class="slide__kicker">Готовность</div>
+      <h2 class="s-d2">Что работает, что измерено<br>и что только планируется</h2>
+      <div class="s-grid s-g3 s-push">
+        <div class="s-card"><div class="s-card__label">сделано</div>
+          <ul class="s-list"><li>Разбор по требованиям с цитатами</li><li>Пул и взятие работ</li><li>Саморевью студента</li><li>Журнал решений</li></ul>
+        </div>
+        <div class="s-card"><div class="s-card__label">проверено</div>
+          <ul class="s-list"><li>Бенчмарк на размеченных работах</li><li>Сравнение с общим промптом</li><li>Замер времени на шести работах</li><li>Пороги объявлены до прогона</li></ul>
+        </div>
+        <div class="s-card s-card--line"><div class="s-card__label">планируется</div>
+          <ul class="s-list"><li>Пилот на одном потоке</li><li>Второй профиль курса</li><li>Калибровка по журналу правок</li><li>Что нужно: доступ к потоку и к критериям</li></ul>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Гипотезу от замера отделяем прямо на слайде</span><span>07</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">П8. Финал</span><span class="item__d">10–15 секунд, пишется дословно и не импровизируется</span></div>
+    <div class="deck-frame"><div class="slide slide--fill" style="justify-content:center">
+      <div class="slide__kicker">Финальная фраза</div>
+      <h2 class="s-d1" style="max-width:26ch">Ускорение уже есть.<br>Мы делаем его<br>воспроизводимым.</h2>
+      <p class="s-lead" style="color:inherit; opacity:.78; max-width:60ch">На курсе Tech QA проверка уже идёт за 10–15 минут вместо часа. Это личный навык одного человека. Мы переносим его в платформу: требования как данные, цитата на каждый вердикт, журнал решений. Следующий шаг — пилот на одном потоке.</p>
+      <div class="slide__foot"><span>Avito AI Reviewer</span><span>08</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="sec" id="bold">
+  <div class="sec__n">08</div>
+  <h2>Смелые кадры</h2>
+  <p class="sec__lead">Спокойные пресеты выше держат основную часть питча. Эти работают иначе: один кадр — один удар. Ставим их туда, где нужно, чтобы зал поднял голову от телефона: открытие, переход к демо, финал. Подряд две таких страницы не идут, эффект съедается.</p>
+  <p class="sec__lead">Вся графика нарисована разметкой и инлайновым SVG. Внешних картинок нет ни одной: это значит, что иллюстрации меняют цвет вместе с токенами, не размываются на проекторе и не тянут за собой файлы.</p>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С1. Гигантское число</span><span class="item__code">.s-hero</span><span class="item__d">открытие или переход к ценности</span></div>
+    <div class="deck-frame"><div class="slide inv" style="justify-content:center">
+      <div class="slide__kicker">Сколько мы возвращаем</div>
+      <div class="s-hero">
+        <div>
+          <div class="s-hero__n" style="color:var(--brand-green)">45</div>
+          <div class="s-hero__u">минут на каждой работе</div>
+        </div>
+        <div class="s-hero__side">
+          <p class="s-body">Ручная проверка занимает около часа. С разбором по требованиям ревьюер закрывает работу за 10–15 минут.</p>
+          <div class="s-pills">
+            <span class="s-src s-src--fact">замер, интервью</span>
+          </div>
+          <p class="s-small">При 20 работах на ревьюера это пятнадцать часов за поток. У одного человека.</p>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Одно число, один вывод, больше на кадре ничего</span><span>С1</span></div>
+    </div></div>
+    <div class="rule">Кадр держится на контрасте размеров: число 420 пикселей против текста 30. Если рядом поставить второе число такого же веса, слайд рассыплется.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С2. Точечная матрица</span><span class="item__code">.s-dots</span><span class="item__d">масштаб проблемы, который видно, а не читается</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">С2</div>
+      <div class="slide__kicker">Один поток</div>
+      <h2 class="s-d2">Сто студентов. Восемьдесят сдают.<br>Девять работ зависают без ревьюера</h2>
+      <div class="s-grid s-split-w s-push" style="align-items:center">
+        <div class="s-dots"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i class="is-late"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div>
+          <ul class="s-list" style="margin-top:0">
+            <li><b>71 работа</b> уходит ревьюеру и закрывается в срок</li>
+            <li><b>9 работ</b> лежат в пуле дольше трёх дней и горят</li>
+            <li><b>20 человек</b> не сдают вовсе, это отдельная история курса</li>
+          </ul>
+          <div class="s-pills" style="margin-top:32px">
+            <span class="s-src s-src--fact">замер, интервью</span>
+            <span class="s-src s-src--guess">раскладка внутри потока — допущение</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Точку глаз считает быстрее, чем читает процент</span><span>С2</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С3. Изометрический стек</span><span class="item__code">.s-iso</span><span class="item__d">архитектура без коробочек со стрелками</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Как устроена платформа</div>
+      <h2 class="s-d2">Ядро одно. Меняются<br>только адаптеры и свод требований</h2>
+      <div class="s-grid s-split" style="margin-top:40px; align-items:center">
+        <div class="s-iso">
+          <div class="s-iso__st">
+            <div class="s-iso__l"><span class="s-iso__t">Профиль курса</span></div>
+            <div class="s-iso__l"><span class="s-iso__t">Адаптеры сдачи</span></div>
+            <div class="s-iso__l s-iso__l--on"><span class="s-iso__t">Ядро: проверка по требованиям</span></div>
+            <div class="s-iso__l s-iso__l--ink"><span class="s-iso__t">Валидация цитат кодом</span></div>
+            <div class="s-iso__l"><span class="s-iso__t">Человек и журнал решений</span></div>
+          </div>
+        </div>
+        <div class="s-iso__legend">
+          <div class="s-iso__cap"><b>05</b><span class="s-body">Решение принимает человек, всё записывается</span></div>
+          <div class="s-iso__cap"><b>04</b><span class="s-body">Нет цитаты в работе — вердикт отклонён</span></div>
+          <div class="s-iso__cap"><b>03</b><span class="s-body">Отдельный вызов на каждое требование</span></div>
+          <div class="s-iso__cap"><b>02</b><span class="s-body">GitHub забираем сами, Stepik принимаем у себя</span></div>
+          <div class="s-iso__cap"><b>01</b><span class="s-body">Курс, критерии, шкалы. Файл настроек, не код</span></div>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Зелёный слой не меняется никогда, остальные — конфигурация</span><span>С3</span></div>
+    </div></div>
+    <div class="rule">Объём даёт один поворот на родителе, сами слои остаются обычными блоками. Подписи стоят ровно и не наклоняются: наклонный текст со сцены не читается.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С4. Водопад времени</span><span class="item__code">.s-fall</span><span class="item__d">из чего складывается час и что от него остаётся</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">С4</div>
+      <div class="slide__kicker">Куда уходит час ревьюера</div>
+      <h2 class="s-d2">Мы забираем сопоставление,<br>а не суждение</h2>
+      <div class="s-fall s-push">
+        <div class="s-fall__c"><div class="s-fall__v">18</div><div class="s-fall__b s-fall__b--bad" style="height:48%"></div><div class="s-fall__k">прочитать работу</div></div>
+        <div class="s-fall__c"><div class="s-fall__v">22</div><div class="s-fall__b s-fall__b--bad" style="height:58%"></div><div class="s-fall__k">сверить с критериями<br>пункт за пунктом</div></div>
+        <div class="s-fall__c"><div class="s-fall__v">12</div><div class="s-fall__b s-fall__b--bad" style="height:32%"></div><div class="s-fall__k">написать<br>обратную связь</div></div>
+        <div class="s-fall__c"><div class="s-fall__v">8</div><div class="s-fall__b s-fall__b--late" style="height:22%"></div><div class="s-fall__k">оформить<br>и отправить</div></div>
+        <div class="s-arrow" style="align-self:center">→</div>
+        <div class="s-fall__c"><div class="s-fall__v" style="color:var(--ok)">12</div><div class="s-fall__b s-fall__b--on" style="height:32%"></div><div class="s-fall__k">остаётся: проверить<br>вердикты и решить</div></div>
+      </div>
+      <div class="s-pills" style="margin-top:36px">
+        <span class="s-src s-src--fact">час и 10–15 минут — замер с курса</span>
+        <span class="s-src s-src--guess">разбивка часа по шагам — допущение, проверяем секундомером</span>
+      </div>
+      <div class="slide__foot"><span>Красное забирает система, зелёное остаётся человеку</span><span>С4</span></div>
+    </div></div>
+    <div class="rule rule--no">Здесь легко соврать: разбивка часа по шагам у нас не измерена. Поэтому на кадре стоит вторая метка «допущение», а не одна общая на весь слайд.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С5. Интерфейс в перспективе</span><span class="item__code">.s-tilt</span><span class="item__d">продуктовый кадр перед демо</span></div>
+    <div class="deck-frame"><div class="slide inv">
+      <div class="slide__kicker">Продукт</div>
+      <h2 class="s-d2">Ревьюер видит место в файле,<br>а не пересказ работы</h2>
+      <div class="s-tilt s-push" style="height:560px">
+        <div class="s-tilt__s" style="width:1120px; margin-left:auto">
+          <div class="s-shot" style="border-color:var(--line-2)">
+            <div class="s-shot__bar"><span>reviewer / работа 4790 / лабораторная 1</span></div>
+            <div class="s-shot__body">
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0; border-bottom:1px solid var(--line)">
+                <span class="s-pill s-pill--fill" style="font-size:20px">выполнено</span>
+                <span style="flex:1; font-size:26px">Декомпозиция по двум признакам</span><span class="s-mono s-small">1 из 1</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0; border-bottom:1px solid var(--line)">
+                <span class="s-pill s-pill--fill" style="font-size:20px">выполнено</span>
+                <span style="flex:1; font-size:26px">Диаграмма C4, контекст и компоненты</span><span class="s-mono s-small">1 из 1</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0; border-bottom:1px solid var(--line)">
+                <span class="s-pill" style="font-size:20px; background:var(--bad-bg); color:var(--bad)">не найдено</span>
+                <span style="flex:1; font-size:26px">Контракты: входы, выходы, ошибки</span><span class="s-mono s-small">0 из 1</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px; padding:16px 0">
+                <span class="s-pill" style="font-size:20px; background:var(--bad-bg); color:var(--bad)">не найдено</span>
+                <span style="flex:1; font-size:26px">Анализ связности компонентов</span><span class="s-mono s-small">0 из 0.5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="s-tilt__pop" style="left:0; bottom:24px; width:660px">
+          <div class="s-card__label" style="color:var(--info)">docs/architecture.md, строки 78–79</div>
+          <div class="s-mono" style="font-size:24px; line-height:1.75; margin-top:14px">
+            <div style="background:var(--bad-bg); padding:2px 10px">78 I2: Outfits обращается к Wardrobe</div>
+            <div style="background:var(--bad-bg); padding:2px 10px">79 I3: Wardrobe обращается к Catalog</div>
+          </div>
+          <p class="s-body" style="margin-top:16px; font-size:26px">Вызовы названы, контракт не описан. Цитату проверил код: фрагмент в работе есть.</p>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Экран обрезан до важного места, поверх вынесено главное</span><span>С5</span></div>
+    </div></div>
+    <div class="rule">Поворот сам по себе ничего не сообщает. Он нужен, чтобы увести полотно интерфейса на второй план и освободить передний для одной вырезанной детали.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С6. Диагональный раскол</span><span class="item__code">.s-diag</span><span class="item__d">было и стало без стрелки</span></div>
+    <div class="deck-frame"><div class="slide slide--pad-0">
+      <div class="s-diag">
+        <div class="s-diag__a">
+          <div class="s-card__label">как сейчас</div>
+          <h2 class="s-d2" style="margin-top:24px; font-size:60px">Координатор<br>раскладывает<br>работы руками</h2>
+          <ul class="s-list" style="margin-top:32px">
+            <li>делит поток на ревьюеров в таблице</li>
+            <li>ловит «не успеваю» в чате</li>
+            <li>разбирает хвосты сам за день до отчёта</li>
+          </ul>
+        </div>
+        <div class="s-diag__b">
+          <div class="s-card__label" style="color:var(--brand-green)">как у нас</div>
+          <h2 class="s-d2" style="margin-top:24px; font-size:60px">Работы<br>разбирают<br><span class="s-mark--slot">сами</span></h2>
+          <ul class="s-list" style="margin-top:32px">
+            <li>общий пул, ранние по дате сдачи выше</li>
+            <li>ревьюер берёт любую одной кнопкой</li>
+            <li>координатор появляется, только если работа зависла</li>
+          </ul>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Граница между половинами и есть стрелка</span><span>С6</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С7. Тепловая карта требований</span><span class="item__code">.s-heat</span><span class="item__d">данные, которых у курса сегодня нет</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__num">С7</div>
+      <div class="slide__kicker">Побочный эффект, который важнее основного</div>
+      <h2 class="s-d2">Видно не только кто ошибся,<br>а на каком требовании спотыкается поток</h2>
+      <div class="s-heat s-push">
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Контракты: входы, выходы, ошибки</span>
+          <div class="s-heat__cells"><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body" style="color:var(--bad)">71%</span></div>
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Анализ связности компонентов</span>
+          <div class="s-heat__cells"><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span class="is-miss"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body" style="color:var(--bad)">54%</span></div>
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Диаграмма последовательностей</span>
+          <div class="s-heat__cells"><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body" style="color:var(--late)">29%</span></div>
+        <div class="s-heat__r"><span class="s-body" style="color:var(--ink)">Диаграмма C4</span>
+          <div class="s-heat__cells"><span class="is-part"></span><span class="is-part"></span><span class="is-part"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="s-mono s-body">10%</span></div>
+      </div>
+      <div class="s-card s-card--ink" style="margin-top:40px; flex-direction:row; align-items:center; gap:28px">
+        <span class="s-pill s-pill--fill">вывод</span>
+        <p class="s-body" style="font-size:28px">Первые две строки — это не оценка студентам. Это сигнал переписать формулировку требования или разобрать тему на занятии.</p>
+      </div>
+      <div class="slide__foot"><span>Клетка — студент, строка — требование</span><span>С7</span></div>
+    </div></div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С8. Кольцевая метрика</span><span class="item__code">.s-ring</span><span class="item__d">одна метрика крупно, рядом порог</span></div>
+    <div class="deck-frame"><div class="slide">
+      <div class="slide__kicker">Качество проверки</div>
+      <h2 class="s-d2">Точность выше общего промпта,<br>и порог был объявлен заранее</h2>
+      <div class="s-grid s-g3 s-push" style="align-items:center">
+        <div class="s-ring">
+          <svg width="260" height="260" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-3)" stroke-width="14"/>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--brand-green)" stroke-width="14"
+                    stroke-dasharray="264 327" stroke-linecap="butt" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div><div class="s-ring__v">81%</div><div class="s-num__cap">наш пайплайн</div></div>
+        </div>
+        <div class="s-ring">
+          <svg width="260" height="260" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-3)" stroke-width="14"/>
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--ink-3)" stroke-width="14"
+                    stroke-dasharray="225 327" stroke-linecap="butt" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div><div class="s-ring__v" style="color:var(--ink-3)">69%</div><div class="s-num__cap">один общий промпт, контроль</div></div>
+        </div>
+        <div class="s-card s-card--line">
+          <div class="s-card__label">порог приёмки</div>
+          <div class="s-num s-num--sm">75%</div>
+          <p class="s-body">Объявлен до первого прогона. Ниже — считаем гипотезу непройденной и переходим к отходному варианту</p>
+          <div><span class="s-src s-src--goal">цель</span></div>
+        </div>
+      </div>
+      <div class="slide__foot"><span>Числа демонстрационные, заменить результатами прогона</span><span>С8</span></div>
+    </div></div>
+    <div class="rule">Разница с контрольным вариантом — это и есть ответ на вопрос «почему не просто ChatGPT», выраженный числом. Поэтому оба кольца стоят рядом и в одном масштабе.</div>
+  </div>
+
+  <div class="item">
+    <div class="item__h"><span class="item__t">С9. Типографический манифест</span><span class="item__code">.s-manifest</span><span class="item__d">финал или переход, вместо картинки</span></div>
+    <div class="deck-frame"><div class="slide" style="justify-content:center">
+      <div class="s-manifest">
+        <span>Модель</span>
+        <span class="is-out">предлагает.</span>
+        <span>Человек <span class="is-fill">решает.</span></span>
+      </div>
+      <p class="s-lead" style="margin-top:56px; max-width:56ch">Записать балл без подтверждения человеком в платформе нельзя. Это не обещание в презентации, а проверяемое свойство: тест пытается провести работу до финального статуса без участия человека и падает.</p>
+      <div class="slide__foot"><span>Avito AI Reviewer</span><span>С9</span></div>
+    </div></div>
+  </div>
+</section>
+
+<footer class="sec" style="border-top:var(--bw-struct) solid var(--ink); padding-top:var(--s-8)">
+  <p class="sec__lead">Компоненты живут в <span class="item__code">deck.css</span>, значения — в <span class="item__code">tokens.css</span>. После правки CSS нужно вклеить стили заново: <span class="item__code">python3 docs/design/build.py</span>. Внутри блока между маркерами руками ничего не правим, затрётся.</p>
+</footer>
+
+</div>
+
+<script>
+  // Слайд верстается в натуральные 1920 на 1080. Масштаб считается от ширины
+  // кадра, иначе на узком окне обрезается правый край. Приём тот же, что в
+  // screens.html, чтобы способ в паке был один.
+  function fitSlides() {
+    document.querySelectorAll('.deck-frame').forEach(function (frame) {
+      var slide = frame.querySelector('.slide');
+      if (!slide) return;
+      var k = Math.min(0.6, frame.clientWidth / 1920);
+      slide.style.transform = 'scale(' + k + ')';
+      frame.style.height = Math.ceil(1080 * k) + 'px';
+      // Ширина в разметке остаётся 1920, масштаб даёт только transform,
+      // поэтому без этого под каждым кадром висела бы полоса прокрутки.
+      // В CSS остаётся auto: если скрипт не отработал, край можно доскроллить.
+      frame.style.overflowX = 'hidden';
+    });
+  }
+  fitSlides();
+  window.addEventListener('load', fitSlides);
+  window.addEventListener('resize', fitSlides);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitSlides); }
+</script>
+</body>
+</html>

@@ -10,19 +10,29 @@ import pathlib
 import re
 
 HERE = pathlib.Path(__file__).parent
-TARGETS = ["kit.html", "screens.html"]
 SOURCES = ["tokens.css", "components.css"]
+# У слайдов свой слой поверх общих компонентов.
+TARGETS = {
+    "kit.html": SOURCES,
+    "screens.html": SOURCES,
+    "deck.html": SOURCES + ["deck.css"],
+    # Колода защиты лежит в соседней папке, но стили берёт отсюда.
+    "../defense/deck-b.html": ["tokens.css", "deck.css"],
+}
 
 START = "<!-- css:start -->"
 END = "<!-- css:end -->"
 
-css = "\n\n".join(
-    "/* ===== %s ===== */\n%s" % (name, (HERE / name).read_text(encoding="utf-8").strip())
-    for name in SOURCES
-)
-block = "%s\n<style>\n%s\n</style>\n%s" % (START, css, END)
+def bundle(sources):
+    css = "\n\n".join(
+        "/* ===== %s ===== */\n%s" % (n, (HERE / n).read_text(encoding="utf-8").strip())
+        for n in sources
+    )
+    return "%s\n<style>\n%s\n</style>\n%s" % (START, css, END)
 
-for name in TARGETS:
+
+for name, sources in TARGETS.items():
+    block = bundle(sources)
     path = HERE / name
     text = path.read_text(encoding="utf-8")
     if START in text and END in text:
@@ -30,7 +40,7 @@ for name in TARGETS:
             re.escape(START) + r".*?" + re.escape(END), lambda _: block, text, flags=re.S
         )
     else:
-        links = '<link rel="stylesheet" href="tokens.css">\n<link rel="stylesheet" href="components.css">'
+        links = "\n".join('<link rel="stylesheet" href="%s">' % n for n in sources)
         if links not in text:
             raise SystemExit("%s: не нашёл ни маркеров, ни ссылок на CSS" % name)
         text = text.replace(links, block)

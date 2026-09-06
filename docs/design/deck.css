@@ -1,0 +1,316 @@
+/* ===========================================================================
+   Avito AI Reviewer — слайды презентации
+   Надстройка над tokens.css. Своих цветов и размеров не заводит, берёт всё
+   из токенов. Кадр 1920 на 1080, минимальный кегль на слайде 30px:
+   с последнего ряда зала мельче не читается.
+   =========================================================================== */
+
+/* --- Кадр -----------------------------------------------------------------
+   .deck-frame масштабирует кадр под ширину колонки, .slide рисуется всегда
+   в натуральную величину 1920 на 1080.                                      */
+/* overflow-x: auto, а не hidden: если скрипт не отработал, правый край
+   кадра можно доскроллить, а не потерять молча. Тот же приём, что в
+   screens.html.                                                            */
+.deck-frame { width: 100%; overflow-x: auto; overflow-y: hidden; background: var(--page); }
+.slide {
+  width: 1920px; height: 1080px; transform-origin: top left; transform: scale(.6);
+  position: relative; overflow: hidden;
+  background: var(--surface); color: var(--ink);
+  font-family: var(--font-text); font-size: 30px; line-height: 1.45;
+  padding: 96px 112px 88px; display: flex; flex-direction: column;
+}
+.slide--pad-0 { padding: 0; }
+
+/* Тёмный слайд. Инверсия нейтралей приходит из .inv в токенах.              */
+.slide.inv { background: var(--surface); }
+
+/* Заливка брендовым. Текст поверх только чёрный, так задано в системе.      */
+.slide--fill { background: var(--brand-green); color: var(--brand-ink); }
+.slide--fill .slide__kicker,
+.slide--fill .slide__foot { color: var(--brand-ink); opacity: .64; }
+
+/* --- Служебные элементы кадра --------------------------------------------- */
+.slide__kicker {
+  font-family: var(--font-mono); font-size: 22px; letter-spacing: var(--label-ls);
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--s-6);
+}
+.slide__num {
+  position: absolute; top: 64px; right: 112px;
+  font-family: var(--font-display); font-weight: var(--w-bold);
+  font-size: 160px; line-height: 1; letter-spacing: var(--d1-ls);
+  color: var(--ink); opacity: .07; user-select: none;
+}
+.slide__foot {
+  position: absolute; left: 112px; right: 112px; bottom: 52px;
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--font-mono); font-size: 20px; color: var(--ink-3);
+}
+.slide__foot--plain { position: static; margin-top: auto; padding-top: var(--s-8); }
+
+/* --- Типографика слайда ---------------------------------------------------
+   Заголовок слайда это вывод, а не тема. Поэтому он крупный и его немного.  */
+.s-d1 { font-family: var(--font-display); font-weight: var(--w-bold);
+        font-size: 104px; line-height: .98; letter-spacing: var(--d1-ls); margin: 0; }
+.s-d2 { font-family: var(--font-display); font-weight: var(--w-bold);
+        font-size: 72px; line-height: 1.04; letter-spacing: var(--d1-ls); margin: 0; }
+.s-h  { font-family: var(--font-display); font-weight: var(--w-semi);
+        font-size: 40px; line-height: 1.15; letter-spacing: var(--d2-ls); margin: 0; }
+.s-lead { font-size: 34px; line-height: 1.4; color: var(--ink-2); margin: var(--s-6) 0 0; max-width: 42ch; }
+.s-body { font-size: 30px; line-height: 1.45; color: var(--ink-2); margin: 0; }
+.s-small { font-size: 24px; line-height: 1.4; color: var(--ink-3); margin: 0; }
+.s-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Подсветка куска фразы. Заливка, а не цветной текст: держит контраст.      */
+.s-mark { background: var(--brand-green); color: var(--brand-ink); padding: 0 .12em; }
+.s-mark--v { background: var(--brand-violet); color: var(--ink-inv); }
+.s-mark--o { background: var(--brand-orange); color: var(--brand-ink); }
+/* Вариант для длинной фразы: заливка на полтекста читается тяжело.
+   Только на чёрной плашке, на белом фоне брендовый зелёный не проходит
+   по контрасту.                                                            */
+.s-card--ink .s-mark--slot, .slide.inv .s-mark--slot {
+  background: none; padding: 0; color: var(--brand-green);
+}
+.s-em { color: var(--ink); }
+
+/* --- Сетки ---------------------------------------------------------------- */
+.s-grid { display: grid; gap: var(--s-8); }
+.s-g2 { grid-template-columns: repeat(2, 1fr); }
+.s-g3 { grid-template-columns: repeat(3, 1fr); }
+.s-g4 { grid-template-columns: repeat(4, 1fr); }
+.s-g5 { grid-template-columns: repeat(5, 1fr); }
+.s-split { grid-template-columns: 1fr 1fr; gap: var(--s-14); align-items: start; }
+.s-split-w { grid-template-columns: 1.25fr 1fr; gap: var(--s-14); align-items: start; }
+.s-push { margin-top: auto; }
+
+/* --- Карточка слайда ------------------------------------------------------
+   Прямой угол, без тени, граница волосяная. Тёмная и залитая версии есть.   */
+.s-card { background: var(--surface-2); padding: var(--s-8) var(--s-10);
+          display: flex; flex-direction: column; gap: var(--s-3); }
+.s-card--line { background: var(--surface); border: var(--bw-hair) solid var(--line-2); }
+.s-card--ink  { background: var(--surface-inv); color: var(--ink-inv); }
+.s-card--ink .s-body, .s-card--ink .s-small { color: var(--ink-4); }
+.s-card--fill { background: var(--brand-green); color: var(--brand-ink); }
+.s-card--fill .s-body { color: var(--brand-ink); }
+.s-card__label { font-family: var(--font-mono); font-size: 20px; letter-spacing: var(--label-ls);
+                 text-transform: uppercase; color: var(--ink-3); }
+.s-card--ink .s-card__label { color: var(--ok); }
+.s-card--fill .s-card__label { color: var(--brand-ink); opacity: .7; }
+.s-card__t { font-family: var(--font-display); font-weight: var(--w-semi); font-size: 34px;
+             line-height: 1.15; letter-spacing: var(--d2-ls); }
+
+/* --- Крупное число --------------------------------------------------------
+   Цифра это главный аргумент слайда, поэтому дисплейный шрифт и 96px.       */
+.s-num { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 96px;
+         line-height: .92; letter-spacing: var(--d1-ls); font-variant-numeric: tabular-nums; }
+.s-num--sm { font-size: 64px; }
+.s-num--ok { color: var(--ok); }
+.s-num--bad { color: var(--bad); }
+.s-num--late { color: var(--late); }
+.s-num__cap { font-size: 26px; line-height: 1.35; color: var(--ink-2); }
+
+/* --- Пилюля ---------------------------------------------------------------- */
+.s-pill { display: inline-flex; align-items: center; gap: var(--s-2);
+          padding: var(--s-3) var(--s-6); border-radius: var(--r-pill);
+          background: var(--surface-3); color: var(--ink); font-size: 24px; white-space: nowrap; }
+.s-pill--fill { background: var(--brand-green); color: var(--brand-ink); }
+.s-pill--ink { background: var(--surface-inv); color: var(--ink-inv); }
+.s-pill--line { background: transparent; border: var(--bw-hair) solid var(--line-2); color: var(--ink-2); }
+.s-pills { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
+
+/* Метка происхождения числа: замер, цель или допущение. Обязательна рядом
+   с любой цифрой на слайде, иначе цифру нельзя показывать.                  */
+.s-src { display: inline-flex; align-items: center; gap: var(--s-2);
+         font-family: var(--font-mono); font-size: 19px; padding: var(--s-1) var(--s-4);
+         border-radius: var(--r-pill); border: var(--bw-hair) solid var(--line-2); color: var(--ink-3); }
+.s-src--fact { border-color: var(--ok); color: var(--ok); }
+.s-src--goal { border-color: var(--late); color: var(--late); }
+.s-src--guess { border-color: var(--human); color: var(--human); }
+
+/* --- Цепочка шагов --------------------------------------------------------
+   Путь пользователя к результату: вход, действие, работа системы, итог.     */
+.s-chain { display: flex; align-items: stretch; gap: 0; }
+.s-chain__i { flex: 1; background: var(--surface-2); padding: var(--s-8);
+              display: flex; flex-direction: column; gap: var(--s-3); }
+.s-chain__i + .s-chain__i { border-left: var(--bw-struct) solid var(--page); }
+.s-chain__i--on { background: var(--surface-inv); color: var(--ink-inv); }
+.s-chain__i--on .s-body { color: var(--ink-4); }
+.s-chain__n { font-family: var(--font-mono); font-size: 20px; color: var(--ink-3); }
+.s-chain__i--on .s-chain__n { color: var(--ok); }
+.s-arrow { display: flex; align-items: center; font-size: 44px; color: var(--ink-3); padding: 0 var(--s-5); }
+
+/* --- Было и стало ---------------------------------------------------------
+   Паттерн из гайда: слабая формулировка слева, сильная справа тёмной.       */
+.s-fix { display: grid; grid-template-columns: 1fr auto 1.15fr; gap: var(--s-6); align-items: center; }
+.s-fix__bad { background: var(--surface); border: var(--bw-hair) solid var(--line-2);
+              padding: var(--s-8) var(--s-10); color: var(--ink-3); }
+.s-fix__good { background: var(--surface-inv); color: var(--ink-inv); padding: var(--s-8) var(--s-10); }
+.s-fix__q { font-size: 30px; line-height: 1.4; }
+.s-fix__good .s-fix__q { font-size: 32px; }
+
+/* --- Доказательство: факт, сравнение, условия ------------------------------ */
+.s-proof { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--s-5) var(--s-6); align-items: center; }
+.s-proof__w { background: var(--surface-3); color: var(--ink-3); padding: var(--s-5) var(--s-8);
+              border-radius: var(--r-pill); font-size: 26px; }
+.s-proof__s { background: var(--surface-inv); color: var(--ink-inv); padding: var(--s-5) var(--s-8);
+              border-radius: var(--r-pill); font-size: 26px; }
+
+/* --- Рамка под скриншот интерфейса ---------------------------------------
+   Скриншот обрезается до важного места, а не вставляется экраном целиком.   */
+.s-shot { background: var(--surface); border: var(--bw-struct) solid var(--ink); overflow: hidden; }
+.s-shot__bar { display: flex; align-items: center; gap: var(--s-3);
+               padding: var(--s-4) var(--s-6); border-bottom: var(--bw-hair) solid var(--line);
+               font-family: var(--font-mono); font-size: 20px; color: var(--ink-3); }
+.s-shot__body { padding: var(--s-6); }
+.s-shot__crop { display: block; }
+
+/* --- Цитата --------------------------------------------------------------- */
+.s-quote { border-left: var(--bw-struct) solid var(--ok-fill); padding-left: var(--s-10); }
+.s-quote__q { font-family: var(--font-display); font-weight: var(--w-semi);
+              font-size: 48px; line-height: 1.22; letter-spacing: var(--d2-ls); }
+.s-quote__a { margin-top: var(--s-6); font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+
+/* --- Хронометраж питча ----------------------------------------------------- */
+.s-time { display: flex; gap: var(--s-4); }
+.s-time__i { flex: 1; padding: var(--s-6); background: var(--surface-2); }
+.s-time__i--on { background: var(--surface-inv); color: var(--ink-inv); flex: 2.2; }
+.s-time__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 52px;
+             letter-spacing: var(--d2-ls); }
+.s-time__i--on .s-time__v { color: var(--ok); }
+
+/* --- Список выводов -------------------------------------------------------- */
+.s-list { margin: 0; padding: 0; list-style: none; }
+.s-list li { position: relative; padding-left: var(--s-10); margin: var(--s-6) 0;
+             font-size: 30px; line-height: 1.4; color: var(--ink-2); }
+.s-list li::before { content: ""; position: absolute; left: 0; top: .55em;
+                     width: var(--s-6); height: var(--bw-struct); background: var(--ok-fill); }
+.s-list li b { color: var(--ink); font-weight: var(--w-semi); }
+
+/* --- Таблица на слайде -----------------------------------------------------
+   Цвет задаётся явно: без doctype браузер уводит таблицу в свой цвет.       */
+.s-table { width: 100%; border-collapse: collapse; color: var(--ink); }
+.s-table th { text-align: left; font-family: var(--font-mono); font-size: 20px;
+              letter-spacing: var(--label-ls); text-transform: uppercase; color: var(--ink-3);
+              font-weight: var(--w-regular); padding: 0 var(--s-6) var(--s-4) 0;
+              border-bottom: var(--bw-hair) solid var(--line-2); }
+.s-table td { color: var(--ink); font-size: 28px; padding: var(--s-5) var(--s-6) var(--s-5) 0;
+              border-bottom: var(--bw-hair) solid var(--line); vertical-align: middle; }
+.s-table td.s-mono { font-size: 28px; }
+
+/* --- Полоса доли ----------------------------------------------------------- */
+.s-meter { height: var(--s-3); background: var(--surface-3); border-radius: var(--r-pill); overflow: hidden; }
+.s-meter i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--ok-fill); }
+.s-meter i.is-late { background: var(--late-fill); }
+.s-meter i.is-bad { background: var(--bad-fill); }
+
+/* ===========================================================================
+   Смелые кадры и инфографика
+   Всё рисуется разметкой и инлайновым SVG: внешних картинок нет, поэтому
+   графика живёт в токенах и меняет цвет вместе с системой.
+   Углы поворота и перспектива — единственное, чего нет в токенах:
+   в словаре системы такой величины не заведено.
+   =========================================================================== */
+
+/* --- Гигантское число ------------------------------------------------------
+   Один аргумент во весь кадр. Больше на слайде не должно быть ничего.       */
+.s-hero { display: flex; align-items: center; gap: var(--s-14); }
+.s-hero__n { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 420px; line-height: .78; letter-spacing: -.06em;
+             font-variant-numeric: tabular-nums; }
+.s-hero__u { font-family: var(--font-display); font-weight: var(--w-bold);
+             font-size: 88px; line-height: 1; letter-spacing: var(--d1-ls); }
+.s-hero__side { display: flex; flex-direction: column; gap: var(--s-6); max-width: 30ch; }
+
+/* --- Точечная матрица ------------------------------------------------------
+   Сто точек это сто студентов. Доля показывается заливкой, а не процентом:
+   глаз считает точки быстрее, чем читает число.                            */
+.s-dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: var(--s-3); }
+.s-dots i { display: block; aspect-ratio: 1; border-radius: var(--r-circle);
+            background: var(--surface-3); }
+.s-dots i.is-on { background: var(--ok-fill); }
+.s-dots i.is-late { background: var(--late-fill); }
+.s-dots i.is-bad { background: var(--bad-fill); }
+.s-dots--sm { grid-template-columns: repeat(10, 1fr); gap: var(--s-2); }
+
+/* --- Изометрический стек ---------------------------------------------------
+   Слои платформы в перспективе. Каждый слой это обычный блок, объём даёт
+   один поворот на родителе.                                                 */
+/* Повёрнутый блок занимает больше места, чем его бокс, поэтому стек живёт
+   в окне фиксированного размера и ужимается целиком.                       */
+.s-iso { perspective: 2400px; height: 620px; display: flex;
+         align-items: center; justify-content: center; overflow: hidden; }
+.s-iso__st { transform: rotateX(56deg) rotateZ(-42deg) scale(.62); transform-style: preserve-3d;
+             display: flex; flex-direction: column-reverse; gap: var(--s-10); }
+.s-iso__l { width: 620px; height: 170px; background: var(--surface-2);
+            border: var(--bw-struct) solid var(--ink); display: flex; align-items: center;
+            padding: 0 var(--s-8); position: relative; }
+.s-iso__l--on { background: var(--brand-green); }
+.s-iso__l--ink { background: var(--surface-inv); border-color: var(--ink); }
+.s-iso__t { font-family: var(--font-display); font-weight: var(--w-semi); font-size: 34px;
+            letter-spacing: var(--d2-ls); color: var(--ink); white-space: nowrap; }
+.s-iso__l--on .s-iso__t { color: var(--brand-ink); }
+.s-iso__l--ink .s-iso__t { color: var(--ink-inv); }
+/* Подписи к слоям стоят ровно, без наклона: наклонный текст не читается.   */
+.s-iso__legend { display: flex; flex-direction: column-reverse; gap: var(--s-6); }
+.s-iso__cap { display: flex; align-items: baseline; gap: var(--s-4); }
+.s-iso__cap b { font-family: var(--font-mono); font-size: 22px; color: var(--ink-3); }
+
+/* --- Водопад ---------------------------------------------------------------
+   Из чего складывается час и что от него остаётся.                          */
+.s-fall { display: flex; align-items: flex-end; gap: var(--s-4); height: 340px; }
+.s-fall__c { display: flex; flex-direction: column; justify-content: flex-end;
+             align-items: center; gap: var(--s-4); flex: 1; height: 100%; }
+.s-fall__b { width: 100%; background: var(--surface-3); }
+.s-fall__b--on { background: var(--ok-fill); }
+.s-fall__b--bad { background: var(--bad-fill); }
+.s-fall__b--late { background: var(--late-fill); }
+.s-fall__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 40px;
+             letter-spacing: var(--d2-ls); font-variant-numeric: tabular-nums; }
+.s-fall__k { font-size: 22px; color: var(--ink-3); text-align: center; line-height: 1.3; }
+
+/* --- Наклонённый интерфейс -------------------------------------------------
+   Продуктовый кадр: экран уходит в перспективу, поверх него всплывает
+   вырезанный кусок с главным.                                               */
+.s-tilt { perspective: 2000px; position: relative; }
+.s-tilt__s { transform: rotateY(-18deg) rotateX(6deg) rotateZ(1deg);
+             transform-origin: right center; box-shadow: var(--shadow-overlay); }
+.s-tilt__pop { position: absolute; background: var(--surface); border: var(--bw-struct) solid var(--ink);
+               box-shadow: var(--shadow-overlay); padding: var(--s-6) var(--s-8); }
+
+/* --- Диагональный раскол ---------------------------------------------------
+   Было и стало без стрелки: граница между ними и есть стрелка.             */
+/* Половины лежат друг на друге во весь кадр, а не в сетке: тогда отступ
+   текста считается от края слайда и его не режет линия раскола.           */
+.s-diag { position: absolute; inset: 0; }
+.s-diag__a, .s-diag__b { position: absolute; inset: 0;
+                         display: flex; flex-direction: column; justify-content: center; }
+/* Обе половины во весь кадр: проценты в clip-path считаются от ширины
+   самого блока, поэтому сузить его нельзя, иначе линия уедет.             */
+.s-diag__a { background: var(--surface-2); clip-path: polygon(0 0, 46% 0, 34% 100%, 0 100%);
+             padding: 120px 62% 120px 96px; }
+.s-diag__b { background: var(--surface-inv); color: var(--ink-inv);
+             clip-path: polygon(46% 0, 100% 0, 100% 100%, 34% 100%);
+             padding: 120px 96px 120px 52%; }
+
+/* --- Тепловая карта --------------------------------------------------------
+   Где спотыкается поток: строка это требование, клетка это студент.        */
+.s-heat { display: grid; gap: var(--s-2); }
+.s-heat__r { display: grid; grid-template-columns: 30ch 1fr auto; gap: var(--s-6); align-items: center; }
+.s-heat__cells { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; }
+.s-heat__cells span { display: block; aspect-ratio: 1; background: var(--ok-bg); }
+.s-heat__cells span.is-miss { background: var(--bad-fill); }
+.s-heat__cells span.is-part { background: var(--late-fill); }
+
+/* --- Кольцевая метрика (SVG) ----------------------------------------------- */
+.s-ring { display: flex; align-items: center; gap: var(--s-10); }
+.s-ring svg { display: block; }
+.s-ring__v { font-family: var(--font-display); font-weight: var(--w-bold); font-size: 72px;
+             letter-spacing: var(--d1-ls); font-variant-numeric: tabular-nums; }
+
+/* --- Типографический манифест ----------------------------------------------
+   Слова разного веса и заливки, поставленные стопкой.                      */
+.s-manifest { font-family: var(--font-display); font-weight: var(--w-bold);
+              font-size: 132px; line-height: .92; letter-spacing: -.05em; }
+.s-manifest span { display: block; }
+.s-manifest .is-out { color: transparent; -webkit-text-stroke: 2px var(--ink); }
+.s-manifest .is-fill { background: var(--brand-green); color: var(--brand-ink);
+                       display: inline-block; padding: 0 var(--s-4); }
