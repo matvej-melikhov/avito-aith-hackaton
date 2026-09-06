@@ -47,3 +47,12 @@ def test_go_build_on_tiny_module():
                                           WorkFile("main.go", "package main\n\nfunc main() { undefinedCall() }\n", "go")])
     r2 = go_build(bad, timeout=120)
     assert r2.build_ok is False and r2.errors and r2.errors[0].path == "main.go" and r2.errors[0].line == 3
+
+
+def test_harness_lenient_json():
+    import json
+
+    from prereview.judge.explore import lenient_json
+
+    fixed = lenient_json('{"criteria": [{"criterion_id": "a", "found": true, "evidence": [], "notes": "x",},],}')
+    assert json.loads(fixed)["criteria"][0]["criterion_id"] == "a"

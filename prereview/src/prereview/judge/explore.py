@@ -31,6 +31,16 @@ from prereview.rubric.model import Criterion
 log = logging.getLogger(__name__)
 PATCH = PROJECT_DIR / "harness" / "prereview.cordis.yml"
 JSON_BLOCK = re.compile(r"```json\s*(\{.*?\})\s*```", re.S)
+TRAILING_COMMA = re.compile(r",(\s*[}\]])")
+
+
+def lenient_json(text: str) -> str:
+    """Модель иногда оставляет висячую запятую перед } или ]: убираем её до разбора."""
+    try:
+        json.loads(text)
+        return text
+    except ValueError:
+        return TRAILING_COMMA.sub(r"\1", text)
 
 
 @dataclass
@@ -185,7 +195,7 @@ class HarnessExplorer:
                 pack.error = "harness не вернул json-блок"
                 return pack
             try:
-                report = HarnessReport.model_validate_json(blocks[-1])
+                report = HarnessReport.model_validate_json(lenient_json(blocks[-1]))
             except ValueError as e:
                 pack.error = f"json harness не по схеме: {str(e)[:200]}"
                 return pack
