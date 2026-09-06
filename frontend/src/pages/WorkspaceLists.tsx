@@ -226,7 +226,7 @@ export function WorksList({
           </Btn>
           <Btn
             size="s"
-            variant="link"
+            variant="quiet"
             disabled={offset + LIMIT >= r.data.total}
             onClick={() => setOffset(offset + LIMIT)}
           >
