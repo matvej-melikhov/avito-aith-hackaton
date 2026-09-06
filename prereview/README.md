@@ -20,7 +20,8 @@ uv run --directory prereview pytest
 |---|---|
 | `src/prereview/artifact` | скачивание снимка, извлечение md/docx/pdf/zip, усадка, опись, редактирование ПДн и инъекций |
 | `src/prereview/rubric` | критерии платформы + файл задания = рубрика с классами проверок |
-| `src/prereview/checks` | формальные примитивы и их прогон |
+| `src/prereview/checks` | формальные примитивы и их прогон, сборка Go, клиент песочницы (`runtime.py`) |
+| `runner/` | песочница запуска: отдельный образ без ключей, гоняет собранный бинарник по сценариям задания, goose и migrate для миграций |
 | `src/prereview/judge` | судья по критерию, проверка цитат, самопроверка, исследователь репозиториев (DeepSeek Harness) |
 | `src/prereview/signal` | функции-сигналы об ИИ и сводка |
 | `src/prereview/service` | HTTP-сервис по контракту и sqlite-хранилище |
