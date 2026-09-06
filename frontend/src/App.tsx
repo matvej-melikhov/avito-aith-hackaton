@@ -605,7 +605,7 @@ function Login({
             <div className="login__local">
               <span className="label">Локальный стенд</span>
               <p className="small dim">
-                Вход создаёт серверную сессию выбранного участника.
+                Выберите участника для входа на локальный стенд.
               </p>
               <div className="stack--login">
                 {local.data.items.map((identity) => (

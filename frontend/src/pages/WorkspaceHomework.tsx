@@ -736,7 +736,7 @@ function HomeworkWizard({
                   )}
                   <Field
                     group
-                    label="Что сдаём"
+                    label="Что прикрепляет студент для ответа"
                     hint="Какие ссылки принимаем. Файл Markdown, PDF или DOCX студент может приложить всегда."
                   >
                     <Seg

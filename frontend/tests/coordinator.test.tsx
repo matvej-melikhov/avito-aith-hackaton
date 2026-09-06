@@ -122,7 +122,7 @@ it("reviewer settings show only courses and absence while preserving compatibili
   expect(screen.queryByRole("button", { name: "Отменить" })).toBeNull();
   await user.click(poolSwitch);
   await user.click(
-    screen.getByLabelText("В пуле по моим курсам появилось что-то новое"),
+    screen.getByLabelText("В пуле по моим курсам появились новые работы"),
   );
   await waitFor(() => expect(saved).toBeDefined(), { timeout: 5000 });
   expect(saved!.show_pool).toBe(false);

@@ -747,7 +747,7 @@ function ExportForm({
           </Field>
           <Field
             group
-            label="Кому выгружаем"
+            label="Для кого файл"
             hint="В студенческой копии нет ID ревьюера и комментариев, только ID студента, балл и статус."
           >
             <Seg
@@ -942,7 +942,7 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
               <div className="row-2">
                 <Card>
                   <CardHead
-                    title="Где вы чаще правите модель"
+                    title="По каким требованиям вы меняете оценку модели"
                     sub="Доля работ, где вы изменили предложенную оценку"
                   />
                   <CardBody flush>
@@ -1027,9 +1027,8 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
                     )}
                     <Callout className="callout--after">
                       <p>
-                        Расхождение само по себе не ошибка. Оно показывает
-                        требования, которые сформулированы так, что их можно
-                        понять по-разному.
+                        Расхождение подсвечивает необходимость в калибровке
+                        требования или оценки ревьюеров.
                       </p>
                     </Callout>
                   </CardBody>

@@ -679,7 +679,7 @@ export function ReviewEditor({
                     <span className="mono">rev-{short(reviewerId)}</span>
                   </Kv>
                 )}
-                <Kv label={repeat ? "Правки пришли" : "Сдана"}>
+                <Kv label={repeat ? "Исправления сданы" : "Сдана"}>
                   {dayLong(context?.submitted_at)}
                 </Kv>
                 {!repeat && (
@@ -850,7 +850,7 @@ export function ReviewEditor({
                 <Card>
                   <CardHead
                     title="Ответ студенту"
-                    sub="Уходит вместе с вердиктом"
+                    sub="Студент получит его вместе с оценкой за работу"
                     className="card__head--response"
                   >
                     <Btn
