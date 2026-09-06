@@ -46,7 +46,10 @@ export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
   const attention = findings.filter((f) => f.status === "needs_attention");
   const unchecked = findings.filter((f) => f.status === "not_checked");
   const checked = findings.some((f) => f.status !== "not_checked");
-  const places = attention.length ? attention : [];
+  // Одинаковые подсказки (например, «не удалось подтвердить») показываем один раз.
+  const places = attention.filter(
+    (f, index) => attention.findIndex((g) => g.feedback === f.feedback) === index,
+  );
   return (
     <div className="self-review">
       {findings.length > 0 && (
