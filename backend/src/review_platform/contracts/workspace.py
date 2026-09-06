@@ -623,6 +623,11 @@ class EditorDraftInput(StrictModel):
     reviewer_guidance: str = Field(default="", max_length=50000)
     reference_upload_id: UUID | None = None
     policy: PublicationPolicyInput | None = None
+    # Интерфейс из design-site шлёт типы ответа студента; полноценная поддержка живёт в ветке
+    # backend (source_policy). Здесь поле принимается, чтобы автосохранение мастера не падало.
+    allowed_sources: list[Literal["upload", "github", "google_docs"]] | None = Field(
+        default=None, max_length=3
+    )
     submission_deadline: datetime | None = None
     review_deadline: datetime | None = None
 
