@@ -1919,43 +1919,38 @@ select.inp:not(.inp--s) {
   padding: 0;
   min-width: 0;
 }
-/* Переключатель ширины — засечка на шве панели: та же волосяная линия, что
-   и граница, прямой угол, цвет служебного текста. */
+/* Правый край панели — ручка ширины. Видна линией границы, при наведении и
+   перетаскивании темнеет. */
 .aside {
   position: relative;
 }
-.aside__rail {
+.aside__grip {
   position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  width: 15px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  color: var(--ink-3);
-  background: var(--surface);
-  border: var(--bw-hair) solid var(--line);
-  border-right: 0;
-  border-radius: var(--r-0);
-  cursor: pointer;
-  transition:
-    color var(--t-fast),
-    background var(--t-fast);
+  top: 0;
+  bottom: 0;
+  right: calc(-1 * var(--bw-hair));
+  width: 7px;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  border-right: var(--bw-hair) solid transparent;
+  transition: border-color var(--t-fast);
 }
-.aside__rail svg {
-  width: 8px;
-  height: 24px;
+.aside__grip:hover,
+.aside__grip:focus-visible,
+.aside__grip.is-dragging {
+  outline: 0;
+  border-right-color: var(--ink);
 }
-.aside__rail:hover {
-  color: var(--ink);
-  background: var(--surface-2);
+.aside__grip.is-dragging {
+  border-right-width: var(--bw-focus);
 }
-.aside__rail:focus-visible {
-  outline: var(--bw-focus) solid var(--ink);
-  outline-offset: -2px;
+/* Пока тянут край, текст страницы не выделяется. */
+.app:has(.aside__grip.is-dragging) {
+  user-select: none;
+  cursor: col-resize;
 }
+
 .menu__lead {
   display: flex;
   align-items: center;
@@ -1964,8 +1959,8 @@ select.inp:not(.inp--s) {
 }
 .mi {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   color: var(--ink-3);
 }
 .menu a.is-on .mi,
@@ -1979,8 +1974,8 @@ select.inp:not(.inp--s) {
 }
 
 /* Свёрнутая панель: остаются знак и значки разделов. */
-.app--rail {
-  grid-template-columns: var(--sidebar-rail-w) 1fr;
+.app--rail .menu a {
+  justify-content: center;
 }
 .aside--rail .aside__top {
   flex-direction: column;

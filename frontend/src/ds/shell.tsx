@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
   type ComponentPropsWithoutRef,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import { cx } from "./controls";
@@ -39,46 +40,6 @@ export function Brand({
   );
 }
 
-/* --- Значки разделов --------------------------------------------------------
-   Один контур в currentColor на сетке 16, как у лупы поиска.               */
-export type MenuIcon =
-  "overview" | "courses" | "runs" | "people" | "works" | "pool" | "cabinet";
-
-const ICON_PATHS: Record<MenuIcon, ReactNode> = {
-  overview: (
-    <path d="M2.6 2.6H7V7H2.6ZM9 2.6h4.4V7H9ZM2.6 9H7v4.4H2.6ZM9 9h4.4v4.4H9Z" />
-  ),
-  courses: <path d="M8 4.4 2.6 2.8v10.4L8 14.6l5.4-1.4V2.8L8 4.4Zm0 0v10.2" />,
-  runs: <path d="M2.6 3.8h10.8v9.6H2.6ZM2.6 6.8h10.8M5.6 2.2v3M10.4 2.2v3" />,
-  people: (
-    <path d="M3.6 2.8h4.8v4.2H3.6ZM1.8 13.8v-2.4h8.4v2.4M10.2 4.6h3.4v3.4h-3.4M11.4 13.8v-2h2.8" />
-  ),
-  works: (
-    <path d="M3.2 2.6h7.2l2.4 2.4v8.4H3.2ZM10.4 2.6V5h2.4M5.4 8.6l1.8 1.8 3.4-3.4" />
-  ),
-  pool: (
-    <path d="M4.6 2.6h6.8l2.6 6.6v4.2H2V9.2ZM2 9.2h3.4l1 1.8h3.2l1-1.8h3.4" />
-  ),
-  cabinet: <path d="M5.6 2.6h4.8V7H5.6ZM2.6 13.8v-2.6h10.8v2.6" />,
-};
-
-export function Icon({ name }: { name: MenuIcon }) {
-  return (
-    <svg
-      className="mi"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="square"
-      strokeLinejoin="miter"
-      aria-hidden="true"
-    >
-      {ICON_PATHS[name]}
-    </svg>
-  );
-}
-
 export function Ava({
   className,
   children,
@@ -91,6 +52,47 @@ export function Ava({
   );
 }
 
+/* --- Значки разделов --------------------------------------------------------
+   Material Symbols Sharp, Google, Apache 2.0. Набор выбран за прямой угол:
+   скруглённые контуры паку не подходят. Заливка берёт цвет текста.       */
+export type MenuIcon =
+  "overview" | "courses" | "runs" | "people" | "works" | "pool" | "cabinet";
+
+const ICON_PATHS: Record<MenuIcon, string> = {
+  // dashboard
+  overview:
+    "M520-600v-240h320v240H520ZM120-440v-400h320v400H120Zm400 320v-400h320v400H520Zm-400 0v-240h320v240H120Zm80-400h160v-240H200v240Zm400 320h160v-240H600v240Zm0-480h160v-80H600v80ZM200-200h160v-80H200v80Zm160-320Zm240-160Zm0 240ZM360-280Z",
+  // school
+  courses:
+    "M480-120 200-272v-240L40-600l440-240 440 240v320h-80v-276l-80 44v240L480-120Zm0-332 274-148-274-148-274 148 274 148Zm0 241 200-108v-151L480-360 280-470v151l200 108Zm0-241Zm0 90Zm0 0Z",
+  // layers
+  runs: "M480-118 120-398l66-50 294 228 294-228 66 50-360 280Zm0-202L120-600l360-280 360 280-360 280Zm0-280Zm0 178 230-178-230-178-230 178 230 178Z",
+  // group
+  people:
+    "M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z",
+  // fact_check
+  works:
+    "M200-280h200v-80H200v80Zm382-80 198-198-57-57-141 142-57-57-56 57 113 113Zm-382-80h200v-80H200v80Zm0-160h200v-80H200v80ZM80-120v-720h800v720H80Zm80-80h640v-560H160v560Zm0 0v-560 560Z",
+  // inbox
+  pool: "M120-120v-720h720v720H120Zm80-80h560v-120H640q-30 38-71.5 59T480-240q-47 0-88.5-21T320-320H200v120Zm280-120q38 0 69-22t43-58h168v-360H200v360h168q12 36 43 58t69 22ZM200-200h560-560Z",
+  // person
+  cabinet:
+    "M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z",
+};
+
+export function Icon({ name }: { name: MenuIcon }) {
+  return (
+    <svg
+      className="mi"
+      viewBox="0 -960 960 960"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d={ICON_PATHS[name]} />
+    </svg>
+  );
+}
+
 export type MenuItem = {
   href: string;
   label: string;
@@ -99,25 +101,95 @@ export type MenuItem = {
   on?: boolean;
 };
 
-const RAIL_KEY = "aside-rail";
+/* Ширина панели тянется за правый край. Ниже порога она защёлкивается в
+   фиксированную колонку со значками, выше — возвращается к обычной.      */
+const ASIDE_WIDTH_KEY = "aside-width";
+export const ASIDE_RAIL = 60;
+const ASIDE_MIN = 190;
+const ASIDE_MAX = 340;
+const ASIDE_DEFAULT = 232;
+/** Ниже этой ширины панель становится колонкой значков. */
+const ASIDE_SNAP = 150;
 
-/** Панель свёрнута до значков. Выбор человека переживает перезагрузку. */
-function useRail() {
-  const [rail, setRail] = useState(() => {
+function clampAside(px: number) {
+  if (px < ASIDE_SNAP) return ASIDE_RAIL;
+  return Math.min(ASIDE_MAX, Math.max(ASIDE_MIN, px));
+}
+
+function useAsideWidth() {
+  const [width, setWidth] = useState(() => {
     try {
-      return localStorage.getItem(RAIL_KEY) === "1";
+      const saved = Number(localStorage.getItem(ASIDE_WIDTH_KEY));
+      return Number.isFinite(saved) && saved > 0
+        ? clampAside(saved)
+        : ASIDE_DEFAULT;
     } catch {
-      return false;
+      return ASIDE_DEFAULT;
     }
   });
   useEffect(() => {
     try {
-      localStorage.setItem(RAIL_KEY, rail ? "1" : "0");
+      localStorage.setItem(ASIDE_WIDTH_KEY, String(width));
     } catch {
-      /* хранилище недоступно: состояние живёт до перезагрузки */
+      /* хранилище недоступно: ширина живёт до перезагрузки */
     }
-  }, [rail]);
-  return [rail, setRail] as const;
+  }, [width]);
+  return [width, setWidth] as const;
+}
+
+/** Правый край панели: тянется мышью, слушает стрелки с клавиатуры. */
+function AsideGrip({
+  width,
+  onWidth,
+}: {
+  width: number;
+  onWidth: (px: number) => void;
+}) {
+  const [dragging, setDragging] = useState(false);
+  return (
+    <div
+      className={cx("aside__grip", dragging && "is-dragging")}
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Ширина панели"
+      aria-valuenow={width}
+      aria-valuemin={ASIDE_RAIL}
+      aria-valuemax={ASIDE_MAX}
+      tabIndex={0}
+      onPointerDown={(e) => {
+        e.preventDefault();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setDragging(true);
+      }}
+      onPointerMove={(e) => {
+        if (!dragging) return;
+        onWidth(clampAside(e.clientX));
+      }}
+      onPointerUp={(e) => {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        setDragging(false);
+      }}
+      onKeyDown={(e) => {
+        const step = e.shiftKey ? 40 : 16;
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          onWidth(clampAside(width - step));
+        }
+        if (e.key === "ArrowRight") {
+          e.preventDefault();
+          onWidth(clampAside(width === ASIDE_RAIL ? ASIDE_MIN : width + step));
+        }
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onWidth(width === ASIDE_RAIL ? ASIDE_DEFAULT : ASIDE_RAIL);
+        }
+      }}
+      onDoubleClick={() =>
+        onWidth(width === ASIDE_RAIL ? ASIDE_DEFAULT : ASIDE_RAIL)
+      }
+      title="Потяните, чтобы изменить ширину"
+    />
+  );
 }
 
 /** Панель: бренд, один список разделов, подвал с человеком. */
@@ -126,13 +198,13 @@ export function Aside({
   menu,
   foot,
   rail = false,
-  onRail,
+  grip,
 }: {
   brandHref?: string;
   menu: MenuItem[];
   foot?: ReactNode;
   rail?: boolean;
-  onRail?: () => void;
+  grip?: ReactNode;
 }) {
   return (
     <aside className={cx("aside", rail && "aside--rail")}>
@@ -159,30 +231,7 @@ export function Aside({
         ))}
       </nav>
       {foot && <div className="aside__foot">{foot}</div>}
-      {onRail && (
-        <button
-          type="button"
-          className="aside__rail"
-          aria-expanded={!rail}
-          aria-label={rail ? "Развернуть панель" : "Свернуть панель"}
-          title={rail ? "Развернуть панель" : "Свернуть панель"}
-          onClick={onRail}
-        >
-          <svg
-            viewBox="0 0 8 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="square"
-            strokeLinejoin="miter"
-            aria-hidden="true"
-          >
-            <path
-              d={rail ? "M2.5 8.5 6 12l-3.5 3.5" : "M5.5 8.5 2 12l3.5 3.5"}
-            />
-          </svg>
-        </button>
-      )}
+      {grip}
     </aside>
   );
 }
@@ -198,15 +247,19 @@ export function Shell({
   brandHref?: string;
   children: ReactNode;
 }) {
-  const [rail, setRail] = useRail();
+  const [width, setWidth] = useAsideWidth();
+  const rail = width <= ASIDE_RAIL;
   return (
-    <div className={cx("app", rail && "app--rail")}>
+    <div
+      className={cx("app", rail && "app--rail")}
+      style={{ "--sidebar-w": `${width}px` } as CSSProperties}
+    >
       <Aside
         menu={menu}
         foot={foot}
         brandHref={brandHref}
         rail={rail}
-        onRail={() => setRail((v) => !v)}
+        grip={<AsideGrip width={width} onWidth={setWidth} />}
       />
       <div className="app__page">{children}</div>
     </div>
