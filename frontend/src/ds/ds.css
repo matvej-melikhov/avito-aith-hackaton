@@ -338,7 +338,7 @@ a.btn--link:hover {
 
 /* --- Поля (screens.html:1866, 2199, 1586) ----------------------------------- */
 .srch--w .inp {
-  width: 280px;
+  width: min(420px, 100%);
 }
 .inp--w-56 {
   width: 56px;
@@ -1689,4 +1689,160 @@ body.fb-on .login {
 .upload__body a {
   color: var(--info);
   border: 0;
+}
+
+/* --- Работа как файл: иконка типа, просмотр в модалке ----------------------- */
+.fileicon-wrap {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-3);
+  flex: none;
+}
+.fileicon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.kv .fileicon-wrap {
+  margin-right: var(--s-2);
+  vertical-align: -3px;
+}
+.file-preview__text {
+  margin: 0;
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  line-height: var(--body-lh);
+  color: var(--ink);
+}
+.file-preview__frame {
+  width: 100%;
+  height: 60vh;
+  border: var(--bw-hair) solid var(--line-2);
+  background: var(--surface);
+}
+.file-preview__img {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  margin: 0 auto;
+}
+
+/* --- «Взять» в пуле: при наведении заливается зелёным (Р2) ------------------ */
+.btn--take:hover:not(:disabled) {
+  background: var(--brand-green);
+  border-color: var(--brand-green);
+  color: var(--ink);
+}
+
+/* --- Фильтры в шапках: селект выглядит как тихая кнопка макета (К1, К7, К8) -- */
+select.inp--s {
+  width: auto;
+  min-width: 0;
+  padding: 0 26px 0 var(--s-4);
+  border-radius: var(--r-pill);
+  border-color: var(--line);
+  color: var(--ink-3);
+  font-weight: var(--w-medium);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 13px center,
+    right 9px center;
+  background-size:
+    4px 4px,
+    4px 4px;
+  background-repeat: no-repeat;
+  transition:
+    border-color var(--t-fast),
+    color var(--t-fast);
+}
+select.inp--s:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+select.inp--s:focus-visible {
+  outline: 0;
+  border-color: var(--ink);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+select.inp--s option {
+  color: var(--ink);
+}
+
+/* --- Ряд фильтров под табами страницы -------------------------------------- */
+.filter-row {
+  margin-bottom: var(--s-5);
+}
+
+/* --- Разметка markdown над условием задания (К5) --------------------------- */
+.md-bar {
+  margin-bottom: var(--s-2);
+  flex-wrap: wrap;
+}
+.md-bar .btn {
+  min-width: var(--ctl-s);
+  padding: 0 var(--s-3);
+}
+
+/* --- Кнопка шага мастера под формой, вместо нижней панели (К5, К6) --------- */
+.form-actions {
+  margin-top: var(--s-6);
+  align-items: center;
+  gap: var(--s-4);
+}
+
+/* --- Порог зачёта: своя черта сверху, поэтому у последнего критерия её нет -- */
+.acc:has(+ .threshold),
+.crit:has(+ .threshold) {
+  border-bottom: 0;
+}
+
+/* --- Отпуск: две даты в строку через тире (Р3) ------------------------------ */
+.date-range {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+.date-range__dash {
+  color: var(--ink-3);
+}
+@media (max-width: 640px) {
+  .date-range__dash {
+    display: none;
+  }
+}
+
+/* --- Селект в форме: своя стрелка вместо системного вида (К4) --------------- */
+select.inp:not(.inp--s) {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+    linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position:
+    right 17px center,
+    right 13px center;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* --- Заголовок встроенной секции на «Обзоре» -------------------------------- */
+.section-title {
+  margin: 0 0 var(--s-4);
+  font-size: var(--h3-size);
+  line-height: var(--h3-lh);
+  font-weight: var(--w-semi);
+  color: var(--ink);
 }

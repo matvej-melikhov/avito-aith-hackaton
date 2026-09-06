@@ -9,11 +9,9 @@ import {
   CardFoot,
   CardHead,
   Empty,
-  Inp,
   Main,
   Pill,
   Sel,
-  Srch,
   St,
   Topbar,
   cx,
@@ -29,11 +27,56 @@ const LIMIT = 20;
 const CLOSED = ["published", "passed", "failed", "needs_changes"];
 const HOT_POOL_DAYS = 3;
 
-export function ReviewerQueue({ ws }: { ws: WorkspaceClient }) {
-  const [query, setQuery] = useState("");
+export function ReviewerQueue({
+  ws,
+  pool = false,
+}: {
+  ws: WorkspaceClient;
+  pool?: boolean;
+}) {
+  const [course, setCourse] = useState("");
   const [run, setRun] = useState("");
   const catalog = useResource(() => ws.catalog(), "reviewer-catalog");
   const action = useAction();
+  /* Курс сужает список потоков. Работы отбираются по потоку, а когда выбран
+     только курс — по всем его потокам. */
+  const runs = (catalog.data?.course_runs ?? []).filter(
+    (r) => !course || r.course_id === course,
+  );
+  const courseRunIds = course ? runs.map((r) => r.id) : null;
+  const filters = (
+    <BtnRow>
+      <Sel
+        small
+        aria-label="Курс"
+        value={course}
+        onChange={(e) => {
+          setCourse(e.target.value);
+          setRun("");
+        }}
+      >
+        <option value="">Курс: все</option>
+        {catalog.data?.courses.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.title}
+          </option>
+        ))}
+      </Sel>
+      <Sel
+        small
+        aria-label="Поток"
+        value={run}
+        onChange={(e) => setRun(e.target.value)}
+      >
+        <option value="">Поток: все</option>
+        {runs.map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.title}
+          </option>
+        ))}
+      </Sel>
+    </BtnRow>
+  );
   const startMode = () =>
     void action.run(async () => {
       enterReviewMode();
@@ -47,7 +90,7 @@ export function ReviewerQueue({ ws }: { ws: WorkspaceClient }) {
   return (
     <>
       <Topbar
-        title="Мои работы"
+        title={pool ? "Пул" : "Мои работы"}
         actions={
           <>
             <Btn href="#/preferences" size="s" variant="quiet">
@@ -68,47 +111,28 @@ export function ReviewerQueue({ ws }: { ws: WorkspaceClient }) {
       <Main data-screen="Р2">
         {action.feedback}
         <div className="stack">
-          <QueueSection
-            ws={ws}
-            view="active"
-            title="Активные"
-            onStartMode={startMode}
-            busy={action.busy}
-          />
-          <QueueSection
-            ws={ws}
-            id="pool"
-            view="all"
-            title="Пул"
-            filters={
-              <BtnRow>
-                <Srch>
-                  <Inp
-                    small
-                    aria-label="Поиск"
-                    placeholder="Студент или задание"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                </Srch>
-                <Sel
-                  small
-                  aria-label="Поток"
-                  value={run}
-                  onChange={(e) => setRun(e.target.value)}
-                >
-                  <option value="">Поток: все</option>
-                  {catalog.data?.course_runs.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.title}
-                    </option>
-                  ))}
-                </Sel>
-              </BtnRow>
-            }
-            query={query}
-            run={run}
-          />
+          {pool ? (
+            <QueueSection
+              ws={ws}
+              id="pool"
+              view="all"
+              title=""
+              filters={filters}
+              run={run}
+              courseRunIds={courseRunIds}
+            />
+          ) : (
+            <QueueSection
+              ws={ws}
+              view="active"
+              title="Активные"
+              filters={filters}
+              run={run}
+              courseRunIds={courseRunIds}
+              onStartMode={startMode}
+              busy={action.busy}
+            />
+          )}
         </div>
       </Main>
     </>
@@ -120,8 +144,8 @@ function QueueSection({
   id,
   view,
   title,
-  query = "",
   run = "",
+  courseRunIds = null,
   filters,
   onStartMode,
   busy,
@@ -130,17 +154,17 @@ function QueueSection({
   id?: string;
   view: "active" | "all";
   title: string;
-  query?: string;
   run?: string;
+  /** Потоки выбранного курса, когда сам поток не выбран. */
+  courseRunIds?: string[] | null;
   filters?: ReactNode;
   onStartMode?: () => void;
   busy?: boolean;
 }) {
   const [offset, setOffset] = useState(0);
-  useEffect(() => setOffset(0), [query, run]);
+  useEffect(() => setOffset(0), [run, courseRunIds?.join(",")]);
   const params = {
     view,
-    q: query,
     course_run_id: run || undefined,
     offset,
     limit: LIMIT,
@@ -149,11 +173,11 @@ function QueueSection({
   const action = useAction();
   const { setCounts } = useMenuCounts();
   useEffect(() => {
-    if (r.data && !query && !run)
+    if (r.data && !run && !courseRunIds)
       setCounts(
         view === "active" ? { works: r.data.total } : { pool: r.data.total },
       );
-  }, [r.data, query, run, view, setCounts]);
+  }, [r.data, run, courseRunIds, view, setCounts]);
 
   async function open(w: W<"WorkItem">) {
     if (
@@ -189,10 +213,14 @@ function QueueSection({
   }
 
   const active = view === "active";
-  const items = r.data?.items ?? [];
+  const all = r.data?.items ?? [];
+  const items =
+    run || !courseRunIds
+      ? all
+      : all.filter((w) => courseRunIds.includes(w.course_run_id));
   return (
     <Card id={id}>
-      <CardHead title={title}>{filters}</CardHead>
+      <CardHead title={title || undefined}>{filters}</CardHead>
       {!!action.error && <CardBody>{action.feedback}</CardBody>}
       <Resource value={r}>
         {r.data && (
@@ -224,12 +252,8 @@ function QueueSection({
                       active &&
                       !!w.review_iteration_id &&
                       !CLOSED.includes(w.status);
-                    const label =
-                      active || CLOSED.includes(w.status)
-                        ? "Открыть"
-                        : w.status === "pending_review"
-                          ? "Взять"
-                          : "Подключиться";
+                    const take = !active && !CLOSED.includes(w.status);
+                    const label = take ? "Взять" : "Открыть";
                     return (
                       <tr
                         key={w.submission_id}
@@ -248,16 +272,24 @@ function QueueSection({
                         <td className="mono">{w.student_name}</td>
                         <td>
                           <div className="who">{w.title}</div>
-                          <div className="sub">
-                            {w.status === "needs_changes"
-                              ? "ждём студента"
-                              : w.attempt > 1 && !closed
-                                ? `попытка ${w.attempt}, правки пришли`
-                                : `попытка ${w.attempt}`}
-                            {w.participant_ids && w.participant_ids.length > 1
-                              ? ` · вместе с ${w.participant_ids.length - 1}`
-                              : ""}
-                          </div>
+                          {(w.status === "needs_changes" ||
+                            (w.attempt > 1 && !closed) ||
+                            (w.participant_ids?.length ?? 0) > 1) && (
+                            <div className="sub">
+                              {[
+                                w.status === "needs_changes"
+                                  ? "ждём студента"
+                                  : w.attempt > 1 && !closed
+                                    ? "правки пришли"
+                                    : "",
+                                (w.participant_ids?.length ?? 0) > 1
+                                  ? `вместе с ${w.participant_ids!.length - 1}`
+                                  : "",
+                              ]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </div>
+                          )}
                         </td>
                         {active ? (
                           <>
@@ -287,6 +319,7 @@ function QueueSection({
                             <Btn
                               size="s"
                               variant={closed ? "quiet" : undefined}
+                              className={take ? "btn--take" : undefined}
                               disabled={action.busy || !w.submission_version_id}
                               onClick={() => void action.run(() => open(w))}
                             >
@@ -323,8 +356,7 @@ function QueueSection({
                 <Empty
                   title={active ? "Активных проверок нет" : "В пуле пусто"}
                   action={
-                    active &&
-                    !query && (
+                    active && (
                       <Btn
                         size="s"
                         variant="dark"

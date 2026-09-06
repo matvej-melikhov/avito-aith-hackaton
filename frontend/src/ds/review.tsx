@@ -21,6 +21,7 @@ export function scaleValues(max: number, step: number) {
 
 export function Acc({
   head,
+  headClass,
   open,
   defaultOpen,
   onToggle,
@@ -31,6 +32,8 @@ export function Acc({
   ...rest
 }: Omit<ComponentPropsWithoutRef<"details">, "open" | "onToggle"> & {
   head: ReactNode;
+  /** Сетка заголовка: `acc__h--score` ставит оценку в общую колонку. */
+  headClass?: string;
   open?: boolean;
   defaultOpen?: boolean;
   onToggle?: (open: boolean) => void;
@@ -52,7 +55,7 @@ export function Acc({
       }}
       {...rest}
     >
-      <summary className="acc__h">
+      <summary className={cx("acc__h", headClass)}>
         {head}
         {chevron && (
           <span className="acc__chev" aria-hidden="true">
@@ -182,30 +185,48 @@ export function Scale({
   );
 }
 
+/** Обёртка для контрола внутри заголовка: клик не сворачивает аккордеон. */
+export function AccCtl({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={className}
+      onClick={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        if (e.key === " " || e.key === "Enter") e.stopPropagation();
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function Finding({
   file,
   lines,
-  href,
+  open,
   why,
   children,
 }: {
   file?: ReactNode;
   lines?: ReactNode;
-  href?: string;
+  /** Действие «Открыть»: ссылка на репозиторий или просмотр файла. */
+  open?: ReactNode;
   why?: ReactNode;
   children?: ReactNode;
 }) {
   return (
     <div className="finding">
-      {(file || lines || href) && (
+      {(file || lines || open) && (
         <div className="finding__src">
           {file && <span className="f">{file}</span>}
           {lines && <span>{lines}</span>}
-          {href && (
-            <a className="o" href={href} target="_blank" rel="noreferrer">
-              Открыть в репозитории ↗
-            </a>
-          )}
+          {open}
         </div>
       )}
       {children}

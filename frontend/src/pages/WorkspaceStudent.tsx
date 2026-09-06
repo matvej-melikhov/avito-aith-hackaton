@@ -32,6 +32,7 @@ import {
   plural,
   points,
   workStatus,
+  workTone,
   cx,
 } from "../ds";
 
@@ -291,9 +292,18 @@ function DraftForm({
       : activeResult || run
         ? { label: "Черновик", late: false }
         : null;
+  // Работа уже у ревьюера: догонять её самопроверкой нечем, пока не вернут
+  // на доработку.
+  const awaitingReview = ["sent", "review", "rereview"].includes(
+    workTone(
+      current?.decision ?? listed.data?.status,
+      lastAttempt?.sequence ?? 1,
+    ) ?? "",
+  );
   const canSelfReview =
     !action.busy &&
     !run &&
+    !awaitingReview &&
     (data.quota
       ? data.quota.remaining > 0
       : !!data.policy && data.policy.self_review_limit > 0);
@@ -302,34 +312,30 @@ function DraftForm({
 
   return (
     <>
-      <Band
-        data-screen={screen}
-        aside={
-          <BandMeta>
-            <BandVal label={revision ? "Прислать исправления до" : "Сдать до"}>
-              {dayLong(current?.revision_deadline ?? data.submission_deadline)}
-            </BandVal>
-            {data.max_score !== undefined && (
-              <BandVal label={data.policy ? "Порог зачёта" : "Максимум"}>
-                {data.policy
-                  ? outOf(data.policy.pass_score, data.max_score)
-                  : `${num(data.max_score)} ${plural(data.max_score, "балл", "балла", "баллов")}`}
-              </BandVal>
-            )}
-            {bandStatus && (
-              <BandVal label="Статус" late={bandStatus.late}>
-                {bandStatus.label}
-              </BandVal>
-            )}
-          </BandMeta>
-        }
-      >
+      <Band data-screen={screen}>
         {(data.course_title || data.run_title) && (
           <span className="label">
             {[data.course_title, data.run_title].filter(Boolean).join(", ")}
           </span>
         )}
         <h1 className="d2">{data.title}</h1>
+        <BandMeta>
+          <BandVal label={revision ? "Прислать исправления до" : "Сдать до"}>
+            {dayLong(current?.revision_deadline ?? data.submission_deadline)}
+          </BandVal>
+          {data.max_score !== undefined && (
+            <BandVal label={data.policy ? "Порог зачёта" : "Максимум"}>
+              {data.policy
+                ? outOf(data.policy.pass_score, data.max_score)
+                : `${num(data.max_score)} ${plural(data.max_score, "балл", "балла", "баллов")}`}
+            </BandVal>
+          )}
+          {bandStatus && (
+            <BandVal label="Статус" late={bandStatus.late}>
+              {bandStatus.label}
+            </BandVal>
+          )}
+        </BandMeta>
       </Band>
       <Main page data-screen={screen}>
         {action.feedback}
@@ -695,7 +701,7 @@ function DraftForm({
                 </fieldset>
               </CardBody>
               <CardFoot>
-                <span className="foot-actions">
+                <div className="submission-actions">
                   <Btn
                     variant="pri"
                     disabled={action.busy}
@@ -713,56 +719,68 @@ function DraftForm({
                       ? "Отправить исправленную версию"
                       : "Отправить на ревью"}
                   </Btn>
-                  <Btn
-                    aria-label={
-                      activeResult
-                        ? "Проверить повторно"
-                        : "Проверить перед сдачей"
-                    }
-                    disabled={!canSelfReview}
-                    onClick={() =>
-                      void action.run(async () => {
-                        try {
-                          const d = await prepare();
-                          if (!d) return;
-                          setStage("Запускаем ИИ-ревью…");
-                          const started = await ws.command(
-                            "start_self_review",
-                            d.id,
-                            d.revision,
-                            {},
-                          );
-                          setReviewTab("ai");
-                          setCollapsed(true);
-                          setRun(started.id);
-                          setResult(started);
-                        } finally {
-                          setStage("");
-                        }
-                      })
-                    }
-                  >
-                    ИИ-ревью
-                  </Btn>
-                  <span className="caption" role={stage ? "status" : undefined}>
-                    {stage ? (
-                      stage
-                    ) : run ? (
-                      "Проверяем работу, это займёт около минуты."
-                    ) : (
-                      <>
-                        {activeResult
-                          ? `Проверено ИИ-ревью ${dayLong(activeResult.created_at)}. `
-                          : "Результат ИИ-ревью видит ревьюер и учитывает при оценке. "}
-                        {data.quota || !data.policy ? (
-                          <Quota value={data.quota} />
-                        ) : (
-                          "Доступные попытки уточнятся после сохранения работы."
-                        )}
-                      </>
-                    )}
-                  </span>
-                </span>
+                  <div className="submission-actions__precheck">
+                    <Btn
+                      aria-label={
+                        activeResult
+                          ? "Проверить повторно"
+                          : "Проверить перед сдачей"
+                      }
+                      disabled={!canSelfReview}
+                      title={
+                        awaitingReview
+                          ? "Работа уже на ревью, ИИ-ревью запускается до отправки"
+                          : undefined
+                      }
+                      onClick={() =>
+                        void action.run(async () => {
+                          try {
+                            const d = await prepare();
+                            if (!d) return;
+                            setStage("Запускаем ИИ-ревью…");
+                            const started = await ws.command(
+                              "start_self_review",
+                              d.id,
+                              d.revision,
+                              {},
+                            );
+                            setReviewTab("ai");
+                            setCollapsed(true);
+                            setRun(started.id);
+                            setResult(started);
+                          } finally {
+                            setStage("");
+                          }
+                        })
+                      }
+                    >
+                      ИИ-ревью
+                    </Btn>
+                    <span
+                      className="caption"
+                      role={stage ? "status" : undefined}
+                    >
+                      {stage ? (
+                        stage
+                      ) : run ? (
+                        "Проверяем работу, это займёт около минуты."
+                      ) : awaitingReview ? (
+                        "Работа отправлена на ревью. ИИ-ревью запускается до отправки."
+                      ) : (
+                        <>
+                          {
+                            "Результат ИИ-ревью видит ревьюер и учитывает при оценке. "
+                          }
+                          {data.quota || !data.policy ? (
+                            <Quota value={data.quota} />
+                          ) : (
+                            "Доступные попытки уточнятся после сохранения работы."
+                          )}
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
               </CardFoot>
             </Card>
           </div>

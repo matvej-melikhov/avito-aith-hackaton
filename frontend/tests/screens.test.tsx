@@ -28,10 +28,6 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
     "8",
   );
   await user.type(
-    screen.getByLabelText("Обоснование"),
-    "Проверены успешные и ошибочные ответы",
-  );
-  await user.type(
     screen.getByLabelText("Обратная связь студенту"),
     "Хорошая работа. Добавьте тест редиректа.",
   );
@@ -136,8 +132,7 @@ it("does not erase edited feedback when save fails with a conflict", async () =>
   );
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} />);
-  await screen.findByLabelText("Обоснование");
-  await user.type(screen.getByLabelText("Обоснование"), "Ручная проверка");
+  await screen.findByLabelText("Обратная связь студенту");
   await user.type(
     screen.getByLabelText("Обратная связь студенту"),
     "Не потерять этот текст",
@@ -158,8 +153,13 @@ it("keeps the coordinator review screen read-only even when the API permits edit
   });
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} />);
-  await screen.findByLabelText("Обоснование");
-  expect(screen.getByLabelText("Обоснование")).toBeDisabled();
+  await screen.findByText("Разбор по требованиям");
+  expect(
+    screen.queryByLabelText("Баллы: HTTP API и обработка ошибок"),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByLabelText("Обратная связь студенту"),
+  ).not.toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Зачесть" }),
   ).not.toBeInTheDocument();
@@ -184,9 +184,10 @@ it("expires a resource session once without an automatic authentication retry lo
   );
   render(<App api={new ApiClient(transport)} />);
   await screen.findByRole("heading", { name: "Войти в рабочее пространство" });
+  // Список работ запрашивается один раз: повторной попытки после 401 нет.
   expect(
     transport.mock.calls.filter(([url]) => String(url).includes("/v2/works")),
-  ).toHaveLength(2);
+  ).toHaveLength(1);
 });
 
 it("prepares the first URL draft before self-review and updates server quota without submitting", async () => {
@@ -204,8 +205,14 @@ it("prepares the first URL draft before self-review and updates server quota wit
       const response = await demo(input, init);
       if (String(input).includes("/student-context") && !saved) {
         const context = await response.json();
+        // Первый черновик: у работы ещё нет ни сдачи, ни попыток.
         return new Response(
-          JSON.stringify({ ...context, draft: null, quota: null }),
+          JSON.stringify({
+            ...context,
+            draft: null,
+            quota: null,
+            submission_id: null,
+          }),
           { status: 200 },
         );
       }

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it } from "vitest";
 import { ApiClient } from "../src/api/client";
@@ -117,21 +117,14 @@ it("reviewer settings show only courses and absence while preserving compatibili
     name: /Показывать мне работы из пула/,
   });
   expect(poolSwitch).toBeChecked();
+  // Кнопок сохранения нет: правки уходят на сервер сами.
+  expect(screen.queryByRole("button", { name: "Сохранить" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Отменить" })).toBeNull();
   await user.click(poolSwitch);
   await user.click(
     screen.getByLabelText("В пуле по моим курсам появилось что-то новое"),
   );
-  await user.click(screen.getByRole("button", { name: "Отменить" }));
-  expect(poolSwitch).toBeChecked();
-  expect(
-    screen.getByLabelText("В пуле по моим курсам появилось что-то новое"),
-  ).not.toBeChecked();
-  await user.click(poolSwitch);
-  await user.click(
-    screen.getByLabelText("В пуле по моим курсам появилось что-то новое"),
-  );
-  await user.click(screen.getByRole("button", { name: "Сохранить" }));
-  await waitFor(() => expect(saved).toBeDefined());
+  await waitFor(() => expect(saved).toBeDefined(), { timeout: 5000 });
   expect(saved!.show_pool).toBe(false);
   expect(saved!.notifications).toEqual({
     deadline: true,
@@ -163,12 +156,20 @@ it("criterion settings autosave, derive total and reopen a single expanded form"
     screen.getByLabelText("Название критерия"),
     "Качество объяснения",
   );
-  await user.clear(screen.getByLabelText("Баллов за критерий"));
-  await user.type(screen.getByLabelText("Баллов за критерий"), "2.5");
-  await user.clear(screen.getByLabelText("Шаг"));
-  await user.type(screen.getByLabelText("Шаг"), "0.25");
+  // Баллы и шаг выбираются из набора значений, а не вводятся числом.
+  await user.click(
+    within(screen.getByRole("group", { name: "Баллов за критерий" })).getByRole(
+      "button",
+      { name: "2" },
+    ),
+  );
+  await user.click(
+    within(screen.getByRole("group", { name: "Шаг" })).getByRole("button", {
+      name: "0,5",
+    }),
+  );
   await user.click(screen.getByLabelText("Ещё и оценить качество"));
-  expect(screen.getByLabelText("Порог зачёта")).toHaveAttribute("max", "12.5");
+  expect(screen.getByLabelText("Порог зачёта")).toHaveAttribute("max", "12");
   await screen.findByText("Изменения сохранены");
   view.unmount();
   render(
@@ -183,6 +184,10 @@ it("criterion settings autosave, derive total and reopen a single expanded form"
   await user.click(screen.getByRole("button", { name: "2. Критерии ревью" }));
   await user.click(screen.getByRole("button", { name: /Качество объяснения/ }));
   expect(screen.getAllByLabelText("Название критерия")).toHaveLength(1);
-  expect(screen.getByLabelText("Шаг")).toHaveValue(0.25);
+  expect(
+    within(screen.getByRole("group", { name: "Шаг" })).getByRole("button", {
+      name: "0,5",
+    }),
+  ).toHaveAttribute("aria-pressed", "true");
   expect(screen.getByLabelText("Ещё и оценить качество")).toBeChecked();
 });

@@ -1,5 +1,8 @@
 import { useState } from "react";
-import type { ApiClient, Model, Role } from "../api/client";
+import type { ApiClient } from "../api/client";
+import type { WorkspaceClient } from "../api/workspace";
+
+const INVITATION_DAYS = 30;
 import {
   Btn,
   Card,
@@ -12,27 +15,44 @@ import {
   Kv,
   Main,
   OpPill,
-  Sel,
   Topbar,
   dayLong,
+  plural,
   short,
 } from "../ds";
 import { Resource, roleNames, useAction, useResource } from "../ui";
 
-/** Участники организации и приглашения. Экрана в паке нет. */
-export function PeopleBody({ api }: { api: ApiClient }) {
+/** Ревьюеры организации и приглашения. Экрана в паке нет. */
+export function PeopleBody({
+  api,
+  ws,
+}: {
+  api: ApiClient;
+  ws: WorkspaceClient;
+}) {
   const s = useResource(async () => {
-    const [members, invitations, organization] = await Promise.all([
+    const [members, invitations, organization, directory] = await Promise.all([
       api.memberships(),
       api.invitations(),
       api.organization(),
+      ws.directory(),
     ]);
-    return { members, invitations, organization };
+    return { members, invitations, organization, directory };
   }, "people");
   const action = useAction();
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"reviewer" | "methodologist">("reviewer");
-  const [expires, setExpires] = useState("");
+  // Приглашение действует месяц: срок на экране не спрашиваем.
+  const expiresAt = () => {
+    const at = new Date();
+    at.setDate(at.getDate() + INVITATION_DAYS);
+    return at.toISOString();
+  };
+  const names = new Map(
+    (s.data?.directory.items ?? []).map((m) => [m.id, m.display_name]),
+  );
+  const reviewers = (s.data?.members.items ?? []).filter((m) =>
+    m.roles.includes("reviewer"),
+  );
   return (
     <>
       {action.feedback}
@@ -40,33 +60,51 @@ export function PeopleBody({ api }: { api: ApiClient }) {
         {s.data && (
           <div className="stack">
             <Card>
-              <CardHead title="Участники организации" />
-              <CardBody flush>
-                <table className="tbl">
-                  <thead>
-                    <tr>
-                      <th>Пользователь</th>
-                      <th>Роли</th>
-                      <th>Статус</th>
-                      <th className="r"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {s.data.members.items.map((m) => (
-                      <MemberRow
-                        key={`${m.id}:${m.revision}`}
-                        api={api}
-                        member={m}
-                        refresh={s.refresh}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </CardBody>
+              <CardHead
+                title="Ревьюеры"
+                sub={`${reviewers.length} ${plural(reviewers.length, "человек", "человека", "человек")}`}
+              />
+              {reviewers.length === 0 ? (
+                <Empty title="Ревьюеров пока нет">
+                  Пригласите ревьюера формой ниже.
+                </Empty>
+              ) : (
+                <CardBody flush>
+                  <table className="tbl">
+                    <thead>
+                      <tr>
+                        <th>Ревьюер</th>
+                        <th>Статус</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reviewers.map((m) => (
+                        <tr key={m.id}>
+                          <td>
+                            <div className="who">
+                              {names.get(m.user_id) ??
+                                `rev-${short(m.user_id)}`}
+                            </div>
+                            <div className="sub mono">
+                              {short(m.user_id, 8)}
+                            </div>
+                          </td>
+                          <td>
+                            <OpPill status={m.status} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardBody>
+              )}
             </Card>
             <div className="row-2">
               <Card>
-                <CardHead title="Пригласить участника" />
+                <CardHead
+                  title="Пригласить внешнего ревьюера"
+                  sub={`Ссылка действует ${INVITATION_DAYS} дней`}
+                />
                 <CardBody>
                   <form
                     onSubmit={(e) => {
@@ -78,8 +116,8 @@ export function PeopleBody({ api }: { api: ApiClient }) {
                           s.data!.organization.revision,
                           {
                             email,
-                            role,
-                            expires_at: new Date(expires).toISOString(),
+                            role: "reviewer",
+                            expires_at: expiresAt(),
                           },
                         );
                         setEmail("");
@@ -95,23 +133,6 @@ export function PeopleBody({ api }: { api: ApiClient }) {
                         onChange={(e) => setEmail(e.target.value)}
                       />
                     </Field>
-                    <Field label="Роль">
-                      <Sel
-                        value={role}
-                        onChange={(e) => setRole(e.target.value as typeof role)}
-                      >
-                        <option value="reviewer">Ревьюер</option>
-                        <option value="methodologist">Координатор</option>
-                      </Sel>
-                    </Field>
-                    <Field label="Действует до">
-                      <Inp
-                        type="datetime-local"
-                        required
-                        value={expires}
-                        onChange={(e) => setExpires(e.target.value)}
-                      />
-                    </Field>
                     <div className="btn-row btn-row--after">
                       <Btn variant="pri" type="submit" disabled={action.busy}>
                         Пригласить
@@ -124,7 +145,7 @@ export function PeopleBody({ api }: { api: ApiClient }) {
                 <CardHead title="Приглашения" />
                 {s.data.invitations.items.length === 0 ? (
                   <Empty title="Приглашений пока нет">
-                    Пригласите ревьюера или координатора формой слева.
+                    Пригласите внешнего ревьюера формой слева.
                   </Empty>
                 ) : (
                   <CardBody tight>
@@ -178,76 +199,19 @@ export function PeopleBody({ api }: { api: ApiClient }) {
     </>
   );
 }
-export function PeoplePage({ api }: { api: ApiClient }) {
-  return (
-    <>
-      <Topbar title="Участники" />
-      <Main>
-        <PeopleBody api={api} />
-      </Main>
-    </>
-  );
-}
-
-function MemberRow({
+export function PeoplePage({
   api,
-  member,
-  refresh,
+  ws,
 }: {
   api: ApiClient;
-  member: Model<"OrganizationMembershipList">["items"][number];
-  refresh: () => void;
+  ws: WorkspaceClient;
 }) {
-  const [roles, setRoles] = useState<Role[]>(member.roles);
-  const action = useAction();
   return (
-    <tr>
-      <td className="mono" title={member.user_id}>
-        {short(member.user_id, 8)}
-      </td>
-      <td>
-        <div className="btn-row">
-          {(Object.keys(roleNames) as Role[]).map((r) => (
-            <Chk
-              key={r}
-              checked={roles.includes(r)}
-              disabled={action.busy}
-              onChange={(e) =>
-                setRoles(
-                  e.target.checked
-                    ? [...roles, r]
-                    : roles.filter((v) => v !== r),
-                )
-              }
-            >
-              {roleNames[r]}
-            </Chk>
-          ))}
-        </div>
-      </td>
-      <td>
-        <OpPill status={member.status} />
-      </td>
-      <td className="r">
-        <Btn
-          size="s"
-          disabled={action.busy}
-          onClick={() =>
-            void action.run(async () => {
-              await api.command(
-                "change_membership_roles",
-                member.id,
-                member.revision,
-                { roles },
-              );
-              refresh();
-            })
-          }
-        >
-          Сохранить роли
-        </Btn>
-        {action.feedback}
-      </td>
-    </tr>
+    <>
+      <Topbar title="Ревьюеры" />
+      <Main>
+        <PeopleBody api={api} ws={ws} />
+      </Main>
+    </>
   );
 }

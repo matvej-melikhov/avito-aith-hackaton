@@ -20,6 +20,7 @@ import {
   WorkspaceHomeworkDirectory,
   WorkspacePreferences,
   WorkspaceAssignments,
+  WorkspaceHomeworkNew,
 } from "./pages/WorkspaceCatalog";
 import { ApiClient, ApiError, type Model, type Role } from "./api/client";
 import { Empty, ErrorBox, go, roleNames, useAction, useResource } from "./ui";
@@ -27,7 +28,8 @@ import { CoursePage, CoursesPage, QueuePage } from "./pages/Courses";
 import { ReviewPage } from "./pages/Review";
 import { HomeworkPage } from "./pages/Homework";
 import { OperationPage } from "./pages/Operations";
-import { CoordinatorCabinet, StudentCabinet } from "./pages/Cabinet";
+import { StudentCabinet } from "./pages/Cabinet";
+import { PeoplePage } from "./pages/People";
 import {
   Ava,
   Band,
@@ -116,15 +118,6 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
     window.addEventListener("hashchange", update);
     return () => window.removeEventListener("hashchange", update);
   }, []);
-  useEffect(() => {
-    if (route.split("?")[0] !== "/pool") return;
-    const timer = setTimeout(
-      () =>
-        document.getElementById("pool")?.scrollIntoView?.({ block: "start" }),
-      0,
-    );
-    return () => clearTimeout(timer);
-  }, [route]);
   const action = useAction();
   const session = s.data;
   const activeRole =
@@ -198,12 +191,17 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         ws={ws}
         role={activeRole}
         coordinatorPool={section === "coord-pool"}
+        reviewerPool={section === "pool"}
       />
     );
   else if (section === "dashboard" && activeRole === "methodologist")
     page = <WorkspaceCatalog ws={ws} mode="overview" />;
+  else if (section === "runs" && activeRole === "methodologist")
+    page = <WorkspaceCatalog ws={ws} mode="runs" />;
   else if (section === "homeworks" && activeRole === "methodologist")
     page = <WorkspaceHomeworkDirectory ws={ws} />;
+  else if (section === "homework-new" && activeRole === "methodologist")
+    page = <WorkspaceHomeworkNew ws={ws} />;
   else if (section === "statistics" && session.roles.includes("reviewer"))
     page = <WorkspaceStatistics ws={ws} />;
   else if (section === "assignments" && id && activeRole === "methodologist")
@@ -260,20 +258,7 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
       section === "deliveries") &&
     activeRole === "methodologist"
   )
-    page = (
-      <CoordinatorCabinet
-        api={api}
-        ws={ws}
-        tab={
-          section === "people"
-            ? "people"
-            : section === "deliveries"
-              ? "deliveries"
-              : "profile"
-        }
-        account={accountProps}
-      />
-    );
+    page = <PeoplePage api={api} ws={ws} />;
   else if (section === "preferences" && session.roles.includes("reviewer"))
     page = <WorkspacePreferences ws={ws} session={session} />;
   else if (section === "operations" && id)
@@ -327,12 +312,6 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
                 section,
               ),
             },
-            {
-              href: "#/courses",
-              label: "Мои курсы",
-              on: section === "courses",
-            },
-            { href: "#/cabinet", label: "Кабинет", on: section === "cabinet" },
           ]}
           right={account}
         />
@@ -362,35 +341,26 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
           },
         ]
       : [
-          { href: "#/dashboard", label: "Обзор", on: section === "dashboard" },
+          {
+            href: "#/dashboard",
+            label: "Обзор",
+            on: ["dashboard", "coord-pool", "registry"].includes(section),
+          },
           {
             href: "#/courses",
             label: "Курсы",
             count: counts.courses,
-            on: section === "courses",
+            on: ["courses", "homeworks", "homework"].includes(section),
           },
           {
-            href: "#/homeworks",
-            label: "Задания",
-            count: counts.homeworks,
-            on: section === "homeworks" || section === "homework",
+            href: "#/runs",
+            label: "Потоки",
+            on: section === "runs",
           },
           {
-            href: "#/coord-pool",
-            label: "Пул проверок",
-            count: counts.coordPool,
-            on: section === "coord-pool",
-          },
-          {
-            href: "#/registry",
-            label: "Домашки",
-            count: counts.registry,
-            on: section === "registry",
-          },
-          {
-            href: "#/cabinet",
-            label: "Кабинет",
-            on: ["cabinet", "people", "deliveries"].includes(section),
+            href: "#/people",
+            label: "Ревьюеры",
+            on: ["people", "cabinet", "deliveries"].includes(section),
           },
         ];
   return provider(

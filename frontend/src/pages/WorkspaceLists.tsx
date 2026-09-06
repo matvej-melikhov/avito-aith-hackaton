@@ -1,6 +1,12 @@
 import { StudentWorks } from "./StudentWorks";
 import { ReviewerQueue } from "./ReviewerQueue";
-import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import type { Role } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { useMenuCounts } from "../App";
@@ -48,11 +54,12 @@ export function WorkspaceWorks(props: {
   ws: WorkspaceClient;
   role: Role;
   coordinatorPool?: boolean;
+  reviewerPool?: boolean;
 }) {
   return props.role === "student" ? (
     <StudentWorks ws={props.ws} />
   ) : props.role === "reviewer" ? (
-    <ReviewerQueue ws={props.ws} />
+    <ReviewerQueue ws={props.ws} pool={props.reviewerPool} />
   ) : (
     <WorksList {...props} />
   );
@@ -75,14 +82,19 @@ function hashParam(name: string) {
   );
 }
 
-/** К7 «Пул проверок» и К8 «Домашки потока» координатора. */
-function WorksList({
+/**
+ * К7 «Пул проверок» и К8 «Домашки потока» координатора. На «Обзоре» обе
+ * таблицы показываются встроенно, без своей шапки экрана.
+ */
+export function WorksList({
   ws,
   coordinatorPool = false,
+  embedded = false,
 }: {
   ws: WorkspaceClient;
-  role: Role;
+  role?: Role;
   coordinatorPool?: boolean;
+  embedded?: boolean;
 }) {
   const pool = coordinatorPool;
   const [query, setQuery] = useState(hashParam("q"));
@@ -128,6 +140,15 @@ function WorksList({
   const averageWait = items.length
     ? items.reduce((sum, w) => sum + w.waited, 0) / items.length
     : null;
+
+  const Frame = ({
+    screen,
+    children,
+  }: {
+    screen: string;
+    children: ReactNode;
+  }) =>
+    embedded ? <>{children}</> : <Main data-screen={screen}>{children}</Main>;
 
   async function openReview(w: W<"WorkItem">) {
     if (
@@ -217,25 +238,28 @@ function WorksList({
   if (pool)
     return (
       <>
-        <Topbar
-          crumbs={crumbs}
-          title="Пул проверок"
-          actions={
-            <Btn
-              size="s"
-              variant="dark"
-              disabled={!currentRun}
-              title={currentRun ? undefined : "Сначала выберите поток"}
-              onClick={() => setReminding(true)}
-            >
-              Напомнить ревьюерам
-            </Btn>
-          }
-        />
-        <Main data-screen="К7">
+        {!embedded && (
+          <Topbar
+            crumbs={crumbs}
+            title="Пул проверок"
+            actions={
+              <Btn
+                size="s"
+                variant="dark"
+                disabled={!currentRun}
+                title={currentRun ? undefined : "Сначала выберите поток"}
+                onClick={() => setReminding(true)}
+              >
+                Напомнить ревьюерам
+              </Btn>
+            }
+          />
+        )}
+        <Frame screen="К7">
           {action.feedback}
           <div className="stack">
-            {r.data && (
+            {embedded && <h2 className="section-title">Пул проверок</h2>}
+            {r.data && !embedded && (
               <Tiles>
                 <Tile
                   n={r.data.total}
@@ -352,7 +376,7 @@ function WorksList({
               </Resource>
             </Card>
           </div>
-        </Main>
+        </Frame>
         {reminding && currentRun && (
           <RemindModal ws={ws} run={currentRun} close={closeRemind} />
         )}
@@ -361,48 +385,62 @@ function WorksList({
 
   return (
     <>
-      <Topbar
-        crumbs={crumbs}
-        title="Домашки потока"
-        lead={
-          <form
-            className="topbar__search"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSearch(query);
-              setOffset(0);
-            }}
-          >
-            <Inp
-              small
-              className="inp--w-200"
-              aria-label="Поиск"
-              placeholder="Поиск по ID студента"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onBlur={() => {
-                if (query !== search) {
-                  setSearch(query);
-                  setOffset(0);
-                }
+      {!embedded && (
+        <Topbar
+          crumbs={crumbs}
+          title="Домашки потока"
+          lead={
+            <form
+              className="topbar__search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSearch(query);
+                setOffset(0);
               }}
-            />
-          </form>
-        }
-        actions={
-          <Btn
-            size="s"
-            variant="dark"
-            disabled={!currentRun}
-            title={currentRun ? undefined : "Сначала выберите поток"}
-            onClick={() => setExporting(true)}
-          >
-            Выгрузить
-          </Btn>
-        }
-      />
-      <Main data-screen="К8">
+            >
+              <Inp
+                small
+                className="inp--w-200"
+                aria-label="Поиск"
+                placeholder="Поиск по ID студента"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onBlur={() => {
+                  if (query !== search) {
+                    setSearch(query);
+                    setOffset(0);
+                  }
+                }}
+              />
+            </form>
+          }
+          actions={
+            <>
+              {!currentRun && (
+                <span className="caption">
+                  Выгрузка готовится по одному потоку. Выберите его ниже.
+                </span>
+              )}
+              <Btn
+                size="s"
+                variant="dark"
+                disabled={!currentRun}
+                title={
+                  currentRun
+                    ? undefined
+                    : "Выберите поток: выгрузка готовится по одному потоку"
+                }
+                onClick={() => setExporting(true)}
+              >
+                Выгрузить
+              </Btn>
+            </>
+          }
+        />
+      )}
+      <Frame screen="К8">
         {action.feedback}
+        {embedded && <h2 className="section-title">Домашки</h2>}
         <div className="tabs--row">
           <Tabs className="tabs--wrap" label="Статус">
             {REGISTRY_TABS.map(([value, label]) => (
@@ -514,7 +552,7 @@ function WorksList({
             )}
           </Resource>
         </Card>
-      </Main>
+      </Frame>
       {exporting && currentRun && (
         <ExportForm
           ws={ws}
@@ -788,38 +826,35 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
   const peer = r.data?.peer_comparison;
   return (
     <>
-      <Topbar
-        title="Кабинет"
-        actions={
-          <>
-            <Sel
-              small
-              aria-label="Поток"
-              value={courseRun}
-              onChange={(e) => setCourseRun(e.target.value)}
-            >
-              <option value="">Поток: все</option>
-              {catalog.data?.course_runs.map((run) => (
-                <option key={run.id} value={run.id}>
-                  {run.title}
-                </option>
-              ))}
-            </Sel>
-            <Sel
-              small
-              aria-label="Период"
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-            >
-              <option value={7}>Период: 7 дней</option>
-              <option value={30}>Период: 30 дней</option>
-              <option value={90}>Период: 90 дней</option>
-            </Sel>
-          </>
-        }
-      />
+      <Topbar title="Кабинет" />
       <Main data-screen="Р4">
         <CabinetTabs on="statistics" />
+        {/* Фильтры сужают аналитику ниже, поэтому стоят рядом с ней. */}
+        <BtnRow className="filter-row">
+          <Sel
+            small
+            aria-label="Поток"
+            value={courseRun}
+            onChange={(e) => setCourseRun(e.target.value)}
+          >
+            <option value="">Поток: все</option>
+            {catalog.data?.course_runs.map((run) => (
+              <option key={run.id} value={run.id}>
+                {run.title}
+              </option>
+            ))}
+          </Sel>
+          <Sel
+            small
+            aria-label="Период"
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+          >
+            <option value={7}>Период: 7 дней</option>
+            <option value={30}>Период: 30 дней</option>
+            <option value={90}>Период: 90 дней</option>
+          </Sel>
+        </BtnRow>
         <Resource value={r}>
           {r.data && (
             <div className="stack">
