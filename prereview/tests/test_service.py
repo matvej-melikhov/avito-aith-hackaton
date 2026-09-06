@@ -143,3 +143,16 @@ def test_self_review_is_coarse(settings, md_artifact):
     findings = ev["result"]["findings"]
     assert all(f["evidence"] == "" for f in findings)
     assert findings[0]["feedback"].startswith("Итог самопроверки: ")
+
+
+def test_lookup_returns_204_while_running(settings, md_artifact, monkeypatch):
+    """Пока финального события нет, GET отвечает 204: бэкенд держит запуск в «выполняется»."""
+    from prereview.service import app as service_app
+
+    monkeypatch.setattr(service_app, "execute", lambda *a, **k: None)  # фоновая работа не запускается
+    client = make_client()
+    req = assist_request(md_artifact)
+    first = client.post(f"/v2/review-assists/{req['run_id']}", json=req)
+    assert first.status_code == 200 and first.json()["status"] == "running"
+    g = client.get(f"/v2/review-assists/{req['run_id']}", params={"attempt": 1})
+    assert g.status_code == 204

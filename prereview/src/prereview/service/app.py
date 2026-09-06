@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import ValidationError
 
 from prereview import __version__
@@ -181,4 +181,9 @@ def lookup(kind: str, run_id: str, attempt: int = Query(...),
     if row is None:
         raise HTTPException(status_code=404, detail="unknown run")
     last = store.last_event(run_id, attempt)
-    return JSONResponse(last or _event(row.request, "running"))
+    if last is None or last["status"] == "running":
+        # Работа ещё идёт: по контракту 204 значит «оставить запуск в ожидании и продолжить lookup».
+        # Повтор одного и того же события running бэкенд игнорирует по sequence и оставляет
+        # запуск в состоянии «исход неизвестен», а 204 возвращает его в «выполняется».
+        return Response(status_code=204)
+    return JSONResponse(last)
