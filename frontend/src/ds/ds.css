@@ -2303,3 +2303,9 @@ select.inp:not(.inp--s) {
   margin-left: auto;
   align-self: center;
 }
+
+/* Кнопка «Заменить» внутри зоны загрузки: обычная кнопка, а не блочный текст зоны */
+.upload--filled > .btn {
+  display: inline-flex;
+  line-height: 1;
+}
