@@ -438,8 +438,8 @@ a:hover { border-bottom-color: var(--ink); }
 .aside { border-right: var(--bw-hair) solid var(--line); padding: var(--s-5) 0; display: flex; flex-direction: column; }
 .brand { display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-5);
          font-family: var(--font-display); font-weight: var(--w-semi); font-size: 15px; letter-spacing: -.03em; }
-.brand .dots { display: flex; align-items: center; gap: 3px; }
-.brand .dots i { display: block; border-radius: var(--r-circle); }
+.brand .logo { display: block; width: 152px; height: auto; }
+.brand .logo--mark { width: 26px; }
 .menu { display: flex; flex-direction: column; }
 .menu a { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
           padding: var(--s-3) var(--s-5); font-size: var(--small-size); color: var(--ink-2); border: 0;
