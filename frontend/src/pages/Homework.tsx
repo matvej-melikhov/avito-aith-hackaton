@@ -7,6 +7,7 @@ import {
   Empty,
   Kv,
   Main,
+  Markdown,
   Pill,
   Topbar,
   dayLong,
@@ -70,7 +71,7 @@ export function HomeworkPage({
                 <CardHead title="Условие задания" />
                 {latest ? (
                   <CardBody prose>
-                    <p className="preserve">{latest.student_text}</p>
+                    <Markdown text={latest.student_text} />
                   </CardBody>
                 ) : (
                   <Empty title="Версии ещё нет">

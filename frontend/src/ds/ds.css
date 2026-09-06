@@ -2154,3 +2154,129 @@ select.inp:not(.inp--s) {
     margin-left: auto;
   }
 }
+
+/* Текст задания из Markdown: спокойная типографика внутри карточки */
+.md {
+  font-size: var(--body-size);
+  line-height: var(--body-lh);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.md > * + * {
+  margin-top: var(--s-3);
+}
+.md h1,
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+  font-weight: var(--w-medium);
+  line-height: 1.25;
+  color: var(--ink);
+}
+.md h1 {
+  font-size: 22px;
+}
+.md h2 {
+  font-size: 18px;
+}
+.md h3 {
+  font-size: 16px;
+}
+.md h4,
+.md h5,
+.md h6 {
+  font-size: var(--body-size);
+}
+.md > h1,
+.md > h2,
+.md > h3 {
+  margin-top: var(--s-6);
+}
+.md > h4,
+.md > h5,
+.md > h6 {
+  margin-top: var(--s-5);
+}
+.md > :first-child {
+  margin-top: 0;
+}
+.md p {
+  color: var(--ink-2);
+}
+.md ul,
+.md ol {
+  padding-left: var(--s-6);
+  color: var(--ink-2);
+}
+.md ul {
+  list-style: disc;
+}
+.md ol {
+  list-style: decimal;
+}
+.md li + li {
+  margin-top: var(--s-1);
+}
+.md li > ul,
+.md li > ol {
+  margin-top: var(--s-1);
+}
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--page);
+  border: var(--bw-hair) solid var(--line);
+  padding: 1px 5px;
+}
+.md pre.md__code {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  background: var(--page);
+  border: var(--bw-hair) solid var(--line);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  line-height: var(--small-lh);
+}
+.md pre.md__code code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+.md blockquote {
+  margin: 0;
+  padding: var(--s-1) var(--s-4);
+  border-left: 3px solid var(--line-2);
+  color: var(--ink-2);
+}
+.md hr {
+  border: 0;
+  border-top: var(--bw-hair) solid var(--line);
+}
+.md a {
+  color: inherit;
+  text-decoration: underline;
+}
+.md__scroll {
+  overflow-x: auto;
+}
+.md__table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--small-size);
+  line-height: var(--small-lh);
+}
+.md__table th,
+.md__table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--s-2) var(--s-3);
+  border-bottom: var(--bw-hair) solid var(--line);
+}
+.md__table th {
+  font-weight: var(--w-medium);
+  border-bottom-color: var(--line-2);
+}

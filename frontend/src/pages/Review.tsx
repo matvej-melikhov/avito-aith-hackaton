@@ -24,6 +24,7 @@ import {
   Finding,
   Kv,
   Main,
+  Markdown,
   Meter,
   OpPill,
   Pill,
@@ -982,7 +983,7 @@ export function ReviewEditor({
               {conditionOpen && (
                 <CardBody prose id="review-condition">
                   <p className="preserve">
-                    {version?.student_text || "Условие задания не задано."}
+                    <Markdown text={version?.student_text || "Условие задания не задано."} />
                   </p>
                   {ws &&
                     !!context?.private_details?.material_upload_ids?.length && (

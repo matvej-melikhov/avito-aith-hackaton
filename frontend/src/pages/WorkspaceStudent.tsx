@@ -20,6 +20,7 @@ import {
   Inp,
   Kv,
   Main,
+  Markdown,
   Pill,
   Seg,
   Skel,
@@ -434,7 +435,7 @@ function DraftForm({
               </CardHead>
               {!collapsed && (
                 <CardBody prose>
-                  <p className="preserve">{data.student_text}</p>
+                  <Markdown text={data.student_text} />
                   {!!data.material_upload_ids?.length && (
                     <p className="btn-row">
                       {data.material_upload_ids.map((id) => (
