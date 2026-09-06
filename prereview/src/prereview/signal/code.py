@@ -73,7 +73,7 @@ def english_prose_comments(work: Work, meta: dict) -> Ground | None:
     long_en = 0
     ev = []
     for f in work.files:
-        if f.language not in CODE_LANGS:
+        if f.language not in CODE_LANGS or is_generated(f):
             continue
         for i, line in enumerate(f.lines, 1):
             m = re.match(r"^\s*(?://|#)\s*(.+)$", line)
