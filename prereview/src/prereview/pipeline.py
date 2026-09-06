@@ -23,6 +23,7 @@ from prereview.artifact.ocr import apply_ocr
 from prereview.artifact.redact import RedactionReport, redact_work
 from prereview.checks.gobuild import go_build, is_go_project
 from prereview.checks.run import facts_for_prompt, run_checks
+from prereview.checks.runtime import RuntimeReport, apply_runtime, run_runtime
 from prereview.config import Settings
 from prereview.contracts import (
     AssistEvidence,
@@ -73,6 +74,7 @@ class RunRecord:
     redaction: dict = field(default_factory=dict)
     harness: dict = field(default_factory=dict)
     build: dict = field(default_factory=dict)
+    runtime: dict = field(default_factory=dict)
     criteria: list[dict] = field(default_factory=list)
     signal: dict = field(default_factory=dict)
     ledger: dict = field(default_factory=dict)
@@ -193,13 +195,46 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
     reports = {c.key: run_checks(prep.clean, c) for c in prep.rubric if c.checks}
     ctx.facts_text = facts_for_prompt(reports, {c.key for c in prep.rubric if c.is_formal})
     # Go-снимок собираем и прогоняем vet: несобирающийся код ревьюер ловит запуском.
+    # Сборка и песочница работают по исходному тексту: замена секретов плейсхолдерами нужна только
+    # модели, а в коде она ломает синтаксис (например, `Password = cfg.DBPassword`).
     build = None
-    if settings.go_build_enabled and is_go_project(prep.clean):
-        build = go_build(prep.clean, timeout=settings.go_build_timeout_seconds)
+    if settings.go_build_enabled and is_go_project(prep.work):
+        build = go_build(prep.work, timeout=settings.go_build_timeout_seconds, settings=settings)
         record.build = build.to_dict()
         ctx.facts_text = build.facts() + "\n\n" + ctx.facts_text
         if build.build_ok is False:
             record.flags.append("build_failed")
+
+    # Песочница: собранный бинарник гоняется по сценариям задания параллельно с Harness,
+    # факты запуска попадают в промпт судьи и решают строки рубрики о поведении сервиса.
+    runtime: RuntimeReport | None = None
+    runtime_pool: ThreadPoolExecutor | None = None
+    runtime_future = None
+    if (build is not None and build.build_ok and prep.assignment and prep.assignment.runtime
+            and settings.runtime_enabled and settings.runner_url):
+        runtime_pool = ThreadPoolExecutor(max_workers=1)
+        runtime_future = runtime_pool.submit(run_runtime, prep.work, prep.assignment.runtime, settings)
+
+    def collect_runtime() -> RuntimeReport | None:
+        nonlocal runtime
+        if runtime_future is None or runtime is not None:
+            return runtime
+        try:
+            runtime = runtime_future.result()
+        except Exception as e:  # noqa: BLE001 — песочница не должна ронять проверку
+            runtime = RuntimeReport(available=True, error=f"{type(e).__name__}: {str(e)[:200]}")
+        finally:
+            if runtime_pool is not None:
+                runtime_pool.shutdown(wait=False)
+        record.runtime = runtime.to_dict()
+        if runtime.error:
+            record.errors.append("runtime: " + runtime.error)
+        if runtime.ran:
+            record.flags.append("runtime_checked")
+        facts = runtime.facts()
+        if facts:
+            ctx.facts_text = facts + "\n\n" + ctx.facts_text
+        return runtime
 
     results: list[CriterionResult] = []
     if "needs_vision" in prep.clean.flags or "no_text_files" in prep.clean.flags:
@@ -218,6 +253,7 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
             if pack.error:
                 record.errors.append(f"harness: {pack.error}")
         record.harness = pack.to_dict()
+        collect_runtime()
 
         def one(c: Criterion) -> CriterionResult:
             if c.is_formal:
@@ -250,6 +286,10 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
         with ThreadPoolExecutor(max_workers=4) as pool:
             results = list(pool.map(one, prep.rubric))
 
+    collect_runtime()
+    if runtime is not None and runtime.ran:
+        results = [apply_runtime(r, runtime) for r in results]
+
     # Сигнал об ИИ: вне баллов.
     meta = {"student_comment": "", "injection_hits": prep.redaction.injection_hits}
     signal, signal_record = build_signal(prep.clean, meta, client=client, prompts=prompts,
@@ -264,6 +304,8 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
         build_note = ("Сборка go build: успешно. " if build.build_ok else "Сборка go build НЕ ПРОХОДИТ: " + build.build_output.strip().splitlines()[-1][:160] + ". ")
         if build.vet_ok is False:
             build_note += "go vet с замечаниями. "
+    if runtime is not None:
+        build_note += runtime.summary() if runtime.ran else f"Запуск в песочнице не выполнен: {runtime.note or runtime.error}. "
     summary = build_note + reviewer_summary(results, signal_record.get("level", "low"), ledger.cost_rub,
                                ledger.prompt_tokens + ledger.completion_tokens, record.prompt_versions,
                                client.model, pack.source if pack.source != "none" else ("нет: " + (pack.error or "не нужен")))
@@ -281,7 +323,7 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
         {"key": r.criterion.key, "class": r.criterion.check_class, "class_source": r.criterion.class_source,
          "status": r.status, "points": r.proposed_points, "max": r.criterion.max_points, "confidence": r.confidence,
          "verdict": r.verdict, "path": r.path, "verified": len(r.verified), "dropped": len(r.dropped),
-         "flags": r.flags, "reason": r.reason, "repeats": r.repeats}
+         "flags": r.flags, "reason": r.reason, "repeats": r.repeats, "runtime": r.runtime_lines}
         for r in results
     ]
     record.ledger = ledger.summary()

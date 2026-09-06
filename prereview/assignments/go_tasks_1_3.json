@@ -1,7 +1,7 @@
 {
   "slug": "go_tasks_1_3",
   "title": "Курс Go, задания 1–3: сервис курьеров (структура, веб-сервер, БД, миграции, CRUD, чистая архитектура)",
-  "version": "1",
+  "version": "2",
   "match_keys": [
     "go_mod",
     "structure",
@@ -12,6 +12,206 @@
     "clean_layers"
   ],
   "student_text_hint": "Задание 1: HTTP-сервер с GET /ping и HEAD /healthcheck, порт из .env и флага --port (флаг важнее), лог старта в stdout, graceful shutdown по SIGINT/SIGTERM через context с сообщением в лог, структура cmd/ internal/ pkg/, go.mod. Задание 2: подключение к Postgres (данные из конфига), defer Close, Ping с ретраем, паника при ошибке; миграции популярным пакетом (goose или migrate) через Makefile или скрипт, не из main.go; CRUD API курьеров (GET list, GET by id, POST, PUT) в internal, pgx, без sql-инъекций. Задание 3: чистая архитектура: слои handler, usecase/service, repository, model; зависимости через конструкторы, конструкторы принимают интерфейсы и возвращают структуры; интерфейсы в месте использования, приватные; нет утечек между слоями (json/db теги не в моделях БД); нет sql в usecase; нет логики в handlers; тонкие модели и handlers; пакеты внутри слоёв; DI-пакет (например dig).",
+  "runtime": {
+    "kind": "http_service",
+    "note": "Сценарии песочницы по ТЗ заданий 1 и 2. ${PORT_A} и ${PORT_B} подставляет песочница, {courier_id} берётся из ответа POST. db=fresh даёт сервису чистую базу без схемы (решения заданий 2–3 подключаются к базе при старте), db=migrated накатывает миграции студента; если миграций нет, пробы CRUD не выполняются, чтобы не наказывать дважды.",
+    "scenarios": [
+      {
+        "id": "env_port",
+        "title": "запуск с портом из .env",
+        "env": {
+          "PORT": "${PORT_A}"
+        },
+        "db": "fresh",
+        "expect_listen": "${PORT_A}",
+        "probes": [
+          {
+            "id": "ping",
+            "method": "GET",
+            "path": "/ping",
+            "expect_status": 200,
+            "expect_json": {
+              "message": "pong"
+            }
+          },
+          {
+            "id": "healthcheck",
+            "method": "HEAD",
+            "path": "/healthcheck",
+            "expect_status": 204,
+            "expect_empty_body": true
+          }
+        ],
+        "stop": {
+          "signal": "SIGTERM",
+          "expect_exit_within": 10,
+          "expect_log": "Shutting down service-courier"
+        }
+      },
+      {
+        "id": "dotenv_only",
+        "title": "порт только из файла .env, без переменных процесса",
+        "env": {
+          "PORT": "${PORT_A}"
+        },
+        "db": "fresh",
+        "env_mode": "file",
+        "expect_listen": "${PORT_A}",
+        "stop": {
+          "signal": "SIGINT",
+          "expect_exit_within": 10
+        }
+      },
+      {
+        "id": "flag_port",
+        "title": "флаг --port важнее .env",
+        "env": {
+          "PORT": "${PORT_A}"
+        },
+        "db": "fresh",
+        "args": [
+          "--port",
+          "${PORT_B}"
+        ],
+        "expect_listen": "${PORT_B}",
+        "expect_not_listen": "${PORT_A}",
+        "stop": {
+          "signal": "SIGINT",
+          "expect_exit_within": 10
+        }
+      },
+      {
+        "id": "db_down",
+        "title": "паника при недоступной базе",
+        "env": {
+          "PORT": "${PORT_A}"
+        },
+        "db": "unreachable",
+        "expect_exit_within": 20,
+        "expect_exit_nonzero": true
+      },
+      {
+        "id": "migrate",
+        "kind": "migrations",
+        "title": "миграции на чистой базе и повторно"
+      },
+      {
+        "id": "crud",
+        "title": "CRUD курьеров по ТЗ задания 2",
+        "env": {
+          "PORT": "${PORT_A}"
+        },
+        "db": "migrated",
+        "expect_listen": "${PORT_A}",
+        "probes": [
+          {
+            "id": "post_create",
+            "method": "POST",
+            "path": "/courier",
+            "json": {
+              "name": "Антон",
+              "phone": "+37444111222",
+              "status": "available"
+            },
+            "expect_status": 201,
+            "capture": {
+              "courier_id": "id"
+            }
+          },
+          {
+            "id": "post_conflict",
+            "method": "POST",
+            "path": "/courier",
+            "json": {
+              "name": "Антон",
+              "phone": "+37444111222",
+              "status": "available"
+            },
+            "expect_status": 409
+          },
+          {
+            "id": "post_invalid",
+            "method": "POST",
+            "path": "/courier",
+            "json": {
+              "name": "",
+              "phone": "",
+              "status": ""
+            },
+            "expect_status": 400
+          },
+          {
+            "id": "get_list",
+            "method": "GET",
+            "path": "/couriers",
+            "expect_status": 200,
+            "expect_json_array": true
+          },
+          {
+            "id": "get_one",
+            "method": "GET",
+            "path": "/courier/{courier_id}",
+            "expect_status": 200,
+            "expect_json_includes": {
+              "name": "Антон"
+            }
+          },
+          {
+            "id": "get_missing",
+            "method": "GET",
+            "path": "/courier/999999",
+            "expect_status": 404
+          },
+          {
+            "id": "get_bad_id",
+            "method": "GET",
+            "path": "/courier/abc",
+            "expect_status": 400
+          },
+          {
+            "id": "put_update",
+            "method": "PUT",
+            "path": "/courier",
+            "json": {
+              "id": "{courier_id}",
+              "name": "Антон Иванов",
+              "phone": "+37444111222",
+              "status": "paused"
+            },
+            "expect_status": 200
+          },
+          {
+            "id": "put_missing",
+            "method": "PUT",
+            "path": "/courier",
+            "json": {
+              "id": 999999,
+              "name": "Нет",
+              "phone": "+37400000000",
+              "status": "paused"
+            },
+            "expect_status": 404
+          },
+          {
+            "id": "put_invalid",
+            "method": "PUT",
+            "path": "/courier",
+            "json": {
+              "id": "{courier_id}",
+              "name": "",
+              "phone": "bad",
+              "status": ""
+            },
+            "expect_status": 400
+          }
+        ],
+        "stop": {
+          "signal": "SIGTERM",
+          "expect_exit_within": 10
+        }
+      }
+    ]
+  },
   "criteria": {
     "structure": {
       "group": "Структура проекта",
@@ -81,13 +281,16 @@
       "description": "Проверяется тестом курса hw1/run_server_test.go.",
       "max_points": 1,
       "check_class": "content",
+      "runtime": [
+        "env_port"
+      ],
       "critical": true,
       "scope": [
         "cmd/**",
         "internal/**server**",
         "internal/**/server/**"
       ],
-      "hints": "Тест курса не запускается в этой версии: по коду найди ListenAndServe или http.Server и подтверди цитатой; фактический запуск нужен ревьюеру."
+      "hints": "По коду найди ListenAndServe или http.Server и подтверди цитатой. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "port_env": {
       "group": "Веб сервер",
@@ -107,7 +310,10 @@
           "note": "чтение окружения"
         }
       ],
-      "hints": "Ищи чтение переменной порта из окружения и её использование при запуске сервера."
+      "runtime": [
+        "dotenv_only.port"
+      ],
+      "hints": "Ищи чтение переменной порта из окружения и её использование при запуске сервера. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "start_log": {
       "group": "Веб сервер",
@@ -115,8 +321,11 @@
       "description": "",
       "max_points": 1,
       "check_class": "content",
+      "runtime": [
+        "env_port.stdout"
+      ],
       "critical": true,
-      "hints": "Найди вызов логгера при старте сервера (log.Println, slog.Info, zap) и что вывод идёт в stdout, а не только в stderr или файл."
+      "hints": "Найди вызов логгера при старте сервера (log.Println, slog.Info, zap) и что вывод идёт в stdout, а не только в stderr или файл. Песочница смотрит раздельно stdout и stderr при старте: пакет log в Go по умолчанию пишет в stderr, это не stdout. Если в фактах запуска есть результат для этой строки, он решает."
     },
     "ping": {
       "group": "Веб сервер",
@@ -135,7 +344,10 @@
           "note": "маршрут /ping"
         }
       ],
-      "hints": "Найди регистрацию маршрута /ping и обработчик, проверь метод и код ответа."
+      "runtime": [
+        "env_port.ping"
+      ],
+      "hints": "Найди регистрацию маршрута /ping и обработчик, проверь метод и код ответа. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "healthcheck": {
       "group": "Веб сервер",
@@ -155,7 +367,10 @@
           "note": "маршрут healthcheck"
         }
       ],
-      "hints": "Нужен именно метод HEAD и статус 204 или 200 согласно ТЗ, GET вместо HEAD это partial."
+      "runtime": [
+        "env_port.healthcheck"
+      ],
+      "hints": "Нужен именно метод HEAD и статус 204 или 200 согласно ТЗ, GET вместо HEAD это partial. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "graceful_signal": {
       "group": "Грейсфул шатдаун",
@@ -174,7 +389,11 @@
           "note": "обработка сигналов"
         }
       ],
-      "hints": "Найди подписку на SIGINT/SIGTERM и вызов Shutdown у сервера."
+      "runtime": [
+        "env_port.stop",
+        "dotenv_only.stop"
+      ],
+      "hints": "Найди подписку на SIGINT/SIGTERM и вызов Shutdown у сервера. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "graceful_context": {
       "group": "Грейсфул шатдаун",
@@ -190,7 +409,10 @@
       "description": "",
       "max_points": 1.5,
       "check_class": "content",
-      "hints": "Сообщение об остановке после Shutdown, например «Shutting down service-courier»."
+      "runtime": [
+        "env_port.log"
+      ],
+      "hints": "Сообщение об остановке после Shutdown, например «Shutting down service-courier». По рубрике достаточно любого сообщения в лог при остановке; ТЗ просит текст «Shutting down service-courier», его отсутствие отметь в student_feedback. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "port_flag": {
       "group": "Переопределение флагами",
@@ -210,7 +432,10 @@
           "note": "пакет flag"
         }
       ],
-      "hints": "Флаг --port через пакет flag или pflag."
+      "runtime": [
+        "flag_port.port"
+      ],
+      "hints": "Флаг --port через пакет flag или pflag. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "flag_over_env": {
       "group": "Переопределение флагами",
@@ -218,7 +443,10 @@
       "description": "",
       "max_points": 1,
       "check_class": "content",
-      "hints": "Порядок приоритета: сначала окружение, потом флаг перезаписывает, или явная проверка «если флаг задан»."
+      "runtime": [
+        "flag_port.port"
+      ],
+      "hints": "Порядок приоритета: сначала окружение, потом флаг перезаписывает, или явная проверка «если флаг задан». Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "db_connect": {
       "group": "Подключение к базе данных",
@@ -238,7 +466,10 @@
           "note": "драйвер БД"
         }
       ],
-      "hints": "DSN собирается из конфига или окружения, не захардкожен."
+      "runtime": [
+        "crud"
+      ],
+      "hints": "DSN собирается из конфига или окружения, не захардкожен. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "db_defer_close": {
       "group": "Подключение к базе данных",
@@ -303,7 +534,10 @@
           "note": "panic или Fatal"
         }
       ],
-      "hints": "panic или log.Fatal при ошибке подключения к базе (создание пула, Ping). Наличие ретраев здесь не оценивается, это отдельная строка."
+      "runtime": [
+        "db_down"
+      ],
+      "hints": "panic или log.Fatal при ошибке подключения к базе (создание пула, Ping). Наличие ретраев здесь не оценивается, это отдельная строка. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "migrations_tool": {
       "group": "Миграция",
@@ -362,8 +596,11 @@
       "description": "Проверяется прогоном, по коду только косвенно.",
       "max_points": 1,
       "check_class": "content",
+      "runtime": [
+        "migrate.first"
+      ],
       "critical": true,
-      "hints": "По коду: миграции создают все таблицы, на которые опирается репозиторий. Фактический прогон нужен ревьюеру: ставь confidence low."
+      "hints": "По коду: миграции создают все таблицы, на которые опирается репозиторий. Без факта запуска ставь confidence low. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "migrations_idempotent": {
       "group": "Миграция",
@@ -371,8 +608,11 @@
       "description": "",
       "max_points": 1,
       "check_class": "content",
+      "runtime": [
+        "migrate.second"
+      ],
       "critical": true,
-      "hints": "Инструмент миграций ведёт версии (goose_db_version) или используются IF NOT EXISTS. Прогон нужен ревьюеру: confidence low."
+      "hints": "Инструмент миграций ведёт версии (goose_db_version) или используются IF NOT EXISTS. Без факта запуска ставь confidence low. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "crud_get": {
       "group": "Crud API",
@@ -392,7 +632,13 @@
           "note": "GET-маршруты"
         }
       ],
-      "hints": "Тест курса hw2/courier_crud_test.go здесь не запускается: найди оба обработчика (GET /courier/{id} и GET /couriers) и коды 200, 404 при отсутствии, 400 при невалидном id."
+      "runtime": [
+        "crud.get_list",
+        "crud.get_one",
+        "crud.get_missing",
+        "crud.get_bad_id"
+      ],
+      "hints": "Найди оба обработчика (GET /courier/{id} и GET /couriers) и коды 200, 404 при отсутствии, 400 при невалидном id. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "crud_post": {
       "group": "Crud API",
@@ -400,8 +646,13 @@
       "description": "",
       "max_points": 1,
       "check_class": "content",
+      "runtime": [
+        "crud.post_create",
+        "crud.post_conflict",
+        "crud.post_invalid"
+      ],
       "critical": true,
-      "hints": "Сверь коды ответов с ТЗ: 201 при создании, 400 при отсутствии обязательных полей или невалидном телефоне, 409 при дубле телефона. Если тело не валидируется (нет 400 для пустых полей или телефона), это partial."
+      "hints": "Сверь коды ответов с ТЗ: 201 при создании, 400 при отсутствии обязательных полей или невалидном телефоне, 409 при дубле телефона. Если тело не валидируется (нет 400 для пустых полей или телефона), это partial. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "crud_put": {
       "group": "Crud API",
@@ -409,8 +660,13 @@
       "description": "",
       "max_points": 1,
       "check_class": "content",
+      "runtime": [
+        "crud.put_update",
+        "crud.put_missing",
+        "crud.put_invalid"
+      ],
       "critical": true,
-      "hints": "Сверь с ТЗ: PUT /courier с id в теле, 200 при успехе, 404 если курьера нет, 400 при ошибках валидации. Если валидации тела нет или любая ошибка отдаётся одним кодом, это partial."
+      "hints": "Сверь с ТЗ: PUT /courier с id в теле, 200 при успехе, 404 если курьера нет, 400 при ошибках валидации. Если валидации тела нет или любая ошибка отдаётся одним кодом, это partial. Если в фактах запуска есть результат для этой строки, он решает: «как в ТЗ» подтверждает, «НЕ по ТЗ» опровергает, «не стартовал» значит суди по коду."
     },
     "handlers_in_internal": {
       "group": "Crud API",

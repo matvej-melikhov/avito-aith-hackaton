@@ -21,6 +21,26 @@ from prereview.checks.primitives import CheckOutcome, Evidence
 ERR_LINE = re.compile(r"^(?:#\s.*\n)?(?P<path>[\w./\\-]+\.go):(?P<line>\d+)(?::\d+)?:\s*(?P<msg>.+)$", re.M)
 
 
+def go_env(settings: object | None, tmp: str) -> dict[str, str]:
+    """Окружение для go: кэши модулей и сборки постоянные (повторная сборка того же снимка
+    занимает секунды), остальное в tmp. Сеть нужна только для скачивания модулей."""
+    data_dir = Path(getattr(settings, "data_dir", tmp)) if settings is not None else Path(tmp) / "cache"
+    modcache = os.environ.get("PREREVIEW_GOMODCACHE") or str(getattr(settings, "go_mod_cache_dir", None) or data_dir / "gomodcache")
+    gocache = os.environ.get("PREREVIEW_GOCACHE") or str(getattr(settings, "go_cache_dir", None) or data_dir / "gocache")
+    return {
+        "PATH": os.environ.get("PATH", ""),
+        "HOME": tmp,
+        "GOPATH": str(Path(tmp) / "cache" / "gopath"),
+        "GOCACHE": gocache,
+        "GOMODCACHE": modcache,
+        "GOFLAGS": "-mod=mod",
+        "GOPROXY": os.environ.get("GOPROXY", "https://proxy.golang.org,direct"),
+        "GOTOOLCHAIN": "local",
+        "CGO_ENABLED": "0",
+        "GOTELEMETRY": "off",
+    }
+
+
 @dataclass
 class GoBuildReport:
     available: bool
@@ -75,7 +95,7 @@ def _parse_errors(output: str, limit: int = 8) -> list[Evidence]:
     return out
 
 
-def go_build(work: Work, *, timeout: int = 180, vet: bool = True) -> GoBuildReport:
+def go_build(work: Work, *, timeout: int = 180, vet: bool = True, settings: object | None = None) -> GoBuildReport:
     go = shutil.which("go")
     if not go:
         return GoBuildReport(available=False)
@@ -88,19 +108,7 @@ def go_build(work: Work, *, timeout: int = 180, vet: bool = True) -> GoBuildRepo
         root = Path(tmp) / "src"
         root.mkdir()
         _materialize(work, root)
-        cache = Path(tmp) / "cache"
-        env = {
-            "PATH": os.environ.get("PATH", ""),
-            "HOME": tmp,
-            "GOPATH": str(cache / "gopath"),
-            "GOCACHE": str(cache / "gocache"),
-            "GOMODCACHE": os.environ.get("PREREVIEW_GOMODCACHE") or str(cache / "modcache"),
-            "GOFLAGS": "-mod=mod",
-            "GOPROXY": os.environ.get("GOPROXY", "https://proxy.golang.org,direct"),
-            "GOTOOLCHAIN": "local",
-            "CGO_ENABLED": "0",
-            "GOTELEMETRY": "off",
-        }
+        env = go_env(settings, tmp)
         report = GoBuildReport(available=True)
         try:
             build = subprocess.run([go, "build", "./..."], cwd=root, env=env, capture_output=True, text=True, timeout=timeout)

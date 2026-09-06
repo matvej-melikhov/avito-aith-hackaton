@@ -44,10 +44,12 @@ class CriterionResult:
     observations: list[dict] = field(default_factory=list)
     flags: list[str] = field(default_factory=list)
     check_report: CheckReport | None = None
+    runtime_lines: list[str] = field(default_factory=list)  # факты запуска в песочнице
 
     @property
     def evidence_lines(self) -> list[str]:
-        out = [f"{v.path}:{v.line_start}-{v.line_end} (цитата подтверждена кодом{', ' + v.note if v.note else ''})" for v in self.verified]
+        out = list(self.runtime_lines)
+        out += [f"{v.path}:{v.line_start}-{v.line_end} (цитата подтверждена кодом{', ' + v.note if v.note else ''})" for v in self.verified]
         out += [f"цитата отклонена: {d.note}" for d in self.dropped]
         return out
 

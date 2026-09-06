@@ -60,6 +60,14 @@ class Settings(BaseSettings):
     # Сборка Go-снимков как факт для судьи (go build, go vet; код студента не исполняется).
     go_build_enabled: bool = True
     go_build_timeout_seconds: int = 180
+    go_mod_cache_dir: Path | None = None  # по умолчанию data_dir/gomodcache
+    go_cache_dir: Path | None = None  # по умолчанию data_dir/gocache
+
+    # Песочница запуска (prereview/runner): отдельный сервис без секретов и без выхода в сеть,
+    # который гоняет собранный бинарник по сценариям задания. Пусто = факты запуска не собираются.
+    runner_url: str = ""
+    runtime_enabled: bool = True
+    runtime_timeout_seconds: int = 150
 
     # Распознавание PDF без текстового слоя vision-моделью.
     ocr_enabled: bool = True

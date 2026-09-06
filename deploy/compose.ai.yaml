@@ -1,7 +1,11 @@
 # AI-сервис prereview рядом с платформой. Использовать вместе с compose.yaml и compose.workspace.yaml:
 #   docker compose -p workspace-completion-local -f deploy/compose.yaml -f deploy/compose.workspace.yaml \
-#     -f deploy/compose.ai.yaml up --build -d --wait mysql redis minio ai api
+#     -f deploy/compose.ai.yaml up --build -d --wait mysql redis minio sandbox-db runner ai api
 # Ключ DEEPSEEK_API_KEY берётся из окружения или файла .env в корне репозитория.
+#
+# Песочница (runner + sandbox-db) живёт в отдельной внутренней сети без выхода наружу:
+# туда попадает только собранный бинарник студента, миграции и сценарии задания.
+# У песочницы нет ключей, корень read-only, работа в tmpfs, без capabilities, лимиты по памяти и процессам.
 services:
   ai:
     build:
@@ -15,11 +19,49 @@ services:
       PREREVIEW_USD_RUB: ${PREREVIEW_USD_RUB:-80}
       # Подписанные ссылки на снимки выписаны на публичный адрес MinIO для браузера; внутри сети compose он недоступен.
       PREREVIEW_URL_REWRITES: ${PREREVIEW_URL_REWRITES:-http://127.0.0.1:19000=http://minio:9000}
+      # Песочница запуска. Пусто = факты запуска не собираются, остальное работает как раньше.
+      PREREVIEW_RUNNER_URL: ${PREREVIEW_RUNNER_URL:-http://runner:8200}
     ports:
       - "127.0.0.1:${AI_PORT:-18100}:8100"
     volumes:
       - ai-data:/data
-    networks: [backend]
+    networks: [backend, sandbox]
+    restart: unless-stopped
+  runner:
+    build:
+      context: ..
+      dockerfile: prereview/runner/Dockerfile
+    environment:
+      SANDBOX_PG_DSN: postgres://postgres:sandbox@sandbox-db:5432/postgres
+      SANDBOX_WORK_DIR: /work
+      SANDBOX_CONCURRENCY: "2"
+    networks: [sandbox]
+    read_only: true
+    tmpfs:
+      - /work:size=512m,exec
+      - /tmp:size=64m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1g
+    pids_limit: 512
+    cpus: 1.0
+    depends_on:
+      sandbox-db:
+        condition: service_healthy
+    restart: unless-stopped
+  sandbox-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: sandbox
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks: [sandbox]
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     restart: unless-stopped
   api:
     environment:
@@ -35,5 +77,8 @@ services:
     depends_on:
       ai:
         condition: service_healthy
+networks:
+  sandbox:
+    internal: true
 volumes:
   ai-data:

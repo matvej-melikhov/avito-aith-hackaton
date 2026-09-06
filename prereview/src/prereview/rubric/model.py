@@ -11,7 +11,7 @@ import re
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from prereview.contracts import PublicCriterion, ReviewCriterionView
 
@@ -32,6 +32,50 @@ class CheckSpec(BaseModel):
     note: str = ""
 
 
+class RuntimeProbe(BaseModel):
+    """HTTP-проба в сценарии запуска: метод, путь и ожидания (expect_status, expect_json и т. п.)."""
+
+    model_config = ConfigDict(extra="allow")
+
+    id: str
+    method: str = "GET"
+    path: str = "/"
+
+
+class RuntimeScenario(BaseModel):
+    """Сценарий песочницы: service (запуск, пробы, остановка) или migrations (чистый и повторный прогон)."""
+
+    model_config = ConfigDict(extra="allow")
+
+    id: str
+    kind: Literal["service", "migrations"] = "service"
+    title: str = ""
+    probes: list[RuntimeProbe] = Field(default_factory=list)
+
+    def refs(self) -> set[str]:
+        if self.kind == "migrations":
+            return {self.id, f"{self.id}.first", f"{self.id}.second"}
+        out = {self.id, f"{self.id}.port", f"{self.id}.stop", f"{self.id}.log", f"{self.id}.log_exact", f"{self.id}.stdout"}
+        out |= {f"{self.id}.{p.id}" for p in self.probes}
+        return out
+
+
+class RuntimeSpec(BaseModel):
+    """Сценарии запуска в песочнице (prereview/runner). Критерий ссылается на исходы по строкам
+    «сценарий», «сценарий.проба», «сценарий.stop», «сценарий.log», «миграции.first», «миграции.second»."""
+
+    model_config = ConfigDict(extra="allow")
+
+    kind: str = "http_service"
+    scenarios: list[RuntimeScenario] = Field(default_factory=list)
+
+    def refs(self) -> set[str]:
+        out: set[str] = set()
+        for s in self.scenarios:
+            out |= s.refs()
+        return out
+
+
 class CriterionSettings(BaseModel):
     """Настройки одного критерия в файле задания."""
 
@@ -39,6 +83,7 @@ class CriterionSettings(BaseModel):
 
     check_class: CheckClass | None = None
     checks: list[CheckSpec] = Field(default_factory=list)
+    runtime: list[str] = Field(default_factory=list)  # ссылки на исходы сценариев запуска
     scope: list[str] = Field(default_factory=list)  # glob-подсказки для репозиториев
     hints: str = ""  # что именно искать, описание уровней, заметки калибровки
     critical: bool = False
@@ -60,7 +105,17 @@ class AssignmentFile(BaseModel):
     version: str = "1"
     match_keys: list[str] = Field(default_factory=list)
     student_text_hint: str = ""  # краткое ТЗ для модели, если student_text платформы неполный
+    runtime: RuntimeSpec | None = None  # сценарии запуска в песочнице
     criteria: dict[str, CriterionSettings] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _runtime_refs_exist(self) -> "AssignmentFile":
+        known = self.runtime.refs() if self.runtime else set()
+        for key, s in self.criteria.items():
+            unknown = [r for r in s.runtime if r not in known]
+            if unknown:
+                raise ValueError(f"критерий {key}: неизвестные ссылки на сценарии запуска {unknown}")
+        return self
 
 
 class Criterion(BaseModel):
@@ -79,6 +134,7 @@ class Criterion(BaseModel):
     check_class: CheckClass = "content"
     class_source: Literal["platform", "assignment", "heuristic"] = "heuristic"
     checks: list[CheckSpec] = Field(default_factory=list)
+    runtime: list[str] = Field(default_factory=list)
     scope: list[str] = Field(default_factory=list)
     hints: str = ""
     critical: bool = False
@@ -154,6 +210,7 @@ def build_rubric(
                 check_class=check_class,
                 class_source=source,
                 checks=list(settings.checks) if settings else [],
+                runtime=list(settings.runtime) if settings else [],
                 scope=list(settings.scope) if settings else [],
                 hints=settings.hints if settings else "",
                 critical=settings.critical if settings else False,
