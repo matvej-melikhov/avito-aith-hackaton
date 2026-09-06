@@ -1,0 +1,373 @@
+{
+  "id": "4ab15b32-e67d-4cd9-9161-c10fac756a8a",
+  "status": "succeeded",
+  "revision": 0,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": 0.08,
+      "explanation": "Оценка модели: 8%, уровень низкий. Простые признаки генерации в тексте и коде не найдены; декларации об использовании ИИ в работе нет.\nПорог не калибровался на реальном потоке, на балл не влияет, это повод для разговора со студентом.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Собрал замечания по твоей работе, вот что нужно поправить:\n\n- Добавь подключение к PostgreSQL через pgxpool в `main.go` или отдельном файле, DSN бери из конфига или переменных окружения. Сейчас сервис стартует без базы, а это нарушает ТЗ.\n- После подключения к БД обязательно вызови `Ping` в цикле с ретраями и задержкой, а при ошибке — кидай панику или `log.Fatal`. Сейчас HTTP-сервер просто слушает порт, даже если база недоступна.\n- Закрой соединение с БД через `defer pool.Close()`.\n- Добавь миграции через goose или migrate: создай каталог `migrations` с SQL-файлами и Makefile/скрипт для их запуска. Убедись, что миграции идемпотентны и не падают при повторном запуске.\n- Реализуй обработчики `GET /couriers`, `GET /courier/{id}`, `POST /courier` и `PUT /courier` с кодами ответов 200/201/400/404/409 и валидацией полей. Сейчас в роутере только `/ping` и `/healthcheck`.\n- В SQL-запросах используй плейсхолдеры `$1`, чтобы избежать инъекций, и не добавляй функции на стороне БД в миграциях.\n\nХорошо, что код обработчиков уже вынесен в `internal` — это правильная структура.",
+    "suggestions": [
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea0",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Подключение к базе данных отсутствует: main.go запускает только HTTP-сервер на фиксированном порту, конфига/DSN/pgx нет нигде в срезе.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись Сборка go build: успешно. Запуск в песочнице: 5 из 19 проверок поведения как в ТЗ, 26 не удалось проверить. Сводка: предложено 1 из 15. Не выполнено: Подключение к базе в main.go или отдельном файле, данные для подключения из конфига, Есть закрытие соединения в defer Close(), Есть запрос Ping для проверки соединения, Есть ретрай при запросе Ping. Сигнал ИИ: low. Стоимость прогона: 1.03 ₽ (284932 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@94a1500abf36, self_review@1e9730ed12fc. Вопросы студенту: 1) В main.go сейчас запускается только HTTP-сервер на фиксированном порту. Расскажи, как ты планировал организовать подключение к PostgreSQL (pgx/pgxpool), откуда брать DSN и где должен вызываться Ping с ретраями и паникой при ошибке — покажи, в каком месте кода это должно было появиться? 2) В задании требовалось реализовать CRUD для курьеров (GET /couriers, GET /courier/{id}, POST /courier, PUT /courier) с кодами 200/404/400/201/409. В текущем срезе зарегистрированы только /ping и /healthcheck. Опиши, как бы выглядела структура обработчика POST /courier: как ты валидируешь телефон, как обрабатываешь конфликт по уникальному номеру (409) и какой SQL-запрос с плейсхолдерами использовал бы для вставки? 3) В задании требовались миграции через goose или migrate, запускаемые из Makefile/скрипта, а не из main.go. В срезе нет ни каталога migrations, ни Makefile. Расскажи, как ты планировал организовать миграции: какой инструмент выбрал бы, где разместил бы SQL-файлы и как обеспечил бы, что повторный запуск миграций не падает?",
+        "student_feedback": "Добавьте подключение к PostgreSQL с DSN из конфига/окружения в main.go или отдельном файле."
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea1",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет подключения к базе данных, следовательно нет и defer Close().",
+        "evidence": [],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте подключение к PostgreSQL и закройте соединение через defer Close()."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}",
+            "locator": "internal/handler/health_handler.go:10-12",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 10,
+            "line_end": 12,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea2",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе есть только HTTP-маршрут /ping, возвращающий pong без обращения к БД. Ping к базе данных (pool.Ping/db.Ping/conn.Ping) отсутствует, что подтверждается и кодом (0 вхождений .Ping).",
+        "evidence": [
+          "internal/handler/health_handler.go:10-12 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте Ping к базе данных (pool.Ping/db.Ping) после подключения, а не только HTTP-маршрут /ping."
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea3",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни одного вызова Ping к базе данных, а значит нет и цикла повторов с задержкой вокруг него. Требование не выполнено.",
+        "evidence": [],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте подключение к PostgreSQL с вызовом Ping в цикле с задержкой и ретраями."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea4",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Проверено запуском: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с",
+        "evidence": [
+          "запуск: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с",
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Факт запуска: сервис стартовал и слушал порт при недоступной базе, паники нет — подтверждает fail.",
+        "student_feedback": "Исправь поведение сервиса: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "require github.com/go-chi/chi/v5 v5.2.3",
+            "locator": "go.mod:5-5",
+            "path": "go.mod",
+            "line_start": 5,
+            "line_end": 5,
+            "verified": false
+          },
+          {
+            "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())",
+            "locator": "cmd/main.go:9-9",
+            "path": "cmd/main.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea5",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни каталога миграций, ни упоминания goose/migrate/atlas. go.mod содержит только chi, файлов миграций и Makefile/скриптов нет.",
+        "evidence": [
+          "go.mod:5-5 (цитата подтверждена кодом)",
+          "cmd/main.go:9-9 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте миграции с помощью goose или migrate (каталог migrations и команду в Makefile/скрипте)."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea6",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет Makefile, скриптов или команд для запуска миграций; миграции не накатываются из main.go, так как код подключения к БД и миграций отсутствует.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте Makefile или скрипт для запуска миграций и сами миграции."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea7",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет миграций и подключения к БД, поэтому запуск на чистой базе невозможен; факты запуска не содержат результата для этого сценария.",
+        "evidence": [
+          "запуск: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Факты запуска не содержат сценария 'чистая база', поэтому вердикт основан на отсутствии миграций в коде. Запуск в песочнице поведение не подтвердил: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+        "student_feedback": "Добавьте миграции для создания таблиц и подключение к PostgreSQL."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea8",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет миграций и инструмента миграций, поэтому требование о повторном запуске не выполнено.",
+        "evidence": [
+          "запуск: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Факты запуска подтверждают отсутствие миграций: сценарий «миграции на чистой базе и повторно» не выполнялся из-за отсутствия файлов миграций. Запуск в песочнице поведение не подтвердил: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+        "student_feedback": "Добавьте миграции с инструментом версионирования (goose или migrate) и проверьте повторный запуск."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func HealthRoute() chi.Router {\n\thh := handler.HealthHandler{}\n\thr := chi.NewRouter()\n\thr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)\n\treturn hr\n}",
+            "locator": "internal/route/health_route.go:9-15",
+            "path": "internal/route/health_route.go",
+            "line_start": 9,
+            "line_end": 15,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ea9",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе зарегистрированы только /ping и /healthcheck; обработчиков GET /couriers и GET /courier/{id} нет, коды 200/404/400 для курьеров не реализованы.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "internal/route/health_route.go:9-15 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+        "student_feedback": "Реализуйте GET /couriers и GET /courier/{id} с кодами ответов по ТЗ."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func SetupRoute() chi.Router {\n\tmR := chi.NewRouter()\n\tmR.Mount(\"/\", HealthRoute())\n\treturn mR\n}",
+            "locator": "internal/route/route.go:7-11",
+            "path": "internal/route/route.go",
+            "line_start": 7,
+            "line_end": 11,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30eaa",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "POST /courier не реализован: в единственном роутере зарегистрированы только ping/healthcheck, обработчик создания курьера отсутствует, коды 201/400/409 не встречаются.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "internal/route/route.go:7-11 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+        "student_feedback": "Реализуйте POST /courier с валидацией полей и телефона и кодами 201/400/409."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "mR := chi.NewRouter()\n\tmR.Mount(\"/\", HealthRoute())",
+            "locator": "internal/route/route.go:8-9",
+            "path": "internal/route/route.go",
+            "line_start": 8,
+            "line_end": 9,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30eab",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет реализации PUT /courier: маршрутизатор монтирует только HealthRoute, а субагент не нашёл ни одного обработчика PUT.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "internal/route/route.go:8-9 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+        "student_feedback": "Реализуйте PUT /courier с id в теле, валидацией и кодами 200/404/400."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handler/health_handler.go:10-10",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 10,
+            "line_end": 10,
+            "verified": false
+          },
+          {
+            "quote": "func (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handler/health_handler.go:14-14",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 14,
+            "line_end": 14,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30eac",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: grep: вхождений 'http\\\\.ResponseWriter|gin\\\\.Context|echo\\\\.Context': 2 (нужно от 1)",
+        "evidence": [
+          "internal/handler/health_handler.go:10-10 (цитата подтверждена кодом)",
+          "internal/handler/health_handler.go:14-14 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          },
+          {
+            "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())",
+            "locator": "cmd/main.go:9-9",
+            "path": "cmd/main.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          },
+          {
+            "quote": "hr.Get(\"/ping\", hh.PingHandler)",
+            "locator": "internal/route/health_route.go:12-12",
+            "path": "internal/route/health_route.go",
+            "line_start": 12,
+            "line_end": 12,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30ead",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни одного SQL-запроса, ни миграций, ни использования pgx; критерий не выполнен.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)",
+          "cmd/main.go:9-9 (цитата подтверждена кодом)",
+          "internal/route/health_route.go:12-12 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте SQL-запросы с плейсхолдерами и миграции без CREATE FUNCTION."
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-39e4-7d86-a216-fae0dbf30eae",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Проверено кодом: grep: вхождений 'jackc/pgx': 0 (нужно от 1)",
+        "evidence": [],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Проверь требование «Используется пакет pgx»: grep: вхождений 'jackc/pgx': 0 (нужно от 1)"
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T20:21:15.523012+00:00"
+}

@@ -1,0 +1,485 @@
+{
+  "id": "6371179d-e246-4b3b-9982-dce1d9ac8efb",
+  "status": "succeeded",
+  "revision": 0,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": 0.08,
+      "explanation": "Оценка модели: 8%, уровень низкий. Простые признаки генерации в тексте и коде не найдены; декларации об использовании ИИ в работе нет.\nПорог не калибровался на реальном потоке, на балл не влияет, это повод для разговора со студентом.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за работу, вот что нужно поправить перед мерджем:\n\n- Настрой вывод логов в stdout: сейчас все сообщения (включая `postgres connected` и `listening on`) уходят в stderr через стандартный пакет `log`. Добавь `log.SetOutput(os.Stdout)` в начале `main()` или используй логгер с явным указанием выхода.\n- Убери дублирование маппинга `entity` → `model` в usecase: методы `GetCourier` и `GetCouriers` содержат одинаковый код преобразования. Вынеси его в отдельную функцию-хелпер.\n- Аналогично для `entity` → `dto` в handlers: маппинг повторяется в обработчиках, тоже вынеси в общий хелпер.\n- В usecase и handlers дублируется регулярное выражение для проверки телефона (в `Create` и `Update`). Определи его один раз как константу или переменную пакета.\n- Проверь, что после рефакторинга не сломались существующие сценарии: повторно прогони запуск с портом из `.env`, флагом и проверку `/ping` и `/healthcheck`.\n\nХорошо, что структура проекта чистая и слои разделены, а graceful shutdown работает корректно через контекст.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/service-courier/main.go:1-1",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "(файл найден)",
+            "locator": "internal/dto/courier.go:1-1",
+            "path": "internal/dto/courier.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b6",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: dir_exists: каталог cmd: 1 файлов; dir_exists: каталог internal: 12 файлов",
+        "evidence": [
+          "cmd/service-courier/main.go:1-1 (цитата подтверждена кодом)",
+          "internal/dto/courier.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сборка go build: успешно. Запуск в песочнице: 33 из 37 проверок поведения как в ТЗ, 8 не удалось проверить. Сводка: предложено 15 из 16. Не выполнено: Лог старта уходит в stdout. Сигнал ИИ: low. Стоимость прогона: 1.73 ₽ (820192 токенов, модель deepseek-v4-flash, исследователь: нет: ответ не по схеме). Промпты: judge_criterion@94a1500abf36, self_review@1e9730ed12fc. Вопросы студенту: 1) В критерии «Лог старта уходит в stdout» проверка показала, что при старте stdout пуст, а все сообщения (включая «service-courier listening on ...») уходят в stderr через стандартный пакет log. Расскажи, как именно ты настраивал вывод логов и почему сообщения оказались в stderr, а не в stdout? 2) В usecase у тебя дублируется маппинг entity→model в методах GetCourier и GetCouriers, а в handlers — маппинг entity→dto. Объясни, почему ты выбрал именно такой подход с дублированием, и как бы ты реорганизовал код, чтобы убрать это дублирование? 3) В методах Create и Update дублируется regexp для валидации телефона. Что произойдёт, если в одном из этих мест правило валидации изменится, а в другом останется прежним — и как бы ты это предотвратил?",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "module github.com/Avito-courses/course-go-avito-Turbina0N",
+            "locator": "go.mod:1-1",
+            "path": "go.mod",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b7",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: file_exists: найдено: go.mod",
+        "evidence": [
+          "go.mod:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/service-courier/main.go:1-1",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b8",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: count_files: файлов по маске ['cmd/*/main.go', 'cmd/main.go']: 1 (нужно от 1)",
+        "evidence": [
+          "cmd/service-courier/main.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "courierRepo := repository.NewCourierRepository(db)\n\tcourierUC := usecase.NewCourierUseCase(courierRepo)\n\tcourierCtrl := handlers.NewCourierController(courierUC)",
+            "locator": "cmd/service-courier/main.go:36-38",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 36,
+            "line_end": 38,
+            "verified": false
+          },
+          {
+            "quote": "func resolvePort() string {\n\tport := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}",
+            "locator": "cmd/service-courier/main.go:88-94",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 88,
+            "line_end": 94,
+            "verified": false
+          },
+          {
+            "quote": "courier := &model.Courier{\n\t\tID:     courierDB.ID,\n\t\tName:   courierDB.Name,\n\t\tPhone:  courierDB.Phone,\n\t\tStatus: courierDB.Status,\n\t}",
+            "locator": "internal/usecase/courier.go:33-38",
+            "path": "internal/usecase/courier.go",
+            "line_start": 33,
+            "line_end": 38,
+            "verified": false
+          },
+          {
+            "quote": "re := regexp.MustCompile(`^\\+?[0-9]{7,15}$`)\n\tif !re.MatchString(req.Phone) {\n\t\treturn 0, ErrInvalidPhone",
+            "locator": "internal/usecase/courier.go:78-80",
+            "path": "internal/usecase/courier.go",
+            "line_start": 78,
+            "line_end": 80,
+            "verified": false
+          },
+          {
+            "quote": "func main() {\n\tif err := godotenv.Load(); err != nil {\n\t\tlog.Printf(\"warn: .env not loaded: %v\", err)\n\t}\n\n\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\tdb := initDBPool(ctx)\n\tdefer db.Close()\n\tlog.Println(\"postgres connected\")\n\n\tcourierRepo := repository.NewCourierRepository(db)\n\tcourierUC := usecase.NewCourierUseCase(courierRepo)\n\tcourierCtrl := handlers.NewCourierController(courierUC)\n\n\tsrv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),\n\t\tHandler:      initRouter(courierCtrl),\n\t\tReadTimeout:  10 * time.Second,\n\t\tWriteTimeout: 10 * time.Second,\n\t\tIdleTimeout:  60 * time.Second,\n\t}\n\n\tgo gracefulShutdown(srv)\n\n\tlog.Printf(\"service-courier listening on %s\\n\", srv.Addr)\n\tif err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {\n\t\tlog.Fatalf(\"server start error: %v\\n\", err)\n\t}\n}",
+            "locator": "cmd/service-courier/main.go:25-54",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 25,
+            "line_end": 54,
+            "verified": false
+          },
+          {
+            "quote": "type courierUseCase interface {\n\tGetCourier(ctx context.Context, id int) (*model.Courier, error)\n\tGetCouriers(ctx context.Context) ([]model.Courier, error)\n\tCreateCourier(ctx context.Context, req *dto.CourierCreateRequest) (int, error)\n\tUpdateCourier(ctx context.Context, req *dto.CourierUpdateRequest) error\n}",
+            "locator": "internal/handlers/contract.go:10-15",
+            "path": "internal/handlers/contract.go",
+            "line_start": 10,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}",
+            "locator": "internal/usecase/contract.go:9-14",
+            "path": "internal/usecase/contract.go",
+            "line_start": 9,
+            "line_end": 14,
+            "verified": false
+          },
+          {
+            "quote": "type CourierController struct {\n\tuseCase courierUseCase\n}\n\nfunc NewCourierController(useCase courierUseCase) *CourierController {\n\treturn &CourierController{useCase: useCase}\n}",
+            "locator": "internal/handlers/controller.go:14-20",
+            "path": "internal/handlers/controller.go",
+            "line_start": 14,
+            "line_end": 20,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b9",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Код читаемый: понятные имена (courierRepo, courierUC, courierCtrl, resolvePort, gracefulShutdown), функции небольшие и с одной ответственностью, слои разделены (handlers/usecase/repository/model/entity/dto), циклических зависимостей между пакетами нет. Слабые места: дублирование маппинга entity→model в usecase (GetCourier/GetCouriers) и entity→dto в handlers, а также дублирование regexp для телефона в Create/Update.",
+        "evidence": [
+          "cmd/service-courier/main.go:36-38 (цитата подтверждена кодом, адрес исправлен)",
+          "cmd/service-courier/main.go:88-94 (цитата подтверждена кодом, адрес исправлен)",
+          "internal/usecase/courier.go:33-38 (цитата подтверждена кодом, адрес исправлен)",
+          "internal/usecase/courier.go:78-80 (цитата подтверждена кодом, адрес исправлен)",
+          "cmd/service-courier/main.go:25-54 (цитата подтверждена кодом)",
+          "internal/handlers/contract.go:10-15 (цитата подтверждена кодом)",
+          "internal/usecase/contract.go:9-14 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:14-20 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Обратить внимание на дублирование маппинга entity→model в usecase (GetCourier и GetCouriers) и entity→dto в handlers, а также на повторяющийся regexp телефона в Create/Update — можно вынести в общий хелпер. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Имена идентификаторов в основном понятные и отражают назначение, например, courierRepo, courierUC, courierCtrl в main.go, но есть и неоднозначные сокращения, такие как cr в Get и c в методах контроллера и usecase. (cmd/service-courier/main.go:36-38, internal/handlers/controller.go:37-37, internal/usecase/courier.go:23-24); В коде присутствуют циклические зависимости между пакетами: usecase импортирует repository, а repository не импортирует usecase, но handlers импортирует и usecase, и dto, а usecase импортирует dto и entity, что создаёт сложную сеть зависимостей, но явных циклов не видно. (internal/usecase/courier.go:8-11, internal/handlers/controller.go:10-11); В работе есть дублирование структур Courier в пакетах entity и model, что может приводить к путанице и лишним преобразованиям, но названия полей согласованы. (internal/entity/courier.go:5-12, internal/model/models.go:5-12)",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "srv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),\n\t\tHandler:      initRouter(courierCtrl),\n\t\tReadTimeout:  10 * time.Second,\n\t\tWriteTimeout: 10 * time.Second,\n\t\tIdleTimeout:  60 * time.Second,\n\t}\n\n\tgo gracefulShutdown(srv)\n\n\tlog.Printf(\"service-courier listening on %s\\n\", srv.Addr)\n\tif err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {\n\t\tlog.Fatalf(\"server start error: %v\\n\", err)\n\t}",
+            "locator": "cmd/service-courier/main.go:40-53",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 40,
+            "line_end": 53,
+            "verified": false
+          },
+          {
+            "quote": "r.Get(\"/ping\", handlers.Ping)\n\tr.Head(\"/healthcheck\", handlers.Healthcheck)",
+            "locator": "cmd/service-courier/main.go:105-106",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 105,
+            "line_end": 106,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656ba",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Подтверждено запуском: сценарий «запуск с портом из .env»: стартовал за 0.2 с и слушает заданный порт 37281",
+        "evidence": [
+          "запуск: сценарий «запуск с портом из .env»: стартовал за 0.2 с и слушает заданный порт 37281",
+          "cmd/service-courier/main.go:40-53 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:105-106 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "port := os.Getenv(\"PORT\")",
+            "locator": "cmd/service-courier/main.go:89-89",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 89,
+            "line_end": 89,
+            "verified": false
+          },
+          {
+            "quote": "Addr:         \":\" + resolvePort(),",
+            "locator": "cmd/service-courier/main.go:41-41",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 41,
+            "line_end": 41,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bb",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Подтверждено запуском: слушает заданный порт 41797: как в ТЗ",
+        "evidence": [
+          "запуск: слушает заданный порт 41797: как в ТЗ",
+          "cmd/service-courier/main.go:89-89 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:41-41 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "log.Printf(\"service-courier listening on %s\\n\", srv.Addr)",
+            "locator": "cmd/service-courier/main.go:50-50",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 50,
+            "line_end": 50,
+            "verified": false
+          },
+          {
+            "quote": "log.Println(\"postgres connected\")",
+            "locator": "cmd/service-courier/main.go:34-34",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 34,
+            "line_end": 34,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bc",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Проверено запуском: при старте stdout пуст, в stderr: «2026/09/06 20:19:19 postgres connected | 2026/09/06 20:19:19 service-courier listening on :37281»",
+        "evidence": [
+          "запуск: при старте stdout пуст, в stderr: «2026/09/06 20:19:19 postgres connected | 2026/09/06 20:19:19 service-courier listening on :37281»",
+          "cmd/service-courier/main.go:50-50 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:34-34 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Факты запуска прямо указывают: «при старте stdout пуст, в stderr: ...», что подтверждает невыполнение требования.",
+        "student_feedback": "Исправь поведение сервиса: "
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "r.Get(\"/ping\", handlers.Ping)",
+            "locator": "cmd/service-courier/main.go:105-105",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 105,
+            "line_end": 105,
+            "verified": false
+          },
+          {
+            "quote": "func Ping(w http.ResponseWriter, r *http.Request) {\n\tw.Header().Set(\"Content-Type\", \"application/json; charset=utf-8\")\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}",
+            "locator": "internal/handlers/ping.go:8-11",
+            "path": "internal/handlers/ping.go",
+            "line_start": 8,
+            "line_end": 11,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bd",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Подтверждено запуском: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ",
+        "evidence": [
+          "запуск: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ",
+          "cmd/service-courier/main.go:105-105 (цитата подтверждена кодом)",
+          "internal/handlers/ping.go:8-11 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "r.Head(\"/healthcheck\", handlers.Healthcheck)",
+            "locator": "cmd/service-courier/main.go:106-106",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 106,
+            "line_end": 106,
+            "verified": false
+          },
+          {
+            "quote": "func Healthcheck(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}",
+            "locator": "internal/handlers/healthcheck.go:5-7",
+            "path": "internal/handlers/healthcheck.go",
+            "line_start": 5,
+            "line_end": 7,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656be",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Подтверждено запуском: HEAD /healthcheck → 204: как в ТЗ",
+        "evidence": [
+          "запуск: HEAD /healthcheck → 204: как в ТЗ",
+          "cmd/service-courier/main.go:106-106 (цитата подтверждена кодом)",
+          "internal/handlers/healthcheck.go:5-7 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)",
+            "locator": "cmd/service-courier/main.go:118-118",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 118,
+            "line_end": 118,
+            "verified": false
+          },
+          {
+            "quote": "if err := srv.Shutdown(shCtx); err != nil {",
+            "locator": "cmd/service-courier/main.go:126-126",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 126,
+            "line_end": 126,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bf",
+        "status": "suggested",
+        "proposed_points": 2.0,
+        "reason": "Подтверждено запуском: SIGTERM: завершился сам за 0.1 с (код 0); SIGINT: завершился сам за 0.1 с (код 0)",
+        "evidence": [
+          "запуск: SIGTERM: завершился сам за 0.1 с (код 0)",
+          "запуск: SIGINT: завершился сам за 0.1 с (код 0)",
+          "cmd/service-courier/main.go:118-118 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:126-126 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func gracefulShutdown(srv *http.Server) {\n\tctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\t<-ctx.Done()\n\tlog.Println(\"Shutting down service-courier\")\n\n\tshCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\tif err := srv.Shutdown(shCtx); err != nil {\n\t\tlog.Printf(\"graceful shutdown failed: %v\", err)\n\t\t_ = srv.Close()\n\t}\n}",
+            "locator": "cmd/service-courier/main.go:117-130",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 117,
+            "line_end": 130,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c0",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Graceful shutdown реализован через signal.NotifyContext и context.WithTimeout для Shutdown, что соответствует критерию.",
+        "evidence": [
+          "cmd/service-courier/main.go:117-130 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func gracefulShutdown(srv *http.Server) {\n\tctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\t<-ctx.Done()\n\tlog.Println(\"Shutting down service-courier\")",
+            "locator": "cmd/service-courier/main.go:117-122",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 117,
+            "line_end": 122,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c1",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Подтверждено запуском: после сигнала в лог выведено: 2026/09/06 20:19:19 Shutting down service-courier",
+        "evidence": [
+          "запуск: после сигнала в лог выведено: 2026/09/06 20:19:19 Shutting down service-courier",
+          "cmd/service-courier/main.go:117-122 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func resolvePort() string {\n\tport := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}\n\tif port == \"\" {\n\t\tport = \"8080\"\n\t}\n\treturn port\n}",
+            "locator": "cmd/service-courier/main.go:88-99",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 88,
+            "line_end": 99,
+            "verified": false
+          },
+          {
+            "quote": "var portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}",
+            "locator": "cmd/service-courier/main.go:90-94",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 90,
+            "line_end": 94,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c2",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Подтверждено запуском: слушает заданный порт 51925: как в ТЗ, порт 46217 закрыт",
+        "evidence": [
+          "запуск: слушает заданный порт 51925: как в ТЗ, порт 46217 закрыт",
+          "cmd/service-courier/main.go:88-99 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:90-94 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func resolvePort() string {\n\tport := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}\n\tif port == \"\" {\n\t\tport = \"8080\"\n\t}\n\treturn port\n}",
+            "locator": "cmd/service-courier/main.go:88-99",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 88,
+            "line_end": 99,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c3",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Подтверждено запуском: слушает заданный порт 51925: как в ТЗ, порт 46217 закрыт",
+        "evidence": [
+          "запуск: слушает заданный порт 51925: как в ТЗ, порт 46217 закрыт",
+          "cmd/service-courier/main.go:88-99 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T20:20:25.032342+00:00"
+}

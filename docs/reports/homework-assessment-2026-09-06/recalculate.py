@@ -1,11 +1,19 @@
-"""Recalculate metrics locally from evaluation.json and saved ai-reviews."""
+"""Recalculate metrics locally from evaluation.json and saved ai-reviews.
+
+Usage: python3 recalculate.py [--variant NAME]
+With --variant NAME the inputs are evaluation-NAME.json and telemetry-NAME.json and the outputs
+are metrics-NAME.json and results-NAME.csv (e.g. NAME=sandbox after rerun_go_sandbox.py).
+"""
 import csv
 import hashlib
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+VARIANT = sys.argv[sys.argv.index('--variant') + 1] if '--variant' in sys.argv else ''
+SUFFIX = f'-{VARIANT}' if VARIANT else ''
 
 
 def summarize(rows):
@@ -31,7 +39,7 @@ def summarize(rows):
 
 
 def main():
-    evaluation = json.loads((ROOT / 'evaluation.json').read_text())
+    evaluation = json.loads((ROOT / f'evaluation{SUFFIX}.json').read_text())
     policy = evaluation['missing_score_policy']
     if policy not in {'full_credit', 'exclude'}:
         raise ValueError('Unsupported missing_score_policy')
@@ -78,7 +86,7 @@ def main():
         task: summarize([r for r in rows if r['task_id'] == task])
         for task in evaluation['tasks']
     }
-    runs = json.loads((ROOT / 'telemetry.json').read_text())['runs']
+    runs = json.loads((ROOT / f'telemetry{SUFFIX}.json').read_text())['runs']
     assert {r['run_id'] for r in runs} == {r['run_id'] for r in rows}
     metrics['telemetry'] = {
         'runs': len(runs), 'criterion_rows': sum(len(c['criteria']) for c in evaluation['cases']),
@@ -87,8 +95,8 @@ def main():
            for key in ['calls', 'prompt_tokens', 'completion_tokens', 'cache_hit_tokens']},
         'estimated_cost_usd': round(sum(r['ledger']['cost_usd'] for r in runs), 5),
     }
-    (ROOT / 'metrics.json').write_text(json.dumps(metrics, ensure_ascii=False, indent=2) + '\n')
-    with (ROOT / 'results.csv').open('w', newline='', encoding='utf-8') as file:
+    (ROOT / f'metrics{SUFFIX}.json').write_text(json.dumps(metrics, ensure_ascii=False, indent=2) + '\n')
+    with (ROOT / f'results{SUFFIX}.csv').open('w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)

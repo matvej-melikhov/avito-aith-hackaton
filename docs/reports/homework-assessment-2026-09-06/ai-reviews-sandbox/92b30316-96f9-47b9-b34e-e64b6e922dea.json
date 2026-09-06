@@ -1,0 +1,361 @@
+{
+  "id": "92b30316-96f9-47b9-b34e-e64b6e922dea",
+  "status": "succeeded",
+  "revision": 0,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": 0.08,
+      "explanation": "Оценка модели: 8%, уровень низкий. Простые признаки генерации в тексте и коде не найдены; декларации об использовании ИИ в работе нет.\nПорог не калибровался на реальном потоке, на балл не влияет, это повод для разговора со студентом.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Посмотрел твою работу, вот что нужно исправить:\n\n- Раздели код на слои: добавь `internal/usecase`, `internal/repository`, `internal/model`. Сейчас есть только `handler` и `route`, а `main.go` сам запускает сервер.\n- Добавь конструкторы `New*`, которые принимают зависимости параметрами. Сейчас зависимости создаются прямо внутри функций, например `handler.HealthHandler{}` в `HealthRoute`.\n- Конструкторы должны принимать интерфейсы и возвращать структуры или указатели на них. Сейчас `HealthRoute` возвращает `chi.Router`, а не твой тип.\n- Объяви приватные интерфейсы (с маленькой буквы) на стыках слоёв, например интерфейс репозитория в пакете `usecase`. Сейчас интерфейсов нет вообще.\n- Добавь доменные модели без `json`/`db` тегов и отдельные DTO для транспорта. Сейчас моделей нет, только health-эндпоинты.\n- Вынеси бизнес-логику из обработчиков в `usecase`. Сейчас `handler` сам формирует ответ, а слоя `usecase` нет.\n- Разбей слои на пакеты по сущностям (например `internal/handler/courier`), а не держи один пакет на весь слой.\n- Добавь DI-пакет (например `dig`) с контейнером в `main` и настрой внедрение зависимостей через него.\n\nЧто сделано хорошо: обработчики в `internal/handler/health_handler.go` короткие и не перегружены лишней логикой.",
+    "suggestions": [
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b080",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе отсутствуют слои internal/handler, internal/usecase, internal/repository, internal/model; есть только internal/handler и internal/route, а main.go напрямую запускает сервер без разделения на слои.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сборка go build: успешно. Запуск в песочнице: 5 из 19 проверок поведения как в ТЗ, 26 не удалось проверить. Сводка: предложено 0 из 14. Не выполнено: Выделены слои инфраструктуры, домена, базы (internal/handler, internal/usecase, internal/repository, internal/model), Все зависимости внедряются через конструкторы, Конструкторы на вход ждут интерфейсы, возвращают структуры или указатели, Интерфейсы расположены в месте использования, а не реализации. Сигнал ИИ: low. Стоимость прогона: 0.87 ₽ (190462 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@94a1500abf36, self_review@1e9730ed12fc. Вопросы студенту: 1) В твоей работе есть только internal/handler и internal/route, а main.go напрямую запускает сервер. Расскажи, как ты видишь разделение кода на слои usecase и repository: что именно, по-твоему, должно попасть в каждый из этих слоёв, если бы мы добавили CRUD для курьеров? 2) В HealthRoute ты создаёшь handler.HealthHandler{} прямо внутри функции. Как бы ты переделал это место, чтобы зависимости (например, сервис или репозиторий) передавались через конструктор, и почему это важно для тестирования? 3) Сейчас обработчик сам формирует ответ и не вызывает никакой бизнес-логики. Опиши, как должен выглядеть вызов из handler в usecase на примере эндпоинта GET /couriers/{id}: какие шаги и в каком слое должны происходить?",
+        "student_feedback": "Разделите код на слои handler, usecase, repository, model и настройте внедрение зависимостей."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func HealthRoute() chi.Router {\n\thh := handler.HealthHandler{}\n\thr := chi.NewRouter()\n\thr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)\n\treturn hr\n}",
+            "locator": "internal/route/health_route.go:9-15",
+            "path": "internal/route/health_route.go",
+            "line_start": 9,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "func SetupRoute() chi.Router {\n\tmR := chi.NewRouter()\n\tmR.Mount(\"/\", HealthRoute())\n\treturn mR\n}",
+            "locator": "internal/route/route.go:7-11",
+            "path": "internal/route/route.go",
+            "line_start": 7,
+            "line_end": 11,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b081",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет конструкторов New*, принимающих зависимости параметрами; зависимости создаются внутри функций напрямую, внедрения зависимостей нет.",
+        "evidence": [
+          "internal/route/health_route.go:9-15 (цитата подтверждена кодом)",
+          "internal/route/route.go:7-11 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте конструкторы New*, принимающие зависимости параметрами, и внедряйте их через них, избегая создания зависимостей внутри функций."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func HealthRoute() chi.Router {",
+            "locator": "internal/route/health_route.go:9-9",
+            "path": "internal/route/health_route.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          },
+          {
+            "quote": "func SetupRoute() chi.Router {",
+            "locator": "internal/route/route.go:7-7",
+            "path": "internal/route/route.go",
+            "line_start": 7,
+            "line_end": 7,
+            "verified": false
+          },
+          {
+            "quote": "type HealthHandler struct{}",
+            "locator": "internal/handler/health_handler.go:8-8",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 8,
+            "line_end": 8,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b082",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Конструкторы между слоями отсутствуют: нет слоёв usecase и repository, а имеющиеся конструкторы HealthRoute/SetupRoute не принимают интерфейсов и возвращают chi.Router (интерфейс библиотеки), а не структуру/указатель собственного типа.",
+        "evidence": [
+          "internal/route/health_route.go:9-9 (цитата подтверждена кодом)",
+          "internal/route/route.go:7-7 (цитата подтверждена кодом)",
+          "internal/handler/health_handler.go:8-8 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте слои usecase и repository с конструкторами, принимающими интерфейсы и возвращающими структуры/указатели."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "package handler\n\nimport (\n\t\"encoding/json\"\n\t\"net/http\"\n)\n\ntype HealthHandler struct{}\n\nfunc (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}\n\nfunc (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}",
+            "locator": "internal/handler/health_handler.go:1-16",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 1,
+            "line_end": 16,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b083",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет объявлений интерфейсов вообще, включая интерфейс репозитория в пакете usecase/service. Пакетов usecase/repository в срезе нет, есть только handler и route.",
+        "evidence": [
+          "internal/handler/health_handler.go:1-16 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Объявите интерфейс репозитория в пакете usecase/service, где он используется, а не в repository."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "type HealthHandler struct{}",
+            "locator": "internal/handler/health_handler.go:8-8",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 8,
+            "line_end": 8,
+            "verified": false
+          },
+          {
+            "quote": "hh := handler.HealthHandler{}",
+            "locator": "internal/route/health_route.go:10-10",
+            "path": "internal/route/health_route.go",
+            "line_start": 10,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b084",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни одного интерфейса, тем более приватного (с маленькой буквы). Все файлы internal/ и cmd/ проверены, интерфейсы отсутствуют.",
+        "evidence": [
+          "internal/handler/health_handler.go:8-8 (цитата подтверждена кодом)",
+          "internal/route/health_route.go:10-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте приватные интерфейсы (с маленькой буквы) на стыках слоёв, например интерфейс репозитория и сервиса."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())",
+            "locator": "cmd/main.go:9-9",
+            "path": "cmd/main.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          },
+          {
+            "quote": "type HealthHandler struct{}",
+            "locator": "internal/handler/health_handler.go:8-8",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 8,
+            "line_end": 8,
+            "verified": false
+          },
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b085",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни доменных моделей, ни DTO, ни слоёв model/repository/usecase — критерий о разделении моделей и тегов не находит реализации. Есть только handler и route с health-эндпоинтами.",
+        "evidence": [
+          "cmd/main.go:9-9 (цитата подтверждена кодом)",
+          "internal/handler/health_handler.go:8-8 (цитата подтверждена кодом)",
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте доменные модели без json/db тегов и отдельные DTO для транспорта."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())",
+            "locator": "cmd/main.go:9-9",
+            "path": "cmd/main.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          },
+          {
+            "quote": "hh := handler.HealthHandler{}",
+            "locator": "internal/route/health_route.go:10-10",
+            "path": "internal/route/health_route.go",
+            "line_start": 10,
+            "line_end": 10,
+            "verified": false
+          },
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b086",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе отсутствует слой usecase/service и repository, поэтому нет ни sql-кода в usecase, ни маппинга ошибок БД в доменные. Критерий требует, чтобы usecase не знал про sql, а ошибки БД маппились в доменные в репозитории — этого в работе нет.",
+        "evidence": [
+          "cmd/main.go:9-9 (цитата подтверждена кодом)",
+          "internal/route/health_route.go:10-10 (цитата подтверждена кодом)",
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте слой usecase/service и repository, где ошибки БД маппятся в доменные, чтобы usecase не знал про sql."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}",
+            "locator": "internal/handler/health_handler.go:10-12",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 10,
+            "line_end": 12,
+            "verified": false
+          },
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b087",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В handler нет вызова usecase: обработчик сам формирует ответ и содержит логику ответа, слой usecase отсутствует. Согласно подсказке, handler должен разбирать запрос, звать usecase и писать ответ; здесь этого нет.",
+        "evidence": [
+          "internal/handler/health_handler.go:10-12 (цитата подтверждена кодом, адрес исправлен)",
+          "cmd/main.go:8-10 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте слой usecase и вызывайте его из handler, чтобы в обработчике не было бизнес-логики."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}\n\nfunc (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}",
+            "locator": "internal/handler/health_handler.go:10-16",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 10,
+            "line_end": 16,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b088",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Моделей (internal/model, entity, dto) в работе нет вообще, поэтому оценить их тонкость невозможно. Обработчики в internal/handler/health_handler.go короткие (разбирают запрос и отдают ответ), но слоя usecase нет, а сами обработчики не вызывают бизнес-логику — критерий в целом не выполнен.",
+        "evidence": [
+          "internal/handler/health_handler.go:10-16 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Моделей в работе нет вовсе, поэтому критерий «тонкие модели» не на чем оценить; обработчики короткие, но без usecase. Проверьте, не ожидается ли оценка только по обработчикам. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Обработчики определены как методы структуры HealthHandler, но структура не содержит полей и создаётся в роутере без внедрения зависимостей. (internal/handler/health_handler.go:8-12, internal/route/health_route.go:9-15); Роутер монтируется в корень, а обработчики регистрируются на конкретных путях, что делает структуру маршрутизации плоской без вложенных подроутеров. (internal/route/route.go:7-11, internal/route/health_route.go:9-15); Обработчик HealthCheckHandler не возвращает тело ответа, только статус 204, что соответствует тонкой модели, но обработчик PingHandler напрямую кодирует JSON без проверки ошибок. (internal/handler/health_handler.go:10-16)",
+        "student_feedback": "Добавьте модели и слой usecase, чтобы обработчики вызывали бизнес-логику, а модели оставались тонкими."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "package handler",
+            "locator": "internal/handler/health_handler.go:1-1",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "package route",
+            "locator": "internal/route/health_route.go:1-1",
+            "path": "internal/route/health_route.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b089",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Слои handler и repository не содержат пакетов по сущностям: в handler один пакет на весь слой, слоя repository нет вовсе.",
+        "evidence": [
+          "internal/handler/health_handler.go:1-1 (цитата подтверждена кодом)",
+          "internal/route/health_route.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Разбей слои handler и repository на пакеты по сущностям (например courier), а не один пакет на весь слой."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "module serviceDelivery\n\ngo 1.24.5\n\nrequire github.com/go-chi/chi/v5 v5.2.3",
+            "locator": "go.mod:1-5",
+            "path": "go.mod",
+            "line_start": 1,
+            "line_end": 5,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-3e23-736d-afb1-5575e698b08a",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "DI-пакет (dig/fx/wire/do) отсутствует в go.mod, контейнера DI в main нет. Код не разделён по слоям чистой архитектуры (нет internal/handler, internal/repository и т.д.).",
+        "evidence": [
+          "go.mod:1-5 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Срез содержит только go.mod (7 файлов, но показан лишь go.mod). Проверить остальные файлы среза на наличие слоёв и DI-контейнера.",
+        "student_feedback": "Добавьте DI-пакет (например dig) с контейнером в main и разделите код по слоям чистой архитектуры."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T20:22:16.053326+00:00"
+}

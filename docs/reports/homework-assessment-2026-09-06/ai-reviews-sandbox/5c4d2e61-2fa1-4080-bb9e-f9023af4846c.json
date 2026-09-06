@@ -1,0 +1,512 @@
+{
+  "id": "5c4d2e61-2fa1-4080-bb9e-f9023af4846c",
+  "status": "succeeded",
+  "revision": 0,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": 0.08,
+      "explanation": "Оценка модели: 8%, уровень низкий. Простые признаки генерации в тексте и коде не найдены; декларации об использовании ИИ в работе нет.\nПорог не калибровался на реальном потоке, на балл не влияет, это повод для разговора со студентом.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Отличная работа по структуре и основным сценариям, но есть несколько критичных моментов, которые нужно закрыть.\n\n- Добавь вызов `Ping` к базе данных (например, `pool.Ping(ctx)`) сразу после подключения в `db.New`, чтобы проверять доступность БД при старте.\n- Реализуй цикл повторов с задержкой вокруг этого `Ping`, чтобы сервис не падал сразу при временной недоступности БД.\n- Исправь сценарий запуска: сейчас при недоступной базе сервис продолжает работать. Нужно, чтобы при неудачном `Ping` после всех ретраев вызывалась паника или `Fatal`.\n- Добавь миграции с помощью популярного пакета (`goose` или `migrate`): создай каталог `migrations` с SQL-файлами для таблицы `couriers`.\n- Вынеси команду запуска миграций в `Makefile` или отдельный скрипт, не вызывай их в `main.go`.\n- Добавь валидацию обязательных полей и телефона в `POST /courier` и `PUT /courier`, возвращая `400 Bad Request` при ошибках.\n- В `PUT /courier` различай коды ответов: `400` для ошибок валидации, `404` только для отсутствующего курьера.\n\nХорошо, что код обработчиков вынесен в `internal`, а все SQL-запросы используют плейсхолдеры — это правильный подход.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tdatabase := db.New(cfg.Postgres.DSN())",
+            "locator": "cmd/myapp/main.go:22-22",
+            "path": "cmd/myapp/main.go",
+            "line_start": 22,
+            "line_end": 22,
+            "verified": false
+          },
+          {
+            "quote": "func (p PostgresConfig) DSN() string {\n\treturn fmt.Sprintf(\n\t\t\"postgres://%s:%s@%s:%s/%s?sslmode=disable\",\n\t\tp.User, p.Password, p.Host, p.Port, p.DBName,\n\t)\n}",
+            "locator": "internal/server/config/config.go:50-55",
+            "path": "internal/server/config/config.go",
+            "line_start": 50,
+            "line_end": 55,
+            "verified": false
+          },
+          {
+            "quote": "\tpg := PostgresConfig{\n\t\tHost:     os.Getenv(\"POSTGRES_HOST\"),\n\t\tPort:     os.Getenv(\"POSTGRES_PORT\"),\n\t\tUser:     os.Getenv(\"POSTGRES_USER\"),\n\t\tPassword: os.Getenv(\"POSTGRES_PASSWORD\"),\n\t\tDBName:   os.Getenv(\"POSTGRES_DB\"),\n\t}",
+            "locator": "internal/server/config/config.go:29-35",
+            "path": "internal/server/config/config.go",
+            "line_start": 29,
+            "line_end": 35,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e886",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Подключение к базе выполняется в main.go через db.New(cfg.Postgres.DSN()), DSN собирается из конфига, читающего переменные окружения, без хардкода.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "cmd/myapp/main.go:22-22 (цитата подтверждена кодом)",
+          "internal/server/config/config.go:50-55 (цитата подтверждена кодом)",
+          "internal/server/config/config.go:29-35 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись Сборка go build: успешно. Запуск в песочнице: 17 из 19 проверок поведения как в ТЗ, 26 не удалось проверить. Сводка: предложено 7.5 из 15. Не выполнено: Есть запрос Ping для проверки соединения, Есть ретрай при запросе Ping, В случае ошибки подключения кидается паника, Есть миграции с помощью популярного пакета. Сигнал ИИ: low. Стоимость прогона: 1.78 ₽ (505657 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@94a1500abf36, self_review@1e9730ed12fc. Вопросы студенту: 1) В internal/db/db.go после создания пула pgxpool.New нет вызова Ping к базе данных. Как ты планируешь проверить доступность БД при старте сервиса и что должно произойти, если база недоступна? 2) В работе отсутствуют миграции (нет каталога migrations, нет упоминаний goose/migrate в go.mod или Makefile). Как в текущем виде создаётся таблица couriers при запуске на чистой базе, и как ты собираешься организовать инициализацию схемы? 3) В POST /courier и PUT /courier не реализована валидация обязательных полей и телефона — все ошибки сервиса мапятся в 404. Что должен вернуть сервер, если в теле запроса пустой name или невалидный phone, и как ты различишь ошибку валидации от случая, когда курьер действительно не найден?",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tdatabase := db.New(cfg.Postgres.DSN())\n\tdefer database.Close()",
+            "locator": "cmd/myapp/main.go:22-23",
+            "path": "cmd/myapp/main.go",
+            "line_start": 22,
+            "line_end": 23,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e887",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В main.go сразу после создания подключения к БД стоит defer database.Close(), что закрывает пул соединений при завершении работы.",
+        "evidence": [
+          "cmd/myapp/main.go:22-23 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func New(dsn string) *Database {\n\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\n\tpool, err := pgxpool.New(ctx, dsn)\n\tif err != nil {\n\t\tlog.Fatalf(\"failed to connect to postgres: %v\", err)\n\t}\n\n\treturn &Database{Pool: pool}\n}",
+            "locator": "internal/db/db.go:15-25",
+            "path": "internal/db/db.go",
+            "line_start": 15,
+            "line_end": 25,
+            "verified": false
+          },
+          {
+            "quote": "r.HandleFunc(\"/ping\", h.Ping).Methods(\"GET\")\n\tr.HandleFunc(\"/healthcheck\", h.HealthCheck).Methods(\"HEAD\")",
+            "locator": "internal/courier/handler/handler.go:26-27",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 26,
+            "line_end": 27,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e888",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Запрос Ping к базе данных (pool.Ping/db.Ping/conn.Ping) после подключения отсутствует. В db.go после pgxpool.New нет вызова Ping, а единственные Ping — HTTP-маршруты /ping и /healthcheck в handler.go, которые по подсказке не учитываются.",
+        "evidence": [
+          "internal/db/db.go:15-25 (цитата подтверждена кодом, адрес исправлен)",
+          "internal/courier/handler/handler.go:26-27 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте вызов Ping к базе данных (например, pool.Ping(ctx)) после подключения в db.New."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func New(dsn string) *Database {\n\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\n\tpool, err := pgxpool.New(ctx, dsn)\n\tif err != nil {\n\t\tlog.Fatalf(\"failed to connect to postgres: %v\", err)\n\t}\n\n\treturn &Database{Pool: pool}\n}",
+            "locator": "internal/db/db.go:15-25",
+            "path": "internal/db/db.go",
+            "line_start": 15,
+            "line_end": 25,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e889",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни вызова Ping, ни цикла повторов с задержкой вокруг соединения с БД. В db.go создаётся пул pgxpool.New без Ping и без ретраев.",
+        "evidence": [
+          "internal/db/db.go:15-25 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавь Ping к БД с циклом повторов и задержкой между попытками."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "\tpool, err := pgxpool.New(ctx, dsn)\n\tif err != nil {\n\t\tlog.Fatalf(\"failed to connect to postgres: %v\", err)\n\t}",
+            "locator": "internal/db/db.go:19-22",
+            "path": "internal/db/db.go",
+            "line_start": 19,
+            "line_end": 22,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e88a",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Проверено запуском: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с",
+        "evidence": [
+          "запуск: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с",
+          "internal/db/db.go:19-22 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Факт запуска «паника при недоступной базе»: сервис стартовал и слушал порт без паники за 20 с — это опровергает требование, несмотря на наличие log.Fatalf в коде. Выполнено частично, а шаг балла не позволяет поставить часть: решите сами.",
+        "student_feedback": "Исправь поведение сервиса: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "require (\n\tgithub.com/gorilla/mux v1.8.1\n\tgithub.com/jackc/pgx/v5 v5.7.6\n\tgithub.com/joho/godotenv v1.5.1\n)",
+            "locator": "go.mod:5-9",
+            "path": "go.mod",
+            "line_start": 5,
+            "line_end": 9,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e88b",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни каталога миграций, ни упоминаний goose/migrate/atlas в go.mod, Makefile или скриптах; миграции не реализованы.",
+        "evidence": [
+          "go.mod:5-9 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте миграции с помощью популярного пакета (goose или migrate) и команду для их запуска."
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e88c",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни Makefile, ни скриптов, ни вызовов goose/migrate; миграции не реализованы нигде.",
+        "evidence": [],
+        "confidence": "high",
+        "reviewer_note": "Проверьте, что миграции действительно отсутствуют во всех файлах среза.",
+        "student_feedback": "Добавьте Makefile или скрипт для запуска миграций и сами файлы миграций."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "query := `INSERT INTO couriers (name, phone, status) VALUES ($1, $2, $3) RETURNING id`",
+            "locator": "internal/courier/repository/postgres.go:21-21",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 21,
+            "line_end": 21,
+            "verified": false
+          },
+          {
+            "quote": "query := `SELECT id, name, phone, status, created_at, updated_at FROM couriers WHERE id=$1`",
+            "locator": "internal/courier/repository/postgres.go:34-34",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 34,
+            "line_end": 34,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e88d",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Миграции в работе отсутствуют полностью: нет ни файлов миграций (goose/migrate), ни команд их запуска. Факты запуска подтверждают: «в снимке не найдены файлы миграций (goose или migrate)» и «миграции перед сценарием не накатились». Без миграций таблица couriers не создаётся, поэтому запуск на чистой базе невозможен.",
+        "evidence": [
+          "запуск: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+          "internal/courier/repository/postgres.go:21-21 (цитата подтверждена кодом)",
+          "internal/courier/repository/postgres.go:34-34 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Факты запуска: «в снимке не найдены файлы миграций (goose или migrate)», «миграции перед сценарием не накатились». Код репозитория опирается на таблицу couriers, которая без миграций не создаётся. Запуск в песочнице поведение не подтвердил: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+        "student_feedback": "Добавь миграции (goose или migrate) для создания таблицы couriers и команду их запуска вне main.go."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "database := db.New(cfg.Postgres.DSN())",
+            "locator": "cmd/myapp/main.go:22-22",
+            "path": "cmd/myapp/main.go",
+            "line_start": 22,
+            "line_end": 22,
+            "verified": false
+          },
+          {
+            "quote": "pool, err := pgxpool.New(ctx, dsn)",
+            "locator": "internal/db/db.go:19-19",
+            "path": "internal/db/db.go",
+            "line_start": 19,
+            "line_end": 19,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e88e",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет инструмента миграций (goose/migrate) и файлов миграций, поэтому повторный запуск миграций не предусмотрен.",
+        "evidence": [
+          "запуск: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+          "cmd/myapp/main.go:22-22 (цитата подтверждена кодом)",
+          "internal/db/db.go:19-19 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: миграции: в снимке не найдены файлы миграций (goose или migrate)",
+        "student_feedback": "Добавьте инструмент миграций (goose или migrate) с файлами миграций, поддерживающими повторный запуск."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tr.HandleFunc(\"/courier/{id}\", h.GetByID).Methods(\"GET\")\n\tr.HandleFunc(\"/couriers\", h.GetAll).Methods(\"GET\")",
+            "locator": "internal/courier/handler/handler.go:22-23",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 22,
+            "line_end": 23,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {\n\tidStr := mux.Vars(r)[\"id\"]\n\tid, err := strconv.ParseInt(idStr, 10, 64)\n\tif err != nil {\n\t\thttp.Error(w, \"invalid id\", http.StatusBadRequest)\n\t\treturn\n\t}\n\n\tc, err := h.service.GetByID(r.Context(), id)\n\tif err != nil {\n\t\thttp.Error(w, err.Error(), http.StatusNotFound)\n\t\treturn\n\t}\n\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tjson.NewEncoder(w).Encode(c)\n}",
+            "locator": "internal/courier/handler/handler.go:39-55",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 39,
+            "line_end": 55,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {\n\tcouriers, err := h.service.GetAll(r.Context())\n\tif err != nil {\n\t\thttp.Error(w, \"internal error\", http.StatusInternalServerError)\n\t\treturn\n\t}\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tjson.NewEncoder(w).Encode(couriers)\n}",
+            "locator": "internal/courier/handler/handler.go:57-65",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 57,
+            "line_end": 65,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e88f",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Оба GET-обработчика реализованы: GET /courier/{id} возвращает 200 с данными, 400 при невалидном id, 404 при отсутствии; GET /couriers возвращает 200 со списком. Формат ответов соответствует ТЗ.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "internal/courier/handler/handler.go:22-23 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:39-55 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:57-65 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверить, что в ответе GET /courier/{id} не выводятся лишние поля created_at/updated_at, так как в репозитории они сканируются и могут попасть в JSON. Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {\n\tvar c model.Courier\n\tif err := json.NewDecoder(r.Body).Decode(&c); err != nil {\n\t\thttp.Error(w, \"invalid request body\", http.StatusBadRequest)\n\t\treturn\n\t}\n\tif err := h.service.Create(r.Context(), &c); err != nil {\n\t\thttp.Error(w, err.Error(), http.StatusConflict)\n\t\treturn\n\t}\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tw.WriteHeader(http.StatusCreated)\n\tjson.NewEncoder(w).Encode(c)\n}",
+            "locator": "internal/courier/handler/handler.go:67-80",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 67,
+            "line_end": 80,
+            "verified": false
+          },
+          {
+            "quote": "query := `INSERT INTO couriers (name, phone, status) VALUES ($1, $2, $3) RETURNING id`\n\terr := r.DB.Pool.QueryRow(ctx, query, c.Name, c.Phone, c.Status).Scan(&c.ID)\n\tif err != nil {\n\t\tif pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == \"23505\" {\n\t\t\treturn ErrConflict\n\t\t}\n\t\treturn err\n\t}",
+            "locator": "internal/courier/repository/postgres.go:21-28",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 21,
+            "line_end": 28,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e890",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "POST /courier реализован: 201 при создании и 409 при дубле телефона есть, но нет валидации обязательных полей и телефона, поэтому 400 для пустых полей/невалидного телефона не возвращается.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "internal/courier/handler/handler.go:67-80 (цитата подтверждена кодом)",
+          "internal/courier/repository/postgres.go:21-28 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+        "student_feedback": "Добавьте валидацию обязательных полей и телефона с возвратом 400 Bad Request."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {\n\tvar c model.Courier\n\tif err := json.NewDecoder(r.Body).Decode(&c); err != nil {\n\t\thttp.Error(w, \"invalid request body\", http.StatusBadRequest)\n\t\treturn\n\t}\n\tif err := h.service.Update(r.Context(), &c); err != nil {\n\t\thttp.Error(w, err.Error(), http.StatusNotFound)\n\t\treturn\n\t}\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tjson.NewEncoder(w).Encode(c)\n}",
+            "locator": "internal/courier/handler/handler.go:82-94",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 82,
+            "line_end": 94,
+            "verified": false
+          },
+          {
+            "quote": "func (r *PostgresCourierRepository) Update(ctx context.Context, c *model.Courier) error {\n\tquery := `UPDATE couriers SET \n\t\tname = COALESCE($2, name), \n\t\tphone = COALESCE($3, phone), \n\t\tstatus = COALESCE($4, status), \n\t\tupdated_at = now()\n\t\tWHERE id = $1`\n\tcmd, err := r.DB.Pool.Exec(ctx, query, c.ID, c.Name, c.Phone, c.Status)\n\tif err != nil {\n\t\treturn err\n\t}\n\tif cmd.RowsAffected() == 0 {\n\t\treturn ErrNotFound\n\t}\n\treturn nil\n}",
+            "locator": "internal/courier/repository/postgres.go:63-78",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 63,
+            "line_end": 78,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e891",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "PUT /courier реализован: маршрут, чтение id из тела, 200 при успехе, 404 при отсутствии записи (RowsAffected==0). Но валидация тела отсутствует, а все ошибки сервиса (включая не NotFound) мапятся в 404, что соответствует partial.",
+        "evidence": [
+          "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+          "internal/courier/handler/handler.go:82-94 (цитата подтверждена кодом)",
+          "internal/courier/repository/postgres.go:63-78 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Запуск в песочнице поведение не подтвердил: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+        "student_feedback": "Добавьте валидацию тела запроса и различайте коды ответов: 400 для ошибок валидации, 404 только для отсутствующего курьера."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func (h *Handler) Ping(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/courier/handler/handler.go:30-30",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 30,
+            "line_end": 30,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/courier/handler/handler.go:35-35",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 35,
+            "line_end": 35,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/courier/handler/handler.go:39-39",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 39,
+            "line_end": 39,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/courier/handler/handler.go:57-57",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 57,
+            "line_end": 57,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/courier/handler/handler.go:67-67",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 67,
+            "line_end": 67,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/courier/handler/handler.go:82-82",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 82,
+            "line_end": 82,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e892",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: grep: вхождений 'http\\\\.ResponseWriter|gin\\\\.Context|echo\\\\.Context': 6 (нужно от 1)",
+        "evidence": [
+          "internal/courier/handler/handler.go:30-30 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:35-35 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:39-39 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:57-57 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:67-67 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:82-82 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "query := `INSERT INTO couriers (name, phone, status) VALUES ($1, $2, $3) RETURNING id`\nerr := r.DB.Pool.QueryRow(ctx, query, c.Name, c.Phone, c.Status).Scan(&c.ID)",
+            "locator": "internal/courier/repository/postgres.go:21-22",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 21,
+            "line_end": 22,
+            "verified": false
+          },
+          {
+            "quote": "query := `SELECT id, name, phone, status, created_at, updated_at FROM couriers WHERE id=$1`\nerr := r.DB.Pool.QueryRow(ctx, query, id).Scan(&c.ID, &c.Name, &c.Phone, &c.Status, &c.CreatedAt, &c.UpdatedAt)",
+            "locator": "internal/courier/repository/postgres.go:34-35",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 34,
+            "line_end": 35,
+            "verified": false
+          },
+          {
+            "quote": "rows, err := r.DB.Pool.Query(ctx, `SELECT id, name, phone, status FROM couriers`)",
+            "locator": "internal/courier/repository/postgres.go:46-46",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 46,
+            "line_end": 46,
+            "verified": false
+          },
+          {
+            "quote": "cmd, err := r.DB.Pool.Exec(ctx, query, c.ID, c.Name, c.Phone, c.Status)",
+            "locator": "internal/courier/repository/postgres.go:70-70",
+            "path": "internal/courier/repository/postgres.go",
+            "line_start": 70,
+            "line_end": 70,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e893",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Все SQL-запросы в репозитории используют плейсхолдеры $1..$4 с передачей параметров аргументами pgx, конкатенации строк или fmt.Sprintf с пользовательскими данными нет. Миграций в работе не существует, поэтому нарушающих CREATE FUNCTION нет.",
+        "evidence": [
+          "internal/courier/repository/postgres.go:21-22 (цитата подтверждена кодом, адрес исправлен)",
+          "internal/courier/repository/postgres.go:34-35 (цитата подтверждена кодом, адрес исправлен)",
+          "internal/courier/repository/postgres.go:46-46 (цитата подтверждена кодом, адрес исправлен)",
+          "internal/courier/repository/postgres.go:70-70 (цитата подтверждена кодом, адрес исправлен)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "github.com/jackc/pgx/v5 v5.7.6",
+            "locator": "go.mod:7-7",
+            "path": "go.mod",
+            "line_start": 7,
+            "line_end": 7,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-918a-7bb9-875e-ab696133e894",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Проверено кодом: grep: вхождений 'jackc/pgx': 1 (нужно от 1)",
+        "evidence": [
+          "go.mod:7-7 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T20:22:05.732232+00:00"
+}

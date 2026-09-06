@@ -1,0 +1,147 @@
+{
+  "variant": "original",
+  "pairs_within_task": 60,
+  "pairwise_accuracy_within_task": 0.7416666666666667,
+  "concordant": 37,
+  "discordant": 8,
+  "ties": 15,
+  "by_kind": {
+    "слабая < средняя": {
+      "pairs": 15,
+      "accuracy": 0.7,
+      "concordant": 10,
+      "discordant": 4,
+      "ties": 1
+    },
+    "средняя < хорошая": {
+      "pairs": 29,
+      "accuracy": 0.6724137931034483,
+      "concordant": 14,
+      "discordant": 4,
+      "ties": 11
+    },
+    "слабая < хорошая": {
+      "pairs": 16,
+      "accuracy": 0.90625,
+      "concordant": 13,
+      "discordant": 0,
+      "ties": 3
+    }
+  },
+  "tasks_with_pairs": 22,
+  "tasks_perfect_order": 7,
+  "auc_weak_vs_normal_pooled_ratio": 0.9160919540229885,
+  "auc_pairs": 435,
+  "per_task": [
+    {
+      "task": "business_models_1",
+      "accuracy": 0.8333333333333334,
+      "pairs": 3
+    },
+    {
+      "task": "da_1",
+      "accuracy": 0.5,
+      "pairs": 1
+    },
+    {
+      "task": "da_2",
+      "accuracy": 1.0,
+      "pairs": 3
+    },
+    {
+      "task": "da_3",
+      "accuracy": 1.0,
+      "pairs": 2
+    },
+    {
+      "task": "da_4",
+      "accuracy": 0.6666666666666666,
+      "pairs": 3
+    },
+    {
+      "task": "da_5",
+      "accuracy": 1.0,
+      "pairs": 3
+    },
+    {
+      "task": "ds_backend",
+      "accuracy": 0.6666666666666666,
+      "pairs": 3
+    },
+    {
+      "task": "ds_gpu",
+      "accuracy": 1.0,
+      "pairs": 3
+    },
+    {
+      "task": "ds_llm",
+      "accuracy": 1.0,
+      "pairs": 3
+    },
+    {
+      "task": "ds_mlflow",
+      "accuracy": 0.75,
+      "pairs": 2
+    },
+    {
+      "task": "fraud_1",
+      "accuracy": 0.5,
+      "pairs": 3
+    },
+    {
+      "task": "go_1",
+      "accuracy": 1.0,
+      "pairs": 2
+    },
+    {
+      "task": "go_2",
+      "accuracy": 0.6666666666666666,
+      "pairs": 3
+    },
+    {
+      "task": "go_3",
+      "accuracy": 0.6666666666666666,
+      "pairs": 3
+    },
+    {
+      "task": "product_1",
+      "accuracy": 0.25,
+      "pairs": 2
+    },
+    {
+      "task": "product_2",
+      "accuracy": 0.8333333333333334,
+      "pairs": 3
+    },
+    {
+      "task": "product_3",
+      "accuracy": 0.25,
+      "pairs": 2
+    },
+    {
+      "task": "product_4",
+      "accuracy": 0.5,
+      "pairs": 3
+    },
+    {
+      "task": "product_5",
+      "accuracy": 0.5,
+      "pairs": 3
+    },
+    {
+      "task": "system_design_1",
+      "accuracy": 0.8,
+      "pairs": 5
+    },
+    {
+      "task": "system_design_2",
+      "accuracy": 0.5,
+      "pairs": 2
+    },
+    {
+      "task": "tech_qa_1",
+      "accuracy": 1.0,
+      "pairs": 3
+    }
+  ]
+}

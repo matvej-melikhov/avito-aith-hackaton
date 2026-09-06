@@ -1,0 +1,509 @@
+{
+  "pairs": 66,
+  "binary_pairs": 44,
+  "medium_pairs": 22,
+  "matches": 38,
+  "agreement": 0.8636363636363636,
+  "precision_weak": 0.9090909090909091,
+  "recall_weak": 0.6666666666666666,
+  "f1_weak": 0.7692307692307693,
+  "coverage": 1.0,
+  "abstain": 0,
+  "tp": 10,
+  "fp": 1,
+  "matrix": {
+    "weak": {
+      "fail": 10,
+      "pass": 5
+    },
+    "normal": {
+      "pass": 28,
+      "fail": 1
+    }
+  },
+  "by_task": {
+    "go_1": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": null,
+      "recall_weak": null,
+      "f1_weak": null,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {},
+        "normal": {
+          "pass": 2
+        }
+      }
+    },
+    "go_2": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "go_3": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 1,
+      "agreement": 0.5,
+      "precision_weak": null,
+      "recall_weak": 0.0,
+      "f1_weak": 0.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "pass": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "da_1": {
+      "pairs": 2,
+      "binary_pairs": 1,
+      "medium_pairs": 1,
+      "matches": 1,
+      "agreement": 1.0,
+      "precision_weak": null,
+      "recall_weak": null,
+      "f1_weak": null,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {},
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "da_2": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "da_3": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": null,
+      "recall_weak": null,
+      "f1_weak": null,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {},
+        "normal": {
+          "pass": 2
+        }
+      }
+    },
+    "da_4": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "da_5": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "ds_gpu": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "ds_llm": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "ds_backend": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 1,
+      "agreement": 0.5,
+      "precision_weak": null,
+      "recall_weak": 0.0,
+      "f1_weak": 0.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "pass": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "ds_mlflow": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 1,
+      "agreement": 0.5,
+      "precision_weak": 0.0,
+      "recall_weak": null,
+      "f1_weak": 0.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 1,
+      "matrix": {
+        "weak": {},
+        "normal": {
+          "pass": 1,
+          "fail": 1
+        }
+      }
+    },
+    "product_1": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": null,
+      "recall_weak": null,
+      "f1_weak": null,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {},
+        "normal": {
+          "pass": 2
+        }
+      }
+    },
+    "product_2": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "product_3": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": null,
+      "recall_weak": null,
+      "f1_weak": null,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {},
+        "normal": {
+          "pass": 2
+        }
+      }
+    },
+    "product_4": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 1,
+      "agreement": 0.5,
+      "precision_weak": null,
+      "recall_weak": 0.0,
+      "f1_weak": 0.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "pass": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "product_5": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 1,
+      "agreement": 0.5,
+      "precision_weak": null,
+      "recall_weak": 0.0,
+      "f1_weak": 0.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "pass": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "business_models_1": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "fraud_1": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 1,
+      "agreement": 0.5,
+      "precision_weak": null,
+      "recall_weak": 0.0,
+      "f1_weak": 0.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "pass": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    },
+    "system_design_1": {
+      "pairs": 4,
+      "binary_pairs": 3,
+      "medium_pairs": 1,
+      "matches": 3,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 2
+        }
+      }
+    },
+    "system_design_2": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": null,
+      "recall_weak": null,
+      "f1_weak": null,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 0,
+      "fp": 0,
+      "matrix": {
+        "weak": {},
+        "normal": {
+          "pass": 2
+        }
+      }
+    },
+    "tech_qa_1": {
+      "pairs": 3,
+      "binary_pairs": 2,
+      "medium_pairs": 1,
+      "matches": 2,
+      "agreement": 1.0,
+      "precision_weak": 1.0,
+      "recall_weak": 1.0,
+      "f1_weak": 1.0,
+      "coverage": 1.0,
+      "abstain": 0,
+      "tp": 1,
+      "fp": 0,
+      "matrix": {
+        "weak": {
+          "fail": 1
+        },
+        "normal": {
+          "pass": 1
+        }
+      }
+    }
+  },
+  "telemetry": {
+    "runs": 66,
+    "criterion_rows": 431,
+    "models": [
+      "deepseek-v4-flash"
+    ],
+    "calls": 989,
+    "prompt_tokens": 16188870,
+    "completion_tokens": 949326,
+    "cache_hit_tokens": 13284096,
+    "estimated_cost_usd": 0.82274
+  }
+}
