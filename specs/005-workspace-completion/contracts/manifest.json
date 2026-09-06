@@ -1,7 +1,7 @@
 {
   "sha256": {
-    "openapi.json": "9d8313452590ad9abb44f326aee8e6a676581992e613412a403a6336a92db687",
-    "review-assist-event.schema.json": "7ea38dcaa95d75dcb681d57d293dfc9255f55d96202b0e97ef60e9ae67299c89",
+    "openapi.json": "c26d44cf9f75a9cf58aac5b49ae07c49db4e0a6a9e0f34030876ab558255e32a",
+    "review-assist-event.schema.json": "9feba6b42ce888f250af36774d3066d284c3eae19b30fc870fa6157c77509e35",
     "review-assist-request.schema.json": "966555672a5b9fde6cc66d1b999e1f3e6a4d94c132d537a7a3d06a21f21b1b4d",
     "self-review-event.schema.json": "2482e3dc88e524844f1d192c9d8200b5fa50ae330017f3ae5235ffc78440f87c",
     "self-review-request.schema.json": "3140495b0b169487944f46f0f00c39eb6c6aa192c157ea97e9c34074cc444f48"

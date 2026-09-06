@@ -22,6 +22,11 @@ class EvidenceItem(BaseModel):
                                  validation_alias=AliasChoices("line_end", "end_line", "to"))
     quote: str = Field(description="Дословная цитата из работы, без правок и сокращений",
                        validation_alias=AliasChoices("quote", "text", "snippet"))
+    role: Literal["supports", "contradicts"] = Field(
+        default="supports",
+        description="supports: фрагмент подтверждает выполнение критерия; contradicts: фрагмент показывает недочёт, из-за которого балл снижен",
+        validation_alias=AliasChoices("role", "polarity", "kind"),
+    )
 
 
 class Judgement(BaseModel):

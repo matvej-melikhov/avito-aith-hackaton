@@ -145,7 +145,8 @@ def _suggestion(r: CriterionResult, extra_note: str = "") -> ReviewerSuggestion:
     c = r.criterion
     sources = [
         AssistEvidence(quote=v.quote[:10000], locator=f"{v.path}:{v.line_start}-{v.line_end}", path=v.path,
-                       line_start=v.line_start, line_end=max(v.line_end, v.line_start))
+                       line_start=v.line_start, line_end=max(v.line_end, v.line_start),
+                       polarity=v.role if v.role in ("supports", "contradicts") else None)
         for v in r.verified[:20]
     ]
     note = " ".join(x for x in [r.reviewer_note, extra_note] if x).strip() or None

@@ -27,6 +27,7 @@ class VerifiedQuote:
     quote: str
     status: str  # exact | relocated | dropped
     note: str = ""
+    role: str = "supports"  # supports | contradicts: подтверждает выполнение или показывает недочёт
 
     @property
     def ok(self) -> bool:
@@ -88,7 +89,7 @@ def verify_quote(work: Work, ev: EvidenceItem) -> VerifiedQuote:
     start = int(ev.line_start or 0)
     end = int(ev.line_end or start)
     if len(_normalize(quote)) < MIN_QUOTE:
-        return VerifiedQuote(ev.path, start, end, quote, "dropped", "пустая цитата")
+        return VerifiedQuote(ev.path, start, end, quote, "dropped", "пустая цитата", ev.role)
     claimed = work.file(ev.path)
     candidates: list[WorkFile] = []
     if claimed is not None:
@@ -104,10 +105,10 @@ def verify_quote(work: Work, ev: EvidenceItem) -> VerifiedQuote:
         same_file = f is claimed or (claimed is None and i == 0)
         within = same_file and start and start - 2 <= ls and le <= (end or start) + 2
         if within:
-            return VerifiedQuote(f.path, ls, le, quote, "exact")
+            return VerifiedQuote(f.path, ls, le, quote, "exact", "", ev.role)
         note = "адрес исправлен" if same_file else f"найдено в другом файле: {f.path}"
-        return VerifiedQuote(f.path, ls, le, quote, "relocated", note)
-    return VerifiedQuote(ev.path, start, end, quote, "dropped", "цитата не найдена в работе")
+        return VerifiedQuote(f.path, ls, le, quote, "relocated", note, ev.role)
+    return VerifiedQuote(ev.path, start, end, quote, "dropped", "цитата не найдена в работе", ev.role)
 
 
 def verify_all(work: Work, items: list[EvidenceItem]) -> list[VerifiedQuote]:

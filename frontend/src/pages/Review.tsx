@@ -1071,6 +1071,12 @@ export function ReviewEditor({
                           : undefined,
                         text: source.quote,
                         start: source.line_start ?? undefined,
+                        /* Модель помечает фрагменты: contradicts снизил балл (красным),
+                           supports подтверждает выполнение (зелёным). Без пометки цвет
+                           по итогу критерия, как раньше. */
+                        bad:
+                          source.polarity === "contradicts" ||
+                          (!source.polarity && !met),
                       })),
                       ...quotes.map((quote, index) => ({
                         key: `quote:${index}`,
@@ -1078,6 +1084,7 @@ export function ReviewEditor({
                         lines: undefined,
                         text: quote,
                         start: undefined,
+                        bad: !met,
                       })),
                     ];
                     return (
@@ -1166,8 +1173,8 @@ export function ReviewEditor({
                                   lines={f.text.split("\n").map((text, k) => ({
                                     n: f.start ? f.start + k : undefined,
                                     text,
-                                    miss: !met,
-                                    hit: met,
+                                    miss: f.bad,
+                                    hit: !f.bad,
                                   }))}
                                 />
                               </Finding>

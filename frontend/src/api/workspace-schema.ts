@@ -925,6 +925,11 @@ export interface components {
             locator?: string | null;
             /** Path */
             path?: string | null;
+            /**
+             * Polarity
+             * @description supports подтверждает выполнение, contradicts объясняет снижение балла
+             */
+            polarity?: ("supports" | "contradicts") | null;
             /** Quote */
             quote: string;
             /**

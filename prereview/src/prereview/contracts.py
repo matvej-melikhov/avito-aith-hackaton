@@ -123,6 +123,8 @@ class AssistEvidence(Strict):
     # Контракт запрещает заявлять проверку: поле всегда false. Факт нашей верификации
     # передаём словами в ReviewerSuggestion.evidence.
     verified: Literal[False] = False
+    # supports: фрагмент подтверждает выполнение; contradicts: из-за него балл снижен.
+    polarity: Literal["supports", "contradicts"] | None = None
 
     @model_validator(mode="after")
     def ordered_lines(self) -> AssistEvidence:

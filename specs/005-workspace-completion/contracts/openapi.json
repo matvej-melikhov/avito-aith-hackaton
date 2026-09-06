@@ -161,6 +161,21 @@
             ],
             "title": "Path"
           },
+          "polarity": {
+            "anyOf": [
+              {
+                "enum": [
+                  "supports",
+                  "contradicts"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polarity"
+          },
           "quote": {
             "maxLength": 10000,
             "minLength": 1,
@@ -445,12 +460,6 @@
             "title": "Priority Revision",
             "type": "integer"
           },
-          "reviewer_count": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Reviewer Count",
-            "type": "integer"
-          },
           "revision": {
             "minimum": 0.0,
             "title": "Revision",
@@ -624,7 +633,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Absent From"
           },
           "absent_until": {
@@ -637,16 +645,15 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "title": "Absent Until"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
           },
           "id": {
             "format": "uuid",
             "title": "Id",
-            "type": "string"
-          },
-          "display_name": {
-            "title": "Display Name",
             "type": "string"
           },
           "roles": {
@@ -870,18 +877,24 @@
         "additionalProperties": false,
         "properties": {
           "allowed_sources": {
-            "items": {
-              "enum": [
-                "upload",
-                "github",
-                "google_docs"
-              ],
-              "type": "string"
-            },
-            "maxItems": 3,
-            "minItems": 1,
-            "title": "Allowed Sources",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "upload",
+                    "github",
+                    "google_docs"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 3,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Sources"
           },
           "artifact_kinds": {
             "items": {
@@ -998,17 +1011,6 @@
       "EditorDraftView": {
         "additionalProperties": false,
         "properties": {
-          "homework_revision": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Homework Revision",
-            "type": "integer"
-          },
-          "homework_title": {
-            "default": "",
-            "title": "Homework Title",
-            "type": "string"
-          },
           "revision": {
             "minimum": 0.0,
             "title": "Revision",
@@ -1057,9 +1059,7 @@
                 "status",
                 "attempt",
                 "feedback",
-                "reviewer_id",
-                "criterion_points",
-                "artifact_url"
+                "reviewer_id"
               ],
               "type": "string"
             },
@@ -1260,22 +1260,6 @@
           }
         },
         "title": "HTTPValidationError",
-        "type": "object"
-      },
-      "HomeworkTitleInput": {
-        "additionalProperties": false,
-        "properties": {
-          "title": {
-            "maxLength": 512,
-            "minLength": 1,
-            "title": "Title",
-            "type": "string"
-          }
-        },
-        "required": [
-          "title"
-        ],
-        "title": "HomeworkTitleInput",
         "type": "object"
       },
       "LocalIdentities": {
@@ -1767,18 +1751,24 @@
         "additionalProperties": false,
         "properties": {
           "allowed_sources": {
-            "items": {
-              "enum": [
-                "upload",
-                "github",
-                "google_docs"
-              ],
-              "type": "string"
-            },
-            "maxItems": 3,
-            "minItems": 1,
-            "title": "Allowed Sources",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "upload",
+                    "github",
+                    "google_docs"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 3,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Sources"
           },
           "criterion_classes": {
             "additionalProperties": {
@@ -1834,18 +1824,24 @@
         "additionalProperties": false,
         "properties": {
           "allowed_sources": {
-            "items": {
-              "enum": [
-                "upload",
-                "github",
-                "google_docs"
-              ],
-              "type": "string"
-            },
-            "maxItems": 3,
-            "minItems": 1,
-            "title": "Allowed Sources",
-            "type": "array"
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "upload",
+                    "github",
+                    "google_docs"
+                  ],
+                  "type": "string"
+                },
+                "maxItems": 3,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Sources"
           },
           "criterion_classes": {
             "additionalProperties": {
@@ -2102,10 +2098,6 @@
       "PublishedCriterionView": {
         "additionalProperties": false,
         "properties": {
-          "description": {
-            "title": "Description",
-            "type": "string"
-          },
           "max_points": {
             "title": "Max Points",
             "type": "number"
@@ -2124,7 +2116,6 @@
           }
         },
         "required": [
-          "description",
           "title",
           "points",
           "max_points",
@@ -2415,13 +2406,6 @@
             "title": "Criterion Set Id",
             "type": "string"
           },
-          "decision_history": {
-            "items": {
-              "$ref": "#/components/schemas/ReviewDecisionEvent"
-            },
-            "title": "Decision History",
-            "type": "array"
-          },
           "homework_id": {
             "format": "uuid",
             "title": "Homework Id",
@@ -2631,7 +2615,6 @@
           },
           "reason": {
             "maxLength": 10000,
-            "minLength": 1,
             "title": "Reason",
             "type": "string"
           }
@@ -2643,37 +2626,6 @@
           "reason"
         ],
         "title": "ReviewDecision",
-        "type": "object"
-      },
-      "ReviewDecisionEvent": {
-        "additionalProperties": false,
-        "properties": {
-          "actor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Actor"
-          },
-          "text": {
-            "title": "Text",
-            "type": "string"
-          },
-          "timestamp": {
-            "format": "date-time",
-            "title": "Timestamp",
-            "type": "string"
-          }
-        },
-        "required": [
-          "timestamp",
-          "text"
-        ],
-        "title": "ReviewDecisionEvent",
         "type": "object"
       },
       "ReviewDraftView": {
@@ -3173,27 +3125,6 @@
         "title": "SelfReviewView",
         "type": "object"
       },
-      "SourcePolicyInput": {
-        "additionalProperties": false,
-        "properties": {
-          "allowed_sources": {
-            "items": {
-              "enum": [
-                "upload",
-                "github",
-                "google_docs"
-              ],
-              "type": "string"
-            },
-            "maxItems": 3,
-            "minItems": 1,
-            "title": "Allowed Sources",
-            "type": "array"
-          }
-        },
-        "title": "SourcePolicyInput",
-        "type": "object"
-      },
       "StatisticView": {
         "additionalProperties": false,
         "properties": {
@@ -3364,7 +3295,6 @@
               "type": "string"
             },
             "maxItems": 3,
-            "minItems": 1,
             "title": "Allowed Sources",
             "type": "array"
           },
@@ -3531,18 +3461,6 @@
             "format": "uuid",
             "title": "Publication Id",
             "type": "string"
-          },
-          "revision_deadline": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Revision Deadline"
           },
           "score": {
             "anyOf": [
@@ -3853,43 +3771,6 @@
         "title": "SubmissionAttemptView",
         "type": "object"
       },
-      "TypicalCriterionFailure": {
-        "additionalProperties": false,
-        "properties": {
-          "criterion_id": {
-            "format": "uuid",
-            "title": "Criterion Id",
-            "type": "string"
-          },
-          "failed": {
-            "minimum": 0.0,
-            "title": "Failed",
-            "type": "integer"
-          },
-          "ratio": {
-            "title": "Ratio",
-            "type": "number"
-          },
-          "reviewed": {
-            "minimum": 0.0,
-            "title": "Reviewed",
-            "type": "integer"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          }
-        },
-        "required": [
-          "criterion_id",
-          "title",
-          "failed",
-          "reviewed",
-          "ratio"
-        ],
-        "title": "TypicalCriterionFailure",
-        "type": "object"
-      },
       "UploadInput": {
         "additionalProperties": false,
         "properties": {
@@ -4019,18 +3900,6 @@
             "title": "Course Title",
             "type": "string"
           },
-          "draft_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Draft Id"
-          },
           "feedback": {
             "anyOf": [
               {
@@ -4154,17 +4023,6 @@
             ],
             "title": "Review Submission Version Id"
           },
-          "reviewer_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reviewer Name"
-          },
           "score": {
             "anyOf": [
               {
@@ -4202,16 +4060,9 @@
             "title": "Submission Deadline"
           },
           "submission_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Submission Id"
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
           },
           "submission_revision": {
             "minimum": 0.0,
@@ -4231,16 +4082,9 @@
             "title": "Submission Version Id"
           },
           "submitted_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Submitted At"
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
           },
           "taken_at": {
             "anyOf": [
@@ -4257,18 +4101,6 @@
           "title": {
             "title": "Title",
             "type": "string"
-          },
-          "updated_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Updated At"
           }
         },
         "required": [
@@ -4694,51 +4526,6 @@
           "payload"
         ],
         "title": "WorkspaceCommand[ExtraRequirementInput]",
-        "type": "object"
-      },
-      "WorkspaceCommand_HomeworkTitleInput_": {
-        "additionalProperties": false,
-        "properties": {
-          "command_name": {
-            "maxLength": 100,
-            "minLength": 1,
-            "title": "Command Name",
-            "type": "string"
-          },
-          "expected_revision": {
-            "minimum": 0.0,
-            "title": "Expected Revision",
-            "type": "integer"
-          },
-          "idempotency_key": {
-            "maxLength": 128,
-            "minLength": 16,
-            "title": "Idempotency Key",
-            "type": "string"
-          },
-          "payload": {
-            "$ref": "#/components/schemas/HomeworkTitleInput"
-          },
-          "request_id": {
-            "format": "uuid",
-            "title": "Request Id",
-            "type": "string"
-          },
-          "target_id": {
-            "format": "uuid",
-            "title": "Target Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "request_id",
-          "idempotency_key",
-          "command_name",
-          "target_id",
-          "expected_revision",
-          "payload"
-        ],
-        "title": "WorkspaceCommand[HomeworkTitleInput]",
         "type": "object"
       },
       "WorkspaceCommand_MembershipInput_": {
@@ -5326,31 +5113,6 @@
         "title": "WorkspaceCommand[WorkspaceReviewSaveInput]",
         "type": "object"
       },
-      "WorkspaceInsightsView": {
-        "additionalProperties": false,
-        "properties": {
-          "pool_metrics": {
-            "$ref": "#/components/schemas/WorkspacePoolMetrics"
-          },
-          "status_counts": {
-            "$ref": "#/components/schemas/WorkspaceStatusCounts"
-          },
-          "typical_failures": {
-            "items": {
-              "$ref": "#/components/schemas/TypicalCriterionFailure"
-            },
-            "title": "Typical Failures",
-            "type": "array"
-          }
-        },
-        "required": [
-          "status_counts",
-          "pool_metrics",
-          "typical_failures"
-        ],
-        "title": "WorkspaceInsightsView",
-        "type": "object"
-      },
       "WorkspaceNoteView": {
         "additionalProperties": false,
         "properties": {
@@ -5394,57 +5156,6 @@
           "position"
         ],
         "title": "WorkspaceNoteView",
-        "type": "object"
-      },
-      "WorkspacePoolMetrics": {
-        "additionalProperties": false,
-        "properties": {
-          "active_reviewers": {
-            "minimum": 0.0,
-            "title": "Active Reviewers",
-            "type": "integer"
-          },
-          "average_wait_minutes": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Average Wait Minutes"
-          },
-          "stuck": {
-            "minimum": 0.0,
-            "title": "Stuck",
-            "type": "integer"
-          },
-          "submitted": {
-            "minimum": 0.0,
-            "title": "Submitted",
-            "type": "integer"
-          },
-          "total_reviewers": {
-            "minimum": 0.0,
-            "title": "Total Reviewers",
-            "type": "integer"
-          },
-          "waiting": {
-            "minimum": 0.0,
-            "title": "Waiting",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "waiting",
-          "submitted",
-          "stuck",
-          "active_reviewers",
-          "total_reviewers",
-          "average_wait_minutes"
-        ],
-        "title": "WorkspacePoolMetrics",
         "type": "object"
       },
       "WorkspaceReviewSaveInput": {
@@ -5556,61 +5267,6 @@
           "homeworks"
         ],
         "title": "WorkspaceSearchView",
-        "type": "object"
-      },
-      "WorkspaceStatusCounts": {
-        "additionalProperties": false,
-        "properties": {
-          "all": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "All",
-            "type": "integer"
-          },
-          "draft": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Draft",
-            "type": "integer"
-          },
-          "failed": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Failed",
-            "type": "integer"
-          },
-          "in_review": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "In Review",
-            "type": "integer"
-          },
-          "needs_changes": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Needs Changes",
-            "type": "integer"
-          },
-          "passed": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Passed",
-            "type": "integer"
-          },
-          "pending_review": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Pending Review",
-            "type": "integer"
-          },
-          "repeat_review": {
-            "default": 0,
-            "minimum": 0.0,
-            "title": "Repeat Review",
-            "type": "integer"
-          }
-        },
-        "title": "WorkspaceStatusCounts",
         "type": "object"
       }
     }
@@ -5842,49 +5498,6 @@
         "x-command-name": "set_publication_policy"
       }
     },
-    "/v2/course-run-homeworks/{identity}/sources": {
-      "get": {
-        "operationId": "get_submission_sources_api_v2_course_run_homeworks__identity__sources_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "identity",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Identity",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SourcePolicyInput"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get Submission Sources",
-        "tags": [
-          "workspace-v2"
-        ]
-      }
-    },
     "/v2/course-run-homeworks/{identity}/student-context": {
       "get": {
         "operationId": "student_context_api_v2_course_run_homeworks__identity__student_context_get",
@@ -6075,66 +5688,6 @@
           "workspace-v2"
         ],
         "x-command-name": "assign_student"
-      }
-    },
-    "/v2/course-runs/{identity}/insights": {
-      "get": {
-        "operationId": "insights_api_v2_course_runs__identity__insights_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "identity",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Identity",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "homework_id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Homework Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkspaceInsightsView"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Insights",
-        "tags": [
-          "workspace-v2"
-        ]
       }
     },
     "/v2/course-runs/{identity}/memberships": {
@@ -6871,60 +6424,6 @@
           "workspace-v2"
         ],
         "x-command-name": "save_editor_draft"
-      }
-    },
-    "/v2/homeworks/{identity}/title": {
-      "post": {
-        "operationId": "update_workspace_homework_api_v2_homeworks__identity__title_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "identity",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Identity",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkspaceCommand_HomeworkTitleInput_"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResourceResult"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Update Workspace Homework",
-        "tags": [
-          "workspace-v2"
-        ],
-        "x-command-name": "update_workspace_homework"
       }
     },
     "/v2/internal/self-review/events": {
@@ -8386,16 +7885,6 @@
               "default": "all",
               "title": "View",
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "stuck",
-            "required": false,
-            "schema": {
-              "default": false,
-              "title": "Stuck",
-              "type": "boolean"
             }
           },
           {

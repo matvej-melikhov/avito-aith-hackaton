@@ -55,6 +55,22 @@
           "default": null,
           "title": "Path"
         },
+        "polarity": {
+          "anyOf": [
+            {
+              "enum": [
+                "supports",
+                "contradicts"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Polarity"
+        },
         "quote": {
           "maxLength": 10000,
           "minLength": 1,

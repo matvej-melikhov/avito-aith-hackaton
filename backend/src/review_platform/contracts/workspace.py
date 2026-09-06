@@ -237,6 +237,9 @@ class CriterionSettings(StrictModel):
 
 class PrivateHomeworkInput(StrictModel):
     criterion_settings: dict[str, CriterionSettings] = Field(default_factory=dict)
+    allowed_sources: list[Literal["upload", "github", "google_docs"]] | None = Field(
+        default=None, max_length=3
+    )
     material_upload_ids: list[UUID] = Field(default_factory=list, max_length=50)
     reviewer_guidance: str = Field(default="", max_length=50000)
     reference_upload_id: UUID | None = None
@@ -395,6 +398,10 @@ class DraftList(StrictModel):
 
 class StudentContext(StrictModel):
     material_upload_ids: list[UUID] = Field(default_factory=list)
+    # Какие типы ответа разрешены студенту; интерфейс из design-site читает это поле.
+    allowed_sources: list[Literal["upload", "github", "google_docs"]] = Field(
+        default_factory=lambda: ["upload", "github", "google_docs"], max_length=3
+    )
     course_title: str = ""
     run_title: str = ""
     max_score: Points = 0
@@ -695,6 +702,8 @@ class AssistEvidence(StrictModel):
     line_end: int | None = Field(default=None, ge=1)
     # Provider-supplied locations are claims, not locally verified source matches.
     verified: Literal[False] = False
+    # Whether the fragment supports the criterion or explains a deduction; None keeps legacy colouring.
+    polarity: Literal["supports", "contradicts"] | None = None
 
     @model_validator(mode="after")
     def ordered_lines(self) -> AssistEvidence:
