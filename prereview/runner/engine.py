@@ -305,10 +305,11 @@ class Engine:
             manifest = {}
             if (bundle_dir / "manifest.json").exists():
                 manifest = json.loads((bundle_dir / "manifest.json").read_text("utf-8"))
-            variables: dict[str, object] = {"PORT_A": free_port(), "PORT_B": free_port()}
             for sc in spec.get("scenarios", []):
                 left = timeout - (time.time() - started)
                 sid = str(sc.get("id", "scenario"))
+                # Каждому сценарию свои свободные порты: сокет предыдущего процесса не должен мешать следующему.
+                variables: dict[str, object] = {"PORT_A": free_port(), "PORT_B": free_port()}
                 if left < 5:
                     result.scenarios.append(ScenarioResult(sid, sc.get("kind", "service"), sc.get("title", sid),
                                                            ok=None, detail="не хватило времени бюджета запуска"))
