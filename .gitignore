@@ -26,3 +26,6 @@ grader/bundles/
 prereview/data/
 .dsh/
 prereview/evals/runs/
+
+# Демо-гифки тяжёлые, в репозитории лежат MP4
+docs/demo/*.gif
