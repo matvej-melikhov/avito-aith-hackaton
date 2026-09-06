@@ -132,7 +132,8 @@ def test_engine_catches_wrong_body_and_missing_shutdown_log(spec, tmp_path):
     assert o["env_port.ping"]["status"] == "fail" and "НЕ по ТЗ" in o["env_port.ping"]["detail"]
     assert o["env_port.healthcheck"]["status"] == "pass"
     assert o["env_port.log"]["status"] == "fail"
-    assert o["env_port.stop"]["status"] == "pass"  # сигнал по умолчанию убивает процесс: остановился
+    # Без обработчика процесс убит самим сигналом: это не корректное завершение.
+    assert o["env_port.stop"]["status"] == "fail" and "без обработки" in o["env_port.stop"]["detail"]
 
 
 def test_engine_rejects_broken_bundle(tmp_path):

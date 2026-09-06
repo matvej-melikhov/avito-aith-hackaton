@@ -569,8 +569,12 @@ class Engine:
             time.sleep(0.05)
         exited = proc.poll() is not None
         took = time.time() - t0
-        if exited:
-            res.checks["stop"] = {"ok": True, "detail": f"{sig_name}: завершился за {took:.1f} с (код {proc.returncode})"}
+        if exited and proc.returncode is not None and proc.returncode < 0:
+            # Отрицательный код: процесс убит самим сигналом, обработчика в программе нет.
+            res.checks["stop"] = {"ok": False, "detail": f"{sig_name}: процесс убит сигналом без обработки (код {proc.returncode}), "
+                                  "корректного завершения нет"}
+        elif exited:
+            res.checks["stop"] = {"ok": True, "detail": f"{sig_name}: завершился сам за {took:.1f} с (код {proc.returncode})"}
         else:
             res.checks["stop"] = {"ok": False, "detail": f"{sig_name}: не завершился за {limit:g} с, снят принудительно"}
             self._kill(proc)
