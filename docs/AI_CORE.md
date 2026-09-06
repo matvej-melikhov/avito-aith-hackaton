@@ -68,6 +68,14 @@ docker compose -p workspace-completion-local -f deploy/compose.yaml -f deploy/co
 
 Ключ `DEEPSEEK_API_KEY` берётся из `.env` в корне репозитория. Проверка: `curl http://127.0.0.1:18100/health`.
 
+Демо-данные поверх учебного стенда: два настоящих задания из файлов `prereview/assignments/` (лаба 1 системного дизайна с девятью критериями и Go 1–3 с сорока строками шаблона Авито), три сдачи из публичного корпуса и запуск помощи модели ревьюером:
+
+```bash
+uv run --directory prereview python ../scripts/seed_demo_homeworks.py
+```
+
+Скрипт ходит в API как координатор, студенты и ревьюер через локальный вход учебного стенда; повторный запуск создаёт задания заново.
+
 Evals на публичном корпусе: `uv run --directory prereview prereview evals` (корпус клонируется в `hw_examples/`, отчёт в `docs/EVALS.md`).
 
 Тесты: `uv run --directory prereview pytest`.
