@@ -308,7 +308,7 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
         build_note += runtime.summary() if runtime.ran else f"Запуск в песочнице не выполнен: {runtime.note or runtime.error}. "
     summary = build_note + reviewer_summary(results, signal_record.get("level", "low"), ledger.cost_rub,
                                ledger.prompt_tokens + ledger.completion_tokens, record.prompt_versions,
-                               client.model, pack.source if pack.source != "none" else ("нет: " + (pack.error or "не нужен")))
+                               client.model, _harness_label(pack))
     suggestions = [_suggestion(r, summary if i == 0 else "") for i, r in enumerate(results)]
     result = ReviewAssistResult(authorship_signal=signal, feedback_draft=feedback, suggestions=suggestions)
     problems = validate_assist_result(result, request.criteria)
@@ -358,6 +358,20 @@ def _repair(result: ReviewAssistResult, criteria: list[ReviewCriterionView]) -> 
                                             reason="Критерий не был проверен.", confidence="low"))
     return result.model_copy(update={"suggestions": fixed})
 
+
+
+def _harness_label(pack: EvidencePack) -> str:
+    """Короткая причина для сводки ревьюеру: текст ошибки целиком туда не попадает."""
+    if pack.source != "none":
+        return pack.source
+    if not pack.error:
+        return "нет: не нужен"
+    low = pack.error.lower()
+    if "json" in low or "validation" in low or "схем" in low:
+        return "нет: ответ не по схеме"
+    if "timeout" in low or "таймаут" in low:
+        return "нет: таймаут"
+    return "нет: " + pack.error.split("\n")[0][:60]
 
 def run_self_review(request: SelfReviewRequest, settings: Settings, *, client: LLMClient | None = None,
                     artifact_bytes: bytes | None = None, assignment_slug: str | None = None,
