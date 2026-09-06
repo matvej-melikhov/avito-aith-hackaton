@@ -107,7 +107,7 @@
 | Фронтенд | 24.5 тыс. строк TypeScript, 56 тестов | [замер] | подсчёт по `frontend/` |
 | Промптов в `prompts/` | 8 файлов, версия = sha256 | [замер] | `prompts/` |
 | Функций-сигналов об ИИ | 9 плюс флаг инъекции | [замер] | `prereview/src/prereview/signal/` |
-| Примитивов формальных проверок | 11 | [замер] | `prereview/src/prereview/checks/primitives.py` |
+| Примитивов формальных проверок | 15, включая сборку Go | [замер] | `prereview/src/prereview/checks/primitives.py`, словарь `PRIMITIVES` |
 | Сценариев песочницы для Go | 6 сценариев, 10 проб CRUD | [замер] | `prereview/assignments/go_tasks_1_3.json` |
 | Спецификаций spec-kit | 5 функциональных (001–005) и 6 аналитических (006–011) | [замер] | `specs/` |
 
