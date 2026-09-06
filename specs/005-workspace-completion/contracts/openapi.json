@@ -614,13 +614,39 @@
       "DirectoryMember": {
         "additionalProperties": false,
         "properties": {
-          "display_name": {
-            "title": "Display Name",
-            "type": "string"
+          "absent_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Absent From"
+          },
+          "absent_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Absent Until"
           },
           "id": {
             "format": "uuid",
             "title": "Id",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
             "type": "string"
           },
           "roles": {

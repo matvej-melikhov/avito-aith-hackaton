@@ -98,7 +98,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
       display_name: "Дмитрий Соколов",
       roles: ["reviewer"],
     },
-  ];
+  ].map((member) => ({ ...member, absent_from: null, absent_until: null }));
   const drafts = new Map<string, W<"DraftView">>();
   const quotas = new Map<string, W<"QuotaView">>();
   const policies = new Map<string, W<"PublicationPolicyView">>();

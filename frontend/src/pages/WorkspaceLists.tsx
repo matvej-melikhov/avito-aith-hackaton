@@ -790,7 +790,7 @@ function ExportForm({
           >
             <Seg
               value={audience}
-              disabled={action.busy}
+              disabled={action.busy || !!file || !!job}
               onChange={(a) => {
                 setAudience(a);
                 if (a === "students")
@@ -809,7 +809,7 @@ function ExportForm({
               {available.map(([key, label]) => (
                 <Chk
                   key={key}
-                  disabled={action.busy}
+                  disabled={action.busy || !!file || !!job}
                   checked={columns.includes(key)}
                   onChange={(e) =>
                     setColumns(
@@ -831,7 +831,7 @@ function ExportForm({
           >
             <Seg
               value={unfinished ? "with" : "skip"}
-              disabled={action.busy}
+              disabled={action.busy || !!file || !!job}
               onChange={(v) => setUnfinished(v === "with")}
               options={[
                 { value: "skip", label: "Не выгружать" },
@@ -842,7 +842,7 @@ function ExportForm({
           <Field group label="Формат">
             <Seg
               value={format}
-              disabled={action.busy}
+              disabled={action.busy || !!file || !!job}
               onChange={setFormat}
               options={[
                 { value: "csv", label: "CSV" },
@@ -850,6 +850,15 @@ function ExportForm({
               ]}
             />
           </Field>
+          {progress && <p role="status">{progress}</p>}
+          {file && (
+            <div className="field--after">
+              <p>Строк: {file.rows}</p>
+              <Btn href={file.url} download={file.filename}>
+                Скачать файл
+              </Btn>
+            </div>
+          )}
           {job && (
             <div className="field--after">
               <ExportMonitor ws={ws} id={job} />

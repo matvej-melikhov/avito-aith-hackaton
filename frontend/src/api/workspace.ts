@@ -6,10 +6,9 @@ import {
   type WorkspaceResults,
 } from "./workspace-routes";
 export type { W } from "./workspace-routes";
-export type ReviewerAvailability = {
-  absent_from?: string | null;
-  absent_until?: string | null;
-};
+export type ReviewerAvailability = Partial<
+  Pick<W<"DirectoryMember">, "absent_from" | "absent_until">
+>;
 export class WorkspaceClient {
   private pending = new Map<string, string>();
   constructor(public readonly core: ApiClient) {}

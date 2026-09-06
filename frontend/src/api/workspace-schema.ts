@@ -1106,13 +1106,23 @@ export interface components {
         };
         /** DirectoryMember */
         DirectoryMember: {
-            /** Display Name */
-            display_name: string;
+            /**
+             * Absent From
+             * @default null
+             */
+            absent_from: string | null;
+            /**
+             * Absent Until
+             * @default null
+             */
+            absent_until: string | null;
             /**
              * Id
              * Format: uuid
              */
             id: string;
+            /** Display Name */
+            display_name: string;
             /** Roles */
             roles: string[];
         };

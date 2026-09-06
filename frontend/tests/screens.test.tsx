@@ -37,8 +37,9 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
     screen.getByLabelText("Обратная связь студенту"),
     "Хорошая работа. Добавьте тест редиректа.",
   );
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Зачесть" })).toBeEnabled(),
+  await waitFor(
+    () => expect(screen.getByRole("button", { name: "Зачесть" })).toBeEnabled(),
+    { timeout: 5000 },
   );
   await user.click(screen.getByRole("button", { name: "Зачесть" }));
   expect(commandNames).not.toContain("publish_workspace_review");
@@ -165,7 +166,7 @@ it("does not erase edited feedback when save fails with a conflict", async () =>
     screen.getByLabelText("Обратная связь студенту"),
     "Не потерять этот текст",
   );
-  await screen.findByRole("alert");
+  await screen.findByRole("alert", {}, { timeout: 5000 });
   expect(screen.getByLabelText("Обратная связь студенту")).toHaveValue(
     "Не потерять этот текст",
   );

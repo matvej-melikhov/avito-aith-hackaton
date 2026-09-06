@@ -111,19 +111,17 @@ it("writes XLSX columns after Z and keeps formula-like strings as text", async (
 it("exports every run using the server policy and returns no partial file on failure", async () => {
   const ws = new WorkspaceClient(new ApiClient(createDemoTransport()));
   const catalog = await ws.catalog();
-  const command = vi
-    .spyOn(ws, "command")
-    .mockResolvedValue({
-      id: "job",
-      status: "succeeded",
-      rows: 1,
-      download: {
-        url: "https://example.test/result.csv",
-        filename: "result.csv",
-        expires_at: "2026-10-01T00:00:00Z",
-      },
-      error: null,
-    });
+  const command = vi.spyOn(ws, "command").mockResolvedValue({
+    id: "job",
+    status: "succeeded",
+    rows: 1,
+    download: {
+      url: "https://example.test/result.csv",
+      filename: "result.csv",
+      expires_at: "2026-10-01T00:00:00Z",
+    },
+    error: null,
+  });
   const fetcher = vi
     .spyOn(globalThis, "fetch")
     .mockResolvedValue(new Response("ID студента,Балл\r\ns1,8\r\n"));
@@ -149,7 +147,11 @@ it("exports every run using the server policy and returns no partial file on fai
   expect(command).toHaveBeenCalledTimes(catalog.course_runs.length);
   expect(
     command.mock.calls.every(
-      (c) => c[3].audience === "students" && c[3].format === "csv",
+      (c) =>
+        "audience" in c[3] &&
+        "format" in c[3] &&
+        c[3].audience === "students" &&
+        c[3].format === "csv",
     ),
   ).toBe(true);
   command.mockResolvedValueOnce({
