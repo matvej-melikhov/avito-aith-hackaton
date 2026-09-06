@@ -273,7 +273,8 @@ class ReviewDecision(StrictContractModel):
     criterion_id: UUID
     points: NonNegativeNumber
     decision: Literal["accepted", "changed", "manual"]
-    reason: Annotated[str, StringConstraints(min_length=1, max_length=10_000)]
+    # Черновик сохраняется и без обоснования: интерфейс дописывает его по ходу проверки.
+    reason: Annotated[str, StringConstraints(max_length=10_000)]
     evidence_ids: Annotated[list[UUID], Field(max_length=100)] = Field(default_factory=list)
 
     @field_validator("evidence_ids")
