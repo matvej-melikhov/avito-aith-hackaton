@@ -17,7 +17,7 @@ function client() {
 it("shows only active work on the works page", async () => {
   const { ws, works } = client();
   render(<ReviewerQueue ws={ws} />);
-  await screen.findByText("У вас пока нет активных проверок.");
+  await screen.findByText("Работ к проверке пока нет");
   expect(screen.getByRole("heading", { name: "Активные" })).toBeInTheDocument();
   expect(
     screen.queryByRole("heading", { name: "Пул" }),
@@ -41,7 +41,7 @@ it("shows the pool on its own page without a search field", async () => {
     screen.queryByRole("heading", { name: "Активные" }),
   ).not.toBeInTheDocument();
   expect(screen.queryByLabelText("Поиск")).not.toBeInTheDocument();
-  expect(works.mock.calls.every(([params]) => params?.view === "all")).toBe(
+  expect(works.mock.calls.every(([params]) => params?.view === "pool")).toBe(
     true,
   );
   const pool = screen.getByRole("table");

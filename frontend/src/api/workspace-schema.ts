@@ -68,6 +68,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/course-run-homeworks/{identity}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Submission Sources */
+        get: operations["get_submission_sources_api_v2_course_run_homeworks__identity__sources_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/course-run-homeworks/{identity}/student-context": {
         parameters: {
             query?: never;
@@ -114,6 +131,23 @@ export interface paths {
         put?: never;
         /** Assign */
         post: operations["assign_api_v2_course_runs__identity__assignments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/course-runs/{identity}/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Insights */
+        get: operations["insights_api_v2_course_runs__identity__insights_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -354,6 +388,23 @@ export interface paths {
         put?: never;
         /** Save Editor Draft */
         post: operations["save_editor_draft_api_v2_homeworks__identity__editor_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/homeworks/{identity}/title": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update Workspace Homework */
+        post: operations["update_workspace_homework_api_v2_homeworks__identity__title_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -988,6 +1039,11 @@ export interface components {
             priority: "assigned" | "deadline";
             /** Priority Revision */
             priority_revision: number;
+            /**
+             * Reviewer Count
+             * @default 0
+             */
+            reviewer_count: number;
             /** Revision */
             revision: number;
             /** Starts At */
@@ -1199,6 +1255,16 @@ export interface components {
         };
         /** EditorDraftView */
         EditorDraftView: {
+            /**
+             * Homework Revision
+             * @default 0
+             */
+            homework_revision: number;
+            /**
+             * Homework Title
+             * @default
+             */
+            homework_title: string;
             /** Revision */
             revision: number;
             value: components["schemas"]["EditorDraftInput"] | null;
@@ -1213,7 +1279,7 @@ export interface components {
              */
             audience: "team" | "students";
             /** Columns */
-            columns: ("student_id" | "score" | "status" | "attempt" | "feedback" | "reviewer_id")[];
+            columns: ("student_id" | "score" | "status" | "attempt" | "feedback" | "reviewer_id" | "criterion_points" | "artifact_url")[];
             /**
              * Course Run Id
              * Format: uuid
@@ -1283,6 +1349,11 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HomeworkTitleInput */
+        HomeworkTitleInput: {
+            /** Title */
+            title: string;
         };
         /** LocalIdentities */
         LocalIdentities: {
@@ -1636,6 +1707,8 @@ export interface components {
         };
         /** PublishedCriterionView */
         PublishedCriterionView: {
+            /** Description */
+            description: string;
             /** Max Points */
             max_points: number;
             /** Points */
@@ -1753,6 +1826,8 @@ export interface components {
              * Format: uuid
              */
             criterion_set_id: string;
+            /** Decision History */
+            decision_history?: components["schemas"]["ReviewDecisionEvent"][];
             /**
              * Homework Id
              * Format: uuid
@@ -1840,6 +1915,18 @@ export interface components {
             points: number;
             /** Reason */
             reason: string;
+        };
+        /** ReviewDecisionEvent */
+        ReviewDecisionEvent: {
+            /** Actor */
+            actor?: string | null;
+            /** Text */
+            text: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             */
+            timestamp: string;
         };
         /** ReviewDraftView */
         ReviewDraftView: {
@@ -2007,6 +2094,11 @@ export interface components {
              */
             status: "queued" | "capturing" | "pending" | "running" | "unknown_outcome" | "succeeded" | "failed";
         };
+        /** SourcePolicyInput */
+        SourcePolicyInput: {
+            /** Allowed Sources */
+            allowed_sources?: ("upload" | "github" | "google_docs")[];
+        };
         /** StatisticView */
         StatisticView: {
             /** Ai Acceptance Percent */
@@ -2143,6 +2235,8 @@ export interface components {
              * Format: uuid
              */
             publication_id: string;
+            /** Revision Deadline */
+            revision_deadline?: string | null;
             /** Score */
             score: number | null;
             /** Status */
@@ -2253,6 +2347,22 @@ export interface components {
              */
             submitted_at: string;
         };
+        /** TypicalCriterionFailure */
+        TypicalCriterionFailure: {
+            /**
+             * Criterion Id
+             * Format: uuid
+             */
+            criterion_id: string;
+            /** Failed */
+            failed: number;
+            /** Ratio */
+            ratio: number;
+            /** Reviewed */
+            reviewed: number;
+            /** Title */
+            title: string;
+        };
         /** UploadInput */
         UploadInput: {
             /** Content Base64 */
@@ -2311,6 +2421,8 @@ export interface components {
              * @default
              */
             course_title: string;
+            /** Draft Id */
+            draft_id?: string | null;
             /** Feedback */
             feedback: string | null;
             /**
@@ -2343,6 +2455,8 @@ export interface components {
             review_revision: number;
             /** Review Submission Version Id */
             review_submission_version_id: string | null;
+            /** Reviewer Name */
+            reviewer_name?: string | null;
             /** Score */
             score: number | null;
             /** Status */
@@ -2356,24 +2470,20 @@ export interface components {
             student_name: string;
             /** Submission Deadline */
             submission_deadline?: string | null;
-            /**
-             * Submission Id
-             * Format: uuid
-             */
-            submission_id: string;
+            /** Submission Id */
+            submission_id: string | null;
             /** Submission Revision */
             submission_revision: number;
             /** Submission Version Id */
             submission_version_id: string | null;
-            /**
-             * Submitted At
-             * Format: date-time
-             */
-            submitted_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
             /** Taken At */
             taken_at?: string | null;
             /** Title */
             title: string;
+            /** Updated At */
+            updated_at?: string | null;
         };
         /** WorkList */
         WorkList: {
@@ -2535,6 +2645,26 @@ export interface components {
             /** Idempotency Key */
             idempotency_key: string;
             payload: components["schemas"]["ExtraRequirementInput"];
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+        };
+        /** WorkspaceCommand[HomeworkTitleInput] */
+        WorkspaceCommand_HomeworkTitleInput_: {
+            /** Command Name */
+            command_name: string;
+            /** Expected Revision */
+            expected_revision: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+            payload: components["schemas"]["HomeworkTitleInput"];
             /**
              * Request Id
              * Format: uuid
@@ -2806,6 +2936,13 @@ export interface components {
              */
             target_id: string;
         };
+        /** WorkspaceInsightsView */
+        WorkspaceInsightsView: {
+            pool_metrics: components["schemas"]["WorkspacePoolMetrics"];
+            status_counts: components["schemas"]["WorkspaceStatusCounts"];
+            /** Typical Failures */
+            typical_failures: components["schemas"]["TypicalCriterionFailure"][];
+        };
         /** WorkspaceNoteView */
         WorkspaceNoteView: {
             /**
@@ -2824,6 +2961,21 @@ export interface components {
             position: number;
             /** Text */
             text: string;
+        };
+        /** WorkspacePoolMetrics */
+        WorkspacePoolMetrics: {
+            /** Active Reviewers */
+            active_reviewers: number;
+            /** Average Wait Minutes */
+            average_wait_minutes: number | null;
+            /** Stuck */
+            stuck: number;
+            /** Submitted */
+            submitted: number;
+            /** Total Reviewers */
+            total_reviewers: number;
+            /** Waiting */
+            waiting: number;
         };
         /** WorkspaceReviewSaveInput */
         WorkspaceReviewSaveInput: {
@@ -2870,6 +3022,49 @@ export interface components {
             homeworks: components["schemas"]["SearchHomeworkView"][];
             /** Students */
             students: components["schemas"]["WorkItem"][];
+        };
+        /** WorkspaceStatusCounts */
+        WorkspaceStatusCounts: {
+            /**
+             * All
+             * @default 0
+             */
+            all: number;
+            /**
+             * Draft
+             * @default 0
+             */
+            draft: number;
+            /**
+             * Failed
+             * @default 0
+             */
+            failed: number;
+            /**
+             * In Review
+             * @default 0
+             */
+            in_review: number;
+            /**
+             * Needs Changes
+             * @default 0
+             */
+            needs_changes: number;
+            /**
+             * Passed
+             * @default 0
+             */
+            passed: number;
+            /**
+             * Pending Review
+             * @default 0
+             */
+            pending_review: number;
+            /**
+             * Repeat Review
+             * @default 0
+             */
+            repeat_review: number;
         };
     };
     responses: never;
@@ -3032,6 +3227,37 @@ export interface operations {
             };
         };
     };
+    get_submission_sources_api_v2_course_run_homeworks__identity__sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcePolicyInput"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_context_api_v2_course_run_homeworks__identity__student_context_get: {
         parameters: {
             query?: never;
@@ -3151,6 +3377,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResourceResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    insights_api_v2_course_runs__identity__insights_get: {
+        parameters: {
+            query?: {
+                homework_id?: string | null;
+            };
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceInsightsView"];
                 };
             };
             /** @description Validation Error */
@@ -3663,6 +3922,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EditorDraftView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_workspace_homework_api_v2_homeworks__identity__title_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCommand_HomeworkTitleInput_"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceResult"];
                 };
             };
             /** @description Validation Error */
@@ -4622,6 +4916,7 @@ export interface operations {
                 q?: string;
                 state?: string;
                 view?: string;
+                stuck?: boolean;
                 priority?: ("assigned" | "deadline") | null;
                 offset?: number;
                 limit?: number;

@@ -30,7 +30,7 @@ export function useActionMessage() {
 export function ActionMessage() {
   const { message, clear } = useActionMessage();
   return message ? (
-    <Callout tone="info" role="status" className="feedback">
+    <Callout tone="info" role="status" className="feedback action-message">
       <p>{message}</p>
       <Btn size="s" variant="quiet" onClick={clear}>
         Закрыть сообщение

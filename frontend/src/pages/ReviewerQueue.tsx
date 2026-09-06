@@ -21,7 +21,12 @@ import {
   isClosed,
 } from "../ds";
 import { Resource, go, useAction, useResource } from "../ui";
-import { nextFromPool } from "../reviewQueue";
+import {
+  nextFromPool,
+  openQueueWork,
+  personalLabel,
+  RELEASED_NOTICE,
+} from "../reviewQueue";
 import { ActionMessage, useActionMessage } from "../ActionMessage";
 
 const LIMIT = 20;
@@ -117,7 +122,7 @@ export function ReviewerQueue({
             <QueueSection
               ws={ws}
               id="pool"
-              view="all"
+              view="pool"
               title=""
               filters={filters}
               run={run}
@@ -154,7 +159,7 @@ function QueueSection({
 }: {
   ws: WorkspaceClient;
   id?: string;
-  view: "active" | "all";
+  view: "active" | "pool";
   title: string;
   run?: string;
   /** Потоки выбранного курса, когда сам поток не выбран. */
@@ -184,37 +189,9 @@ function QueueSection({
 
   async function open(w: W<"WorkItem">) {
     message.clear();
-    if (
-      w.review_iteration_id &&
-      w.review_submission_version_id === w.submission_version_id
-    ) {
-      if (view !== "active" && !CLOSED.includes(w.status))
-        await ws.core.command(
-          "record_review_responsibility",
-          w.review_iteration_id,
-          w.review_revision,
-          { action: "joined" },
-        );
-      go(`/reviews/${w.review_iteration_id}`);
-      return;
-    }
-    const result = await ws.command(
-      "open_work",
-      w.submission_id,
-      w.submission_revision,
-      { submission_version_id: w.submission_version_id! },
-    );
-    if (view !== "active") {
-      const opened = await ws.core.review(result.id);
-      await ws.core.command(
-        "record_review_responsibility",
-        result.id,
-        opened.revision,
-        { action: "started" },
-      );
-    }
-    go(`/reviews/${result.id}`);
+    go(`/reviews/${await openQueueWork(ws, w)}`);
   }
+  const session = useResource(() => ws.core.session(), "queue-session");
 
   const active = view === "active";
   const all = r.data?.items ?? [];
@@ -257,7 +234,17 @@ function QueueSection({
                       !!w.review_iteration_id &&
                       !CLOSED.includes(w.status);
                     const take = !active && !CLOSED.includes(w.status);
-                    const label = take ? "Взять" : "Открыть";
+                    const personal = session.data
+                      ? personalLabel(w, session.data.user_id)
+                      : null;
+                    const label =
+                      w.status === "pending_review"
+                        ? "Начать проверку"
+                        : personal
+                          ? "Открыть"
+                          : take
+                            ? "Взять"
+                            : "Открыть";
                     return (
                       <tr
                         key={w.submission_id}
@@ -276,6 +263,7 @@ function QueueSection({
                         <td className="mono">{w.student_name}</td>
                         <td>
                           <div className="who">{w.title}</div>
+                          {personal && <div className="sub">{personal}</div>}
                           {(w.status === "needs_changes" ||
                             (w.attempt > 1 && !closed) ||
                             (w.participant_ids?.length ?? 0) > 1) && (
@@ -343,9 +331,7 @@ function QueueSection({
                                       { action: "released" },
                                     );
                                     r.refresh();
-                                    message.show(
-                                      "Вы сняли с себя проверку. Работа остаётся доступной в пуле.",
-                                    );
+                                    message.show(RELEASED_NOTICE);
                                   })
                                 }
                               >
@@ -361,22 +347,17 @@ function QueueSection({
               </table>
               {!items.length && (
                 <Empty
-                  title={active ? "Активных проверок нет" : "В пуле пусто"}
+                  title={active ? "Работ к проверке пока нет" : "В пуле пусто"}
                   action={
                     active && (
-                      <Btn
-                        size="s"
-                        variant="dark"
-                        disabled={busy}
-                        onClick={onNextWork}
-                      >
-                        Открыть работу из пула
+                      <Btn size="s" variant="dark" href="#/pool">
+                        Перейти в пул работ
                       </Btn>
                     )
                   }
                 >
                   {active
-                    ? "У вас пока нет активных проверок."
+                    ? "Можно выбрать работу из общего пула."
                     : "По этим условиям работ нет."}
                 </Empty>
               )}

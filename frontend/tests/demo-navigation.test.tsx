@@ -109,7 +109,7 @@ it("returns to my work with a persistent success message after releasing respons
   await waitFor(() => expect(window.location.hash).toBe("#/works"));
   expect(
     await screen.findByText(
-      "Вы сняли с себя проверку. Работа остаётся доступной в пуле.",
+      "Вы сняли с себя проверку. Если других ревьюеров нет, работа вернётся в пул.",
     ),
   ).toBeVisible();
   expect(command).toHaveBeenCalledWith(
@@ -123,7 +123,7 @@ it("returns to my work with a persistent success message after releasing respons
   );
   expect(
     screen.queryByText(
-      "Вы сняли с себя проверку. Работа остаётся доступной в пуле.",
+      "Вы сняли с себя проверку. Если других ревьюеров нет, работа вернётся в пул.",
     ),
   ).toBeNull();
   expect(
@@ -145,7 +145,7 @@ it("stays on the review and reports an unsuccessful release", async () => {
   expect(window.location.hash).toBe(`#/reviews/${ids.review}`);
   expect(
     screen.queryByText(
-      "Вы сняли с себя проверку. Работа остаётся доступной в пуле.",
+      "Вы сняли с себя проверку. Если других ревьюеров нет, работа вернётся в пул.",
     ),
   ).toBeNull();
 });
@@ -182,7 +182,10 @@ function loginApi(enabled: boolean, fail = false) {
 it("shows the Stepik demo explanation without starting OAuth or navigating away", async () => {
   const { api, transport } = loginApi(true);
   render(<App api={api} />);
-  await screen.findByText("Выберите участника для входа на локальный стенд.");
+  await screen.findByText("Локальный стенд");
+  expect(
+    screen.queryByText("Выберите участника для входа на локальный стенд."),
+  ).toBeNull();
   await userEvent.click(
     screen.getByRole("button", { name: "Войти через Stepik" }),
   );

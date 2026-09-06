@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ApiClient } from "../api/client";
-import type { WorkspaceClient } from "../api/workspace";
+import type { WorkspaceClient, ReviewerAvailability } from "../api/workspace";
 
 const INVITATION_DAYS = 30;
 import {
@@ -47,8 +47,8 @@ export function PeopleBody({
     at.setDate(at.getDate() + INVITATION_DAYS);
     return at.toISOString();
   };
-  const names = new Map(
-    (s.data?.directory.items ?? []).map((m) => [m.id, m.display_name]),
+  const directory = new Map(
+    (s.data?.directory.items ?? []).map((m) => [m.id, m]),
   );
   const reviewers = (s.data?.members.items ?? []).filter((m) =>
     m.roles.includes("reviewer"),
@@ -74,7 +74,8 @@ export function PeopleBody({
                     <thead>
                       <tr>
                         <th>Ревьюер</th>
-                        <th>Статус</th>
+                        <th>Доступ</th>
+                        <th>Доступность</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -82,7 +83,7 @@ export function PeopleBody({
                         <tr key={m.id}>
                           <td>
                             <div className="who">
-                              {names.get(m.user_id) ??
+                              {directory.get(m.user_id)?.display_name ??
                                 `rev-${short(m.user_id)}`}
                             </div>
                             <div className="sub mono">
@@ -90,7 +91,14 @@ export function PeopleBody({
                             </div>
                           </td>
                           <td>
-                            <OpPill status={m.status} />
+                            {m.status === "active" ? (
+                              "Включён"
+                            ) : (
+                              <OpPill status={m.status} />
+                            )}
+                          </td>
+                          <td>
+                            {reviewerAvailability(directory.get(m.user_id))}
                           </td>
                         </tr>
                       ))}
@@ -214,4 +222,31 @@ export function PeoplePage({
       </Main>
     </>
   );
+}
+
+export function reviewerAvailability(
+  member?: ReviewerAvailability,
+  now = Date.now(),
+) {
+  if (
+    !member ||
+    member.absent_from === undefined ||
+    member.absent_until === undefined
+  )
+    return "Нет данных";
+  if (
+    !member.absent_from ||
+    !member.absent_until ||
+    Date.parse(member.absent_until) < now
+  )
+    return "Доступен";
+  const date = (value: string) =>
+    new Date(value).toLocaleDateString("ru-RU", {
+      timeZone: "Europe/Moscow",
+      day: "numeric",
+      month: "long",
+    });
+  return Date.parse(member.absent_from) <= now
+    ? `В отпуске до ${date(member.absent_until)}`
+    : `Отпуск с ${date(member.absent_from)} по ${date(member.absent_until)}`;
 }

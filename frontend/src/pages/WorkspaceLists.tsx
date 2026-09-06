@@ -1,3 +1,4 @@
+import { exportAllRuns } from "../exportAllRuns";
 import { StudentWorks } from "./StudentWorks";
 import { ReviewerQueue } from "./ReviewerQueue";
 import {
@@ -151,6 +152,7 @@ export function WorksList({
     embedded ? <>{children}</> : <Main data-screen={screen}>{children}</Main>;
 
   async function openReview(w: W<"WorkItem">) {
+    if (!w.submission_id) return;
     if (
       w.review_iteration_id &&
       w.review_submission_version_id === w.submission_version_id
@@ -429,20 +431,10 @@ export function WorksList({
           }
           actions={
             <>
-              {!currentRun && (
-                <span className="caption">
-                  Выгрузка готовится по одному потоку. Выберите его ниже.
-                </span>
-              )}
               <Btn
                 size="s"
                 variant="dark"
-                disabled={!currentRun}
-                title={
-                  currentRun
-                    ? undefined
-                    : "Выберите поток: выгрузка готовится по одному потоку"
-                }
+                disabled={!catalog.data?.course_runs.length}
                 onClick={() => setExporting(true)}
               >
                 Выгрузить
@@ -469,7 +461,6 @@ export function WorksList({
                 </Tab>
               ))}
             </Tabs>
-            {runSelect}
           </div>
         )}
         <Card>
@@ -500,7 +491,9 @@ export function WorksList({
                   </Tab>
                 ))}
               </Tabs>
-              {runSelect}
+              {currentRun && (
+                <span className="caption">{currentRun.title}</span>
+              )}
             </div>
           )}
           <Resource value={r}>
@@ -574,10 +567,7 @@ export function WorksList({
                     </tbody>
                   </table>
                   {items.length === 0 && (
-                    <Empty title="Работ нет">
-                      По этим условиям работ нет. Снимите фильтр статуса или
-                      выберите другой поток.
-                    </Empty>
+                    <Empty title="Работ нет">По этим условиям работ нет.</Empty>
                   )}
                 </CardBody>
                 {foot}
@@ -586,10 +576,12 @@ export function WorksList({
           </Resource>
         </Card>
       </Frame>
-      {exporting && currentRun && (
+      {exporting && catalog.data && (
         <ExportForm
           ws={ws}
           run={currentRun}
+          runs={catalog.data.course_runs}
+          courses={catalog.data.courses}
           close={closeExport}
           total={r.data?.total}
         />
@@ -690,11 +682,15 @@ const STUDENT_COLUMNS = ["student_id", "score", "status"];
 function ExportForm({
   ws,
   run,
+  runs,
+  courses,
   close,
   total,
 }: {
   ws: WorkspaceClient;
-  run: W<"CourseRunView">;
+  run?: W<"CourseRunView">;
+  runs: W<"CourseRunView">[];
+  courses: W<"CourseView">[];
   close: () => void;
   total?: number;
 }) {
@@ -707,6 +703,21 @@ function ExportForm({
   ]);
   const [unfinished, setUnfinished] = useState(false);
   const [job, setJob] = useState<string>();
+  const [scope, setScope] = useState(run ? "run" : "all");
+  const [file, setFile] = useState<{
+    url: string;
+    rows: number;
+    filename: string;
+  }>();
+  const [progress, setProgress] = useState("");
+  const [controller] = useState(() => new AbortController());
+  useEffect(() => () => controller.abort(), [controller]);
+  useEffect(
+    () => () => {
+      if (file) URL.revokeObjectURL(file.url);
+    },
+    [file],
+  );
   const action = useAction();
   const available = COLUMNS.filter(
     ([key]) => audience === "team" || STUDENT_COLUMNS.includes(key),
@@ -717,6 +728,26 @@ function ExportForm({
         onSubmit={(e) => {
           e.preventDefault();
           void action.run(async () => {
+            if (scope === "all") {
+              setProgress(`Подготовлено 0 из ${runs.length} потоков`);
+              const result = await exportAllRuns(
+                ws,
+                runs,
+                courses,
+                { audience, columns, include_unpublished: unfinished, format },
+                controller.signal,
+                (done, total) =>
+                  setProgress(`Подготовлено ${done} из ${total} потоков`),
+              );
+              controller.signal.throwIfAborted();
+              setFile({
+                url: URL.createObjectURL(result.blob),
+                rows: result.rows,
+                filename: `results-all-runs.${format}`,
+              });
+              return;
+            }
+            if (!run) return;
             const result = await ws.command(
               "create_export",
               run.id,
@@ -739,11 +770,18 @@ function ExportForm({
             label="Что выгружаем"
             hint={
               total !== undefined
-                ? `В потоке ${total} ${plural(total, "работа", "работы", "работ")}.`
+                ? `${total} ${plural(total, "работа", "работы", "работ")} в текущем списке.`
                 : undefined
             }
           >
-            <Inp disabled value={`Поток «${run.title}»`} readOnly />
+            <Sel
+              value={scope}
+              onChange={(e) => setScope(e.target.value)}
+              disabled={action.busy || !!job || !!file}
+            >
+              <option value="all">Все потоки</option>
+              {run && <option value="run">Поток «{run.title}»</option>}
+            </Sel>
           </Field>
           <Field
             group
@@ -821,12 +859,12 @@ function ExportForm({
         <div className="card__foot card__foot--end">
           <BtnRow>
             <Btn variant="quiet" onClick={close}>
-              {job ? "Закрыть" : "Отмена"}
+              {job || file ? "Закрыть" : "Отмена"}
             </Btn>
             <Btn
               variant="pri"
               type="submit"
-              disabled={action.busy || !columns.length || !!job}
+              disabled={action.busy || !columns.length || !!job || !!file}
             >
               Подготовить файл
             </Btn>

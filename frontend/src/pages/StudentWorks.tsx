@@ -30,7 +30,7 @@ function score(value: number | null) {
 }
 
 export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
-  const [state, setState] = useState("");
+  const [state, setState] = useState("in_progress");
   const [offset, setOffset] = useState(0);
   const params = { state, offset, limit: LIMIT };
   const r = useResource(() => ws.studentWorks(params), JSON.stringify(params));
@@ -39,7 +39,7 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
     if (r.data && !state) setCounts({ works: r.data.total });
   }, [r.data, state, setCounts]);
   return (
-    <Main page data-screen="С4">
+    <Main page data-screen="С4" className="student-homeworks">
       <div className="page-head">
         <h1>Мои домашки</h1>
         <Seg

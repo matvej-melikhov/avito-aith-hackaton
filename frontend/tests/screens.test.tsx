@@ -17,13 +17,13 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
   });
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} demo />);
-  const save = await screen.findByRole("button", {
-    name: "Сохранить черновик",
-  });
+  await screen.findByLabelText("Обратная связь студенту");
+  expect(
+    screen.queryByRole("button", { name: "Сохранить черновик" }),
+  ).toBeNull();
   const publish = screen.getByRole("button", { name: "Зачесть" });
   expect(screen.queryByText("Режим проверки")).toBeNull();
   expect(screen.queryByRole("button", { name: "Пропустить" })).toBeNull();
-  expect(save).toBeDisabled();
   expect(publish).toBeDisabled();
   // Балл ставится пилюлей шкалы, как на Р5.
   await user.click(
@@ -37,7 +37,6 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
     screen.getByLabelText("Обратная связь студенту"),
     "Хорошая работа. Добавьте тест редиректа.",
   );
-  await user.click(save);
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Зачесть" })).toBeEnabled(),
   );
@@ -166,14 +165,13 @@ it("does not erase edited feedback when save fails with a conflict", async () =>
     screen.getByLabelText("Обратная связь студенту"),
     "Не потерять этот текст",
   );
-  await user.click(screen.getByRole("button", { name: "Сохранить черновик" }));
   await screen.findByRole("alert");
   expect(screen.getByLabelText("Обратная связь студенту")).toHaveValue(
     "Не потерять этот текст",
   );
   expect(screen.getByRole("button", { name: "Зачесть" })).toBeDisabled();
 });
-it("keeps the coordinator review screen read-only even when the API permits editing", async () => {
+it("lets the coordinator edit and publish without taking reviewer responsibility", async () => {
   const api = new ApiClient(createDemoTransport());
   const session = await api.session();
   vi.spyOn(api, "session").mockResolvedValue({
@@ -182,19 +180,15 @@ it("keeps the coordinator review screen read-only even when the API permits edit
   });
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} />);
-  await screen.findByText("Разбор по требованиям");
   expect(
-    screen.queryByLabelText("Баллы: HTTP API и обработка ошибок"),
-  ).not.toBeInTheDocument();
+    await screen.findByLabelText("Баллы: HTTP API и обработка ошибок"),
+  ).toBeEnabled();
+  expect(screen.getByLabelText("Обратная связь студенту")).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Зачесть" })).toBeInTheDocument();
+  expect(screen.queryByText("только просмотр")).toBeNull();
   expect(
-    screen.queryByLabelText("Обратная связь студенту"),
-  ).not.toBeInTheDocument();
-  expect(
-    screen.queryByRole("button", { name: "Зачесть" }),
-  ).not.toBeInTheDocument();
-  expect(
-    screen.queryByRole("button", { name: "Взять в работу" }),
-  ).not.toBeInTheDocument();
+    screen.queryByRole("button", { name: "Снять с себя проверку" }),
+  ).toBeNull();
 });
 it("expires a resource session once without an automatic authentication retry loop", async () => {
   const demo = createDemoTransport();
@@ -213,10 +207,10 @@ it("expires a resource session once without an automatic authentication retry lo
   );
   render(<App api={new ApiClient(transport)} />);
   await screen.findByRole("heading", { name: "Войти в рабочее пространство" });
-  // Список работ запрашивается один раз: повторной попытки после 401 нет.
+  // Список и два счётчика запрашиваются по одному разу; после 401 повторов нет.
   expect(
     transport.mock.calls.filter(([url]) => String(url).includes("/v2/works")),
-  ).toHaveLength(1);
+  ).toHaveLength(3);
 });
 
 it("prepares the first URL draft before self-review and updates server quota without submitting", async () => {

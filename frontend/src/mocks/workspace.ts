@@ -80,6 +80,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
     ends_at: "2026-12-01T18:00:00Z",
     priority: "assigned",
     priority_revision: 0,
+    reviewer_count: 1,
   }));
   const people: W<"DirectoryMember">[] = [
     {
@@ -572,7 +573,12 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
           if (view === "active")
             items = items.filter(
               (w) =>
-                w.responsible_reviewer_id === user && w.status !== "published",
+                ["pending_review", "in_review", "ready_to_publish"].includes(
+                  w.status,
+                ) &&
+                (w.responsible_reviewer_id === user ||
+                  w.primary_reviewer_id === user ||
+                  (w.participant_ids ?? []).includes(user)),
             );
           const offset = Number(url.searchParams.get("offset") ?? 0),
             limit = Number(url.searchParams.get("limit") ?? 30);
@@ -854,6 +860,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             priority_revision: 0,
             status: "active",
             revision: 0,
+            reviewer_count: 0,
           });
           result = { id, revision: 0 };
           break;
@@ -950,6 +957,11 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             return error("Черновик задания изменился.");
           const next = {
             revision: (old?.revision ?? 0) + 1,
+            homework_title:
+              owner(cmd.target_id).titles[cmd.target_id] ?? "Задание",
+            homework_revision:
+              owner(cmd.target_id).histories[cmd.target_id]
+                ?.homework_revision ?? 0,
             value: cmd.payload,
           };
           editors.set(key, next);

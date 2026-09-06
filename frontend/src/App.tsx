@@ -245,7 +245,7 @@ function Application({ api, demo }: { api: ApiClient; demo: boolean }) {
         api={api}
         id={id}
         session={session}
-        readOnly={activeRole === "methodologist"}
+        coordinator={activeRole === "methodologist"}
         ws={ws}
       />
     );
@@ -331,6 +331,9 @@ function Application({ api, demo }: { api: ApiClient; demo: boolean }) {
   );
   const provider = (children: ReactNode) => (
     <CountsContext.Provider value={{ counts, setCounts }}>
+      {activeRole === "reviewer" && (
+        <ReviewerCounts ws={ws} userId={session.user_id} route={route} />
+      )}
       {children}
     </CountsContext.Provider>
   );
@@ -521,9 +524,7 @@ function AccountMenu({
             </div>
           )}
           <div className="pop__foot">
-            <span>
-              {demo ? "Данные живут в памяти вкладки" : "Сессия на сервере"}
-            </span>
+            {demo && <span>Данные живут в памяти вкладки</span>}
             <Btn size="s" variant="quiet" disabled={busy} onClick={onLogout}>
               Выйти
             </Btn>
@@ -592,10 +593,6 @@ function Login({
       <Band art="login">
         <Brand />
         <h1 className="d2">Готовый разбор по каждой работе</h1>
-        <p>
-          Модель заранее разбирает работу по требованиям задания и готовит
-          черновик. Вы соглашаетесь или правите.
-        </p>
       </Band>
       <div className="login__side">
         <div className="login__form">
@@ -667,9 +664,7 @@ function Login({
           {local.data?.enabled && (
             <div className="login__local">
               <span className="label">Локальный стенд</span>
-              <p className="small dim">
-                Выберите участника для входа на локальный стенд.
-              </p>
+
               {stepikInfo && (
                 <Modal
                   title="Вход через Stepik"
@@ -719,4 +714,37 @@ function Login({
       </div>
     </div>
   );
+}
+
+function ReviewerCounts({
+  ws,
+  userId,
+  route,
+}: {
+  ws: WorkspaceClient;
+  userId: string;
+  route: string;
+}) {
+  const { setCounts } = useMenuCounts();
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const changed = () => setRevision((v) => v + 1);
+    window.addEventListener("workspace:changed", changed);
+    return () => window.removeEventListener("workspace:changed", changed);
+  }, []);
+  const data = useResource(
+    async () => {
+      const [mine, pool] = await Promise.all([
+        ws.works({ view: "active", limit: 1 }),
+        ws.works({ view: "pool", limit: 1 }),
+      ]);
+      return { works: mine.total, pool: pool.total };
+    },
+    `${userId}:${route}:${revision}`,
+    30000,
+  );
+  useEffect(() => {
+    if (data.data) setCounts(data.data);
+  }, [data.data, setCounts]);
+  return null;
 }

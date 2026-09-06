@@ -1,3 +1,4 @@
+import { moscowDate, moscowBoundary } from "../dateOnly";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
@@ -504,20 +505,6 @@ export function WorkspaceCatalog({
                           : "Зависших работ нет: всё берут вовремя."}
                       </p>
                     )}
-                    {known.length > 0 &&
-                      activeRuns
-                        .filter((run) => (stats[run.id]?.homeworks ?? 1) === 0)
-                        .map((run) => (
-                          <Kv
-                            key={`hw:${run.id}`}
-                            ink
-                            label={`В потоке «${run.title}» нет опубликованных заданий`}
-                          >
-                            <Btn variant="link" href="#/homeworks">
-                              Задания
-                            </Btn>
-                          </Kv>
-                        ))}
                   </CardBody>
                 </DsCard>
                 <DsCard>
@@ -741,11 +728,7 @@ function CourseForm({
             onChange={(e) => setDescription(e.target.value)}
           />
         </Field>
-        <Field
-          label="Ссылка на курс в Stepik"
-          opt="необязательно"
-          hint="Нужна, чтобы открыть курс на Stepik из справочника."
-        >
+        <Field label="Ссылка на курс в Stepik" opt="необязательно">
           <Inp
             mono
             type="url"
@@ -801,8 +784,8 @@ function RunForm({
     fixedCourse?.id ?? run?.course_id ?? "",
   );
   const [title, setTitle] = useState(run?.title ?? "");
-  const [start, setStart] = useState(localDate(run?.starts_at));
-  const [end, setEnd] = useState(localDate(run?.ends_at));
+  const [start, setStart] = useState(moscowDate(run?.starts_at));
+  const [end, setEnd] = useState(moscowDate(run?.ends_at));
   const [zone, setZone] = useState(run?.timezone ?? "Europe/Moscow");
   // Порядок рекомендаций один для всех потоков: свои студенты сначала.
   const priority = run?.priority ?? "assigned";
@@ -820,8 +803,8 @@ function RunForm({
             run?.revision ?? course.revision,
             {
               title: title.trim() || runTitleFromDates(start, end),
-              starts_at: new Date(start).toISOString(),
-              ends_at: new Date(end).toISOString(),
+              starts_at: moscowBoundary(start),
+              ends_at: moscowBoundary(end, true),
               timezone: zone,
               priority,
             },
@@ -854,7 +837,7 @@ function RunForm({
           <Field label="Дата начала">
             <Inp
               required
-              type="datetime-local"
+              type="date"
               value={start}
               onChange={(e) => setStart(e.target.value)}
             />
@@ -862,7 +845,7 @@ function RunForm({
           <Field label="Дата окончания">
             <Inp
               required
-              type="datetime-local"
+              type="date"
               min={start}
               value={end}
               onChange={(e) => setEnd(e.target.value)}
@@ -1090,8 +1073,8 @@ function PreferencesForm({
     initial?.notifications ?? defaults,
   );
   const [selected, setSelected] = useState(initial?.course_run_ids ?? []);
-  const [from, setFrom] = useState(localDate(initial?.absent_from));
-  const [to, setTo] = useState(localDate(initial?.absent_until));
+  const [from, setFrom] = useState(moscowDate(initial?.absent_from));
+  const [to, setTo] = useState(moscowDate(initial?.absent_until));
   const action = useAction();
   const [savedNote, setSavedNote] = useState("");
   /* Настройки сохраняются сами через секунду после последней правки: отдельных
@@ -1100,8 +1083,8 @@ function PreferencesForm({
     course_run_ids: selected,
     show_pool: showPool,
     notifications,
-    absent_from: from ? new Date(from).toISOString() : null,
-    absent_until: from && to ? new Date(to).toISOString() : null,
+    absent_from: from ? moscowBoundary(from) : null,
+    absent_until: from && to ? moscowBoundary(to, true) : null,
   });
   const known = useRef(payload);
   useEffect(() => {
@@ -1215,7 +1198,7 @@ function PreferencesForm({
                     <div className="date-range">
                       <Inp
                         aria-label="Начало отсутствия"
-                        type="datetime-local"
+                        type="date"
                         value={from}
                         onChange={(e) => {
                           setFrom(e.target.value);
@@ -1227,7 +1210,7 @@ function PreferencesForm({
                       </span>
                       <Inp
                         aria-label="Окончание отсутствия"
-                        type="datetime-local"
+                        type="date"
                         required={!!from}
                         min={from}
                         value={to}

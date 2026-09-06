@@ -3,8 +3,9 @@ import type { ApiClient, Model } from "../api/client";
 import { ErrorBox, go, safeUrl, useAction, useResource } from "../ui";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { Modal, useDirtyGuard } from "../workspace-ui";
+import { ArtifactLink } from "./WorkspaceReview";
 import { FileActions, FileIcon, FilePreview, fileKind } from "../FileView";
-import { nextFromPool } from "../reviewQueue";
+import { nextFromMine, nextFromPool, RELEASED_NOTICE } from "../reviewQueue";
 import { ActionMessage, useActionMessage } from "../ActionMessage";
 import {
   Acc,
@@ -69,12 +70,14 @@ export function ReviewPage({
   id,
   session,
   readOnly = false,
+  coordinator = false,
   ws,
 }: {
   api: ApiClient;
   id: string;
   session: Model<"Session">;
   readOnly?: boolean;
+  coordinator?: boolean;
   ws?: WorkspaceClient;
 }) {
   const resource = useResource(async () => {
@@ -129,6 +132,7 @@ export function ReviewPage({
           {...resource.data}
           session={session}
           readOnly={readOnly}
+          coordinator={coordinator}
           ws={ws}
           refresh={resource.refresh}
         />
@@ -154,6 +158,7 @@ export function ReviewEditor({
   session,
   refresh,
   readOnly = false,
+  coordinator = false,
   ws,
   context,
 }: {
@@ -166,6 +171,7 @@ export function ReviewEditor({
   session: Model<"Session">;
   refresh: () => void;
   readOnly?: boolean;
+  coordinator?: boolean;
   ws?: WorkspaceClient;
   context?: W<"ReviewContext">;
 }) {
@@ -223,6 +229,10 @@ export function ReviewEditor({
   const [preview, setPreview] = useState(false);
   const message = useActionMessage();
   const feedbackTouched = useRef(false);
+  const [conditionOpen, setConditionOpen] = useState(true);
+  const [correcting, setCorrecting] = useState(false);
+  const [correctionReason, setCorrectionReason] = useState("");
+  const [confirmPool, setConfirmPool] = useState(false);
   const editable =
     !readOnly &&
     session.actor_type === "user" &&
@@ -447,12 +457,9 @@ export function ReviewEditor({
   async function openNext() {
     if (!ws) return;
     message.clear();
-    const nextId = await nextFromPool(ws, [context?.submission_id ?? ""]);
+    const nextId = await nextFromMine(ws, [context?.submission_id ?? ""]);
     if (nextId) go(`/reviews/${nextId}`);
-    else {
-      message.show("В пуле пока нет подходящих работ.");
-      go("/works");
-    }
+    else setConfirmPool(true);
   }
   async function release() {
     message.clear();
@@ -462,7 +469,7 @@ export function ReviewEditor({
       live.revision,
       { action: "released" },
     );
-    message.show("Вы сняли с себя проверку. Работа остаётся доступной в пуле.");
+    message.show(RELEASED_NOTICE);
     go("/works");
   }
 
@@ -502,8 +509,8 @@ export function ReviewEditor({
   const signalPct =
     signal?.probability == null ? null : Math.round(signal.probability * 100);
   const signalDecision = signal ? signalDecisions[signal.id] : undefined;
-  const backHref = readOnly ? "#/registry" : "#/works";
-  const screen = readOnly ? "К9" : repeat ? "Р6" : "Р5";
+  const backHref = coordinator ? "#/registry" : "#/works";
+  const screen = coordinator ? "К9" : repeat ? "Р6" : "Р5";
   const saveNote = !editable
     ? null
     : action.busy
@@ -524,7 +531,7 @@ export function ReviewEditor({
           <Crumbs
             back={backHref}
             items={
-              readOnly
+              coordinator
                 ? [
                     { href: "#/registry", label: "Домашки" },
                     { label: context?.title ?? "Задание" },
@@ -548,22 +555,17 @@ export function ReviewEditor({
         actions={
           editable ? (
             <>
-              <Btn
-                size="s"
-                variant="quiet"
-                disabled={action.busy || dirty}
-                title={dirty ? "Дождитесь сохранения черновика" : undefined}
-                onClick={() => void action.run(release)}
-              >
-                Снять с себя проверку
-              </Btn>
-              <Btn
-                size="s"
-                disabled={action.busy || !canSave || !dirty}
-                onClick={() => void action.run(save, "Черновик сохранён.")}
-              >
-                Сохранить черновик
-              </Btn>
+              {!coordinator && (
+                <Btn
+                  size="s"
+                  variant="quiet"
+                  disabled={action.busy || dirty}
+                  title={dirty ? "Дождитесь сохранения черновика" : undefined}
+                  onClick={() => void action.run(release)}
+                >
+                  Снять с себя проверку
+                </Btn>
+              )}
             </>
           ) : (
             <>
@@ -578,16 +580,31 @@ export function ReviewEditor({
                   Открыть работу ↗
                 </Btn>
               )}
-              {!readOnly && ws && live.status === "published" && (
+              {!readOnly && live.status === "published" && (
                 <Btn
                   size="s"
-                  variant="pri"
                   disabled={action.busy}
-                  onClick={() => void action.run(openNext)}
+                  onClick={() => {
+                    setCorrectionReason("");
+                    setCorrecting(true);
+                  }}
                 >
-                  Следующая работа
+                  Изменить оценку и отзыв
                 </Btn>
               )}
+              {!readOnly &&
+                !coordinator &&
+                ws &&
+                live.status === "published" && (
+                  <Btn
+                    size="s"
+                    variant="pri"
+                    disabled={action.busy}
+                    onClick={() => void action.run(openNext)}
+                  >
+                    Следующая работа
+                  </Btn>
+                )}
             </>
           )
         }
@@ -803,6 +820,10 @@ export function ReviewEditor({
                           </Btn>
                         )}
                       </div>
+                    ) : !editable && !assist.data && !assist.loading ? (
+                      <p className="caption">
+                        Для этой версии проверки нет разбора модели.
+                      </p>
                     ) : assist.data && !assistRunning ? (
                       <p className="small dim">
                         Модель разобрала работу, но признаков генерации не
@@ -937,6 +958,36 @@ export function ReviewEditor({
           </div>
 
           <div className="stack">
+            <Card>
+              <CardHead title="Условие задания">
+                <Btn
+                  size="s"
+                  variant="link"
+                  aria-expanded={conditionOpen}
+                  aria-controls="review-condition"
+                  onClick={() => setConditionOpen((v) => !v)}
+                >
+                  {conditionOpen ? "Свернуть" : "Развернуть"}
+                </Btn>
+              </CardHead>
+              {conditionOpen && (
+                <CardBody prose id="review-condition">
+                  <p className="preserve">
+                    {version?.student_text || "Условие задания не задано."}
+                  </p>
+                  {ws &&
+                    !!context?.private_details?.material_upload_ids?.length && (
+                      <div className="btn-row">
+                        {context.private_details.material_upload_ids.map(
+                          (id) => (
+                            <ArtifactLink key={id} ws={ws} id={id} />
+                          ),
+                        )}
+                      </div>
+                    )}
+                </CardBody>
+              )}
+            </Card>
             <Card>
               <CardHead
                 title={
@@ -1115,21 +1166,50 @@ export function ReviewEditor({
                                   : suggestion.reason}
                               </div>
                             )}
-                            {suggestion.reviewer_note && (
-                              <p className="caption acc__note">
-                                {suggestion.reviewer_note}
-                              </p>
-                            )}
+                            {suggestion.reviewer_note &&
+                              !/^Проверьте работу самостоятельно[.!]?$/i.test(
+                                suggestion.reviewer_note.trim(),
+                              ) && (
+                                <p className="caption acc__note">
+                                  {suggestion.reviewer_note}
+                                </p>
+                              )}
                           </>
                         ) : (
                           !readOnly && (
                             <div className="acc__empty">
-                              {assistRunning || (!assist.data && !assist.error)
+                              {assistRunning ||
+                              (editable && !assist.data && !assist.error)
                                 ? "Модель разбирает это требование…"
-                                : "Модель это требование не проверяла. Оцените вручную."}
+                                : "Модель это требование не проверяла."}
                             </div>
                           )
                         )}
+                        {editable &&
+                          (changed || decision?.decision === "manual") && (
+                            <label className="field">
+                              <span>Обоснование ревьюера</span>
+                              <Area
+                                aria-label={`Обоснование: ${c.title}`}
+                                rows={2}
+                                maxLength={10000}
+                                value={decision?.reason ?? ""}
+                                onChange={(e) =>
+                                  edit(i, {
+                                    reason: e.target.value,
+                                    decision: "manual",
+                                  })
+                                }
+                              />
+                            </label>
+                          )}
+                        {!editable &&
+                          decision?.decision === "manual" &&
+                          decision.reason && (
+                            <p className="preserve">
+                              Обоснование ревьюера: {decision.reason}
+                            </p>
+                          )}
                         {!readOnly &&
                           changed &&
                           suggestion?.proposed_points != null && (
@@ -1227,6 +1307,86 @@ export function ReviewEditor({
           url={artifactHref}
           close={() => setPreview(false)}
         />
+      )}
+      {correcting && (
+        <Modal
+          title="Изменить оценку и отзыв"
+          close={() => setCorrecting(false)}
+        >
+          {action.feedback}
+          <p>До публикации исправления студент видит прежнюю оценку и отзыв.</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void action.run(async () => {
+                const result = await api.command(
+                  "create_review_correction",
+                  live.review_iteration_id,
+                  live.revision,
+                  {
+                    published_review_revision_id:
+                      live.current_review_revision_id!,
+                    reason: correctionReason.trim(),
+                  },
+                );
+                setCorrecting(false);
+                go(`/reviews/${result.review_iteration_id}`);
+              });
+            }}
+          >
+            <label>
+              Причина исправления
+              <Area
+                required
+                maxLength={10000}
+                value={correctionReason}
+                onChange={(e) => setCorrectionReason(e.target.value)}
+              />
+            </label>
+            <Btn
+              type="submit"
+              disabled={action.busy || !correctionReason.trim()}
+            >
+              Открыть новую версию
+            </Btn>
+          </form>
+        </Modal>
+      )}
+      {confirmPool && (
+        <Modal
+          title="Все ваши работы проверены"
+          close={() => setConfirmPool(false)}
+        >
+          {action.feedback}
+          <p>
+            У вас больше нет работ, готовых к проверке. Взять следующую работу
+            из общего пула?
+          </p>
+          <BtnRow>
+            <Btn
+              disabled={action.busy}
+              onClick={() =>
+                void action.run(async () => {
+                  const id = await nextFromPool(ws!, [
+                    context?.submission_id ?? "",
+                  ]);
+                  setConfirmPool(false);
+                  if (id) go(`/reviews/${id}`);
+                  else message.show("В пуле пока нет подходящих работ.");
+                })
+              }
+            >
+              Взять из пула
+            </Btn>
+            <Btn
+              variant="quiet"
+              disabled={action.busy}
+              onClick={() => setConfirmPool(false)}
+            >
+              Остаться
+            </Btn>
+          </BtnRow>
+        </Modal>
       )}
     </>
   );
