@@ -6,22 +6,6 @@
    эталона как есть; это его недочёт №2, повторяем один в один.
    =========================================================================== */
 
-/* --- Бренд и панель (screens.html:1281, 787) ------------------------------- */
-.brand .dots i:nth-child(1) {
-  width: 11px;
-  height: 11px;
-  background: var(--brand-green);
-}
-.brand .dots i:nth-child(2) {
-  width: 8px;
-  height: 8px;
-  background: var(--brand-blue);
-}
-.brand .dots i:nth-child(3) {
-  width: 6px;
-  height: 6px;
-  background: var(--brand-red);
-}
 .brand--flat {
   padding: 0;
 }
@@ -622,18 +606,6 @@ button.step[disabled] {
   }
   .aside__foot {
     display: none;
-  }
-  /* Панель легла горизонтально: ширину тянуть нечем и незачем. */
-  .aside__grip {
-    display: none;
-  }
-  .aside--rail .menu__label,
-  .aside--rail .menu a .c {
-    display: revert;
-  }
-  .aside--rail .aside__top {
-    flex-direction: row;
-    padding-inline: var(--s-5);
   }
   .band__meta {
     gap: var(--s-6);
@@ -2011,4 +1983,29 @@ select.inp:not(.inp--s) {
 }
 .aside--rail .aside__foot > div {
   display: none;
+}
+
+/* --- Узкое окно: панель ложится строкой, тонкая колонка отменяется ----------
+   Блок стоит последним, иначе правила колонки перебивают его по порядку.   */
+@media (max-width: 1100px) {
+  .aside__grip {
+    display: none;
+  }
+  .aside--rail .menu a {
+    justify-content: flex-start;
+    padding-inline: var(--s-5);
+  }
+  .aside--rail .menu__lead {
+    justify-content: flex-start;
+  }
+  .aside--rail .menu__label {
+    display: inline;
+  }
+  .aside--rail .menu a .c {
+    display: inline;
+  }
+  .aside--rail .aside__top {
+    flex-direction: row;
+    padding-inline: var(--s-5);
+  }
 }

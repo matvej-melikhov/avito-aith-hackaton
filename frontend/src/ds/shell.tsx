@@ -116,6 +116,23 @@ function clampAside(px: number) {
   return Math.min(ASIDE_MAX, Math.max(ASIDE_MIN, px));
 }
 
+/** Ниже 1100px пак кладёт панель строкой: тонкой колонки там не существует. */
+const WIDE = "(min-width: 1101px)";
+function useWideLayout() {
+  const [wide, setWide] = useState(
+    () => !window.matchMedia || window.matchMedia(WIDE).matches,
+  );
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia(WIDE);
+    const sync = () => setWide(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return wide;
+}
+
 function useAsideWidth() {
   const [width, setWidth] = useState(() => {
     try {
@@ -248,7 +265,8 @@ export function Shell({
   children: ReactNode;
 }) {
   const [width, setWidth] = useAsideWidth();
-  const rail = width <= ASIDE_RAIL;
+  const wide = useWideLayout();
+  const rail = wide && width <= ASIDE_RAIL;
   return (
     <div
       className={cx("app", rail && "app--rail")}
