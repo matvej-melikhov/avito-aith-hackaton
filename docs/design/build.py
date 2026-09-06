@@ -16,6 +16,8 @@ TARGETS = {
     "kit.html": SOURCES,
     "screens.html": SOURCES,
     "deck.html": SOURCES + ["deck.css"],
+    # Колода защиты лежит в соседней папке, но стили берёт отсюда.
+    "../defense/deck-b.html": ["tokens.css", "deck.css"],
 }
 
 START = "<!-- css:start -->"
