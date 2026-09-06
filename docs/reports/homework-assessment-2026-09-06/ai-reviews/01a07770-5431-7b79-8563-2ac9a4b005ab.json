@@ -1,0 +1,159 @@
+{
+  "id": "01a07770-5431-7b79-8563-2ac9a4b005ab",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В блоке «Лучшая модель» (строки ~1492–1502) вы воспроизводите лучший запуск и выводите метрики. Как вы можете убедиться (и показать проверяющему), что эти метрики в точности совпадают с теми, что были залогированы в MLflow для соответствующего run_id? Есть ли у вас сравнение с записью в MLflow?\n2. В функции push_mlflow_experiment вы логируете confusion matrix как артефакт для каждого запуска. Расскажите, как именно этот артефакт сохраняется и как проверяющий может его найти и открыть в MLflow UI для конкретного эксперимента?\n3. В срезе видно несколько серий запусков (LogReg по C, по scaler, по solver, RF по max_depth, по n_estimators, по encoder), но часть строк (365–1207) пропущена. Назовите точное общее число запусков, которое вы провели, и укажите, какие разрезы (предобработка, тип модели, параметры, гиперпараметры, размер датасета, набор фичей) в них варьировались — чтобы можно было подтвердить выполнение условия «не менее 20 экспериментов».\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за проделанную работу, вот что нужно доработать:\n\n- Укажи явно общее количество запусков в тексте или логах, чтобы можно было подтвердить, что их не меньше 20. В текущем срезе часть запусков скрыта пропуском строк, и точное число не видно.\n- Добавь в блок «Лучшая модель» явное сравнение метрик, полученных при воспроизведении, с теми, что залогированы в MLflow. Сейчас нет доказательства их совпадения.\n- Проверь, что в пропущенной части кода (строки 365–1207) все запуски также логируют параметры, метрики, модель и артефакт — в видимой части это делает функция `push_mlflow_experiment`, но полнота не подтверждена.\n- Убедись, что артефакт (confusion matrix) действительно сохраняется для каждого запуска, а не только для части из них.\n- Если в пропуске есть дополнительные эксперименты (например, DecisionTree), добавь их в видимую часть или хотя бы перечисли в тексте, чтобы не было неоднозначности.\n\nХорошо, что эксперименты варьируются по нескольким осям: тип модели, гиперпараметры и предобработка — это закрыто полностью.",
+    "suggestions": [
+      {
+        "requirement_met": null,
+        "sources": [],
+        "criterion_id": "01a0776a-b471-7e3f-8fb6-6ea764a125ed",
+        "status": "needs_human",
+        "proposed_points": null,
+        "reason": "В срезе видно несколько серий запусков (LogReg по C, по scaler, по solver, RF по max_depth, по n_estimators, по encoder), но из-за пропуска строк 365–1207 часть запусков (например, DecisionTree) не видна, а точное общее число запусков в тексте не зафиксировано. Видимых запусков меньше 20, но пропуск не позволяет утверждать fail.",
+        "evidence": [
+          "цитата отклонена: цитата не найдена в работе",
+          "цитата отклонена: цитата не найдена в работе",
+          "цитата отклонена: цитата не найдена в работе",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить полный ноутбук: в пропуске строк 365–1207 могли быть запуски DecisionTree и др. Видимые серии дают ~4+3+3+4+4+2=20 запусков, но часть (например, DecisionTree из гипотез) не показана. 4 цитат(ы) модели не нашлись в работе и удалены. Модель не привела подтверждённой цитаты, балл не показываем. Сводка: предложено 6 из 10. Посмотреть самому: At least 20 distinct runs, Best run is reproducible in the notebook. Сигнал ИИ: low. Стоимость прогона: 1.17 ₽ (231160 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": "Укажите явно общее число запусков и убедитесь, что их не менее 20."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "mlflow.log_param(\"model_type\",model_name)mlflow.log_params(model_params)mlflow.log_params(data_info)mlflow.set_tag(\"hypothesis\",hypothesis)mlflow.log_metrics(metrics)cm_fig,ax=plt.subplots(figsize=(6,5))ConfusionMatrixDisplay.from_predictions(y_test,y_pred,ax=ax,cmap='Blues')plt.title(f\"CM: {hypothesis}\")cm_path=\"ConfMatrix.png\"cm_fig.savefig(cm_path)mlflow.log_artifact(cm_path)plt.close(cm_fig)mlflow.sklearn.log_model(sk_model=pipeline,artifact_path=\"model\",registered_model_name=\"ClassificationModel\")",
+            "locator": "work.md:140-140",
+            "path": "work.md",
+            "line_start": 140,
+            "line_end": 140,
+            "verified": false
+          },
+          {
+            "quote": "forcin[0.01,0.1,1,10]:params=dict(penalty='l2',C=c,solver='newton-cg',max_iter=100,random_state=RANDOM_STATE)model=LogisticRegression(**params)pipeline=Pipeline([('preprocess',preprocessor),('model',model)])pipeline.fit(X_train,y_train)push_mlflow_experiment(pipeline,X_test,y_test,\"LogisticRegression\",params,f\"LogReg C: {c}\",{\"scaler\":\"Standard\",\"encoder\":\"OneHot\"})",
+            "locator": "work.md:1279-1279",
+            "path": "work.md",
+            "line_start": 1279,
+            "line_end": 1279,
+            "verified": false
+          },
+          {
+            "quote": "scalers=[('Standard',StandardScaler()),('Robust',RobustScaler()),('MinMax',MinMaxScaler())]forname,scinscalers:preproc=ColumnTransformer(transformers=[('cat',OneHotEncoder(handle_unknown='ignore'),cat_features),('num',sc,num_features)])params=dict(penalty='l2',C=0.1,solver='newton-cg',max_iter=100,random_state=RANDOM_STATE)pipeline=Pipeline([('preprocess',preproc),('model',LogisticRegression(**params))])pipeline.fit(X_train,y_train)push_mlflow_experiment(pipeline,X_test,y_test,\"LogisticRegression\",params,f\"LogReg Scaler: {name}\",{\"scaler\":name,\"encoder\":\"OneHot\"})",
+            "locator": "work.md:1322-1322",
+            "path": "work.md",
+            "line_start": 1322,
+            "line_end": 1322,
+            "verified": false
+          },
+          {
+            "quote": "forsin['newton-cg','lbfgs','liblinear']:params=dict(penalty='l2',C=1.0,solver=s,max_iter=200,random_state=RANDOM_STATE)model=LogisticRegression(**params)pipeline=Pipeline([('preprocess',preprocessor),('model',model)])pipeline.fit(X_train,y_train)push_mlflow_experiment(pipeline,X_test,y_test,\"LogisticRegression\",params,f\"Solver: {s}\",{\"scaler\":\"Robust\",\"encoder\":\"OneHot\"})",
+            "locator": "work.md:1355-1355",
+            "path": "work.md",
+            "line_start": 1355,
+            "line_end": 1355,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b471-7e3f-8fb6-6ea764a125ee",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "Параметры, метрики и модель залогированы в каждом запуске, но артефакт (confusion matrix) логируется только в функции push_mlflow_experiment, которая вызывается для всех запусков, что подтверждает наличие артефакта. Однако часть кода (строки 365-1207) пропущена, поэтому полнота всех запусков не полностью видна.",
+        "evidence": [
+          "work.md:140-140 (цитата подтверждена кодом)",
+          "work.md:1279-1279 (цитата подтверждена кодом)",
+          "work.md:1322-1322 (цитата подтверждена кодом)",
+          "work.md:1355-1355 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Проверить, что все запуски действительно вызывают push_mlflow_experiment и что артефакт (confusion matrix) доступен для каждого запуска, а не только для одного.",
+        "student_feedback": "Убедитесь, что в пропущенной части кода все запуски также логируют параметры, метрики, модель и артефакт."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "for c in [0.01,0.1,1,10]: params=dict(penalty='l2',C=c,solver='newton-cg',max_iter=100,random_state=RANDOM_STATE) model=LogisticRegression(**params)",
+            "locator": "work.md:1279-1279",
+            "path": "work.md",
+            "line_start": 1279,
+            "line_end": 1279,
+            "verified": false
+          },
+          {
+            "quote": "scalers=[('Standard',StandardScaler()),('Robust',RobustScaler()),('MinMax',MinMaxScaler())] for name,sc in scalers:",
+            "locator": "work.md:1322-1322",
+            "path": "work.md",
+            "line_start": 1322,
+            "line_end": 1322,
+            "verified": false
+          },
+          {
+            "quote": "for d in [3,5,10,15]: params=dict(n_estimators=10,max_depth=d,random_state=RANDOM_STATE) model=RandomForestClassifier(**params)",
+            "locator": "work.md:1401-1401",
+            "path": "work.md",
+            "line_start": 1401,
+            "line_end": 1401,
+            "verified": false
+          },
+          {
+            "quote": "encoders=[('OneHot',OneHotEncoder(handle_unknown='ignore')),('Ordinal',OrdinalEncoder(handle_unknown='use_encoded_value',unknown_value=-1))]",
+            "locator": "work.md:1473-1473",
+            "path": "work.md",
+            "line_start": 1473,
+            "line_end": 1473,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b471-7e3f-8fb6-6ea764a125ef",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "Эксперименты варьируются минимум по трём разрезам: параметры модели (C в LogReg), предобработка (scaler, encoder), тип модели (LogReg и RandomForest), гиперпараметры (max_depth, n_estimators).",
+        "evidence": [
+          "work.md:1279-1279 (цитата подтверждена кодом)",
+          "work.md:1322-1322 (цитата подтверждена кодом)",
+          "work.md:1401-1401 (цитата подтверждена кодом)",
+          "work.md:1473-1473 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Срез с пропусками (строки 365–1207), но видимых фрагментов достаточно для подтверждения трёх разрезов. Проверить, нет ли в пропущенной части дополнительных разрезов (dataset size, feature set).",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": null,
+        "sources": [
+          {
+            "quote": "Лучшая модель:¶\n\nIn [33]:\nbest_params=dict(n_estimators=200,max_depth=15,random_state=RANDOM_STATE)best_preprocessor=ColumnTransformer(transformers=[('cat',OrdinalEncoder(handle_unknown='use_encoded_value',unknown_value=-1),cat_features),('num','passthrough',num_features)])pipeline=Pipeline([('preprocess',best_preprocessor),('model',RandomForestClassifier(**best_params))])pipeline.fit(X_train,y_train)y_pred_final=pipeline.predict(X_test)y_proba_final=pipeline.predict_proba(X_test)[:,1]forname,valincalculate_metrics(y_test,y_pred_final,y_proba_final).items():print(f\"{name}: {val}\")\n\naccuracy: 0.8619683709504069\nprecision: 0.7762180016515277\nrecall: 0.5994897959183674\nf1: 0.6765023389708529\nroc_auc: 0.9131927606735314\npr_auc: 0.8017730117332826",
+            "locator": "work.md:1492-1502",
+            "path": "work.md",
+            "line_start": 1492,
+            "line_end": 1502,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b471-7e3f-8fb6-6ea764a125f0",
+        "status": "needs_human",
+        "proposed_points": null,
+        "reason": "В срезе есть блок \"Лучшая модель\" с кодом воспроизведения и выведенными метриками, но нет доказательства, что эти метрики совпадают с залогированными в MLflow (нет сравнения с MLflow-записью). Срез с пропусками (строки 365–1207), поэтому требуемое могло попасть в пропуск.",
+        "evidence": [
+          "work.md:1492-1502 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Срез показан с пропусками (строки 365–1207). В видимой части есть код воспроизведения лучшей модели с выведенными метриками, но нет явного сопоставления с MLflow-метриками. Ревьюеру стоит проверить полный артефакт и ссылку на MLflow на предмет совпадения значений. 1 цитат(ы) модели не нашлись в работе и удалены. В показанной части работы не найдено, срез был с пропусками: Сравнение метрик воспроизведения с метриками в MLflow (совпадение значений) — искал в блоке 'Лучшая модель' (строки 1492–1502) и в остальном срезе; не найдено. Также часть кода могла быть в пропуске строк 365–1207.",
+        "student_feedback": "Добавьте явное сравнение метрик воспроизведения с метриками, залогированными в MLflow."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:25Z"
+}

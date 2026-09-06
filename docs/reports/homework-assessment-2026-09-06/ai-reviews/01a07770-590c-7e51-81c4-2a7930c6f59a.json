@@ -1,0 +1,140 @@
+{
+  "id": "01a07770-590c-7e51-81c4-2a7930c6f59a",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В работе показаны только два запуска MLflow (logreg_v17 и catboost_v4). Объясни, как ты планировал провести серию из 20+ экспериментов и почему в итоговом ноутбуке остались только эти два запуска — где остальные 18+ запусков?\n2. В коде видно логирование моделей через mlflow.sklearn.log_model / mlflow.catboost.log_model, но не видно регистрации в MLflow Registry (mlflow.register_model). Расскажи, как именно ты регистрировал модели в Registry и где в ноутбуке это отражено?\n3. В работе нет блока воспроизведения лучшего запуска с параметрами из MLflow и сверкой метрик. Как бы ты воспроизвёл эксперимент с лучшим ROC-AUC и убедился, что полученные метрики совпадают с залогированными в MLflow?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за работу, вот что нужно доработать:\n\n- Проведи и залогируй в MLflow не менее 20 отличающихся запусков, а не только два (logreg_v17 и catboost_v4). Сейчас в ноутбуке видна только пара экспериментов.\n- Добавь регистрацию моделей в MLflow Registry (mlflow.register_model) для каждого запуска — сейчас логирование есть, а регистрации нет.\n- Варьируй эксперименты минимум по трём измерениям: например, предобработка, тип модели и размер датасета. Сейчас запуски отличаются только моделью и её параметрами.\n- Добавь в конец ноутбука блок, который воспроизводит запуск с лучшими метриками и сверяет полученные значения с теми, что записаны в MLflow.\n- Убедись, что все 20+ запусков видны в коде и в выводе MLflow, а не только упомянуты в тексте.\n\nХорошо, что ты используешь MLflow для логирования параметров, метрик и артефактов (PR-кривой) — это правильный подход.",
+    "suggestions": [
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "withmlflow.start_run(run_name='logreg_v17'):",
+            "locator": "work.md:1055-1055",
+            "path": "work.md",
+            "line_start": 1055,
+            "line_end": 1055,
+            "verified": false
+          },
+          {
+            "quote": "withmlflow.start_run(run_name='catboost_v4'):",
+            "locator": "work.md:1082-1082",
+            "path": "work.md",
+            "line_start": 1082,
+            "line_end": 1082,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b8aa-7ed1-bf32-f21e7e2840ec",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе показаны только два запуска MLflow (logreg_v17 и catboost_v4), что меньше 10 и тем более 20. Серия из 20+ экспериментов в представленном срезе отсутствует.",
+        "evidence": [
+          "work.md:1055-1055 (цитата подтверждена кодом)",
+          "work.md:1082-1082 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Срез содержит только два явных запуска. Возможно, остальные запуски были в пропущенных ячейках ноутбука, но в данном текстовом срезе их нет. Также в работе нет описания гипотез и ссылки на эксперимент в поле ответа. Сводка: предложено 3 из 10. Не выполнено: At least 20 distinct runs, Experiments vary in at least three dimensions, Best run is reproducible in the notebook. Сигнал ИИ: low. Стоимость прогона: 0.98 ₽ (209069 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": "Проведите и залогируйте не менее 20 отличающихся запусков и покажите их в ноутбуке."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "withmlflow.start_run(run_name='logreg_v17'):mlflow.log_params({'test_size':TEST_SIZE,'threshold':THRESHOLD})mlflow.log_params(model_params)mlflow.log_params({'cat_features':cat_features,'num_features':num_features,'cat_preprocessing':type(pipeline.steps[0][1].transformers[0][1]).__name__,'num_preprocessing':type(pipeline.steps[0][1].transformers[1][1]).__name__,})mlflow.log_metrics(metrics)mlflow.sklearn.log_model(pipeline,artifact_path='model')mlflow.log_artifact('pr_curve.png')",
+            "locator": "work.md:1055-1055",
+            "path": "work.md",
+            "line_start": 1055,
+            "line_end": 1055,
+            "verified": false
+          },
+          {
+            "quote": "withmlflow.start_run(run_name='catboost_v4'):# Логируем параметры моделиmlflow.log_params(model_params)# Информация о данных и признакахmlflow.log_params({'num_features':num_features,'cat_features':cat_features,'model_type':'CatBoostClassifier','test_size':TEST_SIZE,'threshold':0.5})# Логируем метрикиmlflow.log_metrics(metrics)# Логируем модель CatBoostmlflow.catboost.log_model(model,artifact_path=\"model\")# Логируем PR-кривуюmlflow.log_artifact('pr_curve.png')",
+            "locator": "work.md:1082-1082",
+            "path": "work.md",
+            "line_start": 1082,
+            "line_end": 1082,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b8aa-7ed1-bf32-f21e7e2840ed",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "В работе видно логирование параметров, метрик, модели и артефакта (PR-кривой) в двух запусках (logreg_v17 и catboost_v4). Однако в тексте присутствует только два явных запуска, а не серия из 20; также модель логируется через mlflow.sklearn.log_model/mlflow.catboost.log_model, но нет видимых следов регистрации в MLflow Registry (mlflow.register_model / Model Registry).",
+        "evidence": [
+          "work.md:1055-1055 (цитата подтверждена кодом)",
+          "work.md:1082-1082 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "low",
+        "reviewer_note": "В тексте видны только два запуска (logreg_v17, catboost_v4). Остальные запуски могли быть в пропущенных ячейках ноутбука (покрытие неполное). Проверить наличие Registry-регистрации и остальных запусков в оригинальном HTML. 1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Добавьте регистрацию моделей в MLflow Registry и покажите серию из 20 запусков."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "preprocessor=ColumnTransformer(transformers=[# ('cat', OrdinalEncoder(), cat_features),('cat',OneHotEncoder(),cat_features),# ('cat', TargetEncoder(), cat_features),('num',StandardScaler(),num_features),])",
+            "locator": "work.md:700-700",
+            "path": "work.md",
+            "line_start": 700,
+            "line_end": 700,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b8aa-7ed1-bf32-f21e7e2840ee",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе видно только два отдельных запуска (logreg_v17 и catboost_v4), которые отличаются по типу модели и параметрам модели. Нет серии экспериментов, варьирующих хотя бы три разреза (предобработка, размер датасета, набор фичей и т.п.).",
+        "evidence": [
+          "work.md:700-700 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "low",
+        "reviewer_note": "В работе есть закомментированные варианты предобработки (OrdinalEncoder, TargetEncoder) и только два фактических запуска. Проверьте, не скрыты ли дополнительные запуски в пропущенных визуальных выводах/выводах ячеек, которые не попали в текстовый срез. 2 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Проведите серию экспериментов, варьируя минимум три разреза (например, предобработку, тип модели и размер датасета), и залогируйте каждый запуск в MLflow."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "withmlflow.start_run(run_name='logreg_v17'):mlflow.log_params({'test_size':TEST_SIZE,'threshold':THRESHOLD})mlflow.log_params(model_params)mlflow.log_params({'cat_features':cat_features,'num_features':num_features,'cat_preprocessing':type(pipeline.steps[0][1].transformers[0][1]).__name__,'num_preprocessing':type(pipeline.steps[0][1].transformers[1][1]).__name__,})mlflow.log_metrics(metrics)mlflow.sklearn.log_model(pipeline,artifact_path='model')mlflow.log_artifact('pr_curve.png')",
+            "locator": "work.md:1055-1055",
+            "path": "work.md",
+            "line_start": 1055,
+            "line_end": 1055,
+            "verified": false
+          },
+          {
+            "quote": "withmlflow.start_run(run_name='catboost_v4'):# Логируем параметры моделиmlflow.log_params(model_params)# Информация о данных и признакахmlflow.log_params({'num_features':num_features,'cat_features':cat_features,'model_type':'CatBoostClassifier','test_size':TEST_SIZE,'threshold':0.5})# Логируем метрикиmlflow.log_metrics(metrics)# Логируем модель CatBoostmlflow.catboost.log_model(model,artifact_path=\"model\")# Логируем PR-кривуюmlflow.log_artifact('pr_curve.png')",
+            "locator": "work.md:1082-1082",
+            "path": "work.md",
+            "line_start": 1082,
+            "line_end": 1082,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b8aa-7ed1-bf32-f21e7e2840ef",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет кода воспроизведения лучшего запуска и сравнения полученных метрик с метриками в MLflow. Есть только отдельные запуски обучения (logreg_v17, catboost_v4) с залогированными метриками, но отсутствует блок, который бы воспроизводил эксперимент с параметрами лучшего скора и сверял значения.",
+        "evidence": [
+          "work.md:1055-1055 (цитата подтверждена кодом)",
+          "work.md:1082-1082 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "В работе присутствуют только два залогированных запуска (logreg_v17, catboost_v4), но нет блока воспроизведения лучшего эксперимента и сверки метрик с MLflow. Также нет указания, какой запуск считается лучшим.",
+        "student_feedback": "Добавьте в ноутбук код воспроизведения запуска с лучшими метриками и сверку полученных значений с метриками в MLflow."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:27Z"
+}

@@ -1,0 +1,394 @@
+{
+  "id": "01a0776f-a7eb-75fc-ad1c-c85a2c010156",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В cmd/main.go порт задан литералом \":8080\". Как вы планировали организовать чтение порта из .env и переопределение его флагом --port, и почему в итоге оставили жёстко зашитое значение?\n2. В коде нет обработки сигналов SIGINT/SIGTERM и вызова server.Shutdown. Расскажите, как вы представляли себе корректное завершение сервиса и что должно было происходить при остановке?\n3. В обработчиках используются сокращённые идентификаторы (mR, hr, hh). Можете пояснить, что они означают, и как бы вы переименовали их для улучшения читаемости?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за работу, вот что нужно поправить:\n\n- Замени сокращённые имена переменных (mR, hr, hh) на полные и понятные — это сильно упростит чтение кода.\n- Вынеси порт из литерала \":8080\" в конфигурацию: читай его из переменной окружения или .env файла.\n- Добавь лог о старте сервера в stdout (например, через log.Println или slog.Info) — сейчас его нет совсем.\n- Реализуй graceful shutdown: подпишись на SIGINT/SIGTERM через signal.NotifyContext и вызывай server.Shutdown с контекстом.\n- При остановке сервера выводи в лог сообщение (например, \"Shutting down service-courier\").\n- Добавь поддержку флага --port (через flag или pflag) и сделай так, чтобы значение флага имело приоритет над .env/окружением.\n\nХорошо, что структура проекта соответствует стандарту (cmd/, internal/), а эндпоинты /ping и /healthcheck работают по ТЗ.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/main.go:1-1",
+            "path": "cmd/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "(файл найден)",
+            "locator": "internal/handler/health_handler.go:1-1",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324d7",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: dir_exists: каталог cmd: 1 файлов; dir_exists: каталог internal: 3 файлов",
+        "evidence": [
+          "cmd/main.go:1-1 (цитата подтверждена кодом)",
+          "internal/handler/health_handler.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сборка go build: успешно. Сводка: предложено 6.5 из 16. Не выполнено: Порт берётся из конфигурации Env, Лог старта уходит в stdout, После сигналов SIGINT/SIGTERM сервер останавливается, graceful shutdown реализован через context. Сигнал ИИ: low. Стоимость прогона: 0.80 ₽ (220184 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "module serviceDelivery",
+            "locator": "go.mod:1-1",
+            "path": "go.mod",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324d8",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: file_exists: найдено: go.mod",
+        "evidence": [
+          "go.mod:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/main.go:1-1",
+            "path": "cmd/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324d9",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: count_files: файлов по маске ['cmd/*/main.go', 'cmd/main.go']: 1 (нужно от 1)",
+        "evidence": [
+          "cmd/main.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\thttp.ListenAndServe(\":8080\", route.SetupRoute())",
+            "locator": "cmd/main.go:9-9",
+            "path": "cmd/main.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          },
+          {
+            "quote": "func SetupRoute() chi.Router {\n\tmR := chi.NewRouter()\n\tmR.Mount(\"/\", HealthRoute())\n\treturn mR\n}",
+            "locator": "internal/route/route.go:7-11",
+            "path": "internal/route/route.go",
+            "line_start": 7,
+            "line_end": 11,
+            "verified": false
+          },
+          {
+            "quote": "\thh := handler.HealthHandler{}\n\thr := chi.NewRouter()",
+            "locator": "internal/route/health_route.go:10-11",
+            "path": "internal/route/health_route.go",
+            "line_start": 10,
+            "line_end": 11,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324da",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Код структурирован по слоям, циклических зависимостей нет, но есть сокращённые идентификаторы (mR, hr, hh) и жёстко зашитый порт, что снижает качество.",
+        "evidence": [
+          "cmd/main.go:9-9 (цитата подтверждена кодом)",
+          "internal/route/route.go:7-11 (цитата подтверждена кодом)",
+          "internal/route/health_route.go:10-11 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Обратите внимание на читаемость: сокращённые имена, захардкоженный порт, отсутствие комментариев. Оцените, насколько это критично для критерия. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Имена идентификаторов в основном понятные, но есть сокращения: hh, hr, mR, w, r. (internal/route/health_route.go:10-11, internal/route/route.go:8-8, internal/handler/health_handler.go:10-10); Циклических зависимостей между пакетами не видно: route зависит от handler, handler ни от кого не зависит. (internal/route/health_route.go:3-7, internal/handler/health_handler.go:3-6); Структура пакетов логична: main вызывает route, route использует handler. (cmd/main.go:8-10, internal/route/route.go:7-11)",
+        "student_feedback": "Улучшите читаемость: используйте полные имена переменных и вынесите порт в конфигурацию."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\thttp.ListenAndServe(\":8080\", route.SetupRoute())",
+            "locator": "cmd/main.go:9-9",
+            "path": "cmd/main.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324db",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе найден вызов http.ListenAndServe, который запускает HTTP-сервер, что соответствует критерию.",
+        "evidence": [
+          "cmd/main.go:9-9 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          },
+          {
+            "quote": "\thttp.ListenAndServe(\":8080\", route.SetupRoute())",
+            "locator": "cmd/main.go:9-9",
+            "path": "cmd/main.go",
+            "line_start": 9,
+            "line_end": 9,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324dc",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Порт задан литералом \":8080\" в cmd/main.go, чтение из переменной окружения или .env отсутствует. Кодовая проверка также показывает 0 вхождений os.Getenv/godotenv и отсутствие файла .env.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)",
+          "cmd/main.go:9-9 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Читайте порт из переменной окружения или .env и используйте его при запуске сервера вместо литерала \":8080\"."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324dd",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни одного вызова логгера (log.Print*, slog, zap) при старте сервера. main.go просто вызывает http.ListenAndServe без какого-либо логирования.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте вывод лога о старте сервера в stdout через log.Println/slog.Info."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\thr.Get(\"/ping\", hh.PingHandler)",
+            "locator": "internal/route/health_route.go:12-12",
+            "path": "internal/route/health_route.go",
+            "line_start": 12,
+            "line_end": 12,
+            "verified": false
+          },
+          {
+            "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}",
+            "locator": "internal/handler/health_handler.go:10-12",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 10,
+            "line_end": 12,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324de",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Маршрут GET /ping зарегистрирован, обработчик возвращает JSON {\"message\":\"pong\"} с кодом 200 по умолчанию.",
+        "evidence": [
+          "internal/route/health_route.go:12-12 (цитата подтверждена кодом)",
+          "internal/handler/health_handler.go:10-12 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)",
+            "locator": "internal/route/health_route.go:13-13",
+            "path": "internal/route/health_route.go",
+            "line_start": 13,
+            "line_end": 13,
+            "verified": false
+          },
+          {
+            "quote": "func (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}",
+            "locator": "internal/handler/health_handler.go:14-16",
+            "path": "internal/handler/health_handler.go",
+            "line_start": 14,
+            "line_end": 16,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324df",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Маршрут HEAD /healthcheck зарегистрирован и обработчик возвращает 204 No Content без тела, что соответствует ТЗ.",
+        "evidence": [
+          "internal/route/health_route.go:13-13 (цитата подтверждена кодом)",
+          "internal/handler/health_handler.go:14-16 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324e0",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет подписки на SIGINT/SIGTERM и вызова Shutdown у сервера. Сервер запускается через http.ListenAndServe без graceful shutdown.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте обработку SIGINT/SIGTERM через signal.NotifyContext и graceful shutdown сервера через server.Shutdown с context."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324e1",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Graceful shutdown через context не реализован: сервер запускается через http.ListenAndServe без обработки сигналов, context и Shutdown отсутствуют.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Реализуйте graceful shutdown: используйте signal.NotifyContext и http.Server.Shutdown с context.WithTimeout."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324e2",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет graceful shutdown и, соответственно, никакого лог-сообщения об остановке. main.go просто вызывает http.ListenAndServe без обработки сигналов и без вывода сообщения.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте graceful shutdown с обработкой SIGINT/SIGTERM и выводом сообщения об остановке в лог."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324e3",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Флаг --port и пакеты flag/pflag в работе не используются; порт жёстко задан в коде.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте обработку флага --port через пакет flag или pflag и используйте его значение для запуска сервера."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}",
+            "locator": "cmd/main.go:8-10",
+            "path": "cmd/main.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-33dd-72f2-9ff2-0fe728e324e4",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет ни чтения .env, ни обработки флага --port, поэтому приоритет флага над окружением не реализован.",
+        "evidence": [
+          "cmd/main.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте чтение PORT из .env и флага --port с приоритетом флага."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:56:41Z"
+}

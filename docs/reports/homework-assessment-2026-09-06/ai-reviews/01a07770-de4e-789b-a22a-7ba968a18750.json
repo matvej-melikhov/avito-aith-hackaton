@@ -1,0 +1,279 @@
+{
+  "id": "01a07770-de4e-789b-a22a-7ba968a18750",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В вашей работе представлены только C4-диаграммы (контекст, контейнеры, компоненты). Расскажите, по каким признакам вы проводили декомпозицию системы и какие компоненты относятся к каждому признаку — например, какие компоненты выделены по функциям, а какие по ролям или данным?\n2. На компонентной диаграмме REST API показаны отношения между компонентами. Опишите, какие конкретные интерфейсы (эндпоинты, методы, события) связывают, например, компонент управления луками с компонентом хранения данных, и какие входные/выходные данные и ошибки они передают?\n3. Представьте, что пользователь открывает share-ссылку на лук. Опишите по шагам, какие компоненты в каком порядке участвуют в этом сценарии и какие вызовы между ними происходят — то есть как бы выглядела диаграмма последовательностей для этого случая?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Собрал замечания по твоей работе, вот что нужно доработать:\n\n1. Явно назови признаки декомпозиции (например, по функциям и по ролям) и перечисли компоненты под каждым из них — сейчас в тексте этого нет, только диаграммы.\n2. Добавь текстовое обоснование SRP: для каждого компонента укажи его единственную зону ответственности и причину, по которой он может измениться.\n3. Оформи раздел или таблицу с интерфейсами взаимодействия между компонентами: для каждой пары укажи конкретные методы, эндпоинты или события.\n4. Опиши контракты для ключевых интерфейсов: входные данные, выходные данные и возможные ошибки — сейчас указаны только типы (REST/JSON, события).\n5. Добавь диаграмму последовательностей для одного бизнес-сценария (например, создание лука или открытие share-ссылки) — в файле её нет.\n6. Добавь раздел с анализом связности компонентов: где связность высокая и почему, можно с матрицей или таблицей связей.\n7. Предложи конкретные меры снижения связности (события, шина, фасад, разделение данных) с обоснованием применительно к твоей системе.\n8. Собери всё в единый структурированный документ с разделами: декомпозиция, интерфейсы, контракты, анализ связности, диаграмма последовательностей.\n\nХорошо, что у тебя уже есть контекстная и компонентная диаграммы C4 — это правильная основа, от которой можно отталкиваться.",
+    "suggestions": [
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e90",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В представленном срезе работы нет явного указания признаков декомпозиции (по функциям, данным, ролям, доменам) и списка компонентов под каждым признаком. Есть только C4-диаграммы с компонентами, но признаки декомпозиции не названы.",
+        "evidence": [
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Срез может быть неполным (работа начинается с раздела 6), поэтому признаки декомпозиции могли находиться в пропущенных разделах 1–5. Ревьюеру стоит проверить полную версию работы. 1 цитат(ы) модели не нашлись в работе и удалены. Сводка: предложено 1 из 6. Не выполнено: Выполнена декомпозиция по двум и более признакам, Обосновано соблюдение SRP при декомпозиции, Определены интерфейсы взаимодействия между компонентами, Указаны типы взаимодействий и контракты (формат, входы, выходы, ошибки). Сигнал ИИ: low. Стоимость прогона: 0.54 ₽ (130413 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": "Явно назовите признаки декомпозиции (например, по функциям и по ролям) и перечислите компоненты под каждым признаком."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "Component(http, \"HTTP Interface\", \"REST/JSON\", \"Маршруты и DTO\")\n        Component(access, \"Access\", \"App\", \"JWT и RBAC\")\n        Component(wardrobeCmp, \"Wardrobe\", \"App\", \"Вещи\")\n        Component(outfits, \"Outfits\", \"App\", \"Луки\")\n        Component(gallery, \"Gallery\", \"App\", \"Публичная read-model\")\n        Component(saved, \"Saved\", \"App\", \"Избранное\")\n        Component(sharing, \"Sharing\", \"App\", \"Share-ссылки\")\n        Component(outbox, \"Outbox Writer\", \"Infra\", \"Запись событий в outbox\")",
+            "locator": "work.md:60-67",
+            "path": "work.md",
+            "line_start": 60,
+            "line_end": 67,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e91",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет текстового обоснования соблюдения SRP: компоненты лишь перечислены с кратким описанием зоны ответственности в диаграммах, но отсутствует объяснение, почему границы проведены так и почему каждый компонент меняется по одной причине.",
+        "evidence": [
+          "work.md:60-67 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Файл показан целиком (87 строк), пропусков нет. В работе только диаграммы C4 без пояснительного текста об SRP.",
+        "student_feedback": "Добавьте текстовое обоснование: для каждого компонента укажите его единственную зону ответственности и причину изменения/границу."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "Rel_R(http, access, \"Auth\")\n    Rel_D(http, outfits, \"Outfits\")\n    Rel_D(http, wardrobeCmp, \"Items\")\n    Rel_D(http, gallery, \"Gallery\")\n    Rel_D(http, saved, \"Save\")\n    Rel_D(http, sharing, \"Share\")\n\n    Rel_R(outfits, wardrobeCmp, \"Check ownership\", \"I2\")\n    Rel_L(saved, gallery, \"Check published\", \"I3\")\n\n    Rel_D(outfits, outbox, \"Write outfit.*\", \"I4\")\n    Rel_R(sharing, outbox, \"Write share.*\", \"I5\")",
+            "locator": "work.md:70-81",
+            "path": "work.md",
+            "line_start": 70,
+            "line_end": 81,
+            "verified": false
+          },
+          {
+            "quote": "Rel_R(outfits, wardrobeCmp, \"Check ownership\", \"I2\")\n    Rel_L(saved, gallery, \"Check published\", \"I3\")\n\n    Rel_D(outfits, outbox, \"Write outfit.*\", \"I4\")\n    Rel_R(sharing, outbox, \"Write share.*\", \"I5\")",
+            "locator": "work.md:77-81",
+            "path": "work.md",
+            "line_start": 77,
+            "line_end": 81,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e92",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет раздела, где для компонентов перечислены интерфейсы (методы, эндпоинты, события). Есть только диаграммы C4 с отношениями, но без описания конкретных интерфейсов взаимодействия между компонентами.",
+        "evidence": [
+          "work.md:70-81 (цитата подтверждена кодом)",
+          "work.md:77-81 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте раздел или таблицу, где для каждой пары компонентов перечислены конкретные интерфейсы (методы, эндпоинты, события)."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "Rel_R(user, wardrobe, \"Работа с гардеробом\", \"REST/JSON\")\n    Rel_R(guest, wardrobe, \"Открытие ссылки\", \"REST/JSON\")\n    Rel_U(monitoring, wardrobe, \"Метрики\", \"HTTP\")",
+            "locator": "work.md:15-17",
+            "path": "work.md",
+            "line_start": 15,
+            "line_end": 17,
+            "verified": false
+          },
+          {
+            "quote": "Rel_R(outfits, wardrobeCmp, \"Check ownership\", \"I2\")\n    Rel_L(saved, gallery, \"Check published\", \"I3\")\n\n    Rel_D(outfits, outbox, \"Write outfit.*\", \"I4\")\n    Rel_R(sharing, outbox, \"Write share.*\", \"I5\")",
+            "locator": "work.md:77-81",
+            "path": "work.md",
+            "line_start": 77,
+            "line_end": 81,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e93",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе указаны только типы взаимодействий (REST/JSON, события, HTTP) на диаграммах, но отсутствует описание контрактов: входные данные, выходные данные и ошибки для интерфейсов нигде не описаны.",
+        "evidence": [
+          "work.md:15-17 (цитата подтверждена кодом)",
+          "work.md:77-81 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте описание контрактов для ключевых интерфейсов: входные данные, выходные данные и ошибки."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "```mermaid\nC4Context\n    title Wardrobe Service - Context\n    UpdateLayoutConfig($c4ShapeInRow=\"3\")\n\n    Person(user, \"Пользователь\", \"user / stylist / admin\")\n    Person(guest, \"Гость\", \"По share-ссылке\")\n    System(wardrobe, \"Wardrobe Service\", \"Гардероб, луки, gallery, share\")\n    System_Ext(monitoring, \"Monitoring\", \"Метрики\")\n\n    Rel_R(user, wardrobe, \"Работа с гардеробом\", \"REST/JSON\")\n    Rel_R(guest, wardrobe, \"Открытие ссылки\", \"REST/JSON\")\n    Rel_U(monitoring, wardrobe, \"Метрики\", \"HTTP\")",
+            "locator": "work.md:5-17",
+            "path": "work.md",
+            "line_start": 5,
+            "line_end": 17,
+            "verified": false
+          },
+          {
+            "quote": "```mermaid\nC4Component\n    title REST API - Components\n    UpdateLayoutConfig($c4ShapeInRow=\"3\", $c4BoundaryInRow=\"1\")\n\n    Container_Boundary(service, \"REST API\") {\n        Component(http, \"HTTP Interface\", \"REST/JSON\", \"Маршруты и DTO\")\n        Component(access, \"Access\", \"App\", \"JWT и RBAC\")\n        Component(wardrobeCmp, \"Wardrobe\", \"App\", \"Вещи\")\n        Component(outfits, \"Outfits\", \"App\", \"Луки\")\n        Component(gallery, \"Gallery\", \"App\", \"Публичная read-model\")\n        Component(saved, \"Saved\", \"App\", \"Избранное\")\n        Component(sharing, \"Sharing\", \"App\", \"Share-ссылки\")\n        Component(outbox, \"Outbox Writer\", \"Infra\", \"Запись событий в outbox\")\n    }",
+            "locator": "work.md:54-68",
+            "path": "work.md",
+            "line_start": 54,
+            "line_end": 68,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e94",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе есть и контекстная диаграмма C4 (C4Context), и компонентная диаграмма одного контейнера (C4Component для REST API).",
+        "evidence": [
+          "work.md:5-17 (цитата подтверждена кодом)",
+          "work.md:54-68 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "2 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "```mermaid\nC4Context\n    title Wardrobe Service - Context",
+            "locator": "work.md:5-7",
+            "path": "work.md",
+            "line_start": 5,
+            "line_end": 7,
+            "verified": false
+          },
+          {
+            "quote": "```mermaid\nC4Container\n    title Wardrobe Service - Containers",
+            "locator": "work.md:23-25",
+            "path": "work.md",
+            "line_start": 23,
+            "line_end": 25,
+            "verified": false
+          },
+          {
+            "quote": "```mermaid\nC4Component\n    title REST API - Components",
+            "locator": "work.md:54-56",
+            "path": "work.md",
+            "line_start": 54,
+            "line_end": 56,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e95",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе представлены только C4-диаграммы (Context, Container, Component), диаграмма последовательностей для бизнес-сценария отсутствует. Факты кода подтверждают: mermaid sequenceDiagram не найдено, изображений нет.",
+        "evidence": [
+          "work.md:5-7 (цитата подтверждена кодом)",
+          "work.md:23-25 (цитата подтверждена кодом)",
+          "work.md:54-56 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Факты кода: mermaid sequenceDiagram не найдено, встроенных изображений 0. Работа показана целиком, поэтому вердикт fail, а не not_found.",
+        "student_feedback": "Добавьте диаграмму последовательностей для одного бизнес-сценария (например, создание лука или открытие share-ссылки)."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "Rel_R(http, access, \"Auth\")\n    Rel_D(http, outfits, \"Outfits\")\n    Rel_D(http, wardrobeCmp, \"Items\")\n    Rel_D(http, gallery, \"Gallery\")\n    Rel_D(http, saved, \"Save\")\n    Rel_D(http, sharing, \"Share\")\n\n    Rel_R(outfits, wardrobeCmp, \"Check ownership\", \"I2\")\n    Rel_L(saved, gallery, \"Check published\", \"I3\")\n\n    Rel_D(outfits, outbox, \"Write outfit.*\", \"I4\")\n    Rel_R(sharing, outbox, \"Write share.*\", \"I5\")",
+            "locator": "work.md:70-81",
+            "path": "work.md",
+            "line_start": 70,
+            "line_end": 81,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e96",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В представленном фрагменте работы (строки 1–87) содержатся только C4-диаграммы (контекст, контейнеры, компоненты). Раздела об анализе связности, оценке высокой связности, матрице/таблице связей или обсуждении coupling в срезе нет.",
+        "evidence": [
+          "work.md:70-81 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Работа показана целиком (без пометок о пропусках), поэтому вердикт fail, а не not_found.",
+        "student_feedback": "Добавьте раздел с анализом связности компонентов: где связность высокая и почему."
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e97",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В представленном фрагменте работы (строки 1–87) содержатся только C4-диаграммы (контекст, контейнеры, компоненты). Никаких предложений по снижению связности с обоснованием не найдено.",
+        "evidence": [],
+        "confidence": "high",
+        "reviewer_note": "Работа показана целиком (без пометок о пропусках), поэтому вердикт fail, а не not_found. Ревьюеру стоит проверить, нет ли в полной версии работы раздела об анализе связности за пределами этого среза.",
+        "student_feedback": "Добавьте раздел с конкретными мерами снижения связности (события, шина, фасад, разделение данных) и обоснованием применительно к вашей системе."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "## 6. C4 диаграммы",
+            "locator": "work.md:1-1",
+            "path": "work.md",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "### 6.1 C4 Context",
+            "locator": "work.md:3-3",
+            "path": "work.md",
+            "line_start": 3,
+            "line_end": 3,
+            "verified": false
+          },
+          {
+            "quote": "### 6.2 C4 Container",
+            "locator": "work.md:21-21",
+            "path": "work.md",
+            "line_start": 21,
+            "line_end": 21,
+            "verified": false
+          },
+          {
+            "quote": "### 6.3 C4 Component",
+            "locator": "work.md:52-52",
+            "path": "work.md",
+            "line_start": 52,
+            "line_end": 52,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1fa7-78eb-abb9-43a40ff47e98",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе представлены только фрагменты C4-диаграмм (контекст, контейнеры, компоненты) без единого структурированного документа: отсутствуют разделы с декомпозицией, интерфейсами, контрактами, анализом связности и диаграммой последовательностей. Документ не является целостным и не покрывает требуемые части.",
+        "evidence": [
+          "work.md:1-1 (цитата подтверждена кодом)",
+          "work.md:3-3 (цитата подтверждена кодом)",
+          "work.md:21-21 (цитата подтверждена кодом)",
+          "work.md:52-52 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить, что в полном файле (если есть пропуски) отсутствуют другие разделы; в данном срезе видны только C4-диаграммы. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Документ содержит раздел 6 с C4 диаграммами, но отсутствуют другие разделы, что может указывать на неполноту документации. (work.md:1-1); В разделе 6.1 представлена диаграмма C4 Context с использованием синтаксиса Mermaid, что обеспечивает структурированное описание контекста системы. (work.md:3-20); В разделе 6.2 и 6.3 также присутствуют диаграммы C4 Container и Component, что демонстрирует последовательную структуру описания архитектуры. (work.md:21-50, work.md:52-87)",
+        "student_feedback": "Дополните документ недостающими разделами: декомпозиция, интерфейсы, контракты, анализ связности и диаграмма последовательностей."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:58:01Z"
+}

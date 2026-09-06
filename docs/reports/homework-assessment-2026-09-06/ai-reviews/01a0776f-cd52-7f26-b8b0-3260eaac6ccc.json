@@ -1,0 +1,414 @@
+{
+  "id": "01a0776f-cd52-7f26-b8b0-3260eaac6ccc",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В критерии «Нет логики в handlers» проверка не смогла увидеть файлы internal/handlers/* — в срезе был только main.go. Расскажи, как в твоих обработчиках (например, в NewCourierController) устроено разделение: что именно делает handler, а что делегируется в usecase? Приведи пример одного метода (например, обработки POST /couriers) и объясни, где заканчивается его ответственность.\n2. В критерии «Каждый слой содержит пакеты по сущностям» отмечено, что все файлы лежат непосредственно в пакетах handlers и repository, без вложенных подпакетов вроде internal/handlers/courier. Как ты видишь структуру своего проекта сейчас и планируешь ли выделять подпакеты по сущностям внутри слоёв? Если да — как бы ты это сделал и что это даст?\n3. В критерии «Для DI используется дополнительный пакет» отмечено, что зависимости внедряются вручную через конструкторы, а DI-пакета (dig/fx/wire/do) в go.mod нет. Расскажи, как сейчас устроена сборка зависимостей в main.go: в каком порядке создаются репозиторий, usecase и handler, и почему ты выбрал ручное внедрение вместо DI-библиотеки? Что бы изменилось, если бы ты добавил, например, uber-go/dig?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Отличная работа по слоям и DI через конструкторы, всё чисто и аккуратно. Ниже список того, что стоит доработать:\n\n- Добавь недостающие файлы обработчиков (internal/handlers/*) в итоговый срез кода, чтобы можно было проверить отсутствие бизнес-логики в этом слое.\n- Раздели код внутри слоёв handlers и repository на подпакеты по сущностям (например, internal/handlers/courier и internal/repository/courier).\n- Подключи DI-контейнер (например, uber-go/dig или google/wire) и создай контейнер зависимостей в main.go, чтобы убрать ручное связывание конструкторов.\n- Убедись, что в итоговый срез попали все файлы проекта, а не только main.go, для полноты проверки структуры.\n\nХорошо, что интерфейсы объявлены в месте использования и приватные, а доменные модели не засорены тегами.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/handlers\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/repository\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/usecase\"",
+            "locator": "cmd/service-courier/main.go:20-22",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 20,
+            "line_end": 22,
+            "verified": false
+          },
+          {
+            "quote": "package model\n\nimport \"time\"\n\ntype Courier struct {",
+            "locator": "internal/model/models.go:1-5",
+            "path": "internal/model/models.go",
+            "line_start": 1,
+            "line_end": 5,
+            "verified": false
+          },
+          {
+            "quote": "package repository\n\nimport (\n\t\"context\"\n\t\"errors\"\n\t\"fmt\"\n\t\"strings\"\n\n\t\"github.com/jackc/pgx/v5\"\n\t\"github.com/jackc/pgx/v5/pgxpool\"\n\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/entity\"\n)\n\ntype CourierRepository struct {",
+            "locator": "internal/repository/courier.go:1-15",
+            "path": "internal/repository/courier.go",
+            "line_start": 1,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "package usecase\n\nimport (\n\t\"context\"\n\t\"errors\"\n\t\"regexp\"\n\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/dto\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/entity\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/model\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/repository\"\n)\n\ntype CourierUseCase struct {",
+            "locator": "internal/usecase/courier.go:1-14",
+            "path": "internal/usecase/courier.go",
+            "line_start": 1,
+            "line_end": 14,
+            "verified": false
+          },
+          {
+            "quote": "type CourierController struct {\n\tuseCase courierUseCase\n}",
+            "locator": "internal/handlers/controller.go:14-16",
+            "path": "internal/handlers/controller.go",
+            "line_start": 14,
+            "line_end": 16,
+            "verified": false
+          },
+          {
+            "quote": "type CourierUseCase struct {\n\trepository courierRepository\n}",
+            "locator": "internal/usecase/courier.go:14-16",
+            "path": "internal/usecase/courier.go",
+            "line_start": 14,
+            "line_end": 16,
+            "verified": false
+          },
+          {
+            "quote": "type CourierRepository struct {\n\tpool *pgxpool.Pool\n}",
+            "locator": "internal/repository/courier.go:15-17",
+            "path": "internal/repository/courier.go",
+            "line_start": 15,
+            "line_end": 17,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e79447",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "В работе присутствуют все четыре требуемых слоя: internal/handlers (HTTP), internal/usecase (бизнес-логика), internal/repository (работа с БД), internal/model (сущности).",
+        "evidence": [
+          "cmd/service-courier/main.go:20-22 (цитата подтверждена кодом)",
+          "internal/model/models.go:1-5 (цитата подтверждена кодом)",
+          "internal/repository/courier.go:1-15 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:1-14 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:14-16 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:14-16 (цитата подтверждена кодом)",
+          "internal/repository/courier.go:15-17 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сборка go build: успешно. Сводка: предложено 10 из 14. Не выполнено: Нет логики в handlers, Каждый слой (handlers, repo) внутри содержит пакеты по сущностям, Для DI используется дополнительный пакет (например dig), код разделён по чистой архитектуре. Сигнал ИИ: low. Стоимость прогона: 1.91 ₽ (741139 токенов, модель deepseek-v4-flash, исследователь: нет: json harness не по схеме: 1 validation error for HarnessReport\n  Invalid JSON: EOF while parsing a list at line 13 column 2 [type=json_invalid, input_value='{\"criteria\":[\\n{\"criteri...итектуре.\"}\\n]}', input_type=str]\n    For ). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func NewCourierController(useCase courierUseCase) *CourierController {\n\treturn &CourierController{useCase: useCase}\n}",
+            "locator": "internal/handlers/controller.go:18-20",
+            "path": "internal/handlers/controller.go",
+            "line_start": 18,
+            "line_end": 20,
+            "verified": false
+          },
+          {
+            "quote": "func NewCourierUseCase(repository courierRepository) *CourierUseCase {\n\treturn &CourierUseCase{repository: repository}\n}",
+            "locator": "internal/usecase/courier.go:18-20",
+            "path": "internal/usecase/courier.go",
+            "line_start": 18,
+            "line_end": 20,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e79448",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Конструкторы NewCourierController и NewCourierUseCase принимают зависимости через параметры (интерфейсы), глобальных синглтонов не обнаружено.",
+        "evidence": [
+          "internal/handlers/controller.go:18-20 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:18-20 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func NewCourierController(useCase courierUseCase) *CourierController {\n\treturn &CourierController{useCase: useCase}\n}",
+            "locator": "internal/handlers/controller.go:18-20",
+            "path": "internal/handlers/controller.go",
+            "line_start": 18,
+            "line_end": 20,
+            "verified": false
+          },
+          {
+            "quote": "func NewCourierUseCase(repository courierRepository) *CourierUseCase {\n\treturn &CourierUseCase{repository: repository}\n}",
+            "locator": "internal/usecase/courier.go:18-20",
+            "path": "internal/usecase/courier.go",
+            "line_start": 18,
+            "line_end": 20,
+            "verified": false
+          },
+          {
+            "quote": "func NewCourierRepository(pool *pgxpool.Pool) *CourierRepository {\n\treturn &CourierRepository{pool: pool}\n}",
+            "locator": "internal/repository/courier.go:19-21",
+            "path": "internal/repository/courier.go",
+            "line_start": 19,
+            "line_end": 21,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e79449",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Конструкторы слоёв принимают интерфейсы и возвращают указатели на структуры: NewCourierController принимает courierUseCase, NewCourierUseCase принимает courierRepository, NewCourierRepository принимает пул.",
+        "evidence": [
+          "internal/handlers/controller.go:18-20 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:18-20 (цитата подтверждена кодом)",
+          "internal/repository/courier.go:19-21 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}",
+            "locator": "internal/usecase/contract.go:9-14",
+            "path": "internal/usecase/contract.go",
+            "line_start": 9,
+            "line_end": 14,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e7944a",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Интерфейс репозитория объявлен в пакете usecase (internal/usecase/contract.go), а не в repository, что соответствует требованию.",
+        "evidence": [
+          "internal/usecase/contract.go:9-14 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "type courierUseCase interface {\n\tGetCourier(ctx context.Context, id int) (*model.Courier, error)\n\tGetCouriers(ctx context.Context) ([]model.Courier, error)\n\tCreateCourier(ctx context.Context, req *dto.CourierCreateRequest) (int, error)\n\tUpdateCourier(ctx context.Context, req *dto.CourierUpdateRequest) error\n}",
+            "locator": "internal/handlers/contract.go:10-15",
+            "path": "internal/handlers/contract.go",
+            "line_start": 10,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}",
+            "locator": "internal/usecase/contract.go:9-14",
+            "path": "internal/usecase/contract.go",
+            "line_start": 9,
+            "line_end": 14,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e7944b",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе определены приватные интерфейсы с маленькой буквы: courierUseCase в handlers и courierRepository в usecase.",
+        "evidence": [
+          "internal/handlers/contract.go:10-15 (цитата подтверждена кодом)",
+          "internal/usecase/contract.go:9-14 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}",
+            "locator": "internal/model/models.go:5-12",
+            "path": "internal/model/models.go",
+            "line_start": 5,
+            "line_end": 12,
+            "verified": false
+          },
+          {
+            "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}",
+            "locator": "internal/entity/courier.go:5-12",
+            "path": "internal/entity/courier.go",
+            "line_start": 5,
+            "line_end": 12,
+            "verified": false
+          },
+          {
+            "quote": "type CourierCreateRequest struct {\n\tName   string `json:\"name\"`\n\tPhone  string `json:\"phone\"`\n\tStatus string `json:\"status\"`\n}",
+            "locator": "internal/dto/courier.go:3-7",
+            "path": "internal/dto/courier.go",
+            "line_start": 3,
+            "line_end": 7,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e7944c",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Доменные модели в internal/model и internal/entity не содержат json/db тегов, а DTO с json-тегами вынесены в отдельный пакет internal/dto.",
+        "evidence": [
+          "internal/model/models.go:5-12 (цитата подтверждена кодом)",
+          "internal/entity/courier.go:5-12 (цитата подтверждена кодом)",
+          "internal/dto/courier.go:3-7 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func (u *CourierUseCase) GetCourier(ctx context.Context, id int) (*model.Courier, error) {\n\tcourierDB, err := u.repository.GetOneByID(ctx, id)\n\n\tif err != nil {\n\t\tif errors.Is(err, repository.ErrNotFound) {\n\t\t\treturn nil, ErrNotFound\n\t\t}\n\t\treturn nil, err\n\t}",
+            "locator": "internal/usecase/courier.go:23-31",
+            "path": "internal/usecase/courier.go",
+            "line_start": 23,
+            "line_end": 31,
+            "verified": false
+          },
+          {
+            "quote": "func (r *CourierRepository) GetOneByID(ctx context.Context, id int) (*entity.Courier, error) {\n\trow := r.pool.QueryRow(ctx,\n\t\t\"SELECT id, name, phone, status FROM couriers WHERE id = $1;\", id,\n\t)\n\n\tvar c entity.Courier\n\terr := row.Scan(&c.ID, &c.Name, &c.Phone, &c.Status)\n\tif err != nil {\n\t\tif errors.Is(err, pgx.ErrNoRows) {\n\t\t\treturn nil, ErrNotFound\n\t\t}\n\t\treturn nil, fmt.Errorf(\"database error: %w\", err)\n\t}",
+            "locator": "internal/repository/courier.go:24-36",
+            "path": "internal/repository/courier.go",
+            "line_start": 24,
+            "line_end": 36,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e7944d",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "В usecase нет SQL-запросов, ошибки БД маппятся в доменные ошибки в репозитории.",
+        "evidence": [
+          "internal/usecase/courier.go:23-31 (цитата подтверждена кодом)",
+          "internal/repository/courier.go:24-36 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e7944e",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В предоставленном срезе показан только main.go; файлы handlers не видны, поэтому проверить отсутствие бизнес-логики в handlers невозможно.",
+        "evidence": [],
+        "confidence": "medium",
+        "reviewer_note": "Срез содержит только cmd/service-courier/main.go. Для оценки критерия нужны файлы internal/handlers. Не найдено в работе: Файлы internal/handlers/* (например, courier controller, Ping, Healthcheck) не показаны в срезе",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}",
+            "locator": "internal/model/models.go:5-12",
+            "path": "internal/model/models.go",
+            "line_start": 5,
+            "line_end": 12,
+            "verified": false
+          },
+          {
+            "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}",
+            "locator": "internal/entity/courier.go:5-12",
+            "path": "internal/entity/courier.go",
+            "line_start": 5,
+            "line_end": 12,
+            "verified": false
+          },
+          {
+            "quote": "func (c *CourierController) Get(w http.ResponseWriter, r *http.Request) {\n\tidStr := chi.URLParam(r, \"id\")\n\tid, err := strconv.Atoi(idStr)\n\tif err != nil {\n\t\thttp.Error(w, `{\"error\":\"invalid id\"}`, http.StatusBadRequest)\n\t\treturn\n\t}\n\n\tcr, err := c.useCase.GetCourier(r.Context(), id)\n\tif err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrBadRequest:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\":\"database error\"}`, http.StatusInternalServerError)\n\t\t}\n\t\treturn\n\t}\n\n\tresp := dto.CourierResponse{\n\t\tID:     cr.ID,\n\t\tName:   cr.Name,\n\t\tPhone:  cr.Phone,\n\t\tStatus: cr.Status,\n\t}\n\twriteJSON(w, http.StatusOK, resp)\n}",
+            "locator": "internal/handlers/controller.go:29-57",
+            "path": "internal/handlers/controller.go",
+            "line_start": 29,
+            "line_end": 57,
+            "verified": false
+          },
+          {
+            "quote": "func IsValidStatus(s string) bool {\n\tswitch s {\n\tcase StatusAvailable, StatusBusy, StatusPaused:\n\t\treturn true\n\t}\n\treturn false\n}",
+            "locator": "internal/model/models.go:20-26",
+            "path": "internal/model/models.go",
+            "line_start": 20,
+            "line_end": 26,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e7944f",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Модели в internal/model и internal/entity не содержат бизнес-логики, только поля и константы с хелпером IsValidStatus. Обработчики короткие: разбирают запрос, вызывают usecase и формируют ответ.",
+        "evidence": [
+          "internal/model/models.go:5-12 (цитата подтверждена кодом)",
+          "internal/entity/courier.go:5-12 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:29-57 (цитата подтверждена кодом)",
+          "internal/model/models.go:20-26 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: В работе используется тонкий слой контроллеров: обработчики только декодируют запрос, вызывают use case и формируют HTTP-ответ, не содержат бизнес-логики. (internal/handlers/controller.go:78-100); Бизнес-логика (валидация, проверка статуса, телефона) вынесена в use case, а не в handlers. (internal/usecase/courier.go:68-99); Обработчики используют интерфейс use case (courierUseCase), что позволяет подменять реализацию и упрощает тестирование. (internal/handlers/contract.go:10-15)",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "package handlers",
+            "locator": "internal/handlers/controller.go:1-1",
+            "path": "internal/handlers/controller.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "package repository",
+            "locator": "internal/repository/courier.go:1-1",
+            "path": "internal/repository/courier.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e79450",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет пакетов по сущностям внутри слоёв handlers и repository: все файлы лежат непосредственно в пакетах handlers и repository, без вложенных подпакетов.",
+        "evidence": [
+          "internal/handlers/controller.go:1-1 (цитата подтверждена кодом)",
+          "internal/repository/courier.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Разделите код внутри слоёв handlers и repository на подпакеты по сущностям, например internal/handlers/courier и internal/repository/courier."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "courierRepo := repository.NewCourierRepository(db)\n\tcourierUC := usecase.NewCourierUseCase(courierRepo)\n\tcourierCtrl := handlers.NewCourierController(courierUC)",
+            "locator": "cmd/service-courier/main.go:36-38",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 36,
+            "line_end": 38,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4b38-7c74-87f7-fcdcd4e79451",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "DI-пакет (dig/fx/wire/do) отсутствует в go.mod, контейнер в main не создаётся; зависимости внедряются вручную через конструкторы. Код разделён по слоям, но требование критерия про дополнительный DI-пакет не выполнено.",
+        "evidence": [
+          "cmd/service-courier/main.go:36-38 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Код разделён по слоям (handler/usecase/repository/model), но критерий требует именно дополнительный DI-пакет с контейнером в main, чего нет. 1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Добавьте DI-пакет (например dig) и создайте контейнер зависимостей в main.go."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:56:51Z"
+}

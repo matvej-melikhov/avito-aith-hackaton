@@ -1,0 +1,433 @@
+{
+  "id": "01a07770-da09-76cb-a2e4-b96ad770ec97",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В разделе 8.1 вы оценили связность между компонентами как «среднюю» или «слабую». Объясните, по каким конкретным признакам вы отличали среднюю связность от слабой — что именно в паре компонентов делает связь «средней», а не «слабой»?\n2. В разделе 5 для интерфейса I1 вы описали контракт с входами, выходами и ошибками. Что произойдёт в системе, если при вызове этого интерфейса сервис-получатель вернёт ошибку, которую вы не предусмотрели в контракте (например, таймаут или 5xx)? Как поведёт себя вызывающий компонент?\n3. В разделе 8.2 вы предложили меры снижения связности (например, Outbox + событие или публичную read-model). Выберите одну из этих мер и объясните, как изменится диаграмма последовательностей из раздела 7, если эту меру внедрить — какие шаги добавятся или исчезнут?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Отличная работа, структура и полнота документации на высоте. Вот что стоит доработать:\n\n- В разделе 3 для каждого компонента добавь явную формулировку «причина изменения», а не только «единственная ответственность», чтобы обоснование SRP читалось легче.\n- В таблице интерфейсов I1–I5 укажи для каждого типа взаимодействия (sync/async) явную пометку о том, какой транспорт используется (REST, события, gRPC), если это не очевидно из контекста.\n- Для контрактов в разделе 5 добавь примеры формата ошибок (коды, структура тела ответа) — сейчас они перечислены, но без конкретики.\n- На компонентной диаграмме C4 (раздел 6.3) подпиши стрелки названиями интерфейсов (I1–I5), чтобы было видно соответствие между диаграммой и таблицей.\n- В анализе связности (раздел 8.1) для пар с высокой связностью добавь конкретный сценарий, когда эта связь может стать проблемой (например, рост нагрузки или изменение формата).\n- В разделе 8.2 для каждой меры снижения связности укажи, какой именно паре компонентов она помогает — сейчас это общие рекомендации.\n- Проверь, что в mermaid-диаграмме последовательности отражены все ключевые шаги из текстового описания сценария (публикация лука), включая обработку ошибок.\n\nХорошо, что вся документация собрана в один файл и схемы читаемы — это сильно упрощает проверку.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### 2.1 По доменам и данным",
+            "locator": "work.md:23-23",
+            "path": "work.md",
+            "line_start": 23,
+            "line_end": 23,
+            "verified": false
+          },
+          {
+            "quote": "### 2.2 По ролям",
+            "locator": "work.md:53-53",
+            "path": "work.md",
+            "line_start": 53,
+            "line_end": 53,
+            "verified": false
+          },
+          {
+            "quote": "Ролевое разбиение отвечает за политику доступа, а доменное - за бизнес-границы и данные.",
+            "locator": "work.md:61-61",
+            "path": "work.md",
+            "line_start": 61,
+            "line_end": 61,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5db6",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе явно названы два признака декомпозиции: «по доменам и данным» и «по ролям», под каждым приведены компоненты/роли.",
+        "evidence": [
+          "work.md:23-23 (цитата подтверждена кодом)",
+          "work.md:53-53 (цитата подтверждена кодом)",
+          "work.md:61-61 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сводка: предложено 6 из 6. Сигнал ИИ: low. Стоимость прогона: 1.55 ₽ (530103 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "| Компонент           | Соответствует домену                    | Единственная ответственность                              | Причина изменения                                     |\n|---------------------|-----------------------------------------|-----------------------------------------------------------|-------------------------------------------------------|\n| `REST API`          | технический адаптер поверх всех доменов | HTTP-маршруты, DTO, единый формат ответов и ошибок        | меняется публичный API-контракт                       |\n| `Identity & Access` | `Identity & Access`                     | аутентификация и авторизация                              | меняются роли, claims, правила доступа                |\n| `Wardrobe`          | `Wardrobe`                              | управление вещами владельца                               | меняется модель вещей или правила их жизненного цикла |\n| `Outfits`           | `Outfits`                               | управление приватными луками и решением publish/unpublish | меняются правила состава лука или публикации          |\n| `Public Gallery`    | `Public Gallery`                        | публичная read-model и сценарии чтения                    | меняется форма публичного представления лука          |\n| `Saved`             | `Saved`                                 | избранное из публичной галереи                            | меняется логика save/unsave                           |\n| `Sharing`           | `Sharing`                               | share-ссылки и TTL                                        | меняются правила шаринга и срока жизни ссылки         |\n| `Eventing`          | `Eventing`                              | outbox, публикация событий и async-обработчики            | меняются event-контракты или политика доставки        |",
+            "locator": "work.md:67-76",
+            "path": "work.md",
+            "line_start": 67,
+            "line_end": 76,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5db7",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В разделе 3 для каждого компонента указана единственная ответственность и причина изменения, что является обоснованием SRP.",
+        "evidence": [
+          "work.md:67-76 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "`POST /outfits/{outfit_id}/publish`",
+            "locator": "work.md:123-123",
+            "path": "work.md",
+            "line_start": 123,
+            "line_end": 123,
+            "verified": false
+          },
+          {
+            "quote": "`POST /gallery/{public_outfit_id}/save`",
+            "locator": "work.md:164-164",
+            "path": "work.md",
+            "line_start": 164,
+            "line_end": 164,
+            "verified": false
+          },
+          {
+            "quote": "\"event_type\": \"outfit.published.v1\"",
+            "locator": "work.md:270-270",
+            "path": "work.md",
+            "line_start": 270,
+            "line_end": 270,
+            "verified": false
+          },
+          {
+            "quote": "| ID   | Между кем                                   | Тип         | Формат                      | Почему выбран именно этот тип                                            |\n|------|---------------------------------------------|-------------|-----------------------------|--------------------------------------------------------------------------|\n| `I1` | Авторизованный пользователь -> `REST API`   | синхронный  | REST/HTTP + JSON            | пользовательскому сценарию нужен немедленный ответ                       |\n| `I2` | `Outfits` -> `Wardrobe`                     | синхронный  | внутренний query-контракт   | при создании и публикации лука нужно сразу проверить ownership вещей     |\n| `I3` | `Saved` -> `Public Gallery`                 | синхронный  | внутренний query-контракт   | сохранять можно только уже опубликованный лук                            |\n| `I4` | `Outfits` -> `Eventing` -> `Public Gallery` | асинхронный | доменное событие            | публикация не должна ждать обновления галереи                            |\n| `I5` | `Sharing` -> `Eventing` -> `Sharing`        | асинхронный | отложенное доменное событие | истечение TTL должно происходить независимо от пользовательского запроса |",
+            "locator": "work.md:84-90",
+            "path": "work.md",
+            "line_start": 84,
+            "line_end": 90,
+            "verified": false
+          },
+          {
+            "quote": "### 5.2 Контракт `I1.1` - publish outfit\n\n`POST /outfits/{outfit_id}/publish`",
+            "locator": "work.md:121-123",
+            "path": "work.md",
+            "line_start": 121,
+            "line_end": 123,
+            "verified": false
+          },
+          {
+            "quote": "### 5.6 Контракт `I4` - событие `outfit.published.v1`\n\nОбщий envelope:",
+            "locator": "work.md:263-265",
+            "path": "work.md",
+            "line_start": 263,
+            "line_end": 265,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5db8",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В разделе 4 приведена таблица интерфейсов I1–I5 с указанием «между кем», типа и формата взаимодействия, а в разделе 5 детализированы конкретные эндпоинты и события для каждого интерфейса.",
+        "evidence": [
+          "work.md:123-123 (цитата подтверждена кодом)",
+          "work.md:164-164 (цитата подтверждена кодом)",
+          "work.md:270-270 (цитата подтверждена кодом)",
+          "work.md:84-90 (цитата подтверждена кодом)",
+          "work.md:121-123 (цитата подтверждена кодом)",
+          "work.md:263-265 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "| ID   | Между кем                                   | Тип         | Формат                      | Почему выбран именно этот тип                                            |\n|------|---------------------------------------------|-------------|-----------------------------|--------------------------------------------------------------------------|\n| `I1` | Авторизованный пользователь -> `REST API`   | синхронный  | REST/HTTP + JSON            | пользовательскому сценарию нужен немедленный ответ                       |\n| `I2` | `Outfits` -> `Wardrobe`                     | синхронный  | внутренний query-контракт   | при создании и публикации лука нужно сразу проверить ownership вещей     |\n| `I3` | `Saved` -> `Public Gallery`                 | синхронный  | внутренний query-контракт   | сохранять можно только уже опубликованный лук                            |\n| `I4` | `Outfits` -> `Eventing` -> `Public Gallery` | асинхронный | доменное событие            | публикация не должна ждать обновления галереи                            |\n| `I5` | `Sharing` -> `Eventing` -> `Sharing`        | асинхронный | отложенное доменное событие | истечение TTL должно происходить независимо от пользовательского запроса |",
+            "locator": "work.md:84-90",
+            "path": "work.md",
+            "line_start": 84,
+            "line_end": 90,
+            "verified": false
+          },
+          {
+            "quote": "Успешный ответ:\n\n```json\n{\n  \"outfit_id\": \"4f0f4cc3-7b40-4df1-9d12-6737c03f95d2\",\n  \"public_outfit_id\": \"2dfe80d3-8198-4bca-9d07-7ac4cba5d878\",\n  \"status\": \"published\"\n}\n```\n\nОшибки:\n\n| HTTP  | `code`                 | Когда возникает                                      |\n|-------|------------------------|------------------------------------------------------|\n| `401` | `unauthorized`         | нет валидного JWT                                    |\n| `403` | `forbidden`            | роль не `stylist/admin` или пользователь не владелец |\n| `404` | `not_found`            | `Outfit` не существует                               |\n| `409` | `conflict`             | лук уже опубликован                                  |\n| `422` | `unprocessable_entity` | лук пустой или нарушен доменный инвариант            |\n| `500` | `internal_error`       | непредвиденная ошибка                                |",
+            "locator": "work.md:141-160",
+            "path": "work.md",
+            "line_start": 141,
+            "line_end": 160,
+            "verified": false
+          },
+          {
+            "quote": "Запрос:\n\n```json\n{\n  \"owner_id\": \"d9c3b2aa-d3a1-4cf0-a377-c4ad89a8ab51\",\n  \"item_ids\": [\n    \"08f1ed3c-93b8-4905-89ab-8d3a9f8a85bf\",\n    \"9ad337aa-854f-4de1-81d2-94fd8d0f0bb0\"\n  ]\n}\n```\n\nОтвет:\n\n```json\n{\n  \"items\": [\n    {\n      \"item_id\": \"08f1ed3c-93b8-4905-89ab-8d3a9f8a85bf\",\n      \"owner_id\": \"d9c3b2aa-d3a1-4cf0-a377-c4ad89a8ab51\",\n      \"is_active\": true\n    }\n  ]\n}\n```\n\nОшибки контракта:\n- `item_not_found` - хотя бы одна вещь не существует;\n- `item_not_owned` - хотя бы одна вещь принадлежит другому пользователю;\n- `item_inactive` - вещь нельзя использовать в луке.",
+            "locator": "work.md:205-234",
+            "path": "work.md",
+            "line_start": 205,
+            "line_end": 234,
+            "verified": false
+          },
+          {
+            "quote": "Поведение при ошибках:\n- доставка `at-least-once`;\n- `Public Gallery` обязан быть идемпотентным по `event_id`;\n- при ошибке обработки событие ретраится;\n- после исчерпания лимита попыток попадает в `DLQ`;\n- синхронного ответа издателю нет, потому что это async-контракт.",
+            "locator": "work.md:289-294",
+            "path": "work.md",
+            "line_start": 289,
+            "line_end": 294,
+            "verified": false
+          },
+          {
+            "quote": "### 5.4 Контракт `I2` - внутренний sync query `Outfits -> Wardrobe`\n\nНазначение:\n- `Outfits` не должен знать полную схему `WardrobeItem`, но должен проверить, что все вещи принадлежат владельцу и доступны для включения в лук.\n\nЗапрос:\n\n```json\n{\n  \"owner_id\": \"d9c3b2aa-d3a1-4cf0-a377-c4ad89a8ab51\",\n  \"item_ids\": [\n    \"08f1ed3c-93b8-4905-89ab-8d3a9f8a85bf\",\n    \"9ad337aa-854f-4de1-81d2-94fd8d0f0bb0\"\n  ]\n}\n```\n\nОтвет:\n\n```json\n{\n  \"items\": [\n    {\n      \"item_id\": \"08f1ed3c-93b8-4905-89ab-8d3a9f8a85bf\",\n      \"owner_id\": \"d9c3b2aa-d3a1-4cf0-a377-c4ad89a8ab51\",\n      \"is_active\": true\n    }\n  ]\n}\n```\n\nОшибки контракта:\n- `item_not_found` - хотя бы одна вещь не существует;\n- `item_not_owned` - хотя бы одна вещь принадлежит другому пользователю;\n- `item_inactive` - вещь нельзя использовать в луке.",
+            "locator": "work.md:200-234",
+            "path": "work.md",
+            "line_start": 200,
+            "line_end": 234,
+            "verified": false
+          },
+          {
+            "quote": "### 5.6 Контракт `I4` - событие `outfit.published.v1`\n\nОбщий envelope:\n\n```json\n{\n  \"event_id\": \"uuid\",\n  \"event_type\": \"outfit.published.v1\",\n  \"occurred_at\": \"2026-04-02T10:15:00Z\",\n  \"producer\": \"outfits\",\n  \"trace_id\": \"uuid\",\n  \"payload\": {}\n}\n```\n\nPayload:\n\n```json\n{\n  \"outfit_id\": \"4f0f4cc3-7b40-4df1-9d12-6737c03f95d2\",\n  \"public_outfit_id\": \"2dfe80d3-8198-4bca-9d07-7ac4cba5d878\",\n  \"author_id\": \"d9c3b2aa-d3a1-4cf0-a377-c4ad89a8ab51\",\n  \"published_at\": \"2026-04-02T10:15:00Z\"\n}\n```\n\nПоведение при ошибках:\n- доставка `at-least-once`;\n- `Public Gallery` обязан быть идемпотентным по `event_id`;\n- при ошибке обработки событие ретраится;\n- после исчерпания лимита попыток попадает в `DLQ`;\n- синхронного ответа издателю нет, потому что это async-контракт.",
+            "locator": "work.md:263-294",
+            "path": "work.md",
+            "line_start": 263,
+            "line_end": 294,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5db9",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе для интерфейсов I1–I5 указаны типы взаимодействий (синхронный/асинхронный, REST, события) и подробные контракты с входами, выходами и ошибками.",
+        "evidence": [
+          "work.md:84-90 (цитата подтверждена кодом)",
+          "work.md:141-160 (цитата подтверждена кодом)",
+          "work.md:205-234 (цитата подтверждена кодом)",
+          "work.md:289-294 (цитата подтверждена кодом)",
+          "work.md:200-234 (цитата подтверждена кодом)",
+          "work.md:263-294 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "```mermaid\nflowchart LR\n    subgraph external[\"Внешние акторы и системы\"]\n        User[\"Пользователь<br/>user / stylist / admin\"]\n        Guest[\"Гость<br/>по share-ссылке\"]\n        Monitoring[\"Monitoring\"]\n    end\n\n    subgraph system[\"Wardrobe Service\"]\n        Wardrobe[\"Wardrobe Service\"]\n    end\n\n    User -->|\"Работа с гардеробом, луками, gallery\"| Wardrobe\n    Guest -->|\"Открытие share-ссылки\"| Wardrobe\n    Monitoring -->|\"Снятие метрик\"| Wardrobe\n```",
+            "locator": "work.md:341-356",
+            "path": "work.md",
+            "line_start": 341,
+            "line_end": 356,
+            "verified": false
+          },
+          {
+            "quote": "```mermaid\nflowchart TB\n    subgraph RestApi[\"REST API\"]\n        Http[\"HTTP Interface\"]\n        Access[\"Identity & Access\"]\n        Wardrobe[\"Wardrobe\"]\n        Outfits[\"Outfits\"]\n        Gallery[\"Public Gallery\"]\n        Saved[\"Saved\"]\n        Sharing[\"Sharing\"]\n        Outbox[\"Eventing Adapter\"]\n    end\n\n    Http -->|\"Auth\"| Access\n    Http -->|\"Items\"| Wardrobe\n    Http -->|\"Outfits\"| Outfits\n    Http -->|\"Gallery\"| Gallery\n    Http -->|\"Save\"| Saved\n    Http -->|\"Share\"| Sharing\n\n    Outfits -->|\"Check ownership\"| Wardrobe\n    Saved -->|\"Check published\"| Gallery\n\n    Outfits -->|\"Write outfit.*\"| Outbox\n    Sharing -->|\"Write share.*\"| Outbox\n```",
+            "locator": "work.md:393-418",
+            "path": "work.md",
+            "line_start": 393,
+            "line_end": 418,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5dba",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе представлены и контекстная диаграмма C4 (раздел 6.1), и компонентная диаграмма одного контейнера (раздел 6.3), что соответствует критерию.",
+        "evidence": [
+          "work.md:341-356 (цитата подтверждена кодом)",
+          "work.md:393-418 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "```mermaid\nsequenceDiagram\n    actor Stylist\n    participant API as REST API\n    participant Outfit as Outfits\n    participant DB as Relational DB\n    participant Eventing as Eventing Worker\n    participant Broker as Message Broker\n    participant Gallery as Public Gallery\n    participant Cache as Cache\n\n    Stylist->>API: POST /outfits/{id}/publish\n    API->>Outfit: publish(outfit_id, actor)\n    Outfit->>DB: TX: mark outfit as published\n    Outfit->>DB: TX: insert outbox record outfit.published.v1\n    DB-->>Outfit: commit OK\n    Outfit-->>API: public_outfit_id\n    API-->>Stylist: 200 OK\n\n    Eventing->>DB: read unsent outbox records\n    Eventing->>Broker: publish outfit.published.v1\n    Broker-->>Gallery: deliver outfit.published.v1\n    Gallery->>DB: upsert PublicOutfit read-model\n    Gallery->>Cache: invalidate gallery pages\n```",
+            "locator": "work.md:426-450",
+            "path": "work.md",
+            "line_start": 426,
+            "line_end": 450,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5dbb",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В работе есть диаграмма последовательности для сценария публикации лука стилистом, оформленная как mermaid sequenceDiagram.",
+        "evidence": [
+          "work.md:426-450 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "| Пара компонентов | Почему связаны | Уровень связности | Риск |",
+            "locator": "work.md:458-458",
+            "path": "work.md",
+            "line_start": 458,
+            "line_end": 458,
+            "verified": false
+          },
+          {
+            "quote": "| `Outfits -> Wardrobe` | лук состоит из вещей владельца, поэтому `Outfits` обязан проверить ownership и доступность вещей | средняя | если `Outfits` начнет зависеть от полной схемы `WardrobeItem`, любое изменение модели вещи потянет изменения в луках |",
+            "locator": "work.md:460-460",
+            "path": "work.md",
+            "line_start": 460,
+            "line_end": 460,
+            "verified": false
+          },
+          {
+            "quote": "| `Outfits -> Eventing -> Public Gallery` | публикация должна сделать лук видимым в галерее | средняя | если обновлять галерею синхронно, появится temporal coupling и рост latency |",
+            "locator": "work.md:462-462",
+            "path": "work.md",
+            "line_start": 462,
+            "line_end": 462,
+            "verified": false
+          },
+          {
+            "quote": "### 8.1 Анализ по парам компонентов",
+            "locator": "work.md:456-456",
+            "path": "work.md",
+            "line_start": 456,
+            "line_end": 456,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5dbc",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В разделе 8.1 приведена таблица анализа связности по парам компонентов с указанием причин связи, уровня связности (средняя/слабая) и рисков, что соответствует требованию разобрать, какие компоненты и как связаны и где связность высокая.",
+        "evidence": [
+          "work.md:458-458 (цитата подтверждена кодом)",
+          "work.md:460-460 (цитата подтверждена кодом)",
+          "work.md:462-462 (цитата подтверждена кодом)",
+          "work.md:456-456 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "| Выявленный риск | Архитектурное решение | Как это снижает связность |",
+            "locator": "work.md:469-469",
+            "path": "work.md",
+            "line_start": 469,
+            "line_end": 469,
+            "verified": false
+          },
+          {
+            "quote": "| `Outfits` может начать зависеть от полной модели `WardrobeItem` | использовать минимальный sync-контракт `I2: GetOwnedItems(item_ids, owner_id)` | `Outfits` знает только стабильный набор полей, а не внутреннюю структуру `Wardrobe` |",
+            "locator": "work.md:471-471",
+            "path": "work.md",
+            "line_start": 471,
+            "line_end": 471,
+            "verified": false
+          },
+          {
+            "quote": "| публикация лука может синхронно зависеть от обновления галереи | использовать `Outbox + I4: outfit.published.v1` и отдельную `PublicOutfit` read-model | публикация завершается после записи истины, а галерея обновляется независимо |",
+            "locator": "work.md:472-472",
+            "path": "work.md",
+            "line_start": 472,
+            "line_end": 472,
+            "verified": false
+          },
+          {
+            "quote": "| строковые ключи кэша могут расползтись по системе | использовать единый adapter для ключей и TTL-политик | `Public Gallery` и `Sharing` зависят от одного кэш-контракта вместо набора строковых литералов |",
+            "locator": "work.md:476-476",
+            "path": "work.md",
+            "line_start": 476,
+            "line_end": 476,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5dbd",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В разделе 8.2 приведены конкретные меры снижения связности (минимальный sync-контракт, Outbox + событие, публичная read-model, фиксация контракта без привязки к продукту, единый кэш-адаптер) с объяснением, почему каждая снижает связность именно в этой системе.",
+        "evidence": [
+          "work.md:469-469 (цитата подтверждена кодом)",
+          "work.md:471-471 (цитата подтверждена кодом)",
+          "work.md:472-472 (цитата подтверждена кодом)",
+          "work.md:476-476 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "## 2. Декомпозиция\n\n### 2.1 По доменам и данным",
+            "locator": "work.md:21-23",
+            "path": "work.md",
+            "line_start": 21,
+            "line_end": 23,
+            "verified": false
+          },
+          {
+            "quote": "### 2.2 По ролям",
+            "locator": "work.md:53-53",
+            "path": "work.md",
+            "line_start": 53,
+            "line_end": 53,
+            "verified": false
+          },
+          {
+            "quote": "## 6. C4 диаграммы\n\n### 6.1 C4 Context",
+            "locator": "work.md:337-339",
+            "path": "work.md",
+            "line_start": 337,
+            "line_end": 339,
+            "verified": false
+          },
+          {
+            "quote": "## 7. Диаграмма последовательностей\n\nСценарий: **stylist публикует лук, после чего он появляется в public gallery**",
+            "locator": "work.md:422-424",
+            "path": "work.md",
+            "line_start": 422,
+            "line_end": 424,
+            "verified": false
+          },
+          {
+            "quote": "## 8. Анализ связности\n\n### 8.1 Анализ по парам компонентов",
+            "locator": "work.md:454-456",
+            "path": "work.md",
+            "line_start": 454,
+            "line_end": 456,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-1b67-7317-a98b-a6ac57cb5dbe",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Документ единый (один файл work.md), структурирован по пронумерованным разделам (система и границы, декомпозиция, SRP, интерфейсы, контракты, C4, sequence, анализ связности, метрики). Все требуемые части на месте: декомпозиция по двум признакам (домены/данные и роли), SRP-обоснование, интерфейсы с типами и контрактами (входы/выходы/ошибки), C4 context/container/component, диаграмма последовательностей, анализ связности и способы снижения. Схемы читаемы (mermaid), текст связный.",
+        "evidence": [
+          "work.md:21-23 (цитата подтверждена кодом)",
+          "work.md:53-53 (цитата подтверждена кодом)",
+          "work.md:337-339 (цитата подтверждена кодом)",
+          "work.md:422-424 (цитата подтверждена кодом)",
+          "work.md:454-456 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить, что диаграммы C4 и sequence действительно читаемы/корректны как схемы, а не только присутствуют как mermaid-блоки; оценить полноту контрактов для реализации/мок-сервера. Оценочный критерий: балл предложен, решение за ревьюером.",
+        "student_feedback": null
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:58:00Z"
+}

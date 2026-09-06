@@ -1,0 +1,175 @@
+{
+  "id": "01a07770-3f8d-74c0-a318-0f6aa8d74a7c",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: средний. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования:\n- Заглушки и пометки «остальной код»: 6 мест. Ограничение: Заглушки оставляют и вручную при незавершённой работе.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В коде указано, что первые 5000 семплов датасета отводятся в eval-сет. Объясни, как именно ты реализовал это разделение и почему важно, чтобы эти семплы не участвовали в обучении (укажи конкретную строку/фрагмент кода).\n2. В отчёте зафиксирован финальный eval_loss 5.3472, но в другом месте упоминается значение 5.093. Объясни, откуда взялось каждое из этих чисел и какое из них является итоговым результатом модели после 30 минут обучения.\n3. В коде перечислено несколько гиперпараметров (batch_size, learning_rate, scheduler, optim и т.д.), но большинство из них закомментировано, и активен только один конфиг. Расскажи, какие варианты ты реально запускал и сравнивал, и что показало сравнение — на что опирался при выборе финального конфига?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": [
+        {
+          "quote": "TODO: Implement tokenizer preparation.",
+          "locator": "your_submission.py:77 (stub_markers)",
+          "path": "your_submission.py",
+          "line_start": 77,
+          "line_end": 77,
+          "verified": false
+        },
+        {
+          "quote": "TODO: Implement tokenization function.",
+          "locator": "your_submission.py:89 (stub_markers)",
+          "path": "your_submission.py",
+          "line_start": 89,
+          "line_end": 89,
+          "verified": false
+        },
+        {
+          "quote": "TODO: Implement saving dataset as parquet shards.",
+          "locator": "your_submission.py:107 (stub_markers)",
+          "path": "your_submission.py",
+          "line_start": 107,
+          "line_end": 107,
+          "verified": false
+        }
+      ]
+    },
+    "feedback_draft": "Привет! Спасибо за проделанную работу, вот что нужно доработать:\n\n- Добавь в отчёт графики изменения loss (можно из wandb или matplotlib), чтобы было видно динамику обучения.\n- Приведи 2–3 примера генераций твоей модели на заданные промпты — это покажет, чему она научилась.\n- Напиши текстовые выводы: что наблюдал по loss, какие эксперименты с гиперпараметрами пробовал (даже если они закомментированы) и что из этого следует.\n- Убери или поясни закомментированные конфиги — сейчас непонятно, какие из них реально запускались, а какие нет.\n- В разделе с экспериментами укажи, почему выбран именно этот активный конфиг, и что менялось между запусками.\n\nХорошо, что обучение завершилось успешно и eval_loss попал в нужный диапазон — это база, от которой можно отталкиваться.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "dataset = load_dataset(\"wikimedia/wikipedia\", \"20231101.ru\", split=\"train\")",
+            "locator": "your_submission.py:133-133",
+            "path": "your_submission.py",
+            "line_start": 133,
+            "line_end": 133,
+            "verified": false
+          },
+          {
+            "quote": "TOKENIZER_NAME = \"ai-forever/rugpt3small_based_on_gpt2\"",
+            "locator": "your_submission.py:27-27",
+            "path": "your_submission.py",
+            "line_start": 27,
+            "line_end": 27,
+            "verified": false
+          },
+          {
+            "quote": "tokenized = tokenizer(\n        examples['text'],\n        truncation=True,\n        padding='max_length',\n        max_length=MAX_LENGTH,\n        return_tensors=None\n    )",
+            "locator": "your_submission.py:94-100",
+            "path": "your_submission.py",
+            "line_start": 94,
+            "line_end": 100,
+            "verified": false
+          },
+          {
+            "quote": "def split_dataset(dataset, validation_size=VALIDATION_SIZE):\n    dataset_size = len(dataset)\n    train_dataset = dataset.select(range(validation_size, dataset_size))\n    eval_dataset = dataset.select(range(validation_size))",
+            "locator": "your_submission.py:162-165",
+            "path": "your_submission.py",
+            "line_start": 162,
+            "line_end": 165,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a201-7941-a21a-46d3c3e0e0d0",
+        "status": "suggested",
+        "proposed_points": 4.0,
+        "reason": "В работе используется заданный датасет wikimedia/wikipedia 20231101.ru (split=train), токенизатор ai-forever/rugpt3small_based_on_gpt2 с pad_token=eos_token, фиксированная длина MAX_LENGTH=512, первые 5000 семплов отведены в eval, а модель создаётся с нуля на архитектуре Qwen3 с фиксированным конфигом.",
+        "evidence": [
+          "your_submission.py:133-133 (цитата подтверждена кодом)",
+          "your_submission.py:27-27 (цитата подтверждена кодом)",
+          "your_submission.py:94-100 (цитата подтверждена кодом)",
+          "your_submission.py:162-165 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Архитектура Qwen3 с фиксированным конфигом подтверждается строками 173-208 (create_model с Qwen3Config/Qwen3ForCausalLM). Сводка: предложено 8 из 10. Сигнал ИИ: medium. Стоимость прогона: 1.22 ₽ (251864 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "1761073207833 5.347243785858154 0",
+            "locator": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/final_eval_loss:1-1",
+            "path": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/final_eval_loss",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "1761071391733 10.4213 10",
+            "locator": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/loss:1-1",
+            "path": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/loss",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "1761073157962 5.9947 3460",
+            "locator": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/loss:346-346",
+            "path": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/loss",
+            "line_start": 346,
+            "line_end": 346,
+            "verified": false
+          },
+          {
+            "quote": "status: 3",
+            "locator": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/meta.yaml:12-12",
+            "path": "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/meta.yaml",
+            "line_start": 12,
+            "line_end": 12,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a201-7941-a21a-46d3c3e0e0d1",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "Обучение успешно завершено (status 3), loss падает с 10.42 до ~5.99, финальный eval_loss = 5.3472, что попадает в диапазон 5.3 < L <= 5.6, дающий 3 балла.",
+        "evidence": [
+          "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/final_eval_loss:1-1 (цитата подтверждена кодом)",
+          "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/loss:1-1 (цитата подтверждена кодом)",
+          "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/metrics/loss:346-346 (цитата подтверждена кодом)",
+          "mlruns/494383377934957982/a798dc7a4a3b4a1bba54f84c4241c0a9/meta.yaml:12-12 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверьте, что run с final_eval_loss=5.3472 соответствует активной конфигурации в коде (bs10/gas3/lr1e-4) и что обучение шло 30 минут (train_runtime ~1800с).",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "        # New variation with lr 2\n        {\n            'batch_size': 10,\n            'gradient_accumulation_steps': 3,\n            'learning_rate': 1e-4,\n            'optimizer': 'adamw_torch_fused',\n            'lr_scheduler': 'cosine',\n            'torch_compile': True,\n            'warmup_steps': 0,\n        },",
+            "locator": "your_submission.py:419-428",
+            "path": "your_submission.py",
+            "line_start": 419,
+            "line_end": 428,
+            "verified": false
+          },
+          {
+            "quote": "1760973330720 5.093295097351074 0",
+            "locator": "mlruns/494383377934957982/85ec39007446466aa1f78f4b20ed52d4/metrics/final_eval_loss:1-1",
+            "path": "mlruns/494383377934957982/85ec39007446466aa1f78f4b20ed52d4/metrics/final_eval_loss",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a201-7941-a21a-46d3c3e0e0d2",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе есть код с перечислением гиперпараметров (в основном закомментированных) и один активный конфиг, а также зафиксирован финальный eval_loss 5.093. Однако отсутствуют графики loss, примеры генераций и текстовые выводы/наблюдения.",
+        "evidence": [
+          "your_submission.py:419-428 (цитата подтверждена кодом)",
+          "mlruns/494383377934957982/85ec39007446466aa1f78f4b20ed52d4/metrics/final_eval_loss:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Проверьте, есть ли в репозитории отдельный отчёт или ноутбук с графиками и генерациями, которые не попали в срез.",
+        "student_feedback": "Добавьте в отчёт графики loss, примеры генераций и текстовые выводы по экспериментам."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:20Z"
+}

@@ -1,0 +1,175 @@
+{
+  "id": "01a07770-5ddf-7668-9a66-983d7fa4e154",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В коде (строки 965–967) блок логирования находится в пустой ячейке In [ ] и не видно его фактического выполнения. Расскажи, как именно ты запускал этот код и что ты видишь в MLflow UI после запуска — сколько runs отображается в эксперименте и какие метрики в них записаны?\n2. В работе присутствует только один запуск CatBoost с фиксированными параметрами. Как ты планировал организовать серию из 20+ экспериментов с варьированием по трём разрезам (например, тип модели, размер датасета, набор фичей) — какой механизм (цикл, конфиг-файл) ты бы использовал, чтобы каждый запуск отличался хотя бы по одному параметру?\n3. Модель логируется через mlflow.catboost.log_model как артефакт, но в задании требуется регистрация в MLflow Registry. Объясни, чем отличается логирование модели как артефакта от регистрации в Model Registry, и какой код нужно добавить, чтобы модель попала в Registry с версией и стадией?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за проделанную работу, вот что нужно доработать:\n\n- Добавь цикл, который выполнит минимум 20 запусков обучения с разными параметрами, и логируй каждый запуск в MLflow.\n- Покажи фактическое выполнение кода логирования: сейчас блок с `mlflow.log_*` находится в пустой ячейке `In [ ]`, и непонятно, выполнялся ли он.\n- Зарегистрируй модель в MLflow Registry через `mlflow.register_model`, а не только логируй её как артефакт.\n- Проведи серию экспериментов, варьируя параметры минимум по трём измерениям (например, предобработка, гиперпараметры, размер датасета или набор фичей).\n- Добавь код воспроизведения лучшего запуска с фиксированными параметрами и убедись, что метрики при повторном запуске совпадают с теми, что записаны в MLflow.\n\nХорошо, что ты используешь CatBoost и логируешь ключевые метрики (accuracy, f1, roc_auc) — это правильная основа для дальнейшей работы.",
+    "suggestions": [
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "withmlflow.start_run(run_name=exp_name):mlflow.log_metrics({\"accuracy\":accuracy,\"f1_score\":f1,\"roc_auc\":roc_auc,\"precision\":precision,\"recall\":recall,\"pr_auc\":pr_auc})# mlflow.log_params(dict(lr_params, **{'model_type': 'LogisticRegression'}, **data_params))# mlflow.log_params(dict(rf_params, **{'model_type': 'RandomForest'}, **data_params))mlflow.log_params(dict(cb_params,**{\"model_type\":\"CatBoost\",\"test_size\":TEST_SIZE}))mlflow.log_figure(fig,\"plots/pr_curve.png\")# mlflow.sklearn.log_model(pipeline, artifact_path=\"model\", input_example=input_example)mlflow.catboost.log_model(cb,artifact_path=\"model\",input_example=input_example)plt.close(fig)",
+            "locator": "work.md:966-966",
+            "path": "work.md",
+            "line_start": 966,
+            "line_end": 966,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-bce6-7835-91a7-294f661ec762",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет кода, выполняющего серию запусков; присутствует только один запуск CatBoost без цикла и без логирования в MLflow.",
+        "evidence": [
+          "work.md:966-966 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверьте, возможно, в пропущенных визуальных элементах или в полном HTML есть дополнительные запуски, но в текстовом срезе их нет. Сводка: предложено 3 из 10. Не выполнено: At least 20 distinct runs, Experiments vary in at least three dimensions, Best run is reproducible in the notebook. Сигнал ИИ: low. Стоимость прогона: 1.30 ₽ (263144 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": "Добавьте код, выполняющий не менее 20 запусков с изменением параметров."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "withmlflow.start_run(run_name=exp_name):mlflow.log_metrics({\"accuracy\":accuracy,\"f1_score\":f1,\"roc_auc\":roc_auc,\"precision\":precision,\"recall\":recall,\"pr_auc\":pr_auc})",
+            "locator": "work.md:966-966",
+            "path": "work.md",
+            "line_start": 966,
+            "line_end": 966,
+            "verified": false
+          },
+          {
+            "quote": "mlflow.log_params(dict(cb_params,**{\"model_type\":\"CatBoost\",\"test_size\":TEST_SIZE}))",
+            "locator": "work.md:966-966",
+            "path": "work.md",
+            "line_start": 966,
+            "line_end": 966,
+            "verified": false
+          },
+          {
+            "quote": "mlflow.catboost.log_model(cb,artifact_path=\"model\",input_example=input_example)",
+            "locator": "work.md:966-966",
+            "path": "work.md",
+            "line_start": 966,
+            "line_end": 966,
+            "verified": false
+          },
+          {
+            "quote": "mlflow.log_figure(fig,\"plots/pr_curve.png\")",
+            "locator": "work.md:966-966",
+            "path": "work.md",
+            "line_start": 966,
+            "line_end": 966,
+            "verified": false
+          },
+          {
+            "quote": "data_params={\"test_size\":TEST_SIZE,\"cat_encoder\":pipeline.get_params()[\"steps\"][0][1].get_params()[\"transformers\"][0][1].__class__.__name__,\"num_encoder\":pipeline.get_params()[\"steps\"][0][1].get_params()[\"transformers\"][1][1].__class__.__name__,}input_example=X_train.iloc[[0]]",
+            "locator": "work.md:963-963",
+            "path": "work.md",
+            "line_start": 963,
+            "line_end": 963,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-bce6-7835-91a7-294f661ec763",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "В коде есть блок логирования запуска (строки 965-967), где логируются метрики (accuracy, f1_score, roc_auc, precision, recall, pr_auc), параметры (cb_params, model_type, test_size), модель через mlflow.catboost.log_model и артефакт PR-кривой (mlflow.log_figure). Однако блок находится в пустой ячейке In [ ] и не видно его фактического выполнения/запусков; также не видно логирования в MLflow Registry (модель логируется как артефакт, а не в Registry).",
+        "evidence": [
+          "work.md:966-966 (цитата подтверждена кодом)",
+          "work.md:966-966 (цитата подтверждена кодом)",
+          "work.md:966-966 (цитата подтверждена кодом)",
+          "work.md:966-966 (цитата подтверждена кодом)",
+          "work.md:963-963 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Проверить, выполнялся ли блок логирования (ячейка In [ ] пустая, без вывода), и есть ли регистрация модели в Registry вне показанного кода.",
+        "student_feedback": "Покажите фактическое выполнение запусков и добавьте регистрацию модели в MLflow Registry."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "cb_params={'learning_rate':0.1,'depth':5,'early_stopping_rounds':20}\n\nIn [1018]:\ncb=CatBoostClassifier(**cb_params,eval_metric=\"AUC\",use_best_model=True,random_state=RANDOM_STATE)",
+            "locator": "work.md:555-558",
+            "path": "work.md",
+            "line_start": 555,
+            "line_end": 558,
+            "verified": false
+          },
+          {
+            "quote": "DATASET_NAME=\"scikit-learn/adult-census-income\"TEST_SIZE=0.3RANDOM_STATE=42",
+            "locator": "work.md:55-55",
+            "path": "work.md",
+            "line_start": 55,
+            "line_end": 55,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-bce6-7835-91a7-294f661ec764",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе показан только один запуск обучения CatBoost с фиксированными параметрами (cb_params, RANDOM_STATE=42, TEST_SIZE=0.3). Нет кода серии экспериментов, варьирующих хотя бы по трём разрезам (предобработка, тип модели, параметры, гиперпараметры, размер датасета, набор фичей).",
+        "evidence": [
+          "work.md:555-558 (цитата подтверждена кодом)",
+          "work.md:55-55 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Проведите серию экспериментов, варьируя параметры минимум по трём разрезам (предобработка, тип модели, параметры, размер датасета, набор фичей)."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "cb_params={'learning_rate':0.1,'depth':5,'early_stopping_rounds':20}\n\nIn [1018]:\ncb=CatBoostClassifier(**cb_params,eval_metric=\"AUC\",use_best_model=True,random_state=RANDOM_STATE)",
+            "locator": "work.md:555-558",
+            "path": "work.md",
+            "line_start": 555,
+            "line_end": 558,
+            "verified": false
+          },
+          {
+            "quote": "Accuracy: 0.8762\nF1-score: 0.7149\nROC-AUC: 0.9308\nPrecision: 0.7975\nRecall: 0.6479\nPR-AUC: 0.8323",
+            "locator": "work.md:949-954",
+            "path": "work.md",
+            "line_start": 949,
+            "line_end": 954,
+            "verified": false
+          },
+          {
+            "quote": "withmlflow.start_run(run_name=exp_name):mlflow.log_metrics({\"accuracy\":accuracy,\"f1_score\":f1,\"roc_auc\":roc_auc,\"precision\":precision,\"recall\":recall,\"pr_auc\":pr_auc})",
+            "locator": "work.md:966-966",
+            "path": "work.md",
+            "line_start": 966,
+            "line_end": 966,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-bce6-7835-91a7-294f661ec765",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет кода с параметрами лучшего запуска и его воспроизведения, а также нет сравнения метрик при воспроизведении с метриками в MLflow. Есть только один запуск обучения CatBoost с фиксированными параметрами и логированием, но критерий требует воспроизводимый лучший запуск с совпадающими метриками.",
+        "evidence": [
+          "work.md:555-558 (цитата подтверждена кодом)",
+          "work.md:949-954 (цитата подтверждена кодом)",
+          "work.md:966-966 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "В работе только один запуск обучения (CatBoost), нет серии экспериментов и нет воспроизведения лучшего запуска с проверкой совпадения метрик с MLflow. 1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Добавьте код воспроизведения лучшего запуска и убедитесь, что метрики совпадают с MLflow."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:28Z"
+}

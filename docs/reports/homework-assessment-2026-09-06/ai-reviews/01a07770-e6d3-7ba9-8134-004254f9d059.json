@@ -1,0 +1,387 @@
+{
+  "id": "01a07770-e6d3-7ba9-8134-004254f9d059",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В разделе 3.2 вы построили компонентную диаграмму контейнера Booking Service. Объясните, почему вы выбрали именно этот контейнер для детализации, а не, например, Payment Service или Notification Service — что делает его наиболее показательным для иллюстрации декомпозиции?\n2. В разделе 6.2 вы предложили переход к событийной модели для Subscription Service как меру снижения связности. Расскажите, как при таком переходе изменится контракт взаимодействия между компонентами и что произойдёт с текущим синхронным вызовом, если подписочный сервис временно недоступен?\n3. В контракте для GET /slots/{slotId} не описан запрос, а у события booking.created не указаны ошибки. Опишите, какие параметры запроса и какие возможные ошибки (коды и ситуации) вы бы добавили в эти контракты, чтобы их было достаточно для реализации мок-сервера?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Отличная работа, структура и полнота документации на высоте. Вот что стоит доработать:\n\n- Исправь заголовок раздела 4: сейчас он называется «Sequence – гистограмма», но по содержанию это диаграмма последовательности.\n- Дополни контракт для `GET /slots/{slotId}`: укажи параметры запроса (например, `slotId` и его тип).\n- Добавь описание возможных ошибок для события `booking.created` (например, таймаут или невозможность доставки).\n- Проверь, что в контрактах для всех ключевых методов явно перечислены форматы ошибок, а не только успешные сценарии.\n- Убедись, что в разделе с анализом связности таблица зависимостей читается вместе с текстом, а не дублирует его.\n\nХорошо, что вся документация собрана в один файл, а схемы Mermaid действительно читаемы.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### 2.1 Декомпозиция по функциям",
+            "locator": "work.md:24-24",
+            "path": "work.md",
+            "line_start": 24,
+            "line_end": 24,
+            "verified": false
+          },
+          {
+            "quote": "### 2.2 Декомпозиция по ролям",
+            "locator": "work.md:37-37",
+            "path": "work.md",
+            "line_start": 37,
+            "line_end": 37,
+            "verified": false
+          },
+          {
+            "quote": "| Компонент | Зона ответственности |\n|---|---|\n| **Auth Service** | Регистрация, аутентификация, выдача токенов, управление ролями |\n| **User Service** | Профили пользователей, личный кабинет, история записей |\n| **Schedule Service** | Расписание занятий, управление слотами, залами и тренерами |\n| **Booking Service** | Запись на тренировки, отмена, ожидание освободившегося места |\n| **Subscription Service** | Абонементы: создание, активация, заморозка, истечение |\n| **Payment Service** | Приём оплаты, возвраты, интеграция с платёжным шлюзом |\n| **Notification Service** | Email/Push-уведомления: напоминания, подтверждения, отмены |\n| **API Gateway** | Единая точка входа, маршрутизация, авторизация запросов |",
+            "locator": "work.md:26-35",
+            "path": "work.md",
+            "line_start": 26,
+            "line_end": 35,
+            "verified": false
+          },
+          {
+            "quote": "| Роль | Доступные функции |\n|---|---|\n| **Клиент** | Просмотр расписания, запись на занятие, отмена записи, просмотр абонемента, оплата, личный кабинет |\n| **Тренер** | Управление своим расписанием, просмотр списка записавшихся клиентов, отметка посещаемости |\n| **Администратор** | Управление пользователями и тренерами, управление залами, создание типов абонементов, просмотр статистики, ручная корректировка расписания |",
+            "locator": "work.md:39-43",
+            "path": "work.md",
+            "line_start": 39,
+            "line_end": 43,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2995-7929-b2a0-1c93eb63a31f",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе явно указаны два признака декомпозиции: по функциям и по ролям, под каждым приведены компоненты/роли.",
+        "evidence": [
+          "work.md:24-24 (цитата подтверждена кодом)",
+          "work.md:37-37 (цитата подтверждена кодом)",
+          "work.md:26-35 (цитата подтверждена кодом)",
+          "work.md:39-43 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сводка: предложено 6 из 6. Сигнал ИИ: low. Стоимость прогона: 1.17 ₽ (385319 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "Каждый сервис имеет свою конкретную зону ответственности и одну причину для изменения:\n\n- **Auth Service** меняется только при изменении механизма аутентификации (например, переход на OAuth2, добавление 2FA)\n- **Schedule Service** меняется только при изменении логики расписания и управления залами\n- **Booking Service** меняется только при изменении бизнес-правил записи (очередь ожидания, лимиты)\n- **Payment Service** меняется только при смене платёжного шлюза или добавлении новых методов оплаты\n- **Notification Service** меняется только при изменении каналов и шаблонов уведомлений",
+            "locator": "work.md:47-53",
+            "path": "work.md",
+            "line_start": 47,
+            "line_end": 53,
+            "verified": false
+          },
+          {
+            "quote": "| Компонент | Зона ответственности |\n|---|---|\n| **Auth Service** | Регистрация, аутентификация, выдача токенов, управление ролями |\n| **User Service** | Профили пользователей, личный кабинет, история записей |\n| **Schedule Service** | Расписание занятий, управление слотами, залами и тренерами |\n| **Booking Service** | Запись на тренировки, отмена, ожидание освободившегося места |\n| **Subscription Service** | Абонементы: создание, активация, заморозка, истечение |\n| **Payment Service** | Приём оплаты, возвраты, интеграция с платёжным шлюзом |\n| **Notification Service** | Email/Push-уведомления: напоминания, подтверждения, отмены |\n| **API Gateway** | Единая точка входа, маршрутизация, авторизация запросов |",
+            "locator": "work.md:26-35",
+            "path": "work.md",
+            "line_start": 26,
+            "line_end": 35,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2995-7929-b2a0-1c93eb63a320",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В разделе 2.3 для каждого сервиса названа зона ответственности и указана конкретная причина изменения, что является обоснованием SRP текстом, а не голым заявлением.",
+        "evidence": [
+          "work.md:47-53 (цитата подтверждена кодом)",
+          "work.md:26-35 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "| Взаимодействие                          | Тип | Протокол | Обоснование |\n|-----------------------------------------|---|---|---|\n| Клиент –> API Gateway                   | Синхронный | REST/HTTPS | Пользователь ждёт немедленного ответа |\n| Booking Service –> Schedule Service     | Синхронный | REST/HTTPS | Нужен актуальный ответ перед записью |\n| Booking Service –> Subscription Service | Синхронный | REST/HTTPS | Нужна проверка в реальном времени |\n| Booking Service –> Message Broker       | Асинхронный | AMQP (RabbitMQ) | Результат не нужен для завершения записи, не блокирует ответ |\n| Message Broker –> Notification Service  | Асинхронный | AMQP (RabbitMQ) | Отправка уведомлений не требует немедленности |\n| Payment Service –> Платёжный шлюз       | Синхронный | REST/HTTPS | Результат платежа нужен мгновенно |",
+            "locator": "work.md:158-165",
+            "path": "work.md",
+            "line_start": 158,
+            "line_end": 165,
+            "verified": false
+          },
+          {
+            "quote": "#### POST /bookings — Создать запись на занятие\n\n**Запрос:**\n```json\n{\n  \"userId\": \"uuid\",\n  \"classId\": \"uuid\"\n}\n```\n\n**Успешный ответ (201 Created):**\n```json\n{\n  \"bookingId\": \"uuid\",\n  \"classId\": \"uuid\",\n  \"datetime\": \"2025-09-15T10:00:00Z\",\n  \"status\": \"confirmed\"\n}\n```\n\n**Ошибки:**\n\n| HTTP-код | error                  | Описание |\n|---|------------------------|---|\n| 400 | `invalid_request`      | Отсутствуют обязательные поля |\n| 401 | `unauthorized`         | Токен отсутствует или невалиден |\n| 403 | `subscription_invalid` | Абонемент неактивен или закончились сессии |\n| 404 | `class_not_found`      | Занятие не найдено или было отменено |\n| 409 | `no_available_slots`   | Нет свободных мест на занятии |",
+            "locator": "work.md:169-197",
+            "path": "work.md",
+            "line_start": 169,
+            "line_end": 197,
+            "verified": false
+          },
+          {
+            "quote": "#### Event: booking.created (RabbitMQ)\n\n**Payload:**\n```json\n{\n  \"eventType\": \"booking.created\",\n  \"bookingId\": \"uuid\",\n  \"userId\": \"uuid\",\n  \"slotId\": \"uuid\",\n  \"datetime\": \"2026-09-16T10:00:00Z\",\n  \"occurredAt\": \"2026-09-06T08:23:11Z\"\n}\n```",
+            "locator": "work.md:247-259",
+            "path": "work.md",
+            "line_start": 247,
+            "line_end": 259,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2995-7929-b2a0-1c93eb63a321",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В работе определены интерфейсы взаимодействия между компонентами: в таблице типов взаимодействий перечислены пары компонентов с указанием протоколов, а также описаны контракты для ключевых API-методов и событий.",
+        "evidence": [
+          "work.md:158-165 (цитата подтверждена кодом)",
+          "work.md:169-197 (цитата подтверждена кодом)",
+          "work.md:247-259 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "| Взаимодействие                          | Тип | Протокол | Обоснование |\n|-----------------------------------------|---|---|---|\n| Клиент –> API Gateway                   | Синхронный | REST/HTTPS | Пользователь ждёт немедленного ответа |\n| Booking Service –> Schedule Service     | Синхронный | REST/HTTPS | Нужен актуальный ответ перед записью |\n| Booking Service –> Subscription Service | Синхронный | REST/HTTPS | Нужна проверка в реальном времени |\n| Booking Service –> Message Broker       | Асинхронный | AMQP (RabbitMQ) | Результат не нужен для завершения записи, не блокирует ответ |\n| Message Broker –> Notification Service  | Асинхронный | AMQP (RabbitMQ) | Отправка уведомлений не требует немедленности |\n| Payment Service –> Платёжный шлюз       | Синхронный | REST/HTTPS | Результат платежа нужен мгновенно |",
+            "locator": "work.md:158-165",
+            "path": "work.md",
+            "line_start": 158,
+            "line_end": 165,
+            "verified": false
+          },
+          {
+            "quote": "#### POST /bookings — Создать запись на занятие\n\n**Запрос:**\n```json\n{\n  \"userId\": \"uuid\",\n  \"classId\": \"uuid\"\n}\n```\n\n**Успешный ответ (201 Created):**\n```json\n{\n  \"bookingId\": \"uuid\",\n  \"classId\": \"uuid\",\n  \"datetime\": \"2025-09-15T10:00:00Z\",\n  \"status\": \"confirmed\"\n}\n```\n\n**Ошибки:**\n\n| HTTP-код | error                  | Описание |\n|---|------------------------|---|\n| 400 | `invalid_request`      | Отсутствуют обязательные поля |\n| 401 | `unauthorized`         | Токен отсутствует или невалиден |\n| 403 | `subscription_invalid` | Абонемент неактивен или закончились сессии |\n| 404 | `class_not_found`      | Занятие не найдено или было отменено |\n| 409 | `no_available_slots`   | Нет свободных мест на занятии |",
+            "locator": "work.md:169-197",
+            "path": "work.md",
+            "line_start": 169,
+            "line_end": 197,
+            "verified": false
+          },
+          {
+            "quote": "#### Event: booking.created (RabbitMQ)\n\n**Payload:**\n```json\n{\n  \"eventType\": \"booking.created\",\n  \"bookingId\": \"uuid\",\n  \"userId\": \"uuid\",\n  \"slotId\": \"uuid\",\n  \"datetime\": \"2026-09-16T10:00:00Z\",\n  \"occurredAt\": \"2026-09-06T08:23:11Z\"\n}\n```",
+            "locator": "work.md:247-259",
+            "path": "work.md",
+            "line_start": 247,
+            "line_end": 259,
+            "verified": false
+          },
+          {
+            "quote": "#### GET /slots/{slotId} — Получить информацию о слоте\n\n**Успешный ответ (200 OK):**\n```json\n{\n  \"slotId\": \"uuid\",\n  \"type\": \"group\",\n  \"datetime\": \"2026-026-16T10:00:00Z\",\n  \"duration\": 60,\n  \"trainerId\": \"uuid\",\n  \"hallId\": \"uuid\",\n  \"totalSeats\": 15,\n  \"availableSeats\": 3\n}\n```\n\n**Ошибки:**\n\n| HTTP-код | error | Описание |\n|---|---|---|\n| 404 | `class_not_found` | Занятие не найдено или было отменено |",
+            "locator": "work.md:202-222",
+            "path": "work.md",
+            "line_start": 202,
+            "line_end": 222,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2995-7929-b2a0-1c93eb63a322",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе указаны типы взаимодействий (REST, AMQP, синхронные/асинхронные) и для ключевых интерфейсов описаны контракты с входными данными, выходными данными и ошибками.",
+        "evidence": [
+          "work.md:158-165 (цитата подтверждена кодом)",
+          "work.md:169-197 (цитата подтверждена кодом)",
+          "work.md:247-259 (цитата подтверждена кодом)",
+          "work.md:202-222 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### 3.1 Уровень 1 — Контекстная диаграмма (System Context)\n\n```mermaid\nflowchart LR\n    Client[\"Клиент\\nПосетитель клуба\"]\n    Trainer[\"Тренер\\nВедёт занятия\"]\n    Admin[\"Администратор\\nУправляет клубом\"]\n\n    subgraph Граница[\"Онлайн-сервис фитнес-клуба\"]\n        App[\"Онлайн-сервис фитнес-клуба\\nСервис записи на тренировки,\\nуправления расписанием\\nи абонементами\"]\n    end\n\n    PayGW[\"Платёжный шлюз\\nВнешняя система\\nприёма платежей\"]\n    NotifSystem[\"Сервис уведомлений\\nВнешняя система\\nотправки уведомлений\"]\n\n    Client -->|\"Запись, просмотр расписания, оплата\"| App\n    Trainer -->|\"Управление расписанием\"| App\n    Admin -->|\"Администрирование клуба\"| App\n\n    App -->|\"Проведение платежей\"| PayGW\n    App -->|\"Отправка уведомлений\"| NotifSystem\n```",
+            "locator": "work.md:59-80",
+            "path": "work.md",
+            "line_start": 59,
+            "line_end": 80,
+            "verified": false
+          },
+          {
+            "quote": "### 3.2 Уровень 3 — Компонентная диаграмма контейнера Booking Service\n\n```mermaid\nflowchart TD\n    subgraph BS[\"Booking Service\"]\n        BC[\"Booking Controller\\n─\\nПринимает входящие запросы\\nна запись и отмену\"]\n        BL[\"Booking Logic\\n─\\nБизнес-правила: лимиты,\\nпроверка абонемента,\\nочередь ожидания\"]\n        WM[\"Waitlist Manager\\n─\\nУправляет очередью\\nожидания при отмене\"]\n        BR[\"Booking Repository\\n─\\nДоступ к данным\\nзаписей\"]\n        EP[\"Event Publisher\\n─\\nПубликует доменные события\\nпри изменении записи\"]\n    end\n\n    DB[(\"Booking DB\")]\n    MQ[\"Message Broker\"]\n    SS[\"Schedule Service\"]\n    SubS[\"Subscription Service\"]\n\n    BC --> BL\n    BL --> WM\n    BL --> BR\n    BL -->|\"Проверяет наличие мест\"| SS\n    BL -->|\"Проверяет статус абонемента\"| SubS\n    BR --> DB\n    BL --> EP\n    EP -->|\"Публикует события\"| MQ\n```",
+            "locator": "work.md:82-107",
+            "path": "work.md",
+            "line_start": 82,
+            "line_end": 107,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2995-7929-b2a0-1c93eb63a323",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе присутствуют и контекстная диаграмма C4 (раздел 3.1), и компонентная диаграмма контейнера Booking Service (раздел 3.2), выполненные в Mermaid.",
+        "evidence": [
+          "work.md:59-80 (цитата подтверждена кодом)",
+          "work.md:82-107 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "```mermaid\nsequenceDiagram\n    actor Client as Клиент\n    participant GW as API Gateway\n    participant BS as Booking Service\n    participant SS as Schedule Service\n    participant SubS as Subscription Service\n    participant MQ as Message Broker\n    participant NS as Notification Service\n\n    Client->>GW: POST /bookings {slotId, userId}\n    GW->>GW: Проверка JWT-токена\n    GW->>BS: POST /bookings {slotId, userId}\n\n    BS->>SS: GET /slots/{slotId}\n    SS-->>BS: 200 OK {availableSlots: 3, trainerId, datetime}\n\n    BS->>SubS: GET /subscriptions/{userId}/active\n    SubS-->>BS: 200 OK {subscriptionId, validUntil, sessionsLeft: 5}\n\n    alt Места есть и абонемент активен\n        BS->>BS: Создать запись, уменьшить availableSlots\n        BS->>MQ: Publish event: booking.created {bookingId, userId, slotId}\n        BS-->>GW: 201 Created {bookingId, datetime, trainer}\n        GW-->>Client: 201 Created {bookingId, datetime, trainer}\n\n        MQ->>NS: Event: booking.created\n        NS->>Client: Push/Email \"Вы записаны на занятие {datetime}\"\n    else Нет свободных мест\n        BS-->>GW: 409 Conflict {error: \"no_available_slots\", waitlistAvailable: true}\n        GW-->>Client: 409 Conflict — предложение встать в очередь\n    else Абонемент неактивен или закончились сессии\n        BS-->>GW: 403 Forbidden {error: \"subscription_invalid\"}\n        GW-->>Client: 403 Forbidden — требуется продление абонемента\n    end\n```",
+            "locator": "work.md:115-150",
+            "path": "work.md",
+            "line_start": 115,
+            "line_end": 150,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2995-7929-b2a0-1c93eb63a324",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В работе присутствует диаграмма последовательности на языке Mermaid (sequenceDiagram), описывающая сценарий записи клиента на групповое занятие.",
+        "evidence": [
+          "work.md:115-150 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "| Зависимость                                 | Тип связности | Проблема                                                   |\n|---------------------------------------------|---|------------------------------------------------------------|\n| Booking –> Schedule Service                 | Temporal coupling (синхронный вызов) | Если Schedule Service недоступен, то запись невозможна     |\n| Booking –> Subscription Service             | Temporal coupling (синхронный вызов) | Если Subscription Service недоступен, то запись невозможна |\n| Notification Service –> данные пользователя | Данные передаются через события | Низкая — сервис получает нужное из события                 |\n| API Gateway –> все сервисы                  | Routing coupling | Gateway знает об адресах всех сервисов                     |",
+            "locator": "work.md:267-272",
+            "path": "work.md",
+            "line_start": 267,
+            "line_end": 272,
+            "verified": false
+          },
+          {
+            "quote": "| Компонент | Связность до | Связность после |\n|---|---|---|\n| Booking Service | Высокая (2 синхронных зависимости) | Низкая (события + кэш) |\n| Notification Service | Низкая | Низкая (без изменений) |\n| API Gateway | Средняя | Низкая (Service Discovery) |\n| Schedule Service | Средняя | Низкая (публикует события) |",
+            "locator": "work.md:303-308",
+            "path": "work.md",
+            "line_start": 303,
+            "line_end": 308,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2995-7929-b2a0-1c93eb63a325",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В работе есть раздел «Анализ связности компонентов» с таблицей зависимостей, указанием типов связности и проблем, а также оценкой связности до и после предложенных улучшений.",
+        "evidence": [
+          "work.md:267-272 (цитата подтверждена кодом)",
+          "work.md:303-308 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "**1. Кэширование данных расписания в Booking Service**\n\nСейчас Booking Service при каждой записи синхронно спрашивает Schedule Service: \"есть ли свободные места?\". \nЕсли Schedule Service в этот момент недоступен и запись падает с ошибкой, хотя технически места могут быть. \nЧтобы это исправить, Booking Service может подписаться на события class.updated от Schedule Service и хранить у себя \nактуальное состояние занятий. Тогда при записи он обращается к своим данным, а не делает синхронный запрос к соседнему сервису.",
+            "locator": "work.md:276-281",
+            "path": "work.md",
+            "line_start": 276,
+            "line_end": 281,
+            "verified": false
+          },
+          {
+            "quote": "**3. Переход к событийной модели для Subscription Service**\n\nВместо синхронного запроса `GET /subscriptions/{userId}/active` — подписаться на события `subscription.activated` / `subscription.expired` \nи хранить в Booking Service актуальный статус абонементов. Тогда при записи Booking Service проверяет абонемент по \nсвоим данным, не обращаясь к Subscription Service напрямую.",
+            "locator": "work.md:290-294",
+            "path": "work.md",
+            "line_start": 290,
+            "line_end": 294,
+            "verified": false
+          },
+          {
+            "quote": "**4. Динамическая адресация сервисов вместо фиксированной**\n\nСейчас API Gateway знает адреса всех сервисов заранее, так как они прописаны в конфигурации. Если сервис переехал или запустился \nновый экземпляр, нужно вручную обновлять конфиг. Лучше, чтобы сервисы сами регистрировали свой адрес при запуске, а Gateway \nзапрашивал актуальный адрес в момент обращения. Это снижает связность и упрощает управление при росте системы.",
+            "locator": "work.md:296-300",
+            "path": "work.md",
+            "line_start": 296,
+            "line_end": 300,
+            "verified": false
+          },
+          {
+            "quote": "### 6.3 Итоговая оценка связности\n\n| Компонент | Связность до | Связность после |\n|---|---|---|\n| Booking Service | Высокая (2 синхронных зависимости) | Низкая (события + кэш) |\n| Notification Service | Низкая | Низкая (без изменений) |\n| API Gateway | Средняя | Низкая (Service Discovery) |\n| Schedule Service | Средняя | Низкая (публикует события) |",
+            "locator": "work.md:301-308",
+            "path": "work.md",
+            "line_start": 301,
+            "line_end": 308,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2996-72e3-9583-5ffaede7fda9",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В разделе 6.2 предложены четыре конкретные меры снижения связности (кэширование данных расписания, явная обработка недоступности, переход к событийной модели для Subscription Service, динамическая адресация) с обоснованием для каждой.",
+        "evidence": [
+          "work.md:276-281 (цитата подтверждена кодом)",
+          "work.md:290-294 (цитата подтверждена кодом)",
+          "work.md:296-300 (цитата подтверждена кодом)",
+          "work.md:301-308 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "## 2. Декомпозиция системы\n\n### 2.1 Декомпозиция по функциям",
+            "locator": "work.md:22-24",
+            "path": "work.md",
+            "line_start": 22,
+            "line_end": 24,
+            "verified": false
+          },
+          {
+            "quote": "## 3. Архитектурные диаграммы C4\n\n### 3.1 Уровень 1 — Контекстная диаграмма (System Context)",
+            "locator": "work.md:57-59",
+            "path": "work.md",
+            "line_start": 57,
+            "line_end": 59,
+            "verified": false
+          },
+          {
+            "quote": "## 6. Анализ связности компонентов\n\n### 6.1 Текущая связность",
+            "locator": "work.md:263-265",
+            "path": "work.md",
+            "line_start": 263,
+            "line_end": 265,
+            "verified": false
+          },
+          {
+            "quote": "## 7. Итог\n\nВ ходе работы была выполнена декомпозиция онлайн-сервиса фитнес-клуба:\n\n- По функциям: выделено 8 сервисов с чёткой зоной ответственности, каждый следует SRP\n- По ролям: определены права и сценарии для клиента, тренера и администратора\n- Построены диаграммы C4 (context, component для Booking Service, sequence для сценария записи на занятие)\n- Определены контракты для ключевых API-методов и событий\n- Проведён анализ связности и предложены способы её снижения",
+            "locator": "work.md:312-320",
+            "path": "work.md",
+            "line_start": 312,
+            "line_end": 320,
+            "verified": false
+          },
+          {
+            "quote": "## 5. Интерфейсы взаимодействия и контракты\n\n### 5.1 Типы взаимодействий",
+            "locator": "work.md:154-156",
+            "path": "work.md",
+            "line_start": 154,
+            "line_end": 156,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-2996-72e3-9583-5ffaede7fdaa",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Документ единый (один файл work.md), структурирован по разделам с нумерацией (1–7), содержит все требуемые части: декомпозицию, SRP, диаграммы C4 (контекст и компоненты), sequence-диаграмму, контракты интерфейсов, анализ связности и предложения по снижению. Схемы mermaid читаемы. Слабые места: в контракте GET /slots/{slotId} нет описания запроса, у события booking.created нет описания ошибок, в разделе 4 заголовок «Sequence – гистограмма» не соответствует содержанию.",
+        "evidence": [
+          "work.md:22-24 (цитата подтверждена кодом)",
+          "work.md:57-59 (цитата подтверждена кодом)",
+          "work.md:263-265 (цитата подтверждена кодом)",
+          "work.md:312-320 (цитата подтверждена кодом)",
+          "work.md:154-156 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить: заголовок раздела 4 «Sequence – гистограмма» не соответствует содержанию (там sequence-диаграмма); в контракте GET /slots/{slotId} отсутствует описание запроса, у события booking.created нет блока ошибок; в JSON ответа GET /slots/{slotId} дата «2026-026-16» некорректна. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Документ имеет единую структуру с разделами от описания системы до итога, но нумерация разделов начинается с 1 и заканчивается 7, при этом в разделе 4 заголовок 'Sequence – гистограмма' не соответствует содержанию (там диаграмма последовательности). (work.md:1-1, work.md:111-111, work.md:312-312); В разделе 5.2 контракты интерфейсов содержат примеры JSON, но в одном из них указана некорректная дата '2026-026-16T10:00:00Z', что может быть опечаткой. (work.md:209-209); В разделе 6.2 предложения по снижению связности описаны четыре пункта, но в разделе 6.3 итоговая оценка связности не включает все компоненты, упомянутые в анализе (например, отсутствует Subscription Service). (work.md:276-300, work.md:301-308)",
+        "student_feedback": "Исправьте заголовок раздела 4 и дополните контракты (запрос для GET /slots, ошибки для события)."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:58:03Z"
+}
