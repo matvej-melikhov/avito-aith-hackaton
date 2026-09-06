@@ -34,6 +34,7 @@ import {
   Brand,
   Btn,
   Callout,
+  Cheer,
   Pill,
   Sel,
   Shell,
@@ -337,6 +338,7 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
           right={account}
         />
         {main}
+        <Cheer />
       </div>,
     );
 
@@ -399,6 +401,7 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
       <Shell menu={menu} foot={account}>
         {main}
         <WorkspaceNotifications ws={ws} />
+        <Cheer />
       </Shell>
     </>,
   );
@@ -470,7 +473,7 @@ function AccountMenu({
         aria-haspopup="true"
         onClick={() => setOpen((v) => !v)}
       >
-        <Ava>{initials}</Ava>
+        <Ava seed={session.user_id}>{initials}</Ava>
         {!student && (
           <span>
             <span className="small aside__name">{name}</span>

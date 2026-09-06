@@ -4,11 +4,56 @@
 import {
   useEffect,
   useRef,
+  useState,
   type ComponentPropsWithoutRef,
   type ComponentPropsWithRef,
   type ReactNode,
 } from "react";
 import { Btn, cx } from "./controls";
+
+/* Праздничная галочка на весь экран после сдачи работы. Показывается
+   поверх любой страницы, поэтому переход на следующий экран её не обрывает. */
+const CHEER_EVENT = "ds:cheer";
+const CHEER_MS = 1900;
+
+export function cheer(text = "Готово") {
+  window.dispatchEvent(new CustomEvent(CHEER_EVENT, { detail: { text } }));
+}
+
+export function Cheer() {
+  const [text, setText] = useState<string | null>(null);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const on = (e: Event) => {
+      setText((e as CustomEvent<{ text: string }>).detail.text);
+      clearTimeout(timer);
+      timer = setTimeout(() => setText(null), CHEER_MS);
+    };
+    window.addEventListener(CHEER_EVENT, on);
+    return () => {
+      window.removeEventListener(CHEER_EVENT, on);
+      clearTimeout(timer);
+    };
+  }, []);
+  if (!text) return null;
+  return (
+    <div className="cheer" aria-live="polite">
+      <div className="cheer__card">
+        <svg
+          className="cheer__mark"
+          viewBox="0 0 64 64"
+          width="88"
+          height="88"
+          aria-hidden="true"
+        >
+          <circle className="cheer__ring" cx="32" cy="32" r="28" />
+          <path className="cheer__tick" d="M20 33l8 8 17-18" />
+        </svg>
+        <div className="cheer__text">{text}</div>
+      </div>
+    </div>
+  );
+}
 
 export function Modal({
   title,

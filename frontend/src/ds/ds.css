@@ -1667,9 +1667,97 @@ body.fb-on .login {
   font-size: 13px;
   color: var(--ink-2);
 }
+.upload__icon svg {
+  display: block;
+}
 .upload__icon--ok {
-  border-color: var(--ok);
-  color: var(--ok);
+  border-color: var(--ok-fill);
+  background: var(--ok-fill);
+  color: #fff;
+}
+
+/* Праздничная галочка после отправки работы */
+.cheer {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+  animation: cheer-fade 1.9s ease both;
+}
+.cheer__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  animation: cheer-pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.cheer__mark {
+  display: block;
+  filter: drop-shadow(0 8px 20px rgba(0, 170, 90, 0.28));
+}
+.cheer__ring {
+  fill: var(--ok-fill);
+  transform-origin: 50% 50%;
+  animation: cheer-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.cheer__tick {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: cheer-draw 0.45s ease-out 0.28s forwards;
+}
+.cheer__text {
+  font-size: 18px;
+  font-weight: var(--w-medium);
+  color: var(--ink);
+}
+@keyframes cheer-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes cheer-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes cheer-fade {
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cheer,
+  .cheer__card,
+  .cheer__ring {
+    animation: none;
+  }
+  .cheer__tick {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
 }
 .upload__body {
   flex: 1;
