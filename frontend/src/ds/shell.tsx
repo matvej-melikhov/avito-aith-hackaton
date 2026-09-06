@@ -1,36 +1,81 @@
 // Оболочка приложения: панель, шапка, витринная плашка, крошки, шаги мастера,
 // нижняя панель действий. Разметка из docs/design/screens.html (Р2, С1, К5).
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import { cx } from "./controls";
+import { Logo, LogoMark } from "./logo";
 
-export const BRAND = "Авито Ревью";
+export const BRAND = "Avito Reviewer";
 
 export function Brand({
   href,
   flat,
+  mark,
   className,
 }: {
   href?: string;
   flat?: boolean;
+  /** Узкая панель: от логотипа остаётся только знак. */
+  mark?: boolean;
   className?: string;
 }) {
-  const cls = cx("brand", flat && "brand--flat", className);
-  const body = (
-    <>
-      <span className="dots" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
-      {BRAND}
-    </>
+  const cls = cx(
+    "brand",
+    flat && "brand--flat",
+    mark && "brand--mark",
+    className,
   );
+  const body = mark ? <LogoMark /> : <Logo />;
   return href ? (
-    <a className={cls} href={href}>
+    <a className={cls} href={href} aria-label={BRAND}>
       {body}
     </a>
   ) : (
     <span className={cls}>{body}</span>
+  );
+}
+
+/* --- Значки разделов --------------------------------------------------------
+   Один контур в currentColor на сетке 16, как у лупы поиска.               */
+export type MenuIcon =
+  "overview" | "courses" | "runs" | "people" | "works" | "pool" | "cabinet";
+
+const ICON_PATHS: Record<MenuIcon, ReactNode> = {
+  overview: (
+    <path d="M2.6 2.6H7V7H2.6ZM9 2.6h4.4V7H9ZM2.6 9H7v4.4H2.6ZM9 9h4.4v4.4H9Z" />
+  ),
+  courses: <path d="M8 4.4 2.6 2.8v10.4L8 14.6l5.4-1.4V2.8L8 4.4Zm0 0v10.2" />,
+  runs: <path d="M2.6 3.8h10.8v9.6H2.6ZM2.6 6.8h10.8M5.6 2.2v3M10.4 2.2v3" />,
+  people: (
+    <path d="M3.6 2.8h4.8v4.2H3.6ZM1.8 13.8v-2.4h8.4v2.4M10.2 4.6h3.4v3.4h-3.4M11.4 13.8v-2h2.8" />
+  ),
+  works: (
+    <path d="M3.2 2.6h7.2l2.4 2.4v8.4H3.2ZM10.4 2.6V5h2.4M5.4 8.6l1.8 1.8 3.4-3.4" />
+  ),
+  pool: (
+    <path d="M4.6 2.6h6.8l2.6 6.6v4.2H2V9.2ZM2 9.2h3.4l1 1.8h3.2l1-1.8h3.4" />
+  ),
+  cabinet: <path d="M5.6 2.6h4.8V7H5.6ZM2.6 13.8v-2.6h10.8v2.6" />,
+};
+
+export function Icon({ name }: { name: MenuIcon }) {
+  return (
+    <svg
+      className="mi"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="square"
+      strokeLinejoin="miter"
+      aria-hidden="true"
+    >
+      {ICON_PATHS[name]}
+    </svg>
   );
 }
 
@@ -49,23 +94,51 @@ export function Ava({
 export type MenuItem = {
   href: string;
   label: string;
+  icon?: MenuIcon;
   count?: number | string | null;
   on?: boolean;
 };
+
+const RAIL_KEY = "aside-rail";
+
+/** Панель свёрнута до значков. Выбор человека переживает перезагрузку. */
+function useRail() {
+  const [rail, setRail] = useState(() => {
+    try {
+      return localStorage.getItem(RAIL_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(RAIL_KEY, rail ? "1" : "0");
+    } catch {
+      /* хранилище недоступно: состояние живёт до перезагрузки */
+    }
+  }, [rail]);
+  return [rail, setRail] as const;
+}
 
 /** Панель: бренд, один список разделов, подвал с человеком. */
 export function Aside({
   brandHref = "#/home",
   menu,
   foot,
+  rail = false,
+  onRail,
 }: {
   brandHref?: string;
   menu: MenuItem[];
   foot?: ReactNode;
+  rail?: boolean;
+  onRail?: () => void;
 }) {
   return (
-    <aside className="aside">
-      <Brand href={brandHref} />
+    <aside className={cx("aside", rail && "aside--rail")}>
+      <div className="aside__top">
+        <Brand href={brandHref} mark={rail} />
+      </div>
       <nav className="menu" aria-label="Разделы">
         {menu.map((m) => (
           <a
@@ -73,8 +146,12 @@ export function Aside({
             className={cx(m.on && "is-on")}
             href={m.href}
             aria-current={m.on ? "page" : undefined}
+            title={rail ? m.label : undefined}
           >
-            {m.label}
+            <span className="menu__lead">
+              {m.icon && <Icon name={m.icon} />}
+              <span className="menu__label">{m.label}</span>
+            </span>
             {m.count !== undefined && m.count !== null && (
               <span className="c">{m.count}</span>
             )}
@@ -82,6 +159,30 @@ export function Aside({
         ))}
       </nav>
       {foot && <div className="aside__foot">{foot}</div>}
+      {onRail && (
+        <button
+          type="button"
+          className="aside__rail"
+          aria-expanded={!rail}
+          aria-label={rail ? "Развернуть панель" : "Свернуть панель"}
+          title={rail ? "Развернуть панель" : "Свернуть панель"}
+          onClick={onRail}
+        >
+          <svg
+            viewBox="0 0 8 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            aria-hidden="true"
+          >
+            <path
+              d={rail ? "M2.5 8.5 6 12l-3.5 3.5" : "M5.5 8.5 2 12l3.5 3.5"}
+            />
+          </svg>
+        </button>
+      )}
     </aside>
   );
 }
@@ -97,9 +198,16 @@ export function Shell({
   brandHref?: string;
   children: ReactNode;
 }) {
+  const [rail, setRail] = useRail();
   return (
-    <div className="app">
-      <Aside menu={menu} foot={foot} brandHref={brandHref} />
+    <div className={cx("app", rail && "app--rail")}>
+      <Aside
+        menu={menu}
+        foot={foot}
+        brandHref={brandHref}
+        rail={rail}
+        onRail={() => setRail((v) => !v)}
+      />
       <div className="app__page">{children}</div>
     </div>
   );

@@ -1892,3 +1892,116 @@ select.inp:not(.inp--s) {
 .acc__h--score:has(.scale--wide) .acc__ctl {
   display: block;
 }
+
+/* --- Логотип и сворачиваемая панель ----------------------------------------
+   Знак и название из docs/design/logo-options-2026-09-05/04-highlight.svg.  */
+.logo {
+  display: block;
+  height: auto;
+}
+.logo--full {
+  width: 152px;
+}
+.logo--mark {
+  width: 32px;
+}
+.brand {
+  padding-bottom: 0;
+}
+.aside__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: 0 var(--s-5) var(--s-5);
+}
+.aside__top .brand {
+  padding: 0;
+  min-width: 0;
+}
+/* Переключатель ширины — засечка на шве панели: та же волосяная линия, что
+   и граница, прямой угол, цвет служебного текста. */
+.aside {
+  position: relative;
+}
+.aside__rail {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--ink-3);
+  background: var(--surface);
+  border: var(--bw-hair) solid var(--line);
+  border-right: 0;
+  border-radius: var(--r-0);
+  cursor: pointer;
+  transition:
+    color var(--t-fast),
+    background var(--t-fast);
+}
+.aside__rail svg {
+  width: 8px;
+  height: 24px;
+}
+.aside__rail:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+.aside__rail:focus-visible {
+  outline: var(--bw-focus) solid var(--ink);
+  outline-offset: -2px;
+}
+.menu__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.mi {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-3);
+}
+.menu a.is-on .mi,
+.menu a:hover .mi {
+  color: var(--ink);
+}
+.menu__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Свёрнутая панель: остаются знак и значки разделов. */
+.app--rail {
+  grid-template-columns: var(--sidebar-rail-w) 1fr;
+}
+.aside--rail .aside__top {
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-inline: 0;
+}
+.aside--rail .menu a {
+  justify-content: center;
+  padding-inline: 0;
+}
+.aside--rail .menu__lead {
+  justify-content: center;
+}
+.aside--rail .menu__label,
+.aside--rail .menu a .c {
+  display: none;
+}
+.aside--rail .aside__foot {
+  justify-content: center;
+  padding-inline: 0;
+}
+.aside--rail .aside__foot > div {
+  display: none;
+}

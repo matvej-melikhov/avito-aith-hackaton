@@ -322,18 +322,21 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
           {
             href: "#/works",
             label: "Мои работы",
+            icon: "works" as const,
             count: counts.works,
             on: section === "works",
           },
           {
             href: "#/pool",
             label: "Пул",
+            icon: "pool" as const,
             count: counts.pool,
             on: section === "pool",
           },
           {
             href: "#/preferences",
             label: "Кабинет",
+            icon: "cabinet" as const,
             on: section === "preferences" || section === "statistics",
           },
         ]
@@ -341,22 +344,26 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
           {
             href: "#/dashboard",
             label: "Обзор",
+            icon: "overview" as const,
             on: ["dashboard", "coord-pool", "registry"].includes(section),
           },
           {
             href: "#/courses",
             label: "Курсы",
+            icon: "courses" as const,
             count: counts.courses,
             on: ["courses", "homeworks", "homework"].includes(section),
           },
           {
             href: "#/runs",
             label: "Потоки",
+            icon: "runs" as const,
             on: section === "runs",
           },
           {
             href: "#/people",
             label: "Ревьюеры",
+            icon: "people" as const,
             on: ["people", "cabinet", "deliveries"].includes(section),
           },
         ];
