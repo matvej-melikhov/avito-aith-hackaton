@@ -166,7 +166,9 @@ def main() -> None:
     catalog = coord.get("/api/v2/catalog")
     run = next(r for r in catalog["course_runs"] if RUN_TITLE in r["title"])
     lab = load_assignment("system_design_lab1")
+    # Студенту уходит только условие: таблицу критериев из методички отрезаем (Д17).
     lab_text = (CORPUS / "system_design" / "лаба 1" / "условие.md").read_text(encoding="utf-8")
+    lab_text = lab_text.split("## Критерии оценивания")[0].rstrip()
     go = load_assignment("go_tasks_1_3")
     go_text = "\n\n".join((CORPUS / "GO" / f"task{i}.md").read_text(encoding="utf-8") for i in (1, 2, 3))
     lab_pub = publish_homework(coord, run, "Системный дизайн: лабораторная 1", lab_text, lab, ["github", "google_docs"], 4,
