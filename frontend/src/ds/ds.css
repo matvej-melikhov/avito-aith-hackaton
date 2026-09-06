@@ -597,12 +597,7 @@ button.step[disabled] {
     overflow-x: auto;
   }
   .menu a {
-    border-left: 0;
-    border-bottom: var(--bw-focus) solid transparent;
     white-space: nowrap;
-  }
-  .menu a.is-on {
-    border-bottom-color: var(--brand-green);
   }
   .aside__foot {
     display: none;
@@ -1983,6 +1978,7 @@ select.inp:not(.inp--s) {
 }
 .aside--rail .menu a {
   justify-content: center;
+  margin-inline: var(--s-2);
   padding-inline: 0;
 }
 .aside--rail .menu__lead {
@@ -2008,7 +2004,8 @@ select.inp:not(.inp--s) {
   }
   .aside--rail .menu a {
     justify-content: flex-start;
-    padding-inline: var(--s-5);
+    padding-inline: var(--s-4);
+    margin-inline: var(--s-3);
   }
   .aside--rail .menu__lead {
     justify-content: flex-start;
