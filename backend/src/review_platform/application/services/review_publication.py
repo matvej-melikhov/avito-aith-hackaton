@@ -569,7 +569,8 @@ class ReviewPublicationService:
                 DeliveryCriterionResult(
                     criterion_id=decision.criterion_id,
                     points=decision.points,
-                    reason=decision.reason,
+                    # Черновик допускает пустое обоснование, а доставка требует текст.
+                    reason=decision.reason.strip() or "Без комментария.",
                 )
                 for decision in revision.decisions
             ],

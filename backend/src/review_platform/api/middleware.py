@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from collections.abc import Mapping
 from typing import Any
 
@@ -64,6 +66,10 @@ class SanitizedExceptionMiddleware(BaseHTTPMiddleware):
         try:
             return await call_next(request)
         except Exception:
+            # Клиенту уходит нейтральный ответ, а причина остаётся в журнале сервера.
+            logging.getLogger(__name__).exception(
+                "unhandled error: %s %s", request.method, request.url.path
+            )
             return _error_response(500, "internal_error", "The request could not be completed")
 
 
