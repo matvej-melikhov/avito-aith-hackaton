@@ -6,22 +6,6 @@
    эталона как есть; это его недочёт №2, повторяем один в один.
    =========================================================================== */
 
-/* --- Бренд и панель (screens.html:1281, 787) ------------------------------- */
-.brand .dots i:nth-child(1) {
-  width: 11px;
-  height: 11px;
-  background: var(--brand-green);
-}
-.brand .dots i:nth-child(2) {
-  width: 8px;
-  height: 8px;
-  background: var(--brand-blue);
-}
-.brand .dots i:nth-child(3) {
-  width: 6px;
-  height: 6px;
-  background: var(--brand-red);
-}
 .brand--flat {
   padding: 0;
 }
@@ -52,6 +36,8 @@ a.brand {
   display: flex;
   align-items: center;
   gap: var(--s-5);
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .topbar__title {
   display: flex;
@@ -337,8 +323,15 @@ a.btn--link:hover {
 }
 
 /* --- Поля (screens.html:1866, 2199, 1586) ----------------------------------- */
-.srch--w .inp {
-  width: 280px;
+/* Поиск координатора: ищем по ID студента и названию задания, поле длинное. */
+.srch--w {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 440px;
+}
+.srch--w .inp,
+.topbar .srch--w .inp {
+  width: 100%;
 }
 .inp--w-56 {
   width: 56px;
@@ -604,12 +597,7 @@ button.step[disabled] {
     overflow-x: auto;
   }
   .menu a {
-    border-left: 0;
-    border-bottom: var(--bw-focus) solid transparent;
     white-space: nowrap;
-  }
-  .menu a.is-on {
-    border-bottom-color: var(--brand-green);
   }
   .aside__foot {
     display: none;
@@ -1611,20 +1599,12 @@ body.fb-on .login {
 .review-sum__note {
   margin-top: var(--s-3);
 }
-.mode-pill {
-  gap: var(--s-2);
-}
-.mode-pill__x {
-  background: none;
-  border: 0;
-  padding: 0 0 0 var(--s-1);
-  cursor: pointer;
-  color: inherit;
-  font-size: var(--caption-size);
-  line-height: 1;
-}
-.mode-pill__x:hover {
-  color: var(--bad);
+/* Длинные подписи действий ревью остаются внутри узкого экрана. */
+@media (max-width: 640px) {
+  .topbar--review,
+  .topbar--review > .btn-row {
+    flex-wrap: wrap;
+  }
 }
 
 /* Зона загрузки файла работы */
@@ -1777,4 +1757,400 @@ body.fb-on .login {
 .upload__body a {
   color: var(--info);
   border: 0;
+}
+
+/* --- Работа как файл: иконка типа, просмотр в модалке ----------------------- */
+.fileicon-wrap {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-3);
+  flex: none;
+}
+.fileicon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+/* Строка файла: подпись и действия — два флекс-ряда, поэтому строка не растёт
+   от базовой линии кнопок и держит высоту соседних строк. */
+.kv--file > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.kv--file > span:last-child {
+  flex: none;
+}
+.kv--file .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kv--file .btn {
+  flex: none;
+}
+.file-preview__text {
+  margin: 0;
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  line-height: var(--body-lh);
+  color: var(--ink);
+}
+.file-preview__frame {
+  width: 100%;
+  height: 60vh;
+  border: var(--bw-hair) solid var(--line-2);
+  background: var(--surface);
+}
+.file-preview__img {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  margin: 0 auto;
+}
+
+/* --- «Взять» в пуле: при наведении заливается зелёным (Р2) ------------------ */
+.btn--take:hover:not(:disabled) {
+  background: var(--brand-green);
+  border-color: var(--brand-green);
+  color: var(--ink);
+}
+
+/* --- Фильтры в шапках: селект выглядит как тихая кнопка макета (К1, К7, К8) -- */
+select.inp--s {
+  width: auto;
+  min-width: 0;
+  padding: 0 26px 0 var(--s-4);
+  border-radius: var(--r-pill);
+  border-color: var(--line);
+  color: var(--ink-3);
+  font-weight: var(--w-medium);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right 13px center,
+    right 9px center;
+  background-size:
+    4px 4px,
+    4px 4px;
+  background-repeat: no-repeat;
+  transition:
+    border-color var(--t-fast),
+    color var(--t-fast);
+}
+select.inp--s:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+select.inp--s:focus-visible {
+  outline: 0;
+  border-color: var(--ink);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+select.inp--s option {
+  color: var(--ink);
+}
+
+/* --- Ряд фильтров под табами страницы -------------------------------------- */
+.filter-row {
+  margin-bottom: var(--s-5);
+}
+
+/* --- Разметка markdown над условием задания (К5) --------------------------- */
+.md-bar {
+  margin-bottom: var(--s-2);
+  flex-wrap: wrap;
+}
+.md-bar .btn {
+  min-width: var(--ctl-s);
+  padding: 0 var(--s-3);
+}
+
+/* --- Кнопка шага мастера под формой, вместо нижней панели (К5, К6) --------- */
+.form-actions {
+  margin-top: var(--s-6);
+  align-items: center;
+  gap: var(--s-4);
+}
+
+/* --- Порог зачёта: своя черта сверху, поэтому у последнего критерия её нет -- */
+.acc:has(+ .threshold),
+.crit:has(+ .threshold) {
+  border-bottom: 0;
+}
+
+/* --- Отпуск: две даты в строку через тире (Р3) ------------------------------ */
+.date-range {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+.date-range__dash {
+  color: var(--ink-3);
+}
+@media (max-width: 640px) {
+  .date-range__dash {
+    display: none;
+  }
+}
+
+/* --- Селект в форме: своя стрелка вместо системного вида (К4) --------------- */
+select.inp:not(.inp--s) {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+    linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position:
+    right 17px center,
+    right 13px center;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* --- Встроенные секции «Обзора»: табы и пустая строка внутри карточки ------- */
+.tabs--row-in {
+  padding: 0 var(--s-5);
+  border-bottom: var(--bw-hair) solid var(--line);
+}
+.table-note {
+  margin: 0;
+  padding: var(--s-5);
+}
+
+/* --- Длинная шкала: ряд переносится и встаёт на свою строку (Р5, К6) -------- */
+.scale--wide,
+.acc__h--score .scale--wide,
+.crit .scale--wide {
+  width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  border-radius: var(--r-0);
+  gap: 2px;
+}
+.scale--wide > * {
+  flex: 0 0 auto;
+  min-width: var(--ctl-s);
+  border-radius: var(--r-pill);
+}
+.acc__h--score:has(.scale--wide) {
+  grid-template-columns: 21px minmax(0, 1fr) 16px;
+  row-gap: var(--s-3);
+}
+.acc__h--score:has(.scale--wide) > .acc__chev {
+  grid-column: 3;
+  grid-row: 1;
+}
+.acc__h--score:has(.scale--wide) .acc__ctl {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+}
+.acc__h--score .acc__ctl {
+  display: contents;
+}
+.acc__h--score:has(.scale--wide) .acc__ctl {
+  display: block;
+}
+
+/* --- Логотип и сворачиваемая панель ----------------------------------------
+   Знак и название из docs/design/logo-options-2026-09-05/04-highlight.svg.  */
+.logo {
+  display: block;
+  height: auto;
+}
+.logo--full {
+  width: 152px;
+}
+.logo--mark {
+  width: 26px;
+}
+.brand {
+  padding-bottom: 0;
+}
+.aside__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: 0 var(--s-5) var(--s-5);
+}
+.aside__top .brand {
+  padding: 0;
+  min-width: 0;
+}
+/* Sticky-панель служит также опорой для ручки изменения ширины. */
+.aside__grip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(-1 * var(--bw-hair));
+  width: 7px;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  border-right: var(--bw-hair) solid transparent;
+  transition: border-color var(--t-fast);
+}
+.aside__grip:hover,
+.aside__grip:focus-visible,
+.aside__grip.is-dragging {
+  outline: 0;
+  border-right-color: var(--ink);
+}
+.aside__grip.is-dragging {
+  border-right-width: var(--bw-focus);
+}
+/* Пока тянут край, текст страницы не выделяется. */
+.app:has(.aside__grip.is-dragging) {
+  user-select: none;
+  cursor: col-resize;
+}
+
+.menu__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.mi {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+}
+.menu a.is-on .mi,
+.menu a:hover .mi {
+  color: var(--ink);
+}
+.menu__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Свёрнутая панель: остаются знак и значки разделов. */
+.app--rail .menu a {
+  justify-content: center;
+}
+.aside--rail .aside__top {
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-inline: 0;
+}
+.aside--rail .menu a {
+  justify-content: center;
+  margin-inline: var(--s-2);
+  padding-inline: 0;
+}
+.aside--rail .menu__lead {
+  justify-content: center;
+}
+.aside--rail .menu__label,
+.aside--rail .menu a .c {
+  display: none;
+}
+.aside--rail .aside__foot {
+  justify-content: center;
+  padding-inline: 0;
+}
+.aside--rail .aside__foot > div {
+  display: none;
+}
+
+/* --- Узкое окно: панель ложится строкой, тонкая колонка отменяется ----------
+   Блок стоит последним, иначе правила колонки перебивают его по порядку.   */
+@media (max-width: 1100px) {
+  .aside__grip {
+    display: none;
+  }
+  .aside--rail .menu a {
+    justify-content: flex-start;
+    padding-inline: var(--s-4);
+    margin-inline: var(--s-3);
+  }
+  .aside--rail .menu__lead {
+    justify-content: flex-start;
+  }
+  .aside--rail .menu__label {
+    display: inline;
+  }
+  .aside--rail .menu a .c {
+    display: inline;
+  }
+  .aside--rail .aside__top {
+    flex-direction: row;
+    padding-inline: var(--s-5);
+  }
+}
+
+.action-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.action-message p {
+  margin: 0;
+}
+.action-message .btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .student-homeworks .page-head {
+    flex-wrap: wrap;
+  }
+  .student-homeworks .page-head .seg {
+    flex: 0 0 100%;
+    width: 100%;
+  }
+  .student-homeworks .page-head .seg button {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1100px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .aside {
+    min-width: 0;
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar--review > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .topbar--review .topbar__title {
+    flex-wrap: wrap;
+  }
+  .action-message {
+    flex-wrap: wrap;
+  }
+  .action-message p {
+    flex: 1 1 180px;
+  }
+  .action-message .btn {
+    margin-left: auto;
+  }
 }

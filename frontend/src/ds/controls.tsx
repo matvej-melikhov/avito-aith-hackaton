@@ -5,6 +5,7 @@ import {
   isValidElement,
   useId,
   type ComponentPropsWithoutRef,
+  type ComponentPropsWithRef,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -158,7 +159,8 @@ export function Seg<T extends string>({
   label,
   className,
   disabled,
-}: {
+  ...rest
+}: Omit<ComponentPropsWithoutRef<"div">, "onChange"> & {
   value: T | null | undefined;
   options: { value: T; label: ReactNode; disabled?: boolean }[];
   onChange?: (value: T) => void;
@@ -167,7 +169,12 @@ export function Seg<T extends string>({
   disabled?: boolean;
 }) {
   return (
-    <div className={cx("seg", className)} role="group" aria-label={label}>
+    <div
+      className={cx("seg", className)}
+      role="group"
+      aria-label={label}
+      {...rest}
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -394,7 +401,7 @@ export function Area({
   err,
   className,
   ...rest
-}: InpMods & ComponentPropsWithoutRef<"textarea">) {
+}: InpMods & ComponentPropsWithRef<"textarea">) {
   return (
     <textarea
       className={inpClass({ small, mono, err, className }, "inp--area")}

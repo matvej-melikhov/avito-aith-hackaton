@@ -1,0 +1,467 @@
+{
+  "id": "01a0776c-e6d6-78be-8987-f6040a90bb96",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В коде лог старта пишется через стандартный пакет log, который по умолчанию выводит в stderr. Как именно вы настроили вывод в stdout, и где это сделано? Если настройки нет — что нужно добавить, чтобы сообщение о старте гарантированно попадало в stdout?\n2. В функции resolvePort порт сначала берётся из окружения, затем перезаписывается значением флага. Расскажите, что произойдёт, если пользователь запустит сервис с флагом --port 0 — как это поведение обработается и почему?\n3. При graceful shutdown вы используете signal.NotifyContext и srv.Shutdown с контекстом с таймаутом. Что произойдёт, если сервер не успеет завершить обработку текущих запросов за отведённый таймаут — какой код завершения вернёт процесс и почему?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за работу, вот что нужно поправить:\n\n1. Настрой вывод логгера в stdout: добавь `log.SetOutput(os.Stdout)` в начале `main()` или сразу после загрузки конфигурации, иначе лог старта уходит в stderr.\n2. Убери дублирование компиляции `regexp` в usecase — вынеси компиляцию в конструктор или на уровень пакета, чтобы не компилировать паттерн при каждом вызове.\n3. Проверь, что все сообщения в лог (включая сообщение о завершении работы) также пишутся в stdout после настройки логгера.\n4. Убедись, что при остановке сервера сообщение «Shutting down service-courier» выводится именно в stdout, а не в stderr.\n5. Если используешь стандартный `log`, настрой его один раз в начале программы — этого достаточно для всех последующих вызовов.\n\nХорошо, что структура проекта соответствует стандарту, точка входа корректная, и graceful shutdown реализован через контекст с таймаутом.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/service-courier/main.go:1-1",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "(файл найден)",
+            "locator": "internal/dto/courier.go:1-1",
+            "path": "internal/dto/courier.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b6",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: dir_exists: каталог cmd: 1 файлов; dir_exists: каталог internal: 12 файлов",
+        "evidence": [
+          "cmd/service-courier/main.go:1-1 (цитата подтверждена кодом)",
+          "internal/dto/courier.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сборка go build: успешно. Сводка: предложено 15.5 из 16. Сигнал ИИ: low. Стоимость прогона: 1.38 ₽ (418111 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "module github.com/Avito-courses/course-go-avito-Turbina0N",
+            "locator": "go.mod:1-1",
+            "path": "go.mod",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b7",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: file_exists: найдено: go.mod",
+        "evidence": [
+          "go.mod:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/service-courier/main.go:1-1",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b8",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: count_files: файлов по маске ['cmd/*/main.go', 'cmd/main.go']: 1 (нужно от 1)",
+        "evidence": [
+          "cmd/service-courier/main.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "type courierUseCase interface {\n\tGetCourier(ctx context.Context, id int) (*model.Courier, error)\n\tGetCouriers(ctx context.Context) ([]model.Courier, error)\n\tCreateCourier(ctx context.Context, req *dto.CourierCreateRequest) (int, error)\n\tUpdateCourier(ctx context.Context, req *dto.CourierUpdateRequest) error\n}",
+            "locator": "internal/handlers/contract.go:10-15",
+            "path": "internal/handlers/contract.go",
+            "line_start": 10,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "func NewCourierController(useCase courierUseCase) *CourierController {\n\treturn &CourierController{useCase: useCase}\n}",
+            "locator": "internal/handlers/controller.go:18-20",
+            "path": "internal/handlers/controller.go",
+            "line_start": 18,
+            "line_end": 20,
+            "verified": false
+          },
+          {
+            "quote": "re := regexp.MustCompile(`^\\+?[0-9]{7,15}$`)",
+            "locator": "internal/usecase/courier.go:78-78",
+            "path": "internal/usecase/courier.go",
+            "line_start": 78,
+            "line_end": 78,
+            "verified": false
+          },
+          {
+            "quote": "re := regexp.MustCompile(`^\\+?[0-9]{7,15}$`)",
+            "locator": "internal/usecase/courier.go:112-112",
+            "path": "internal/usecase/courier.go",
+            "line_start": 112,
+            "line_end": 112,
+            "verified": false
+          },
+          {
+            "quote": "func NewCourierUseCase(repository courierRepository) *CourierUseCase {\n\treturn &CourierUseCase{repository: repository}\n}",
+            "locator": "internal/usecase/courier.go:18-20",
+            "path": "internal/usecase/courier.go",
+            "line_start": 18,
+            "line_end": 20,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656b9",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Имена идентификаторов и интерфейсов ясные, интерфейсы приватные и определены в месте использования, конструкторы принимают интерфейсы и возвращают структуры, циклических зависимостей нет. Небольшое дублирование компиляции regexp в usecase не снижает общее качество.",
+        "evidence": [
+          "internal/handlers/contract.go:10-15 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:18-20 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:78-78 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:112-112 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:18-20 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверьте, что дублирование компиляции regexp не является существенным недостатком; в остальном код соответствует критерию. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Имена идентификаторов в основном понятные и отражают назначение, но есть смешение терминов: в слое usecase используется модель model.Courier, а в repository — entity.Courier, что может вызывать путаницу. (internal/usecase/courier.go:23-38, internal/repository/courier.go:24-38); В коде присутствуют циклические зависимости между пакетами: usecase импортирует repository, а repository не зависит от usecase, но handlers импортирует и usecase, и dto, а usecase импортирует dto и entity, что создаёт сложную сеть зависимостей, хотя явных циклов не видно. (internal/handlers/controller.go:10-11, internal/usecase/courier.go:8-11); Названия переменных и функций в целом осмысленные, но есть несоответствие: в usecase метод называется GetCourier, а в repository — GetOneByID, что может затруднить понимание. (internal/usecase/courier.go:23-23, internal/repository/courier.go:24-24)",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "srv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),\n\t\tHandler:      initRouter(courierCtrl),\n\t\tReadTimeout:  10 * time.Second,\n\t\tWriteTimeout: 10 * time.Second,\n\t\tIdleTimeout:  60 * time.Second,\n\t}",
+            "locator": "cmd/service-courier/main.go:40-46",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 40,
+            "line_end": 46,
+            "verified": false
+          },
+          {
+            "quote": "if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {",
+            "locator": "cmd/service-courier/main.go:51-51",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 51,
+            "line_end": 51,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656ba",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В коде присутствует http.Server и вызов ListenAndServe, что подтверждает запуск HTTP-сервера.",
+        "evidence": [
+          "cmd/service-courier/main.go:40-46 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:51-51 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Фактический запуск теста курса не выполнялся, проверьте его вручную.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "port := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}\n\tif port == \"\" {\n\t\tport = \"8080\"\n\t}\n\treturn port",
+            "locator": "cmd/service-courier/main.go:89-98",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 89,
+            "line_end": 98,
+            "verified": false
+          },
+          {
+            "quote": "if err := godotenv.Load(); err != nil {\n\t\tlog.Printf(\"warn: .env not loaded: %v\", err)\n\t}",
+            "locator": "cmd/service-courier/main.go:26-28",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 26,
+            "line_end": 28,
+            "verified": false
+          },
+          {
+            "quote": "srv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),",
+            "locator": "cmd/service-courier/main.go:40-41",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 40,
+            "line_end": 41,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bb",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Порт читается из переменной окружения PORT после загрузки .env и используется при запуске сервера.",
+        "evidence": [
+          "cmd/service-courier/main.go:89-98 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:26-28 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:40-41 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "log.Printf(\"service-courier listening on %s\\n\", srv.Addr)",
+            "locator": "cmd/service-courier/main.go:50-50",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 50,
+            "line_end": 50,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bc",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Лог старта есть (log.Printf на стр.50), но используется стандартный пакет log, который по умолчанию пишет в stderr; вызова SetOutput(os.Stdout) в коде нет, поэтому вывод фактически уходит в stderr, а не в stdout.",
+        "evidence": [
+          "cmd/service-courier/main.go:50-50 (цитата подтверждена кодом)",
+          "цитата отклонена: пустая цитата"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить, действительно ли стандартный log пишет в stderr по умолчанию и нет ли где-то настройки вывода в stdout вне cmd/. 1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Настройте вывод логгера в stdout (например, log.SetOutput(os.Stdout)), иначе лог старта уходит в stderr."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "r.Get(\"/ping\", handlers.Ping)",
+            "locator": "cmd/service-courier/main.go:105-105",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 105,
+            "line_end": 105,
+            "verified": false
+          },
+          {
+            "quote": "func Ping(w http.ResponseWriter, r *http.Request) {\n\tw.Header().Set(\"Content-Type\", \"application/json; charset=utf-8\")\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})",
+            "locator": "internal/handlers/ping.go:8-10",
+            "path": "internal/handlers/ping.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bd",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Маршрут GET /ping зарегистрирован, обработчик возвращает JSON {\"message\":\"pong\"} со статусом 200 OK по умолчанию.",
+        "evidence": [
+          "cmd/service-courier/main.go:105-105 (цитата подтверждена кодом)",
+          "internal/handlers/ping.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "r.Head(\"/healthcheck\", handlers.Healthcheck)",
+            "locator": "cmd/service-courier/main.go:106-106",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 106,
+            "line_end": 106,
+            "verified": false
+          },
+          {
+            "quote": "func Healthcheck(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)",
+            "locator": "internal/handlers/healthcheck.go:5-6",
+            "path": "internal/handlers/healthcheck.go",
+            "line_start": 5,
+            "line_end": 6,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656be",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Маршрут HEAD /healthcheck зарегистрирован и обработчик возвращает 204 No Content без тела, что соответствует ТЗ.",
+        "evidence": [
+          "cmd/service-courier/main.go:106-106 (цитата подтверждена кодом)",
+          "internal/handlers/healthcheck.go:5-6 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func gracefulShutdown(srv *http.Server) {\n\tctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\t<-ctx.Done()",
+            "locator": "cmd/service-courier/main.go:117-121",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 117,
+            "line_end": 121,
+            "verified": false
+          },
+          {
+            "quote": "if err := srv.Shutdown(shCtx); err != nil {",
+            "locator": "cmd/service-courier/main.go:126-126",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 126,
+            "line_end": 126,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656bf",
+        "status": "suggested",
+        "proposed_points": 2.0,
+        "reason": "В работе есть подписка на SIGINT/SIGTERM через signal.NotifyContext и вызов srv.Shutdown при получении сигнала, что обеспечивает корректную остановку сервера.",
+        "evidence": [
+          "cmd/service-courier/main.go:117-121 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:126-126 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)",
+            "locator": "cmd/service-courier/main.go:118-118",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 118,
+            "line_end": 118,
+            "verified": false
+          },
+          {
+            "quote": "shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\tif err := srv.Shutdown(shCtx); err != nil {",
+            "locator": "cmd/service-courier/main.go:124-126",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 124,
+            "line_end": 126,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c0",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Graceful shutdown реализован через signal.NotifyContext и srv.Shutdown с контекстом с таймаутом.",
+        "evidence": [
+          "cmd/service-courier/main.go:118-118 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:124-126 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "log.Println(\"Shutting down service-courier\")",
+            "locator": "cmd/service-courier/main.go:122-122",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 122,
+            "line_end": 122,
+            "verified": false
+          },
+          {
+            "quote": "func gracefulShutdown(srv *http.Server) {\n\tctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\t<-ctx.Done()\n\tlog.Println(\"Shutting down service-courier\")",
+            "locator": "cmd/service-courier/main.go:117-122",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 117,
+            "line_end": 122,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c1",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "В работе присутствует вывод сообщения «Shutting down service-courier» в лог при остановке сервиса.",
+        "evidence": [
+          "cmd/service-courier/main.go:122-122 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:117-122 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "var portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}",
+            "locator": "cmd/service-courier/main.go:90-94",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 90,
+            "line_end": 94,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c2",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Флаг --port обрабатывается через pflag и переопределяет значение порта из окружения.",
+        "evidence": [
+          "cmd/service-courier/main.go:90-94 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "port := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}",
+            "locator": "cmd/service-courier/main.go:89-94",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 89,
+            "line_end": 94,
+            "verified": false
+          },
+          {
+            "quote": "func resolvePort() string {\n\tport := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}\n\tif port == \"\" {\n\t\tport = \"8080\"\n\t}\n\treturn port\n}",
+            "locator": "cmd/service-courier/main.go:88-99",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 88,
+            "line_end": 99,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-4282-735b-a6f3-259ea5a656c3",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В функции resolvePort порт сначала берётся из окружения, затем значение флага, если оно непустое, перезаписывает переменную, что соответствует требуемому приоритету.",
+        "evidence": [
+          "cmd/service-courier/main.go:89-94 (цитата подтверждена кодом)",
+          "cmd/service-courier/main.go:88-99 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:53:41Z"
+}

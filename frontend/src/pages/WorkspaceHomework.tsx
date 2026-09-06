@@ -15,7 +15,6 @@ import {
   Chk,
   Crit,
   Crumbs,
-  Dock,
   Drag,
   Field,
   Inp,
@@ -33,6 +32,85 @@ import {
   plural,
 } from "../ds";
 
+/* Сколько дней ревьюерам на проверку после срока сдачи. Отдельной настройки
+   для этого нет, поэтому окно одно для всех потоков. */
+const REVIEW_WINDOW_DAYS = 7;
+function reviewDeadline(submission: Date) {
+  const at = new Date(submission);
+  at.setDate(at.getDate() + REVIEW_WINDOW_DAYS);
+  return at;
+}
+
+const DEFAULT_SOURCES: NonNullable<W<"EditorDraftInput">["allowed_sources"]> = [
+  "upload",
+  "github",
+  "google_docs",
+];
+
+/* Условие пишется в markdown, поэтому рядом лежат самые частые обёртки. */
+const MARKS: { label: string; title: string; wrap: [string, string] }[] = [
+  { label: "Ж", title: "Жирный", wrap: ["**", "**"] },
+  { label: "К", title: "Курсив", wrap: ["_", "_"] },
+  { label: "‹›", title: "Код", wrap: ["`", "`"] },
+  { label: "H2", title: "Заголовок", wrap: ["## ", ""] },
+  { label: "•", title: "Список", wrap: ["- ", ""] },
+  { label: "1.", title: "Нумерованный список", wrap: ["1. ", ""] },
+  { label: "🔗", title: "Ссылка", wrap: ["[", "](https://)"] },
+];
+
+function MarkdownArea({
+  value,
+  onChange,
+  className,
+  id,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+  id?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  function apply([before, after]: [string, string]) {
+    const el = ref.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const picked = value.slice(start, end);
+    const next =
+      value.slice(0, start) + before + picked + after + value.slice(end);
+    onChange(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + before.length, end + before.length);
+    });
+  }
+  return (
+    <>
+      <BtnRow className="md-bar">
+        {MARKS.map((m) => (
+          <Btn
+            key={m.label}
+            size="s"
+            variant="quiet"
+            title={m.title}
+            aria-label={m.title}
+            onClick={() => apply(m.wrap)}
+          >
+            {m.label}
+          </Btn>
+        ))}
+      </BtnRow>
+      <Area
+        ref={ref}
+        id={id}
+        className={className}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </>
+  );
+}
+
 export function WorkspaceHomework({
   ws,
   id,
@@ -45,18 +123,30 @@ export function WorkspaceHomework({
   session: Model<"Session">;
 }) {
   const r = useResource(async () => {
-    const [history, editor, catalog] = await Promise.all([
+    const [history, catalog] = await Promise.all([
       ws.core.homework(id),
-      ws.editorDraft(id, run),
       ws.catalog(),
     ]);
+    /* Поток берётся из адреса, а когда его там нет — это единственный активный
+       поток курса, в котором задание уже публиковалось. */
+    const publishedRunIds = history.course_run_publications.map(
+      (p) => p.course_run_id,
+    );
+    const knownCourseId = catalog.course_runs.find((x) =>
+      publishedRunIds.includes(x.id),
+    )?.course_id;
+    const activeRun = catalog.course_runs.find(
+      (x) => x.course_id === knownCourseId && x.status === "active",
+    );
+    const runId = run || activeRun?.id || "";
+    const editor = await ws.editorDraft(id, runId);
     const latest = [...history.versions].sort(
       (a, b) => b.version_number - a.version_number,
     )[0];
     const publication = history.course_run_publications.find(
-      (p) => p.is_current && p.course_run_id === run,
+      (p) => p.is_current && p.course_run_id === runId,
     );
-    const courseRun = catalog.course_runs.find((x) => x.id === run);
+    const courseRun = catalog.course_runs.find((x) => x.id === runId);
     const course = catalog.courses.find((c) => c.id === courseRun?.course_id);
     const [privateDetails, policy, directory] = await Promise.all([
       latest ? ws.privateHomework(latest.id) : Promise.resolve(null),
@@ -76,6 +166,7 @@ export function WorkspaceHomework({
       courseRun,
       course,
       title,
+      runId,
     };
   }, `${id}:${run}`);
   if (r.loading || r.error)
@@ -105,13 +196,14 @@ export function WorkspaceHomework({
       key={`${id}:${run}`}
       ws={ws}
       data={r.data!}
-      run={run}
+      run={r.data!.runId}
       session={session}
     />
   );
 }
 
 type WizardData = {
+  runId: string;
   history: Model<"HomeworkHistory">;
   editor: W<"EditorDraftView">;
   latest?: Model<"HomeworkVersionSummary">;
@@ -129,6 +221,7 @@ function versionContent(value: W<"EditorDraftInput">) {
     value.max_score,
     value.estimated_review_minutes,
     value.artifact_kinds,
+    value.allowed_sources ?? DEFAULT_SOURCES,
     value.criteria?.map((c) => [
       c.key,
       c.title,
@@ -187,6 +280,7 @@ function HomeworkWizard({
     max_score: data.latest?.max_score ?? 0,
     estimated_review_minutes: data.latest?.estimated_review_minutes ?? 30,
     artifact_kinds: data.latest?.artifact_kinds ?? ["github", "google_docs"],
+    allowed_sources: data.privateDetails?.allowed_sources ?? DEFAULT_SOURCES,
     criteria:
       data.latest?.criteria.map((c) => ({
         key: c.key,
@@ -218,6 +312,10 @@ function HomeworkWizard({
   };
   const [draft, setDraft] = useState<W<"EditorDraftInput">>({
     ...initial,
+    allowed_sources:
+      initial.allowed_sources ??
+      data.privateDetails?.allowed_sources ??
+      DEFAULT_SOURCES,
     max_score: (initial.criteria ?? []).reduce(
       (sum, c) => sum + (c.max_points ?? 0),
       0,
@@ -245,6 +343,8 @@ function HomeworkWizard({
           max_score: data.latest.max_score,
           estimated_review_minutes: data.latest.estimated_review_minutes,
           artifact_kinds: data.latest.artifact_kinds,
+          allowed_sources:
+            data.privateDetails?.allowed_sources ?? DEFAULT_SOURCES,
           criteria: data.latest.criteria.map((c) => ({
             key: c.key,
             title: c.title,
@@ -329,6 +429,8 @@ function HomeworkWizard({
     const pending = saveQueue.current.then(async () => {
       let next = draftRef.current;
       const original = next;
+      if (!next.allowed_sources?.length)
+        throw new Error("Выберите хотя бы один тип ответа: ссылки или файлы.");
       setAutoStatus("Сохраняется…");
       if (referenceRef.current) {
         const file = await uploadFile(
@@ -394,6 +496,7 @@ function HomeworkWizard({
   useEffect(() => {
     if (
       !dirty ||
+      !draft.allowed_sources?.length ||
       !Number.isFinite(draft.max_score) ||
       draft.criteria?.some(
         (c) => !Number.isFinite(c.score_step) || c.score_step <= 0,
@@ -413,8 +516,8 @@ function HomeworkWizard({
     const value = draft;
     if (!value.student_text.trim())
       throw new Error("Заполните условие задания.");
-    if (!value.artifact_kinds?.length)
-      throw new Error("Выберите хотя бы один формат сдачи.");
+    if (!value.allowed_sources?.length)
+      throw new Error("Выберите хотя бы один тип ответа: ссылки или файлы.");
     if (!Number.isFinite(value.max_score) || value.max_score < 0)
       throw new Error("Укажите корректный максимальный балл.");
     if (
@@ -452,7 +555,10 @@ function HomeworkWizard({
       {
         student_text: value.student_text ?? "",
         max_score: value.max_score ?? 0,
-        artifact_kinds: value.artifact_kinds ?? [],
+        // Legacy v1 требует хотя бы один вид ссылки; допуск ответа задаёт allowed_sources.
+        artifact_kinds: value.artifact_kinds?.length
+          ? value.artifact_kinds
+          : ["github", "google_docs"],
         estimated_review_minutes: value.estimated_review_minutes ?? 30,
         criteria: value.criteria.map((c) => ({
           key: c.key,
@@ -464,6 +570,7 @@ function HomeworkWizard({
     );
     await ws.command("save_private_homework", created.id, 0, {
       reviewer_guidance: value.reviewer_guidance ?? "",
+      allowed_sources: savedDraft.allowed_sources,
       reference_upload_id: savedDraft.reference_upload_id ?? null,
       material_upload_ids: savedDraft.material_upload_ids ?? [],
       criterion_settings: Object.fromEntries(
@@ -490,6 +597,19 @@ function HomeworkWizard({
   const title =
     data.title ?? data.latest?.student_text.slice(0, 60) ?? "Задание";
   const criteria = draft.criteria ?? [];
+  const sources = draft.allowed_sources ?? DEFAULT_SOURCES;
+  const linksAllowed = sources.some((source) => source !== "upload");
+  const filesAllowed = sources.includes("upload");
+  function changeSources(links: boolean, files: boolean) {
+    const existingLinks = sources.filter((source) => source !== "upload");
+    change({
+      allowed_sources: DEFAULT_SOURCES.filter((source) =>
+        source === "upload"
+          ? files
+          : links && (!existingLinks.length || existingLinks.includes(source)),
+      ),
+    });
+  }
   const stepItems = ["Для студента", "Критерии ревью", "Публикация"].map(
     (label, i) => ({
       n: i + 1,
@@ -554,45 +674,18 @@ function HomeworkWizard({
           >
             <div className="row-side">
               <Card>
-                <CardHead title="Условие задания">
+                <CardHead title="Задание">
                   <span className="caption">
                     Видно студенту на странице сдачи
                   </span>
                 </CardHead>
                 <CardBody>
                   <Field label="Условие">
-                    <Area
+                    <MarkdownArea
                       className="inp--taller"
                       value={draft.student_text ?? ""}
-                      onChange={(e) => change({ student_text: e.target.value })}
+                      onChange={(value) => change({ student_text: value })}
                     />
-                  </Field>
-                  <Field
-                    group
-                    label="Что сдаём"
-                    hint="Какие ссылки принимаем. Файл Markdown, PDF или DOCX студент может приложить всегда."
-                  >
-                    <div className="btn-row">
-                      {(["github", "google_docs"] as const).map((kind) => (
-                        <Chk
-                          key={kind}
-                          checked={
-                            draft.artifact_kinds?.includes(kind) ?? false
-                          }
-                          onChange={(e) =>
-                            change({
-                              artifact_kinds: e.target.checked
-                                ? [...(draft.artifact_kinds ?? []), kind]
-                                : (draft.artifact_kinds ?? []).filter(
-                                    (v) => v !== kind,
-                                  ),
-                            })
-                          }
-                        >
-                          {kind === "github" ? "GitHub" : "Google Docs"}
-                        </Chk>
-                      ))}
-                    </div>
                   </Field>
                   <Field
                     label="Материалы для студента"
@@ -654,26 +747,41 @@ function HomeworkWizard({
                       ))}
                     </div>
                   )}
+                  <Field
+                    group
+                    label="Что прикрепляет студент для ответа"
+                    hint="Можно разрешить оба типа. Ссылки — GitHub или Google Docs; файлы — Markdown, PDF или DOCX."
+                    error={
+                      !sources.length
+                        ? "Выберите хотя бы один тип ответа."
+                        : undefined
+                    }
+                  >
+                    <div className="btn-row" role="group">
+                      <Chk
+                        checked={linksAllowed}
+                        onChange={(e) =>
+                          changeSources(e.target.checked, filesAllowed)
+                        }
+                      >
+                        Ссылки
+                      </Chk>
+                      <Chk
+                        checked={filesAllowed}
+                        onChange={(e) =>
+                          changeSources(linksAllowed, e.target.checked)
+                        }
+                      >
+                        Файлы
+                      </Chk>
+                    </div>
+                  </Field>
                 </CardBody>
               </Card>
               <div className="stack">
                 <Card>
-                  <CardHead title="Сроки и штраф" />
+                  <CardHead title="Дополнительные настройки" />
                   <CardBody>
-                    <Field
-                      label="Срок сдачи"
-                      hint="Для каждого потока срок задаётся отдельно на шаге 3."
-                    >
-                      <Inp
-                        disabled
-                        readOnly
-                        value={
-                          draft.submission_deadline
-                            ? dayLong(draft.submission_deadline)
-                            : "не задан"
-                        }
-                      />
-                    </Field>
                     <Field
                       group
                       label="Штраф за просрочку, баллов в день"
@@ -710,43 +818,21 @@ function HomeworkWizard({
                         }))}
                       />
                     </Field>
-                    <div className="row-2 row-2--tight">
-                      <Field label="Дней на доработку">
-                        <Inp
-                          small
-                          mono
-                          type="number"
-                          min={1}
-                          max={365}
-                          value={
-                            Number.isFinite(draft.policy?.revision_days)
-                              ? draft.policy?.revision_days
-                              : ""
-                          }
-                          onChange={(e) =>
-                            policy({ revision_days: e.target.valueAsNumber })
-                          }
-                        />
-                      </Field>
-                      <Field label="Максимум пересдач">
-                        <Inp
-                          small
-                          mono
-                          type="number"
-                          min={0}
-                          value={
-                            Number.isFinite(draft.policy?.max_resubmissions)
-                              ? draft.policy?.max_resubmissions
-                              : ""
-                          }
-                          onChange={(e) =>
-                            policy({
-                              max_resubmissions: e.target.valueAsNumber,
-                            })
-                          }
-                        />
-                      </Field>
-                    </div>
+                    <Field group label="Максимум пересдач">
+                      <Seg
+                        value={String(draft.policy?.max_resubmissions ?? 0)}
+                        onChange={(v) =>
+                          policy({ max_resubmissions: Number(v) })
+                        }
+                        options={choices(
+                          [0, 1, 2, 3],
+                          draft.policy?.max_resubmissions,
+                        ).map((v) => ({
+                          value: String(v),
+                          label: v === 0 ? "Нет" : String(v),
+                        }))}
+                      />
+                    </Field>
                   </CardBody>
                 </Card>
                 <Callout>
@@ -759,17 +845,14 @@ function HomeworkWizard({
                 </Callout>
               </div>
             </div>
-            <Dock
-              actions={
-                <Btn variant="dark" type="submit" disabled={action.busy}>
-                  Дальше: критерии
-                </Btn>
-              }
-            >
+            <BtnRow className="form-actions">
+              <Btn variant="dark" type="submit" disabled={action.busy}>
+                Дальше: критерии
+              </Btn>
               <span className="caption" role="status">
                 {autoStatus || "Черновик сохраняется сам"}
               </span>
-            </Dock>
+            </BtnRow>
           </form>
         )}
 
@@ -809,7 +892,7 @@ function HomeworkWizard({
                       Добавить критерий
                     </Btn>
                   </CardHead>
-                  <CardBody>
+                  <CardBody className="criteria-editor">
                     {criteria.length === 0 && (
                       <p className="small dim">
                         Критериев пока нет. Добавьте первый: по нему будут
@@ -906,42 +989,33 @@ function HomeworkWizard({
                             </Field>
                           )}
                           <div className="crit__row">
-                            <Field label="Баллов за критерий">
-                              <Inp
-                                small
-                                mono
-                                className="inp--w-88"
-                                type="number"
-                                required
-                                min={0}
-                                step="any"
-                                value={
-                                  Number.isFinite(c.max_points)
-                                    ? c.max_points
-                                    : ""
+                            <Field group label="Баллов за критерий">
+                              <Seg
+                                value={String(c.max_points ?? "")}
+                                onChange={(v) =>
+                                  edit({ max_points: Number(v) })
                                 }
-                                onChange={(e) =>
-                                  edit({ max_points: e.target.valueAsNumber })
-                                }
+                                options={choices(
+                                  [0.5, 1, 2, 3],
+                                  c.max_points,
+                                ).map((v) => ({
+                                  value: String(v),
+                                  label: num(v, 2),
+                                }))}
                               />
                             </Field>
-                            <Field label="Шаг">
-                              <Inp
-                                small
-                                mono
-                                className="inp--w-88"
-                                type="number"
-                                required
-                                min={0.000001}
-                                step="any"
-                                value={
-                                  Number.isFinite(c.score_step)
-                                    ? c.score_step
-                                    : ""
+                            <Field group label="Шаг">
+                              <Seg
+                                value={String(c.score_step ?? "")}
+                                onChange={(v) =>
+                                  edit({ score_step: Number(v) })
                                 }
-                                onChange={(e) =>
-                                  edit({ score_step: e.target.valueAsNumber })
-                                }
+                                options={choices([0.5, 1], c.score_step).map(
+                                  (v) => ({
+                                    value: String(v),
+                                    label: num(v, 2),
+                                  }),
+                                )}
                               />
                             </Field>
                             <Field group label="Что увидит ревьюер">
@@ -1175,17 +1249,14 @@ function HomeworkWizard({
                 </Card>
               </div>
             </div>
-            <Dock
-              actions={
-                <Btn
-                  variant="dark"
-                  type="submit"
-                  disabled={action.busy || !criteria.length}
-                >
-                  Дальше: публикация
-                </Btn>
-              }
-            >
+            <BtnRow className="form-actions">
+              <Btn
+                variant="dark"
+                type="submit"
+                disabled={action.busy || !criteria.length}
+              >
+                Дальше: публикация
+              </Btn>
               <Sum
                 value={num(draft.max_score)}
                 of={`${plural(Math.round(draft.max_score), "балл", "балла", "баллов")} за ${criteria.length} ${plural(criteria.length, "критерий", "критерия", "критериев")}`}
@@ -1193,7 +1264,7 @@ function HomeworkWizard({
               <span className="caption" role="status">
                 {autoStatus || "Черновик сохраняется сам"}
               </span>
-            </Dock>
+            </BtnRow>
           </form>
         )}
 
@@ -1269,38 +1340,33 @@ function HomeworkWizard({
                       </p>
                     </Callout>
                   )}
-                  <div className="row-2 row-2--tight">
-                    <Field label="Сдать до">
-                      <Inp
-                        required
-                        type="datetime-local"
-                        value={localDate(draft.submission_deadline)}
-                        onChange={(e) =>
-                          change({
-                            submission_deadline: e.target.value
-                              ? new Date(e.target.value).toISOString()
-                              : null,
-                          })
-                        }
-                      />
-                    </Field>
-                    <Field label="Проверить до">
-                      <Inp
-                        required
-                        type="datetime-local"
-                        min={localDate(draft.submission_deadline)}
-                        value={localDate(draft.review_deadline)}
-                        onChange={(e) =>
-                          change({
-                            review_deadline: e.target.value
-                              ? new Date(e.target.value).toISOString()
-                              : null,
-                          })
-                        }
-                      />
-                    </Field>
-                  </div>
+                  <Field
+                    label="Дедлайн сдачи"
+                    hint={`Проверить работы ревьюеры должны за ${REVIEW_WINDOW_DAYS} ${plural(REVIEW_WINDOW_DAYS, "день", "дня", "дней")} после сдачи.`}
+                  >
+                    <Inp
+                      required
+                      type="datetime-local"
+                      value={localDate(draft.submission_deadline)}
+                      onChange={(e) => {
+                        const at = e.target.value
+                          ? new Date(e.target.value)
+                          : null;
+                        change({
+                          submission_deadline: at ? at.toISOString() : null,
+                          review_deadline: at
+                            ? reviewDeadline(at).toISOString()
+                            : null,
+                        });
+                      }}
+                    />
+                  </Field>
                   <div className="stack--tight">
+                    <Kv label="Проверить до">
+                      {draft.review_deadline
+                        ? dayLong(draft.review_deadline)
+                        : "назначится вместе со сроком сдачи"}
+                    </Kv>
                     <Kv label="Публикуется версия">
                       {version ? version.version_number : "ещё не сохранена"}
                     </Kv>

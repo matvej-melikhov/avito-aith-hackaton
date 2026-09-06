@@ -1,0 +1,222 @@
+{
+  "id": "01a07770-48a8-7403-b563-2d6c5d91e334",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В файле routers/users.py бизнес-логика проверки (is_verified_seller и images_qty) находится прямо внутри маршрута predict. Как бы вы вынесли эту логику в отдельный слой services, и что бы осталось в самом роуте после такого рефакторинга?\n2. В тестах вы ожидаете статус 422 при ошибках валидации (например, tests/test_predict.py:72). Если бы требовалось возвращать 400 вместо 422, как бы вы это реализовали в FastAPI — через кастомный exception handler или иным способом?\n3. В тестах каждый corner-case (отсутствие поля, неверный тип, отрицательное значение, пустая строка) оформлен отдельной функцией. Как бы вы переписали эти тесты с использованием pytest.mark.parametrize, чтобы сократить дублирование кода?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за работу, вот что нужно доработать:\n\n- Вынеси бизнес-логику проверки объявления из роутера в отдельный слой (например, `services/prediction.py`), оставив в `routers/users.py` только HTTP-обработку.\n- Добавь доказательство локального запуска проекта через `fastapi dev` без ошибок (например, скриншот или лог).\n- Объедини corner-case тесты через `pytest.mark.parametrize` — сейчас каждый случай оформлен отдельной функцией.\n- Приложи вывод `pytest` или CI-логи, подтверждающие, что все тесты проходят.\n- Настрой обработку ошибок валидации так, чтобы возвращался статус 400 с понятным сообщением, а не 422 по умолчанию.\n\nХорошо, что логика валидации полностью соответствует заданию, а тесты покрывают основные сценарии.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "class PredictionRequest(BaseModel):\n    seller_id: int = Field(..., ge=0)\n    is_verified_seller: bool\n    item_id: int = Field(..., ge=0)\n    name: str = Field(..., min_length=1)\n    description: str = Field(..., min_length=1)\n    category: int = Field(..., ge=0)\n    images_qty: int = Field(..., ge=0)",
+            "locator": "routers/users.py:8-15",
+            "path": "routers/users.py",
+            "line_start": 8,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "class PredictionResponse(BaseModel):\n    is_valid: bool",
+            "locator": "routers/users.py:18-19",
+            "path": "routers/users.py",
+            "line_start": 18,
+            "line_end": 19,
+            "verified": false
+          },
+          {
+            "quote": "@router.post(\"/predict\", response_model=PredictionResponse)\nasync def predict(request: PredictionRequest):",
+            "locator": "routers/users.py:22-23",
+            "path": "routers/users.py",
+            "line_start": 22,
+            "line_end": 23,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-aa6b-7645-b859-9d821c9283d0",
+        "status": "suggested",
+        "proposed_points": 2.0,
+        "reason": "Обработчик POST /predict принимает все требуемые поля с валидацией через Pydantic (типы и ограничения) и возвращает единственное булево значение is_valid.",
+        "evidence": [
+          "routers/users.py:8-15 (цитата подтверждена кодом)",
+          "routers/users.py:18-19 (цитата подтверждена кодом)",
+          "routers/users.py:22-23 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сводка: предложено 5 из 10. Не выполнено: Clean architecture separation, Local launch without errors, All tests pass, Predictable HTTP statuses. Сигнал ИИ: low. Стоимость прогона: 0.56 ₽ (104122 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "if request.is_verified_seller:\n            is_valid = True\n        else:\n            is_valid = request.images_qty > 0",
+            "locator": "routers/users.py:25-28",
+            "path": "routers/users.py",
+            "line_start": 25,
+            "line_end": 28,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-aa6b-7645-b859-9d821c9283d1",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Логика валидации полностью соответствует заданию: подтверждённые продавцы всегда получают True, неподтверждённые — только при наличии изображений (images_qty > 0).",
+        "evidence": [
+          "routers/users.py:25-28 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "@router.post(\"/predict\", response_model=PredictionResponse)\nasync def predict(request: PredictionRequest):\n    try:\n        if request.is_verified_seller:\n            is_valid = True\n        else:\n            is_valid = request.images_qty > 0\n        \n        return PredictionResponse(is_valid=is_valid)\n    except Exception as e:\n        raise HTTPException(status_code=500, detail=str(e))",
+            "locator": "routers/users.py:22-32",
+            "path": "routers/users.py",
+            "line_start": 22,
+            "line_end": 32,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-aa6b-7645-b859-9d821c9283d2",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Бизнес-логика (проверка is_verified_seller/images_qty и обработка ошибок) находится непосредственно внутри маршрута predict в routers/users.py. Слой services отсутствует во всём проекте.",
+        "evidence": [
+          "routers/users.py:22-32 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Вынесите бизнес-логику предсказания в отдельный слой services, оставив в роуте только HTTP-обработку."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "from fastapi import FastAPI\nfrom routers.users import router as user_router\n\napp = FastAPI()\n\napp.include_router(user_router)\n\n\n@app.get(\"/\")\nasync def root():\n    return {'message': 'Hello World'}",
+            "locator": "main.py:1-11",
+            "path": "main.py",
+            "line_start": 1,
+            "line_end": 11,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-aa6b-7645-b859-9d821c9283d3",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В срезе нет доказательств фактического локального запуска через fastapi dev. Есть только структура main.py с app = FastAPI() и подключённым роутером, но сам запуск не исполнялся (read-only снапшот).",
+        "evidence": [
+          "main.py:1-11 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Снапшот read-only, запуск не исполнялся. Ревьюеру стоит проверить запуск локально, если есть доступ к репозиторию/коммиту. Не найдено в работе: Доказательство фактического запуска проекта через fastapi dev без ошибок",
+        "student_feedback": "Приложите доказательство локального запуска через fastapi dev без ошибок."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "def test_predict_verified_seller_positive():\n    response = client.post(\n        \"/predict\",\n        json={\n            \"seller_id\": 1,\n            \"is_verified_seller\": True,\n            \"item_id\": 100,\n            \"name\": \"Test Item\",\n            \"description\": \"Test Description\",\n            \"category\": 5,\n            \"images_qty\": 0\n        }\n    )\n    assert response.status_code == 200\n    assert response.json()[\"is_valid\"] is True",
+            "locator": "tests/test_predict.py:9-23",
+            "path": "tests/test_predict.py",
+            "line_start": 9,
+            "line_end": 23,
+            "verified": false
+          },
+          {
+            "quote": "def test_predict_unverified_seller_no_images_negative():\n    response = client.post(\n        \"/predict\",\n        json={\n            \"seller_id\": 3,\n            \"is_verified_seller\": False,\n            \"item_id\": 300,\n            \"name\": \"Test Item\",\n            \"description\": \"Test Description\",\n            \"category\": 2,\n            \"images_qty\": 0\n        }\n    )\n    assert response.status_code == 200\n    assert response.json()[\"is_valid\"] is False",
+            "locator": "tests/test_predict.py:43-57",
+            "path": "tests/test_predict.py",
+            "line_start": 43,
+            "line_end": 57,
+            "verified": false
+          },
+          {
+            "quote": "def test_predict_missing_required_field():\n    response = client.post(\n        \"/predict\",\n        json={\n            \"seller_id\": 4,\n            \"is_verified_seller\": True,\n            \"item_id\": 400,\n            \"description\": \"Test Description\",\n            \"category\": 1,\n            \"images_qty\": 2\n        }\n    )\n    assert response.status_code == 422",
+            "locator": "tests/test_predict.py:60-72",
+            "path": "tests/test_predict.py",
+            "line_start": 60,
+            "line_end": 72,
+            "verified": false
+          },
+          {
+            "quote": "def test_predict_negative_values():\n    response = client.post(\n        \"/predict\",\n        json={\n            \"seller_id\": -1,\n            \"is_verified_seller\": False,\n            \"item_id\": 600,\n            \"name\": \"Test Item\",\n            \"description\": \"Test Description\",\n            \"category\": 2,\n            \"images_qty\": 3\n        }\n    )\n    assert response.status_code == 422",
+            "locator": "tests/test_predict.py:91-104",
+            "path": "tests/test_predict.py",
+            "line_start": 91,
+            "line_end": 104,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-aa6b-7645-b859-9d821c9283d4",
+        "status": "suggested",
+        "proposed_points": 2.0,
+        "reason": "Тесты покрывают позитивные (проверенный продавец, непроверенный с изображениями), негативный (непроверенный без изображений) сценарии и все corner-cases (отсутствие обязательного поля, неверный тип, отрицательные значения, пустая строка), но каждый corner-case оформлен отдельной функцией без параметризации pytest, поэтому уровень 3 не достигается.",
+        "evidence": [
+          "tests/test_predict.py:9-23 (цитата подтверждена кодом)",
+          "tests/test_predict.py:43-57 (цитата подтверждена кодом)",
+          "tests/test_predict.py:60-72 (цитата подтверждена кодом)",
+          "tests/test_predict.py:91-104 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Объедините corner-case тесты через pytest.mark.parametrize, чтобы получить полный балл."
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-aa6b-7645-b859-9d821c9283d5",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В артефакте нет доказательств выполнения/прохождения тестов (нет вывода pytest, CI-логов или иных следов запуска). Код тестов присутствует, но критерий требует evidence исполнения, которого в срезе нет.",
+        "evidence": [],
+        "confidence": "medium",
+        "reviewer_note": "Срез read-only, запуск pytest невозможен; исполнение тестов остаётся неразрешённым. Не найдено в работе: Доказательства запуска и прохождения тестов (вывод pytest, CI-артефакты) — искал по всем файлам среза",
+        "student_feedback": "Добавьте доказательства запуска и успешного прохождения тестов (например, вывод pytest)."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "except Exception as e:\n        raise HTTPException(status_code=500, detail=str(e))",
+            "locator": "routers/users.py:31-32",
+            "path": "routers/users.py",
+            "line_start": 31,
+            "line_end": 32,
+            "verified": false
+          },
+          {
+            "quote": "class PredictionRequest(BaseModel):\n    seller_id: int = Field(..., ge=0)\n    is_verified_seller: bool\n    item_id: int = Field(..., ge=0)\n    name: str = Field(..., min_length=1)\n    description: str = Field(..., min_length=1)\n    category: int = Field(..., ge=0)\n    images_qty: int = Field(..., ge=0)",
+            "locator": "routers/users.py:8-15",
+            "path": "routers/users.py",
+            "line_start": 8,
+            "line_end": 15,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-aa6b-7645-b859-9d821c9283d6",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Ошибки валидации возвращают 422 (по умолчанию FastAPI/Pydantic), а не 400, как требует критерий. Неизвестные ошибки бизнес-логики обрабатываются как 500, но требование по 400 не выполнено.",
+        "evidence": [
+          "routers/users.py:31-32 (цитата подтверждена кодом)",
+          "routers/users.py:8-15 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверить, что FastAPI по умолчанию возвращает 422 для ошибок валидации Pydantic, а не 400.",
+        "student_feedback": "Добавьте обработку ошибок валидации, возвращающую статус 400 с понятным сообщением."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:22Z"
+}

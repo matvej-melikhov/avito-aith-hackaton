@@ -1,0 +1,224 @@
+{
+  "id": "01a07770-4411-782f-8040-aa80c8939541",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В задании сказано, что обработчик /predict должен возвращать одно булево значение, но в вашем коде он возвращает объект с полем resp. Почему вы выбрали такой формат ответа, и как это соотносится с требованием задания?\n2. В тестах вы ожидаете HTTP-статус 422 для ошибок валидации (например, при пустом теле запроса). Объясните, откуда берётся этот статус в FastAPI и почему вы не добавили собственные обработчики исключений для возврата 400/500?\n3. В критериях оценивания есть пункт про локальный запуск и прохождение тестов, но в репозитории нет логов запуска или вывода pytest. Как вы запускали сервис и тесты локально, и что выводилось при этом?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за работу, вот что нужно поправить:\n\n- Измени ответ обработчика `/predict`: сейчас возвращается объект с полем `resp`, а по заданию нужно одно булево значение — верни просто `true` или `false`.\n- Добавь обработчики исключений: для ошибок валидации возвращай HTTP 400, для неизвестных бизнес-ошибок — 500. Сейчас тесты ожидают 422, что не соответствует требованию.\n- Приложи доказательства успешного локального запуска: вывод `fastapi dev` или `uvicorn`, скриншот или лог. Без этого критерий не засчитан.\n- Добавь вывод `pytest` или лог CI с результатами прохождения тестов — в срезе только файлы тестов, но нет подтверждения, что они реально выполнялись.\n- Проверь, что в тестах ожидаемые статус-коды соответствуют новым обработчикам (400 вместо 422), иначе после правок тесты упадут.\n\nХорошо, что логика валидации объявления и разделение на роутер/сервис/модели сделаны чисто и полностью по заданию.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "@router.post(\"/predict\", status_code=status.HTTP_200_OK, response_model=PredictionResponse)\nasync def predict(dto: AdvModel) -> PredictionResponse:\n    result = advertisement_service.predict(dto)\n    return PredictionResponse(resp=result)",
+            "locator": "routers/advertisement.py:12-15",
+            "path": "routers/advertisement.py",
+            "line_start": 12,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "class AdvModel(BaseModel):\n    seller_id: int = Field(gt=0)\n    is_verified_seller: bool\n    item_id: int = Field(gt=0)\n    name: str = Field(min_length=1, max_length=100)\n    description: str = Field(min_length=1, max_length=1000)\n    category: int = Field(ge=0) \n    images_qty: int = Field(ge=0)",
+            "locator": "models/advertisement.py:3-10",
+            "path": "models/advertisement.py",
+            "line_start": 3,
+            "line_end": 10,
+            "verified": false
+          },
+          {
+            "quote": "class PredictionResponse(BaseModel):\n    resp: bool",
+            "locator": "routers/advertisement.py:6-7",
+            "path": "routers/advertisement.py",
+            "line_start": 6,
+            "line_end": 7,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a633-74b2-a896-8cb8a335260e",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Обработчик принимает все обязательные поля и валидирует их, но возвращает объект с полем resp, а не одно булево значение как указано в задании.",
+        "evidence": [
+          "routers/advertisement.py:12-15 (цитата подтверждена кодом)",
+          "models/advertisement.py:3-10 (цитата подтверждена кодом)",
+          "routers/advertisement.py:6-7 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Повторы разошлись, взят осторожный вариант. повтор 2: pass, Обработчик принимает все обязательные поля через Pydantic-модель с валидацией и возвращает одно булево значение в поле resp. Сводка: предложено 6 из 10. Не выполнено: Local launch without errors, All tests pass, Predictable HTTP statuses. Сигнал ИИ: low. Стоимость прогона: 0.72 ₽ (139962 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": "Измените ответ обработчика так, чтобы он возвращал одно булево значение, а не объект."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "def predict(self, adv: AdvModel) -> bool: \n        if adv.is_verified_seller:\n            return True\n        if adv.images_qty > 0:\n            return True\n        return False",
+            "locator": "services/advertisement.py:6-11",
+            "path": "services/advertisement.py",
+            "line_start": 6,
+            "line_end": 11,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a633-74b2-a896-8cb8a335260f",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Логика валидации объявления полностью соответствует заданию: подтверждённые продавцы всегда проходят, неподтверждённые — только при наличии изображений.",
+        "evidence": [
+          "services/advertisement.py:6-11 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "@router.post(\"/predict\", status_code=status.HTTP_200_OK, response_model=PredictionResponse)\nasync def predict(dto: AdvModel) -> PredictionResponse:\n    result = advertisement_service.predict(dto)\n    return PredictionResponse(resp=result)",
+            "locator": "routers/advertisement.py:12-15",
+            "path": "routers/advertisement.py",
+            "line_start": 12,
+            "line_end": 15,
+            "verified": false
+          },
+          {
+            "quote": "@dataclass(frozen=True)\nclass AdvertisementService:\n    def predict(self, adv: AdvModel) -> bool: \n        if adv.is_verified_seller:\n            return True\n        if adv.images_qty > 0:\n            return True\n        return False",
+            "locator": "services/advertisement.py:4-11",
+            "path": "services/advertisement.py",
+            "line_start": 4,
+            "line_end": 11,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a633-74b2-a896-8cb8a3352610",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Код разделён на уровни: роутер (routers/advertisement.py) только вызывает сервис, бизнес-логика вынесена в services/advertisement.py, модели в models/advertisement.py.",
+        "evidence": [
+          "routers/advertisement.py:12-15 (цитата подтверждена кодом)",
+          "services/advertisement.py:4-11 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "if __name__ == \"__main__\":\n    uvicorn.run(app, host=\"127.0.0.1\", port=8007)",
+            "locator": "main.py:13-14",
+            "path": "main.py",
+            "line_start": 13,
+            "line_end": 14,
+            "verified": false
+          },
+          {
+            "quote": "fastapi\nuvicorn\nuvicorn[standard]\npytest\npydantic\nfastapi[standard]\npytest-asyncio\nhttpx",
+            "locator": "requirements.txt:1-8",
+            "path": "requirements.txt",
+            "line_start": 1,
+            "line_end": 8,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a633-74b2-a896-8cb8a3352611",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В срезе нет доказательств успешного локального запуска (fastapi dev или эквивалент). Есть только код main.py с uvicorn.run и requirements.txt, но отсутствуют логи запуска, вывод тестов или иные артефакты выполнения.",
+        "evidence": [
+          "main.py:13-14 (цитата подтверждена кодом)",
+          "requirements.txt:1-8 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Код выглядит запускаемым (main.py с uvicorn.run, зависимости в requirements.txt), но нет доказательств фактического запуска без ошибок. Ревьюеру решить, достаточно ли наличия запускаемого кода для зачёта критерия. Не найдено в работе: Доказательства успешного локального запуска (логи запуска, вывод команды fastapi dev/uvicorn, скриншоты) — искал по всему срезу",
+        "student_feedback": "Добавьте доказательства успешного локального запуска сервиса."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "@pytest.mark.parametrize(\"missing_field\", [\"seller_id\", \"is_verified_seller\", \"item_id\", \"name\", \"description\", \"category\", \"images_qty\"])",
+            "locator": "tests/test_advertisement.py:33-33",
+            "path": "tests/test_advertisement.py",
+            "line_start": 33,
+            "line_end": 33,
+            "verified": false
+          },
+          {
+            "quote": "@pytest.mark.parametrize(\"field, type_error_data\", \n    [(\"seller_id\", \"abc\"),         \n    (\"item_id\", \"xyz\"),       \n    (\"category\", \"invalid\"),     \n    (\"images_qty\", -1),      \n    (\"is_verified_seller\", \"ye\")])",
+            "locator": "tests/test_advertisement.py:49-54",
+            "path": "tests/test_advertisement.py",
+            "line_start": 49,
+            "line_end": 54,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a633-74b2-a896-8cb8a3352612",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "Тесты покрывают позитивные, негативные и corner-case сценарии, при этом corner-case проверки параметризованы, что соответствует максимальному баллу по критерию.",
+        "evidence": [
+          "tests/test_advertisement.py:33-33 (цитата подтверждена кодом)",
+          "tests/test_advertisement.py:49-54 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "2 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-a633-74b2-a896-8cb8a3352613",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В срезе нет доказательств фактического запуска и прохождения тестов. Есть только файлы тестов, но отсутствуют результаты выполнения (pytest output, CI-лог и т.п.), что не является подтверждением прохождения.",
+        "evidence": [],
+        "confidence": "medium",
+        "reviewer_note": "Срез read-only, тесты запустить нельзя. Ревьюеру проверить наличие внешних доказательств прохождения тестов (например, ссылка на CI/коммит с логом). Не найдено в работе: Доказательства выполнения тестов (вывод pytest, лог CI, отчёт о прохождении) — искал по всему срезу",
+        "student_feedback": "Добавьте доказательства фактического запуска и прохождения тестов (вывод pytest или лог CI)."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "def test_predict_validation(app_client: TestClient, invalid_data: dict):\n    response = app_client.post(\"/advertisement/predict\", json=invalid_data)\n    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY",
+            "locator": "tests/test_advertisement.py:25-27",
+            "path": "tests/test_advertisement.py",
+            "line_start": 25,
+            "line_end": 27,
+            "verified": false
+          },
+          {
+            "quote": "def test_predict_internal_error(app_client: TestClient):\n    response = app_client.post(\"/advertisement/predict\", json={})\n    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY",
+            "locator": "tests/test_advertisement.py:29-31",
+            "path": "tests/test_advertisement.py",
+            "line_start": 29,
+            "line_end": 31,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-a633-74b2-a896-8cb8a3352614",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет обработчиков ошибок, возвращающих 400 для ошибок валидации и 500 для неизвестных бизнес-ошибок; тесты ожидают 422 для ошибок валидации и для пустого тела.",
+        "evidence": [
+          "tests/test_advertisement.py:25-27 (цитата подтверждена кодом)",
+          "tests/test_advertisement.py:29-31 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверьте, есть ли в других файлах проекта (не показанных в срезе) обработчики исключений, которые могли бы обеспечить статусы 400 и 500.",
+        "student_feedback": "Добавьте обработчики исключений для возврата 400 при ошибках валидации и 500 при неизвестных ошибках бизнес-логики."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:21Z"
+}

@@ -6,6 +6,9 @@ import {
   type WorkspaceResults,
 } from "./workspace-routes";
 export type { W } from "./workspace-routes";
+export type ReviewerAvailability = Partial<
+  Pick<W<"DirectoryMember">, "absent_from" | "absent_until">
+>;
 export class WorkspaceClient {
   private pending = new Map<string, string>();
   constructor(public readonly core: ApiClient) {}
@@ -75,7 +78,10 @@ export class WorkspaceClient {
       `/v2/courses/${id}/homeworks`,
     );
   catalog = () => this.core.request<W<"CatalogView">>("/v2/catalog");
-  directory = () => this.core.request<W<"DirectoryView">>("/v2/directory");
+  directory = () =>
+    this.core.request<{
+      items: (W<"DirectoryMember"> & ReviewerAvailability)[];
+    }>("/v2/directory");
   preferences = () =>
     this.core.request<W<"PreferencesView">>("/v2/reviewer/preferences");
   assignments = (id: string) =>

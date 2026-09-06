@@ -1,6 +1,13 @@
+import { exportAllRuns } from "../exportAllRuns";
 import { StudentWorks } from "./StudentWorks";
 import { ReviewerQueue } from "./ReviewerQueue";
-import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import type { Role } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { useMenuCounts } from "../App";
@@ -48,11 +55,12 @@ export function WorkspaceWorks(props: {
   ws: WorkspaceClient;
   role: Role;
   coordinatorPool?: boolean;
+  reviewerPool?: boolean;
 }) {
   return props.role === "student" ? (
     <StudentWorks ws={props.ws} />
   ) : props.role === "reviewer" ? (
-    <ReviewerQueue ws={props.ws} />
+    <ReviewerQueue ws={props.ws} pool={props.reviewerPool} />
   ) : (
     <WorksList {...props} />
   );
@@ -75,14 +83,19 @@ function hashParam(name: string) {
   );
 }
 
-/** К7 «Пул проверок» и К8 «Домашки потока» координатора. */
-function WorksList({
+/**
+ * К7 «Пул проверок» и К8 «Домашки потока» координатора. На «Обзоре» обе
+ * таблицы показываются встроенно, без своей шапки экрана.
+ */
+export function WorksList({
   ws,
   coordinatorPool = false,
+  embedded = false,
 }: {
   ws: WorkspaceClient;
-  role: Role;
+  role?: Role;
   coordinatorPool?: boolean;
+  embedded?: boolean;
 }) {
   const pool = coordinatorPool;
   const [query, setQuery] = useState(hashParam("q"));
@@ -129,7 +142,17 @@ function WorksList({
     ? items.reduce((sum, w) => sum + w.waited, 0) / items.length
     : null;
 
+  const Frame = ({
+    screen,
+    children,
+  }: {
+    screen: string;
+    children: ReactNode;
+  }) =>
+    embedded ? <>{children}</> : <Main data-screen={screen}>{children}</Main>;
+
   async function openReview(w: W<"WorkItem">) {
+    if (!w.submission_id) return;
     if (
       w.review_iteration_id &&
       w.review_submission_version_id === w.submission_version_id
@@ -203,11 +226,11 @@ function WorksList({
           </Btn>
           <Btn
             size="s"
-            variant="link"
+            variant="quiet"
             disabled={offset + LIMIT >= r.data.total}
             onClick={() => setOffset(offset + LIMIT)}
           >
-            Показать ещё
+            Вперед
           </Btn>
         </BtnRow>
       )}
@@ -217,25 +240,27 @@ function WorksList({
   if (pool)
     return (
       <>
-        <Topbar
-          crumbs={crumbs}
-          title="Пул проверок"
-          actions={
-            <Btn
-              size="s"
-              variant="dark"
-              disabled={!currentRun}
-              title={currentRun ? undefined : "Сначала выберите поток"}
-              onClick={() => setReminding(true)}
-            >
-              Напомнить ревьюерам
-            </Btn>
-          }
-        />
-        <Main data-screen="К7">
+        {!embedded && (
+          <Topbar
+            crumbs={crumbs}
+            title="Пул проверок"
+            actions={
+              <Btn
+                size="s"
+                variant="dark"
+                disabled={!currentRun}
+                title={currentRun ? undefined : "Сначала выберите поток"}
+                onClick={() => setReminding(true)}
+              >
+                Напомнить ревьюерам
+              </Btn>
+            }
+          />
+        )}
+        <Frame screen="К7">
           {action.feedback}
           <div className="stack">
-            {r.data && (
+            {r.data && !embedded && (
               <Tiles>
                 <Tile
                   n={r.data.total}
@@ -264,7 +289,14 @@ function WorksList({
               </Tiles>
             )}
             <Card>
-              <CardHead title="Работы без ревьюера">
+              <CardHead
+                title={embedded ? "Пул проверок" : "Работы без ревьюера"}
+                sub={
+                  embedded
+                    ? "Сданные работы, которые ещё никто не взял"
+                    : undefined
+                }
+              >
                 <BtnRow>
                   {runSelect}
                   <Btn
@@ -338,13 +370,20 @@ function WorksList({
                           ))}
                         </tbody>
                       </table>
-                      {shown.length === 0 && (
-                        <Empty title="В пуле пусто">
-                          {hotOnly
-                            ? "Зависших работ нет: всё берут вовремя."
-                            : "Все сданные работы уже у ревьюеров."}
-                        </Empty>
-                      )}
+                      {shown.length === 0 &&
+                        (embedded ? (
+                          <p className="small dim table-note">
+                            {hotOnly
+                              ? "Зависших работ нет: всё берут вовремя."
+                              : "Все сданные работы уже у ревьюеров."}
+                          </p>
+                        ) : (
+                          <Empty title="В пуле пусто">
+                            {hotOnly
+                              ? "Зависших работ нет: всё берут вовремя."
+                              : "Все сданные работы уже у ревьюеров."}
+                          </Empty>
+                        ))}
                     </CardBody>
                     {foot}
                   </>
@@ -352,7 +391,7 @@ function WorksList({
               </Resource>
             </Card>
           </div>
-        </Main>
+        </Frame>
         {reminding && currentRun && (
           <RemindModal ws={ws} run={currentRun} close={closeRemind} />
         )}
@@ -361,69 +400,73 @@ function WorksList({
 
   return (
     <>
-      <Topbar
-        crumbs={crumbs}
-        title="Домашки потока"
-        lead={
-          <form
-            className="topbar__search"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSearch(query);
-              setOffset(0);
-            }}
-          >
-            <Inp
-              small
-              className="inp--w-200"
-              aria-label="Поиск"
-              placeholder="Поиск по ID студента"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onBlur={() => {
-                if (query !== search) {
-                  setSearch(query);
-                  setOffset(0);
-                }
+      {!embedded && (
+        <Topbar
+          crumbs={crumbs}
+          title="Домашки потока"
+          lead={
+            <form
+              className="topbar__search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSearch(query);
+                setOffset(0);
               }}
-            />
-          </form>
-        }
-        actions={
-          <Btn
-            size="s"
-            variant="dark"
-            disabled={!currentRun}
-            title={currentRun ? undefined : "Сначала выберите поток"}
-            onClick={() => setExporting(true)}
-          >
-            Выгрузить
-          </Btn>
-        }
-      />
-      <Main data-screen="К8">
-        {action.feedback}
-        <div className="tabs--row">
-          <Tabs className="tabs--wrap" label="Статус">
-            {REGISTRY_TABS.map(([value, label]) => (
-              <Tab
-                key={value}
-                on={state === value}
-                onClick={() => {
-                  setState(value);
-                  setOffset(0);
+            >
+              <Inp
+                small
+                className="inp--w-200"
+                aria-label="Поиск"
+                placeholder="Поиск по ID студента"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onBlur={() => {
+                  if (query !== search) {
+                    setSearch(query);
+                    setOffset(0);
+                  }
                 }}
+              />
+            </form>
+          }
+          actions={
+            <>
+              <Btn
+                size="s"
+                variant="dark"
+                disabled={!catalog.data?.course_runs.length}
+                onClick={() => setExporting(true)}
               >
-                {label}
-              </Tab>
-            ))}
-          </Tabs>
-          {runSelect}
-        </div>
+                Выгрузить
+              </Btn>
+            </>
+          }
+        />
+      )}
+      <Frame screen="К8">
+        {action.feedback}
+        {!embedded && (
+          <div className="tabs--row">
+            <Tabs className="tabs--wrap" label="Статус">
+              {REGISTRY_TABS.map(([value, label]) => (
+                <Tab
+                  key={value}
+                  on={state === value}
+                  onClick={() => {
+                    setState(value);
+                    setOffset(0);
+                  }}
+                >
+                  {label}
+                </Tab>
+              ))}
+            </Tabs>
+          </div>
+        )}
         <Card>
           <CardHead
-            title={currentRun?.title ?? "Все потоки"}
-            sub={course?.title}
+            title={embedded ? "Домашки" : (currentRun?.title ?? "Все потоки")}
+            sub={embedded ? undefined : course?.title}
           >
             {r.data && (
               <span className="caption">
@@ -432,6 +475,27 @@ function WorksList({
               </span>
             )}
           </CardHead>
+          {embedded && (
+            <div className="tabs--row tabs--row-in">
+              <Tabs className="tabs--wrap" label="Статус">
+                {REGISTRY_TABS.map(([value, label]) => (
+                  <Tab
+                    key={value}
+                    on={state === value}
+                    onClick={() => {
+                      setState(value);
+                      setOffset(0);
+                    }}
+                  >
+                    {label}
+                  </Tab>
+                ))}
+              </Tabs>
+              {currentRun && (
+                <span className="caption">{currentRun.title}</span>
+              )}
+            </div>
+          )}
           <Resource value={r}>
             {r.data && (
               <>
@@ -503,10 +567,7 @@ function WorksList({
                     </tbody>
                   </table>
                   {items.length === 0 && (
-                    <Empty title="Работ нет">
-                      По этим условиям работ нет. Снимите фильтр статуса или
-                      выберите другой поток.
-                    </Empty>
+                    <Empty title="Работ нет">По этим условиям работ нет.</Empty>
                   )}
                 </CardBody>
                 {foot}
@@ -514,11 +575,13 @@ function WorksList({
             )}
           </Resource>
         </Card>
-      </Main>
-      {exporting && currentRun && (
+      </Frame>
+      {exporting && catalog.data && (
         <ExportForm
           ws={ws}
           run={currentRun}
+          runs={catalog.data.course_runs}
+          courses={catalog.data.courses}
           close={closeExport}
           total={r.data?.total}
         />
@@ -619,11 +682,15 @@ const STUDENT_COLUMNS = ["student_id", "score", "status"];
 function ExportForm({
   ws,
   run,
+  runs,
+  courses,
   close,
   total,
 }: {
   ws: WorkspaceClient;
-  run: W<"CourseRunView">;
+  run?: W<"CourseRunView">;
+  runs: W<"CourseRunView">[];
+  courses: W<"CourseView">[];
   close: () => void;
   total?: number;
 }) {
@@ -636,6 +703,21 @@ function ExportForm({
   ]);
   const [unfinished, setUnfinished] = useState(false);
   const [job, setJob] = useState<string>();
+  const [scope, setScope] = useState(run ? "run" : "all");
+  const [file, setFile] = useState<{
+    url: string;
+    rows: number;
+    filename: string;
+  }>();
+  const [progress, setProgress] = useState("");
+  const [controller] = useState(() => new AbortController());
+  useEffect(() => () => controller.abort(), [controller]);
+  useEffect(
+    () => () => {
+      if (file) URL.revokeObjectURL(file.url);
+    },
+    [file],
+  );
   const action = useAction();
   const available = COLUMNS.filter(
     ([key]) => audience === "team" || STUDENT_COLUMNS.includes(key),
@@ -646,6 +728,26 @@ function ExportForm({
         onSubmit={(e) => {
           e.preventDefault();
           void action.run(async () => {
+            if (scope === "all") {
+              setProgress(`Подготовлено 0 из ${runs.length} потоков`);
+              const result = await exportAllRuns(
+                ws,
+                runs,
+                courses,
+                { audience, columns, include_unpublished: unfinished, format },
+                controller.signal,
+                (done, total) =>
+                  setProgress(`Подготовлено ${done} из ${total} потоков`),
+              );
+              controller.signal.throwIfAborted();
+              setFile({
+                url: URL.createObjectURL(result.blob),
+                rows: result.rows,
+                filename: `results-all-runs.${format}`,
+              });
+              return;
+            }
+            if (!run) return;
             const result = await ws.command(
               "create_export",
               run.id,
@@ -668,20 +770,27 @@ function ExportForm({
             label="Что выгружаем"
             hint={
               total !== undefined
-                ? `В потоке ${total} ${plural(total, "работа", "работы", "работ")}.`
+                ? `${total} ${plural(total, "работа", "работы", "работ")} в текущем списке.`
                 : undefined
             }
           >
-            <Inp disabled value={`Поток «${run.title}»`} readOnly />
+            <Sel
+              value={scope}
+              onChange={(e) => setScope(e.target.value)}
+              disabled={action.busy || !!job || !!file}
+            >
+              <option value="all">Все потоки</option>
+              {run && <option value="run">Поток «{run.title}»</option>}
+            </Sel>
           </Field>
           <Field
             group
-            label="Кому выгружаем"
+            label="Для кого файл"
             hint="В студенческой копии нет ID ревьюера и комментариев, только ID студента, балл и статус."
           >
             <Seg
               value={audience}
-              disabled={action.busy}
+              disabled={action.busy || !!file || !!job}
               onChange={(a) => {
                 setAudience(a);
                 if (a === "students")
@@ -700,7 +809,7 @@ function ExportForm({
               {available.map(([key, label]) => (
                 <Chk
                   key={key}
-                  disabled={action.busy}
+                  disabled={action.busy || !!file || !!job}
                   checked={columns.includes(key)}
                   onChange={(e) =>
                     setColumns(
@@ -722,7 +831,7 @@ function ExportForm({
           >
             <Seg
               value={unfinished ? "with" : "skip"}
-              disabled={action.busy}
+              disabled={action.busy || !!file || !!job}
               onChange={(v) => setUnfinished(v === "with")}
               options={[
                 { value: "skip", label: "Не выгружать" },
@@ -733,7 +842,7 @@ function ExportForm({
           <Field group label="Формат">
             <Seg
               value={format}
-              disabled={action.busy}
+              disabled={action.busy || !!file || !!job}
               onChange={setFormat}
               options={[
                 { value: "csv", label: "CSV" },
@@ -741,6 +850,15 @@ function ExportForm({
               ]}
             />
           </Field>
+          {progress && <p role="status">{progress}</p>}
+          {file && (
+            <div className="field--after">
+              <p>Строк: {file.rows}</p>
+              <Btn href={file.url} download={file.filename}>
+                Скачать файл
+              </Btn>
+            </div>
+          )}
           {job && (
             <div className="field--after">
               <ExportMonitor ws={ws} id={job} />
@@ -750,12 +868,12 @@ function ExportForm({
         <div className="card__foot card__foot--end">
           <BtnRow>
             <Btn variant="quiet" onClick={close}>
-              {job ? "Закрыть" : "Отмена"}
+              {job || file ? "Закрыть" : "Отмена"}
             </Btn>
             <Btn
               variant="pri"
               type="submit"
-              disabled={action.busy || !columns.length || !!job}
+              disabled={action.busy || !columns.length || !!job || !!file}
             >
               Подготовить файл
             </Btn>
@@ -788,38 +906,35 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
   const peer = r.data?.peer_comparison;
   return (
     <>
-      <Topbar
-        title="Кабинет"
-        actions={
-          <>
-            <Sel
-              small
-              aria-label="Поток"
-              value={courseRun}
-              onChange={(e) => setCourseRun(e.target.value)}
-            >
-              <option value="">Поток: все</option>
-              {catalog.data?.course_runs.map((run) => (
-                <option key={run.id} value={run.id}>
-                  {run.title}
-                </option>
-              ))}
-            </Sel>
-            <Sel
-              small
-              aria-label="Период"
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-            >
-              <option value={7}>Период: 7 дней</option>
-              <option value={30}>Период: 30 дней</option>
-              <option value={90}>Период: 90 дней</option>
-            </Sel>
-          </>
-        }
-      />
+      <Topbar title="Кабинет" />
       <Main data-screen="Р4">
         <CabinetTabs on="statistics" />
+        {/* Фильтры сужают аналитику ниже, поэтому стоят рядом с ней. */}
+        <BtnRow className="filter-row">
+          <Sel
+            small
+            aria-label="Поток"
+            value={courseRun}
+            onChange={(e) => setCourseRun(e.target.value)}
+          >
+            <option value="">Поток: все</option>
+            {catalog.data?.course_runs.map((run) => (
+              <option key={run.id} value={run.id}>
+                {run.title}
+              </option>
+            ))}
+          </Sel>
+          <Sel
+            small
+            aria-label="Период"
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+          >
+            <option value={7}>Период: 7 дней</option>
+            <option value={30}>Период: 30 дней</option>
+            <option value={90}>Период: 90 дней</option>
+          </Sel>
+        </BtnRow>
         <Resource value={r}>
           {r.data && (
             <div className="stack">
@@ -874,7 +989,7 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
               <div className="row-2">
                 <Card>
                   <CardHead
-                    title="Где вы чаще правите модель"
+                    title="По каким требованиям вы меняете оценку модели"
                     sub="Доля работ, где вы изменили предложенную оценку"
                   />
                   <CardBody flush>
@@ -959,9 +1074,8 @@ export function WorkspaceStatistics({ ws }: { ws: WorkspaceClient }) {
                     )}
                     <Callout className="callout--after">
                       <p>
-                        Расхождение само по себе не ошибка. Оно показывает
-                        требования, которые сформулированы так, что их можно
-                        понять по-разному.
+                        Расхождение подсвечивает необходимость в калибровке
+                        требования или оценки ревьюеров.
                       </p>
                     </Callout>
                   </CardBody>

@@ -25,6 +25,12 @@ export class ApiError extends Error {
 }
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) {
+    if (
+      error.action === "configure_service" ||
+      error.code === "integration_not_configured" ||
+      error.message.includes("invitation email boundary is not configured")
+    )
+      return "Интеграция пока не настроена.";
     if (error.status === 401) return "Сессия завершена. Войдите снова.";
     if (error.status === 403)
       return "У вашей роли нет доступа к этому действию.";
@@ -64,7 +70,7 @@ export class ApiClient {
       throw new ApiError(
         0,
         "network_error",
-        "Нет ответа от сервера. Проверьте подключение. Повтор того же действия использует прежний ключ запроса.",
+        "Нет ответа от сервера. Проверьте подключение и повторите действие.",
       );
     }
     if (!response.ok) {
@@ -88,6 +94,9 @@ export class ApiClient {
         data.message ?? `Сервер вернул ошибку ${response.status}.`,
         data.action ?? null,
       );
+    }
+    if (init.method && !["GET", "HEAD"].includes(init.method.toUpperCase())) {
+      window.dispatchEvent(new Event("workspace:changed"));
     }
     if (response.status === 204) return undefined as T;
     try {

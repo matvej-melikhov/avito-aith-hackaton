@@ -1,0 +1,396 @@
+{
+  "id": "01a07770-e298-7012-88ce-7ef67ac437f4",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В разделе «Анализ связности» вы предлагаете вынести Reservation Engine и Stock Service в отдельные микросервисы со своей БД. Объясните, какой именно механизм/приём в вашей текущей схеме снизит связность: что конкретно перестанет зависеть от чего, и почему разделение данных уменьшит coupling именно в вашей системе?\n2. В диаграмме последовательностей показан только сценарий успешного резервирования. Что произойдёт в вашей системе, если Stock Service ответит, что товара недостаточно или сервис недоступен — какой компонент и как обработает эту ситуацию, и как это отражено в контрактах интерфейсов?\n3. В контрактах REST-интерфейсов вы описали входы, выходы и ошибки. Возьмите один из эндпоинтов (например, создание резервирования) и поясните, какие именно коды ошибок и структуры ответа клиент получит при нехватке товара, и как это согласуется с событием, которое уходит в Kafka в этом случае?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Отличная работа по декомпозиции и диаграммам, всё структурно и наглядно.\n\n- Добавь обоснование, почему вынос Reservation Engine и Stock Service в отдельные микросервисы со своими БД снизит связность именно в твоей системе: опиши механизм (например, изоляция данных, асинхронность через Kafka вместо прямых вызовов) и как это уменьшит coupling.\n- Расширь раздел «Анализ связности»: сейчас он слишком краткий, добавь больше деталей по каждой выявленной зависимости.\n- Добавь явный раздел «Обоснование архитектурных решений», где объяснишь, почему выбраны те или иные паттерны и границы.\n- Исправь опечатки: «TRASACTION» → «TRANSACTION», убери разговорное «Нету».\n- В разделе про снижение связности не просто перечисляй меры, а привяжи их к конкретным проблемам, которые ты сам же выявил в анализе.\n\nХорошо, что вся документация собрана в одном файле и есть все требуемые диаграммы C4 и последовательностей.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### Декомпозиция по функциям:\n- Stock Service - управление остатками\n- Reservation Engine - управление резервированием и работа с бд\n- Transactional Service - соблюдение транзакционности\n- Receiving Service - управление приемом поставок\n- Inventory Events Publisher - отправка сообщений внешним сервисам",
+            "locator": "work.md:5-10",
+            "path": "work.md",
+            "line_start": 5,
+            "line_end": 10,
+            "verified": false
+          },
+          {
+            "quote": "### Декомпозиция по ролям:\n- Order Service - Резервирует, списывает, отменяет резерв\n- Supply Service - Инициирует приёмку товара\n- Product Catalog - Запрашивает наличие товара\n- Statistics Service - Потребляет события об изменениях запасов для статистики",
+            "locator": "work.md:12-16",
+            "path": "work.md",
+            "line_start": 12,
+            "line_end": 16,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d1037503b",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе явно указаны два признака декомпозиции: по функциям и по ролям, под каждым приведён список компонентов.",
+        "evidence": [
+          "work.md:5-10 (цитата подтверждена кодом)",
+          "work.md:12-16 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сводка: предложено 5.5 из 6. Посмотреть самому: Предложены способы снижения связности и обоснования. Сигнал ИИ: low. Стоимость прогона: 0.99 ₽ (347183 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### Почему соответствует SRP:\n\n- Stock Service - Единая точка входа для всех операций с инвентарём\n- Reservation Engine - Единственный компонент, который отвечает за работу с основной бд\n- Receiving Service - Единственный компонент, который отвечает за приемку товара. Не влияет на резервирование\n- Inventory Events Publisher - Единственный компонент, который отвечает за публикацию событий.\n- Transactional Service - Единственный компонент, который отвечает за соблюдение транзакционности",
+            "locator": "work.md:18-24",
+            "path": "work.md",
+            "line_start": 18,
+            "line_end": 24,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d1037503c",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Для каждого компонента названа зона ответственности и объяснено, почему граница проведена именно так (что компонент делает и на что не влияет), что соответствует требованию обоснования SRP текстом.",
+        "evidence": [
+          "work.md:18-24 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### REST API\n#### POST /api/v1/inventory/reserve — Резервирование товара",
+            "locator": "work.md:29-30",
+            "path": "work.md",
+            "line_start": 29,
+            "line_end": 30,
+            "verified": false
+          },
+          {
+            "quote": "### Интерфейсы внутренних сервисов\n\n```mermaid\nclassDiagram",
+            "locator": "work.md:203-206",
+            "path": "work.md",
+            "line_start": 203,
+            "line_end": 206,
+            "verified": false
+          },
+          {
+            "quote": "StockService --> ReservationEngine\nReceivingService --> ReservationEngine\nReservationEngine --> TransactionalService\nReservationEngine --> InventoryEventsPublisher\nReservationEngine --> InventoryRepository\nTransactionalService --> StateRepository",
+            "locator": "work.md:258-263",
+            "path": "work.md",
+            "line_start": 258,
+            "line_end": 263,
+            "verified": false
+          },
+          {
+            "quote": "### Контракты Kafka:\n\n#### Типы событий\n - reserved\n - cancelled\n - shipped\n - received",
+            "locator": "work.md:268-274",
+            "path": "work.md",
+            "line_start": 268,
+            "line_end": 274,
+            "verified": false
+          },
+          {
+            "quote": "### Зависимости\n- Stock Service: Reservation Engine\n- Reservation Engine: Inventory Events Publisher, Inventory DB, Transactional Service\n- Transactional Service: State DB\n- Receiving Service: Reservation Engine\n- Inventory Events Publisher: Kafka (publish)",
+            "locator": "work.md:296-301",
+            "path": "work.md",
+            "line_start": 296,
+            "line_end": 301,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d1037503d",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Интерфейсы взаимодействия между компонентами определены: REST-эндпоинты с входами/выходами, события Kafka, а также внутренние методы сервисов в classDiagram с указанием связей между компонентами.",
+        "evidence": [
+          "work.md:29-30 (цитата подтверждена кодом)",
+          "work.md:203-206 (цитата подтверждена кодом)",
+          "work.md:258-263 (цитата подтверждена кодом)",
+          "work.md:268-274 (цитата подтверждена кодом)",
+          "work.md:296-301 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### REST API\n#### POST /api/v1/inventory/reserve — Резервирование товара",
+            "locator": "work.md:29-30",
+            "path": "work.md",
+            "line_start": 29,
+            "line_end": 30,
+            "verified": false
+          },
+          {
+            "quote": "- Вход (Request Body):\n```json\n{\n    \"orderId\": \"uuid\",\n    \"items\": [\n    {\n        \"sku\": \"SKU-12345\",\n        \"quantity\": 5,\n        \"warehouseId\": \"wh-01\"\n    }\n    ],\n    \"expiresInMinutes\": 30\n}\n```\n- Выход (Response 201 Created):\n```json\n{\n  \"reservationId\": \"uuid\",\n  \"orderId\": \"uuid\",\n  \"status\": \"CONFIRMED\",\n  \"reservedItems\": [\n    {\n      \"sku\": \"SKU-12345\",\n      \"reservedQuantity\": 5,\n      \"warehouseId\": \"wh-01\"\n    }\n  ],\n  \"expiresAt\": \"2026-01-15T09:00:00Z\",\n  \"createdAt\": \"2026-01-15T09:00:00Z\"\n}\n```\n\n- Ошибки:\n  - 400\tINVALID_REQUEST\tНекорректные входные данные\n  - 404\tSKU_NOT_FOUND\tУказанный SKU не существует\n  - 409\tINSUFFICIENT_STOCK\tНедостаточно товара для резервирования\n  - 409\tDUPLICATE_RESERVATION\tРезервирование для этого orderId уже существует\n  - 422\tWAREHOUSE_UNAVAILABLE\tУказанный склад недоступен\n  - 500\tINTERNAL_ERROR\tВнутренняя ошибка сервера",
+            "locator": "work.md:31-69",
+            "path": "work.md",
+            "line_start": 31,
+            "line_end": 69,
+            "verified": false
+          },
+          {
+            "quote": " ### Контракты Kafka:\n\n#### Типы событий\n - reserved\n - cancelled\n - shipped\n - received\n\n\n\n#### Контракт события\n\n```json\n{\n  \"eventId\": \"uuid\",\n  \"eventType\": \"StockReserved\",\n  \"eventVersion\": 1,\n  \"occurredAt\": \"2026-01-15T09:00:00Z\",\n  \"producer\": \"inventory-events-publisher\",\n  \"traceId\": \"uuid\",\n  \"partitionKey\": \"SKU-12345:wh-01\",\n  \"payload\": {}\n}\n```",
+            "locator": "work.md:268-291",
+            "path": "work.md",
+            "line_start": 268,
+            "line_end": 291,
+            "verified": false
+          },
+          {
+            "quote": "- Выход (Response 201 Created):\n```json\n{\n  \"reservationId\": \"uuid\",\n  \"orderId\": \"uuid\",\n  \"status\": \"CONFIRMED\",\n  \"reservedItems\": [\n    {\n      \"sku\": \"SKU-12345\",\n      \"reservedQuantity\": 5,\n      \"warehouseId\": \"wh-01\"\n    }\n  ],\n  \"expiresAt\": \"2026-01-15T09:00:00Z\",\n  \"createdAt\": \"2026-01-15T09:00:00Z\"\n}\n```",
+            "locator": "work.md:45-61",
+            "path": "work.md",
+            "line_start": 45,
+            "line_end": 61,
+            "verified": false
+          },
+          {
+            "quote": "- Ошибки:\n  - 400\tINVALID_REQUEST\tНекорректные входные данные\n  - 404\tSKU_NOT_FOUND\tУказанный SKU не существует\n  - 409\tINSUFFICIENT_STOCK\tНедостаточно товара для резервирования\n  - 409\tDUPLICATE_RESERVATION\tРезервирование для этого orderId уже существует\n  - 422\tWAREHOUSE_UNAVAILABLE\tУказанный склад недоступен\n  - 500\tINTERNAL_ERROR\tВнутренняя ошибка сервера",
+            "locator": "work.md:63-69",
+            "path": "work.md",
+            "line_start": 63,
+            "line_end": 69,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d1037503e",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе указаны типы взаимодействий (REST, Kafka-события) и для ключевых REST-интерфейсов описаны контракты с входами, выходами и ошибками; для Kafka-событий приведён контракт события.",
+        "evidence": [
+          "work.md:29-30 (цитата подтверждена кодом)",
+          "work.md:31-69 (цитата подтверждена кодом)",
+          "work.md:268-291 (цитата подтверждена кодом)",
+          "work.md:45-61 (цитата подтверждена кодом)",
+          "work.md:63-69 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### Context Diagram\n```mermaid\nflowchart TD\n    subgraph external[\"Внешние системы\"]\n        ORDER[\"Order Service\"]\n        SUPPLY[\"Supply Service\"]\n        CATALOG[\"Product Catalog\"]\n        STATS[\"Statistics Service\"]\n    end\n\n    IMS[\"Inventory Management System\"]\n\n    ORDER -->|\"REST: reserve, ship, cancel\"| IMS\n    IMS -->|\"Kafka\"| ORDER\n    \n    SUPPLY -->|\"REST: receive\"| IMS\n    \n    CATALOG -->|\"REST: availability\"| IMS\n    \n    IMS -->|\"Kafka\"| STATS\n```",
+            "locator": "work.md:313-333",
+            "path": "work.md",
+            "line_start": 313,
+            "line_end": 333,
+            "verified": false
+          },
+          {
+            "quote": "### Component Diagram — Stock Service\n\n```mermaid\nflowchart TD\n    subgraph STOCK_SVC[\"Stock Service\"]\n        CONTROLLER[\"Stock Controller\"]\n        HANDLER[\"Command Handler\"]\n        VALIDATOR[\"Invariant Validator\"]\n    end\n\n    RESERVATION[\"Reservation Engine\"]\n\n    CONTROLLER --> VALIDATOR\n    VALIDATOR --> HANDLER\n    \n    HANDLER --> RESERVATION\n    \n    \n```",
+            "locator": "work.md:377-395",
+            "path": "work.md",
+            "line_start": 377,
+            "line_end": 395,
+            "verified": false
+          },
+          {
+            "quote": "### Component Diagram — Reservation Engine\n\n```mermaid\nflowchart TD\n    STOCK[\"Stock Service\"]\n    RECEIVING[\"Receiving Service\"]\n    TRASACTION[\"Transactional Service\"]\n    \n    subgraph RES_ENGINE[\"Reservation Engine\"]\n        RES_HANDLER[\"Reservation Handler\"]\n        RES_STORE[\"Reservation Store\"]\n        RES_REP[\"Inventory Repository\"]\n        TIMEOUT[\"Timeout Scheduler\"]\n    end\n\n    DB[(\"Inventory DB\")]\n    PUBLISHER[\"Inventory Events Publisher\"]\n\n    STOCK --> RES_HANDLER\n  RECEIVING --> RES_HANDLER\n\n    RES_HANDLER --> RES_STORE\n    RES_HANDLER --> PUBLISHER\n\n    RES_REP --> DB\n    \n    RES_STORE--> RES_REP\n    RES_STORE-->TRASACTION\n    RES_STORE-->TIMEOUT\n```",
+            "locator": "work.md:397-426",
+            "path": "work.md",
+            "line_start": 397,
+            "line_end": 426,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d1037503f",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе присутствуют контекстная диаграмма C4 (Context Diagram) и диаграммы компонентов для контейнеров Stock Service и Reservation Engine, что соответствует требованию.",
+        "evidence": [
+          "work.md:313-333 (цитата подтверждена кодом)",
+          "work.md:377-395 (цитата подтверждена кодом)",
+          "work.md:397-426 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверить, что диаграммы соответствуют уровням C4: контекстная и компонентная. В работе также есть Container Diagram, но для критерия достаточно контекста и компонентов.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "```mermaid\nsequenceDiagram\n  participant Order as Order Service\n  participant Stock as Stock Service\n  participant Reservation as Reservation Engine\n  participant Publisher as Inventory Events Publisher\n  participant Transaction as Transactional Service\n  Order->>Stock: POST /api/v1/inventory/reserve\n\n\n  Stock->>Reservation: updateInventory(InventoryItem)\n  Reservation-->>Transaction:checkInventoryItem(sku, warehouseId)\n  Transaction-->>Reservation:Ok\n\n  Reservation->>Publisher: publish(StockReserved)\n  Reservation-->>Stock: OK\n\n  Stock-->>Order: 201 Created\n\n  Publisher-->>Order: StockReserved event\n```",
+            "locator": "work.md:432-454",
+            "path": "work.md",
+            "line_start": 432,
+            "line_end": 454,
+            "verified": false
+          },
+          {
+            "quote": "### Успешное резервирование товара",
+            "locator": "work.md:430-430",
+            "path": "work.md",
+            "line_start": 430,
+            "line_end": 430,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d10375040",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В работе присутствует mermaid sequenceDiagram для сценария успешного резервирования товара, что соответствует требованию.",
+        "evidence": [
+          "work.md:432-454 (цитата подтверждена кодом)",
+          "work.md:430-430 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### Зависимости\n- Stock Service: Reservation Engine\n- Reservation Engine: Inventory Events Publisher, Inventory DB, Transactional Service\n- Transactional Service: State DB\n- Receiving Service: Reservation Engine\n- Inventory Events Publisher: Kafka (publish)",
+            "locator": "work.md:296-301",
+            "path": "work.md",
+            "line_start": 296,
+            "line_end": 301,
+            "verified": false
+          },
+          {
+            "quote": "### Оценка связности\n- Reservation Engine - центральный компонент, все операции проходят через него, высокий Coupling\n- Stock Service - отвечает за получение информации о товарах, особенно нагружен",
+            "locator": "work.md:303-305",
+            "path": "work.md",
+            "line_start": 303,
+            "line_end": 305,
+            "verified": false
+          },
+          {
+            "quote": "## Анализ связности компонентов\n\n### Зависимости\n- Stock Service: Reservation Engine\n- Reservation Engine: Inventory Events Publisher, Inventory DB, Transactional Service\n- Transactional Service: State DB\n- Receiving Service: Reservation Engine\n- Inventory Events Publisher: Kafka (publish)\n\n### Оценка связности\n- Reservation Engine - центральный компонент, все операции проходят через него, высокий Coupling\n- Stock Service - отвечает за получение информации о товарах, особенно нагружен",
+            "locator": "work.md:294-305",
+            "path": "work.md",
+            "line_start": 294,
+            "line_end": 305,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d10375041",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "В разделе «Анализ связности компонентов» перечислены зависимости между компонентами, дана оценка связности (Reservation Engine — центральный компонент с высоким coupling, Stock Service нагружен) и объяснено, почему связность высокая.",
+        "evidence": [
+          "work.md:296-301 (цитата подтверждена кодом)",
+          "work.md:303-305 (цитата подтверждена кодом)",
+          "work.md:294-305 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "### Решение по снижению связности\n- Сделать из Reservation Engine отдельный микросервис со своей базой данных \n- Так же имеет смысл вынести в отдельный микросервис Stock Service",
+            "locator": "work.md:307-309",
+            "path": "work.md",
+            "line_start": 307,
+            "line_end": 309,
+            "verified": false
+          },
+          {
+            "quote": "### Оценка связности\n- Reservation Engine - центральный компонент, все операции проходят через него, высокий Coupling\n- Stock Service - отвечает за получение информации о товарах, особенно нагружен",
+            "locator": "work.md:303-305",
+            "path": "work.md",
+            "line_start": 303,
+            "line_end": 305,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d10375042",
+        "status": "needs_human",
+        "proposed_points": null,
+        "reason": "Предложены конкретные меры (вынос Reservation Engine и Stock Service в отдельные микросервисы со своей БД), но обоснование, почему именно эти меры снизят связность в данной системе, отсутствует — только констатация факта без объяснения механизма снижения.",
+        "evidence": [
+          "work.md:307-309 (цитата подтверждена кодом)",
+          "work.md:303-305 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Выполнено частично, а шаг балла не позволяет поставить часть: решите сами.",
+        "student_feedback": "Добавьте обоснование, почему предложенные меры (вынос в микросервисы, разделение данных) снизят связность именно в вашей системе."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "## Декомпозиция:\n\n### Декомпозиция по функциям:",
+            "locator": "work.md:3-5",
+            "path": "work.md",
+            "line_start": 3,
+            "line_end": 5,
+            "verified": false
+          },
+          {
+            "quote": "## Интерфейсы и контракты взаимодействия:\n\n### REST API",
+            "locator": "work.md:27-29",
+            "path": "work.md",
+            "line_start": 27,
+            "line_end": 29,
+            "verified": false
+          },
+          {
+            "quote": "## Анализ связности компонентов\n\n### Зависимости",
+            "locator": "work.md:294-296",
+            "path": "work.md",
+            "line_start": 294,
+            "line_end": 296,
+            "verified": false
+          },
+          {
+            "quote": "## C4 Схемы\n\n### Context Diagram",
+            "locator": "work.md:311-313",
+            "path": "work.md",
+            "line_start": 311,
+            "line_end": 313,
+            "verified": false
+          },
+          {
+            "quote": "## Диаграммы последовательностей\n\n### Успешное резервирование товара\n\n```mermaid\nsequenceDiagram",
+            "locator": "work.md:428-433",
+            "path": "work.md",
+            "line_start": 428,
+            "line_end": 433,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776b-23dc-7129-be9c-af8d10375043",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Документ единый (один файл work.md), структурирован по разделам: декомпозиция, интерфейсы и контракты, анализ связности, C4-схемы, диаграммы последовательностей. Присутствуют все требуемые части: декомпозиция по функциям и ролям, обоснование SRP, REST-контракты с входами/выходами/ошибками, Kafka-контракты, контекстная/контейнерная/компонентные диаграммы, sequenceDiagram, анализ связности и предложения по снижению. Слабые места: анализ связности краткий, отсутствует явный раздел «Обоснование архитектурных решений», есть опечатки (TRASACTION, «Нету»).",
+        "evidence": [
+          "work.md:3-5 (цитата подтверждена кодом)",
+          "work.md:27-29 (цитата подтверждена кодом)",
+          "work.md:294-296 (цитата подтверждена кодом)",
+          "work.md:311-313 (цитата подтверждена кодом)",
+          "work.md:428-433 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Критерий оценочный. Проверить: раздел «Обоснование архитектурных решений» явно не выделен (требование нефункциональное), анализ связности краткий (строки 294-309), есть опечатки (TRASACTION, «Нету»). Оценить, достаточно ли полноты для зачёта. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Документ содержит разделы: декомпозиция, интерфейсы и контракты, анализ связности, C4-схемы, диаграммы последовательностей, что обеспечивает структурированность и полноту. (work.md:3-3, work.md:27-27, work.md:294-294, work.md:311-311, work.md:428-428); В разделе REST API для каждого эндпоинта описаны входные и выходные данные в формате JSON, а также перечислены возможные ошибки с кодами и описаниями. (work.md:30-30, work.md:31-31, work.md:45-45, work.md:63-63); В документе присутствуют диаграммы на Mermaid (C4 и последовательностей), что дополняет текстовое описание архитектуры. (work.md:205-205, work.md:314-314, work.md:336-336, work.md:379-379, work.md:399-399, work.md:432-432)",
+        "student_feedback": "Добавьте явный раздел обоснования архитектурных решений и расширьте анализ связности."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:58:02Z"
+}

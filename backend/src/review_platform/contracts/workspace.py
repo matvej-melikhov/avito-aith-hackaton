@@ -294,6 +294,8 @@ class JsonResult(StrictModel):
 
 
 class DirectoryMember(StrictModel):
+    absent_from: datetime | None = None
+    absent_until: datetime | None = None
     id: UUID
     display_name: str
     roles: list[str]

@@ -13,13 +13,18 @@ import { WorkspaceNotifications } from "./WorkspaceNotifications";
 import { WorkspaceClient } from "./api/workspace";
 import { WorkspaceHomework } from "./pages/WorkspaceHomework";
 import { WorkspaceSubmissionDetail } from "./pages/WorkspaceSubmissionDetail";
-import { WorkspaceSubmit } from "./pages/WorkspaceStudent";
+import {
+  WorkspaceSubmit,
+  StudentSubmissionPage,
+} from "./pages/WorkspaceStudent";
+import { ActionMessageProvider, useActionMessage } from "./ActionMessage";
 import { WorkspaceWorks, WorkspaceStatistics } from "./pages/WorkspaceLists";
 import {
   WorkspaceCatalog,
   WorkspaceHomeworkDirectory,
   WorkspacePreferences,
   WorkspaceAssignments,
+  WorkspaceHomeworkNew,
 } from "./pages/WorkspaceCatalog";
 import { ApiClient, ApiError, type Model, type Role } from "./api/client";
 import { Empty, ErrorBox, go, roleNames, useAction, useResource } from "./ui";
@@ -27,7 +32,7 @@ import { CoursePage, CoursesPage, QueuePage } from "./pages/Courses";
 import { ReviewPage } from "./pages/Review";
 import { HomeworkPage } from "./pages/Homework";
 import { OperationPage } from "./pages/Operations";
-import { CoordinatorCabinet, StudentCabinet } from "./pages/Cabinet";
+import { PeoplePage } from "./pages/People";
 import {
   Ava,
   Band,
@@ -35,6 +40,7 @@ import {
   Btn,
   Callout,
   Cheer,
+  Modal,
   Pill,
   Sel,
   Shell,
@@ -61,8 +67,18 @@ export function useMenuCounts() {
 }
 
 export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
+  return (
+    <ActionMessageProvider>
+      <Application api={api} demo={demo} />
+    </ActionMessageProvider>
+  );
+}
+
+function Application({ api, demo }: { api: ApiClient; demo: boolean }) {
   const ws = useMemo(() => new WorkspaceClient(api), [api]);
   const s = useResource(() => api.session(), "session");
+  const message = useActionMessage();
+  useEffect(() => message.clear(), [s.data?.user_id, message.clear]);
   const [expired, setExpired] = useState(false);
   useEffect(() => {
     api.onUnauthorized = () => setExpired(true);
@@ -117,15 +133,6 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
     window.addEventListener("hashchange", update);
     return () => window.removeEventListener("hashchange", update);
   }, []);
-  useEffect(() => {
-    if (route.split("?")[0] !== "/pool") return;
-    const timer = setTimeout(
-      () =>
-        document.getElementById("pool")?.scrollIntoView?.({ block: "start" }),
-      0,
-    );
-    return () => clearTimeout(timer);
-  }, [route]);
   const action = useAction();
   const session = s.data;
   const activeRole =
@@ -199,18 +206,30 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         ws={ws}
         role={activeRole}
         coordinatorPool={section === "coord-pool"}
+        reviewerPool={section === "pool"}
       />
     );
   else if (section === "dashboard" && activeRole === "methodologist")
     page = <WorkspaceCatalog ws={ws} mode="overview" />;
+  else if (section === "runs" && activeRole === "methodologist")
+    page = <WorkspaceCatalog ws={ws} mode="runs" />;
   else if (section === "homeworks" && activeRole === "methodologist")
     page = <WorkspaceHomeworkDirectory ws={ws} />;
+  else if (section === "homework-new" && activeRole === "methodologist")
+    page = <WorkspaceHomeworkNew ws={ws} />;
   else if (section === "statistics" && session.roles.includes("reviewer"))
     page = <WorkspaceStatistics ws={ws} />;
   else if (section === "assignments" && id && activeRole === "methodologist")
     page = <WorkspaceAssignments ws={ws} runId={id} />;
   else if (section === "prepare" && id && activeRole === "student")
-    page = <WorkspaceSubmit ws={ws} id={id} session={session} />;
+    page = (
+      <WorkspaceSubmit
+        ws={ws}
+        id={id}
+        session={session}
+        attemptId={new URLSearchParams(query).get("attempt") ?? undefined}
+      />
+    );
   else if (section === "courses")
     page = id ? (
       <CoursePage api={api} id={id} role={activeRole} />
@@ -227,14 +246,31 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         api={api}
         id={id}
         session={session}
-        readOnly={activeRole === "methodologist"}
+        coordinator={activeRole === "methodologist"}
         ws={ws}
       />
     );
   else if (section === "submit" && activeRole === "student" && id && subId)
-    page = <WorkspaceSubmit ws={ws} id={subId} session={session} />;
+    page = (
+      <WorkspaceSubmit
+        ws={ws}
+        id={subId}
+        session={session}
+        attemptId={new URLSearchParams(query).get("attempt") ?? undefined}
+      />
+    );
   else if (section === "submissions" && id)
-    page = <WorkspaceSubmissionDetail ws={ws} id={id} />;
+    page =
+      activeRole === "student" ? (
+        <StudentSubmissionPage
+          ws={ws}
+          id={id}
+          session={session}
+          attemptId={new URLSearchParams(query).get("attempt") ?? undefined}
+        />
+      ) : (
+        <WorkspaceSubmissionDetail ws={ws} id={id} />
+      );
   else if (section === "homework" && id && activeRole === "methodologist")
     page = (
       <WorkspaceHomework
@@ -253,28 +289,13 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         role={activeRole}
       />
     );
-  else if (section === "cabinet" && activeRole === "student")
-    page = <StudentCabinet ws={ws} account={accountProps} />;
   else if (
     (section === "cabinet" ||
       section === "people" ||
       section === "deliveries") &&
     activeRole === "methodologist"
   )
-    page = (
-      <CoordinatorCabinet
-        api={api}
-        ws={ws}
-        tab={
-          section === "people"
-            ? "people"
-            : section === "deliveries"
-              ? "deliveries"
-              : "profile"
-        }
-        account={accountProps}
-      />
-    );
+    page = <PeoplePage api={api} ws={ws} />;
   else if (section === "preferences" && session.roles.includes("reviewer"))
     page = <WorkspacePreferences ws={ws} session={session} />;
   else if (section === "operations" && id)
@@ -311,6 +332,9 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
   );
   const provider = (children: ReactNode) => (
     <CountsContext.Provider value={{ counts, setCounts }}>
+      {activeRole === "reviewer" && (
+        <ReviewerCounts ws={ws} userId={session.user_id} route={route} />
+      )}
       {children}
     </CountsContext.Provider>
   );
@@ -328,12 +352,6 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
                 section,
               ),
             },
-            {
-              href: "#/courses",
-              label: "Мои курсы",
-              on: section === "courses",
-            },
-            { href: "#/cabinet", label: "Кабинет", on: section === "cabinet" },
           ]}
           right={account}
         />
@@ -348,51 +366,49 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
           {
             href: "#/works",
             label: "Мои работы",
+            icon: "works" as const,
             count: counts.works,
             on: section === "works",
           },
           {
             href: "#/pool",
             label: "Пул",
+            icon: "pool" as const,
             count: counts.pool,
             on: section === "pool",
           },
           {
             href: "#/preferences",
             label: "Кабинет",
+            icon: "cabinet" as const,
             on: section === "preferences" || section === "statistics",
           },
         ]
       : [
-          { href: "#/dashboard", label: "Обзор", on: section === "dashboard" },
+          {
+            href: "#/dashboard",
+            label: "Обзор",
+            icon: "overview" as const,
+            on: ["dashboard", "coord-pool", "registry"].includes(section),
+          },
           {
             href: "#/courses",
             label: "Курсы",
+            icon: "courses" as const,
             count: counts.courses,
-            on: section === "courses",
+            on: ["courses", "homeworks", "homework"].includes(section),
           },
           {
-            href: "#/homeworks",
-            label: "Задания",
-            count: counts.homeworks,
-            on: section === "homeworks" || section === "homework",
+            href: "#/runs",
+            label: "Потоки",
+            icon: "runs" as const,
+            on: section === "runs",
           },
           {
-            href: "#/coord-pool",
-            label: "Пул проверок",
-            count: counts.coordPool,
-            on: section === "coord-pool",
-          },
-          {
-            href: "#/registry",
-            label: "Домашки",
-            count: counts.registry,
-            on: section === "registry",
-          },
-          {
-            href: "#/cabinet",
-            label: "Кабинет",
-            on: ["cabinet", "people", "deliveries"].includes(section),
+            href: "#/people",
+            label: "Ревьюеры",
+            icon: "people" as const,
+            on: ["people", "cabinet", "deliveries"].includes(section),
           },
         ];
   return provider(
@@ -511,9 +527,7 @@ function AccountMenu({
             </div>
           )}
           <div className="pop__foot">
-            <span>
-              {demo ? "Данные живут в памяти вкладки" : "Сессия на сервере"}
-            </span>
+            {demo && <span>Данные живут в памяти вкладки</span>}
             <Btn size="s" variant="quiet" disabled={busy} onClick={onLogout}>
               Выйти
             </Btn>
@@ -538,6 +552,7 @@ function Login({
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const action = useAction();
   const attempted = useRef(false);
+  const [stepikInfo, setStepikInfo] = useState(false);
   const local = useResource(
     () =>
       api.request<{
@@ -581,10 +596,6 @@ function Login({
       <Band art="login">
         <Brand />
         <h1 className="d2">Готовый разбор по каждой работе</h1>
-        <p>
-          Модель заранее разбирает работу по требованиям задания и готовит
-          черновик. Вы соглашаетесь или правите.
-        </p>
       </Band>
       <div className="login__side">
         <div className="login__form">
@@ -594,6 +605,14 @@ function Login({
               <ErrorBox error={error} retry={refresh} />
             )}
           {action.feedback}
+          {!!local.error && (
+            <Callout tone="bad" role="alert">
+              <p>Не удалось проверить доступные способы входа.</p>
+              <Btn size="s" onClick={local.refresh}>
+                Повторить загрузку способов входа
+              </Btn>
+            </Callout>
+          )}
           {action.busy ? (
             <p role="status" className="caption">
               Завершаем вход…
@@ -621,21 +640,48 @@ function Login({
             </>
           ) : (
             <>
-              <Btn href="/api/v1/auth/stepik/start" variant="pri" size="l">
-                Войти через Stepik
-              </Btn>
+              {local.data?.enabled ? (
+                <Btn variant="pri" size="l" onClick={() => setStepikInfo(true)}>
+                  Войти через Stepik
+                </Btn>
+              ) : (
+                <Btn
+                  href="/api/v1/auth/stepik/start"
+                  variant="pri"
+                  size="l"
+                  aria-disabled={local.loading || !!local.error}
+                  onClick={(event) => {
+                    if (local.loading || local.error) event.preventDefault();
+                  }}
+                >
+                  Войти через Stepik
+                </Btn>
+              )}
               <span className="caption">
-                Для студентов и координаторов. После входа откроется ваше
-                рабочее пространство.
+                {local.data?.enabled
+                  ? "Для демонстрации выберите участника локального стенда."
+                  : "Для студентов и координаторов. После входа откроется ваше рабочее пространство."}
               </span>
             </>
           )}
           {local.data?.enabled && (
             <div className="login__local">
               <span className="label">Локальный стенд</span>
-              <p className="small dim">
-                Вход создаёт серверную сессию выбранного участника.
-              </p>
+
+              {stepikInfo && (
+                <Modal
+                  title="Вход через Stepik"
+                  close={() => setStepikInfo(false)}
+                >
+                  <p>
+                    Вход через Stepik пока не подключён на этом стенде. Для
+                    демонстрации выберите участника ниже.
+                  </p>
+                  <Btn variant="pri" onClick={() => setStepikInfo(false)}>
+                    Понятно
+                  </Btn>
+                </Modal>
+              )}
               <div className="stack--login">
                 {local.data.items.map((identity) => (
                   <Btn
@@ -671,4 +717,37 @@ function Login({
       </div>
     </div>
   );
+}
+
+function ReviewerCounts({
+  ws,
+  userId,
+  route,
+}: {
+  ws: WorkspaceClient;
+  userId: string;
+  route: string;
+}) {
+  const { setCounts } = useMenuCounts();
+  const [revision, setRevision] = useState(0);
+  useEffect(() => {
+    const changed = () => setRevision((v) => v + 1);
+    window.addEventListener("workspace:changed", changed);
+    return () => window.removeEventListener("workspace:changed", changed);
+  }, []);
+  const data = useResource(
+    async () => {
+      const [mine, pool] = await Promise.all([
+        ws.works({ view: "active", limit: 1 }),
+        ws.works({ view: "pool", limit: 1 }),
+      ]);
+      return { works: mine.total, pool: pool.total };
+    },
+    `${userId}:${route}:${revision}`,
+    30000,
+  );
+  useEffect(() => {
+    if (data.data) setCounts(data.data);
+  }, [data.data, setCounts]);
+  return null;
 }

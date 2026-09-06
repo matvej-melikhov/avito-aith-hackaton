@@ -1,0 +1,211 @@
+{
+  "id": "01a07770-4e0a-7183-a088-c6ffce697039",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В routes/predict.py вы используете Pydantic-модель для валидации входящих данных. Если клиент передаст, например, seller_id строкой или пропустит обязательное поле name, FastAPI вернёт статус 422. Можете объяснить, почему вы выбрали именно такой подход, и что нужно изменить, чтобы такие ошибки возвращались со статусом 400?\n2. В services/moderation.py реализована логика: верифицированный продавец всегда проходит, неверифицированный — только при наличии изображений. Что произойдёт, если is_verified_seller=True, но images_qty=0? И что если is_verified_seller=False и images_qty=0 — какой результат вернёт обработчик и почему?\n3. В тестах вы проверяете позитивные, негативные сценарии и corner-cases. Можете показать, как именно вы проверяете обработку ошибки на уровне бизнес-логики (BusinessLogicError), и какой HTTP-статус при этом возвращается клиенту?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Отличная работа, структура и логика очень понравились. Ниже список того, что стоит доработать:\n\n- Добавь доказательства локального запуска без ошибок: приложи логи `fastapi dev`, скриншот или вывод в консоль.\n- Приложи вывод `pytest` или лог CI, подтверждающий, что все тесты проходят успешно.\n- Исправь обработку ошибок валидации: сейчас Pydantic возвращает 422, а по ТЗ нужен статус 400. Добавь хендлер для `RequestValidationError`.\n- Убедись, что для бизнес-ошибок (`BusinessLogicError`) статус 500 сохранён, но для пользовательских ошибок валидации теперь отдаётся именно 400.\n- Проверь, что после добавления хендлера ошибок все существующие тесты на негативные сценарии (например, на бизнес-ошибку) не сломались.\n\nХорошо, что бизнес-логика чисто вынесена в сервис, а тесты покрывают и позитив, и негатив, и corner-cases.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "@router.post(\"/predict\", response_model=bool)\nasync def predict(payload: PredictRequest) -> bool:\n    try:\n        service = ModerationService()\n        return service.predict(payload)",
+            "locator": "routes/predict.py:8-12",
+            "path": "routes/predict.py",
+            "line_start": 8,
+            "line_end": 12,
+            "verified": false
+          },
+          {
+            "quote": "class PredictRequest(BaseModel):\n    seller_id: int = Field(..., ge=1)\n    is_verified_seller: bool\n    item_id: int = Field(..., ge=1)\n    name: str = Field(..., min_length=1)\n    description: str = Field(..., min_length=1)\n    category: int = Field(..., ge=1)\n    images_qty: int = Field(..., ge=0)",
+            "locator": "models/predict.py:3-10",
+            "path": "models/predict.py",
+            "line_start": 3,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b01d-7dde-bce3-7ee911f7e299",
+        "status": "suggested",
+        "proposed_points": 2.0,
+        "reason": "Обработчик /predict принимает все требуемые поля через Pydantic-модель с валидацией и возвращает одно булево значение.",
+        "evidence": [
+          "routes/predict.py:8-12 (цитата подтверждена кодом)",
+          "models/predict.py:3-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сводка: предложено 7 из 10. Посмотреть самому: Predictable HTTP statuses. Не выполнено: Local launch without errors, All tests pass. Сигнал ИИ: low. Стоимость прогона: 0.68 ₽ (182270 токенов, модель deepseek-v4-flash, исследователь: нет: harness не вернул json-блок). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "if req.is_verified_seller:\n            return False\n\n        if req.images_qty > 0:\n            return False\n\n        return True",
+            "locator": "services/moderation.py:10-16",
+            "path": "services/moderation.py",
+            "line_start": 10,
+            "line_end": 16,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b01d-7dde-bce3-7ee911f7e29a",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Логика в services/moderation.py точно соответствует требованию: верифицированные продавцы всегда проходят, неверифицированные — только при наличии изображений.",
+        "evidence": [
+          "services/moderation.py:10-16 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "@router.post(\"/predict\", response_model=bool)\nasync def predict(payload: PredictRequest) -> bool:\n    try:\n        service = ModerationService()\n        return service.predict(payload)\n    except BusinessLogicError as e:\n        raise HTTPException(status_code=500, detail=str(e))",
+            "locator": "routes/predict.py:8-14",
+            "path": "routes/predict.py",
+            "line_start": 8,
+            "line_end": 14,
+            "verified": false
+          },
+          {
+            "quote": "class ModerationService:\n    def predict(self, req: PredictRequest) -> bool:\n        \"\"\"\n        True есть нарушение\n        False нарушений нет\n        \"\"\"\n\n        if req.is_verified_seller:\n            return False\n\n        if req.images_qty > 0:\n            return False\n\n        return True",
+            "locator": "services/moderation.py:3-16",
+            "path": "services/moderation.py",
+            "line_start": 3,
+            "line_end": 16,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b01d-7dde-bce3-7ee911f7e29b",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе выделены уровни routes и services: бизнес-логика вынесена в services/moderation.py, а роуты в routes/predict.py, что соответствует требованию разделения.",
+        "evidence": [
+          "routes/predict.py:8-14 (цитата подтверждена кодом)",
+          "services/moderation.py:3-16 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-b01d-7dde-bce3-7ee911f7e29c",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе нет доказательств локального запуска без ошибок: нет логов запуска, результатов выполнения тестов или иных артефактов, подтверждающих, что проект разворачивается и запускается через fastapi dev без ошибок.",
+        "evidence": [],
+        "confidence": "medium",
+        "reviewer_note": "Проверить, есть ли в полном репозитории/коммите артефакты запуска, не попавшие в срез. Не найдено в работе: Доказательства запуска (логи, вывод, скриншоты) в файлах работы не найдены",
+        "student_feedback": "Добавьте доказательства локального запуска без ошибок."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "def test_predict_negative_verified_seller() -> None:\n    payload = {\n        \"seller_id\": 1,\n        \"is_verified_seller\": True,\n        \"item_id\": 10,\n        \"name\": \"Phone\",\n        \"description\": \"Nice phone\",\n        \"category\": 3,\n        \"images_qty\": 0,\n    }\n    resp = client.post(\"/predict\", json=payload)\n    assert resp.status_code == 200\n    assert resp.json() is False",
+            "locator": "tests/test_moderation.py:11-23",
+            "path": "tests/test_moderation.py",
+            "line_start": 11,
+            "line_end": 23,
+            "verified": false
+          },
+          {
+            "quote": "def test_predict_positive_unverified_without_images() -> None:\n    payload = {\n        \"seller_id\": 2,\n        \"is_verified_seller\": False,\n        \"item_id\": 11,\n        \"name\": \"Book\",\n        \"description\": \"Good condition\",\n        \"category\": 1,\n        \"images_qty\": 0,\n    }\n    resp = client.post(\"/predict\", json=payload)\n    assert resp.status_code == 200\n    assert resp.json() is True",
+            "locator": "tests/test_moderation.py:26-38",
+            "path": "tests/test_moderation.py",
+            "line_start": 26,
+            "line_end": 38,
+            "verified": false
+          },
+          {
+            "quote": "@pytest.mark.parametrize(\n    \"payload\",\n    [\n        {},  # отсутствуют необходимые поля\n        {\n            \"seller_id\": \"oops\",  # неверный тип данных\n            \"is_verified_seller\": False,\n            \"item_id\": 11,\n            \"name\": \"Book\",\n            \"description\": \"Good condition\",\n            \"category\": 1,\n            \"images_qty\": 0,\n        },\n        {\n            \"seller_id\": 0,  # не соответствует ge=1\n            \"is_verified_seller\": False,\n            \"item_id\": 11,\n            \"name\": \"Book\",\n            \"description\": \"Good condition\",\n            \"category\": 1,\n            \"images_qty\": 0,\n        },\n        {\n            \"seller_id\": 1,\n            \"is_verified_seller\": False,\n            \"item_id\": 11,\n            \"name\": \"\",  # min_length=1\n            \"description\": \"Good condition\",\n            \"category\": 1,\n            \"images_qty\": 0,\n        },      \n        {\n            \"seller_id\": 1,\n            \"is_verified_seller\": True,\n            # пропущено item_id\n            \"name\": \"Test Item\",\n            \"description\": \"Test Description\",\n            \"category\": 5,\n            \"images_qty\": 0\n        },\n        {\n            \"seller_id\": 1,\n            \"is_verified_seller\": \"invalid_string\",  # должно быть bool\n            \"item_id\": 100,\n            \"name\": \"Test Item\",\n            \"description\": \"Test Description\",\n            \"category\": 5,\n            \"images_qty\": 0\n        },\n        {\n            \"seller_id\": 1,\n            \"is_verified_seller\": True,\n            \"item_id\": 100,\n            \"name\": \"\",  # пустой name\n            \"description\": \"Test Description\",\n            \"category\": 5,\n            \"images_qty\": 0\n        },\n        {\n            \"seller_id\": 1,\n            \"is_verified_seller\": True,\n            \"item_id\": 100,\n            \"name\": \"Test Item\",\n            \"description\": \"\",  # пустой description\n            \"category\": 5,\n            \"images_qty\": 0\n        }\n    ],\n)\ndef test_predict_validation_errors(payload: dict) -> None:\n    resp = client.post(\"/predict\", json=payload)\n    assert resp.status_code == 422",
+            "locator": "tests/test_moderation.py:54-125",
+            "path": "tests/test_moderation.py",
+            "line_start": 54,
+            "line_end": 125,
+            "verified": false
+          },
+          {
+            "quote": "def test_predict_business_logic_error_returns_500(monkeypatch):\n    def broken_predict(self, req):\n        raise BusinessLogicError(\"Forced business logic error\")\n\n    # подменяем метод predict у ModerationService\n    monkeypatch.setattr(ModerationService, \"predict\", broken_predict)\n\n    payload = {\n        \"seller_id\": 1,\n        \"is_verified_seller\": True,\n        \"item_id\": 10,\n        \"name\": \"Test\",\n        \"description\": \"Test\",\n        \"category\": 1,\n        \"images_qty\": 1\n    }\n\n    r = client.post(\"/predict\", json=payload)\n\n    assert r.status_code == 500\n    assert r.json()[\"detail\"] == \"Forced business logic error\"",
+            "locator": "tests/test_moderation.py:133-153",
+            "path": "tests/test_moderation.py",
+            "line_start": 133,
+            "line_end": 153,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b01d-7dde-bce3-7ee911f7e29d",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "Тесты покрывают позитивные и негативные сценарии, corner-cases (валидация) параметризованы, есть тест на бизнес-ошибку.",
+        "evidence": [
+          "tests/test_moderation.py:11-23 (цитата подтверждена кодом)",
+          "tests/test_moderation.py:26-38 (цитата подтверждена кодом)",
+          "tests/test_moderation.py:54-125 (цитата подтверждена кодом)",
+          "tests/test_moderation.py:133-153 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [],
+        "criterion_id": "01a0776a-b01d-7dde-bce3-7ee911f7e29e",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В артефакте нет доказательств фактического запуска и прохождения тестов (например, вывода pytest, логов CI, отчёта о прогоне). Критерий требует evidence of execution, которого в работе нет.",
+        "evidence": [],
+        "confidence": "medium",
+        "reviewer_note": "Критерий явно требует evidence of execution. В артефакте только исходный код и тесты, без результатов прогона. Ревьюеру стоит проверить, есть ли где-то вне среза доказательства запуска. Не найдено в работе: Доказательства запуска тестов и их успешного прохождения (вывод pytest, лог CI, отчёт) — искал по всем файлам артефакта",
+        "student_feedback": "Добавьте доказательства запуска тестов (вывод pytest или лог CI)."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "except BusinessLogicError as e:\n        raise HTTPException(status_code=500, detail=str(e))",
+            "locator": "routes/predict.py:13-14",
+            "path": "routes/predict.py",
+            "line_start": 13,
+            "line_end": 14,
+            "verified": false
+          },
+          {
+            "quote": "def test_predict_validation_errors(payload: dict) -> None:\n    resp = client.post(\"/predict\", json=payload)\n    assert resp.status_code == 422",
+            "locator": "tests/test_moderation.py:123-125",
+            "path": "tests/test_moderation.py",
+            "line_start": 123,
+            "line_end": 125,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-b01d-7dde-bce3-7ee911f7e29f",
+        "status": "needs_human",
+        "proposed_points": null,
+        "reason": "Обработчик возвращает 500 для BusinessLogicError с понятным сообщением, но ошибки валидации возвращают 422 (стандарт FastAPI/Pydantic), а не требуемые 400. Критерий требует 400 для ошибок валидации.",
+        "evidence": [
+          "routes/predict.py:13-14 (цитата подтверждена кодом)",
+          "tests/test_moderation.py:123-125 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Проверить, считается ли стандартный 422 от FastAPI приемлемым вместо 400 по формулировке критерия. Выполнено частично, а шаг балла не позволяет поставить часть: решите сами.",
+        "student_feedback": "Добавьте обработку ошибок валидации, возвращающую статус 400 с понятным сообщением."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:24Z"
+}

@@ -1,0 +1,498 @@
+{
+  "id": "01a0776f-b5e0-72ba-a6b6-627fe592f5b2",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В main.go при подключении к базе выполняется только один вызов pool.Ping(ctx) без повторов. Как вы бы реализовали ретрай с задержкой, чтобы сервис устойчивее переживал момент, когда база ещё не успела подняться?\n2. В критериях отмечено, что фактический запуск на чистой базе не задокументирован. Расскажите, как вы проверяли, что миграции корректно применяются на пустой базе, и что произойдёт, если запустить goose migrate-up повторно на уже инициализированной базе?\n3. В обработчике PUT /courier валидация (id, статус, телефон) выполняется в usecase.UpdateCourier. Что произойдёт, если в теле запроса передать id несуществующего курьера, но при этом валидные name, phone и status — какой код ответа вернётся и на каком слое это будет определено?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Отличная работа, проект почти готов. Ниже — что нужно докрутить.\n\n- Добавь цикл повторов с задержкой вокруг вызова `pool.Ping(ctx)` в `cmd/service-courier/main.go`. Сейчас пинг выполняется один раз, а по ТЗ нужен ретрай.\n- Задокументируй или выполни фактический прогон на чистой базе. В коде и Makefile нет подтверждения, что проект стартует с нуля без ошибок.\n- Убедись, что при ошибке подключения к БД используется именно `panic`, а не `log.Fatalf`. Формально это эквивалентно, но лучше привести к букве задания.\n- Проверь, что в `cmd/service-courier/main.go` нет других мест, где мог бы понадобиться ретрай (например, при создании пула), и добавь его туда, если нужно.\n- В Makefile или отдельном скрипте добавь цель для запуска на чистой базе (например, `make migrate-up` с предварительным сбросом), чтобы можно было легко воспроизвести проверку.\n\nХорошо, что вся бизнес-логика вынесена в `internal`, а SQL-запросы используют плейсхолдеры — это сильно упрощает поддержку и защищает от инъекций.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func initDBPool(ctx context.Context) *pgxpool.Pool {\n\thost := os.Getenv(\"POSTGRES_HOST\")\n\tport := os.Getenv(\"POSTGRES_PORT\")\n\tuser := os.Getenv(\"POSTGRES_USER\")\n\tpass := os.Getenv(\"POSTGRES_PASSWORD\")\n\tdbname := os.Getenv(\"POSTGRES_DB\")\n\n\tif host == \"\" || port == \"\" || user == \"\" || dbname == \"\" {\n",
+            "locator": "cmd/service-courier/main.go:56-63",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 56,
+            "line_end": 63,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751c4",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Подключение к БД выполнено в main.go, DSN собирается из переменных окружения POSTGRES_*, загружаемых из .env, не захардкожен.",
+        "evidence": [
+          "cmd/service-courier/main.go:56-63 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сборка go build: успешно. Сводка: предложено 13 из 15. Не выполнено: Есть ретрай при запросе Ping, Запуск на чистой базе проходит. Сигнал ИИ: low. Стоимость прогона: 1.82 ₽ (488284 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tdb := initDBPool(ctx)\n\tdefer db.Close()",
+            "locator": "cmd/service-courier/main.go:32-33",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 32,
+            "line_end": 33,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751c5",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В main.go сразу после создания пула соединений вызывается defer db.Close(), что соответствует требованию закрытия соединения в defer Close().",
+        "evidence": [
+          "cmd/service-courier/main.go:32-33 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tif err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}",
+            "locator": "cmd/service-courier/main.go:82-84",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 82,
+            "line_end": 84,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751c6",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе выполнен Ping к базе данных через pool.Ping(ctx) после создания пула соединений, что соответствует критерию.",
+        "evidence": [
+          "cmd/service-courier/main.go:82-84 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "\tif err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}",
+            "locator": "cmd/service-courier/main.go:82-84",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 82,
+            "line_end": 84,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751c7",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе присутствует только один вызов pool.Ping(ctx) без цикла повторов и задержки, что не соответствует требованию ретрая.",
+        "evidence": [
+          "cmd/service-courier/main.go:82-84 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добавьте цикл повторов с задержкой вокруг вызова Ping."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tpool, err := pgxpool.NewWithConfig(ctx, cfg)\n\tif err != nil {\n\t\tlog.Fatalf(\"pgxpool.NewWithConfig: %v\", err)\n\t}\n\tif err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}",
+            "locator": "cmd/service-courier/main.go:78-84",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 78,
+            "line_end": 84,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751c8",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "При ошибке подключения к БД (создание пула, Ping) вызывается log.Fatalf, что эквивалентно панике по заданию.",
+        "evidence": [
+          "cmd/service-courier/main.go:78-84 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "-- +goose Up\nCREATE TABLE IF NOT EXISTS couriers (",
+            "locator": "migrations/20251105174855_create_couriers.sql:1-2",
+            "path": "migrations/20251105174855_create_couriers.sql",
+            "line_start": 1,
+            "line_end": 2,
+            "verified": false
+          },
+          {
+            "quote": "migrate-up:\n\t@echo \"Applying migrations from $(MIGRATIONS_DIR)...\"\n\tGOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=\"$(GOOSE_DBSTRING)\" goose -dir $(MIGRATIONS_DIR) up",
+            "locator": "Makefile:13-15",
+            "path": "Makefile",
+            "line_start": 13,
+            "line_end": 15,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751c9",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе есть каталог migrations с SQL-файлом, содержащим маркеры goose, и Makefile с командами goose для применения миграций.",
+        "evidence": [
+          "migrations/20251105174855_create_couriers.sql:1-2 (цитата подтверждена кодом)",
+          "Makefile:13-15 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "migrate-up:\n\t@echo \"Applying migrations from $(MIGRATIONS_DIR)...\"\n\tGOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=\"$(GOOSE_DBSTRING)\" goose -dir $(MIGRATIONS_DIR) up",
+            "locator": "Makefile:13-15",
+            "path": "Makefile",
+            "line_start": 13,
+            "line_end": 15,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751ca",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В Makefile определена цель migrate-up, которая запускает goose для применения миграций из каталога migrations, что соответствует требованию запуска миграций через Makefile/скрипт, а не из main.go.",
+        "evidence": [
+          "Makefile:13-15 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "-- +goose Up\nCREATE TABLE IF NOT EXISTS couriers (\n    id          BIGSERIAL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    phone       TEXT NOT NULL UNIQUE,\n    status      TEXT NOT NULL,  -- например: 'available', 'busy', 'paused'\n    created_at  TIMESTAMP NOT NULL DEFAULT now(),\n    updated_at  TIMESTAMP NOT NULL DEFAULT now()\n);",
+            "locator": "migrations/20251105174855_create_couriers.sql:1-9",
+            "path": "migrations/20251105174855_create_couriers.sql",
+            "line_start": 1,
+            "line_end": 9,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751cb",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Критерий требует фактического прогона на чистой базе, который по коду не выполняется и не задокументирован. По коду миграция создаёт таблицу couriers, на которую опирается репозиторий, но фактический запуск не подтверждён.",
+        "evidence": [
+          "migrations/20251105174855_create_couriers.sql:1-9 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Критерий требует фактического прогона на чистой базе. По коду миграция создаёт таблицу couriers, на которую опирается репозиторий (SELECT/INSERT/UPDATE по id,name,phone,status совпадают), но прогон не выполнялся. Ревьюеру нужно проверить запуск на чистой базе самостоятельно. Не найдено в работе: Фактический прогон на чистой базе не задокументирован и не выполнен",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "-- +goose Up\nCREATE TABLE IF NOT EXISTS couriers (\n    id          BIGSERIAL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    phone       TEXT NOT NULL UNIQUE,\n    status      TEXT NOT NULL,  -- например: 'available', 'busy', 'paused'\n    created_at  TIMESTAMP NOT NULL DEFAULT now(),\n    updated_at  TIMESTAMP NOT NULL DEFAULT now()\n);",
+            "locator": "migrations/20251105174855_create_couriers.sql:1-9",
+            "path": "migrations/20251105174855_create_couriers.sql",
+            "line_start": 1,
+            "line_end": 9,
+            "verified": false
+          },
+          {
+            "quote": "migrate-up:\n\t@echo \"Applying migrations from $(MIGRATIONS_DIR)...\"\n\tGOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=\"$(GOOSE_DBSTRING)\" goose -dir $(MIGRATIONS_DIR) up",
+            "locator": "Makefile:13-15",
+            "path": "Makefile",
+            "line_start": 13,
+            "line_end": 15,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751cc",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Миграция использует goose с управлением версиями и IF NOT EXISTS, что обеспечивает безопасность повторного запуска.",
+        "evidence": [
+          "migrations/20251105174855_create_couriers.sql:1-9 (цитата подтверждена кодом)",
+          "Makefile:13-15 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Проверить фактический повторный прогон goose up (confidence low).",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tr.Get(\"/courier/{id}\", courier.Get)\n\tr.Get(\"/couriers\", courier.GetMany)",
+            "locator": "cmd/service-courier/main.go:109-110",
+            "path": "cmd/service-courier/main.go",
+            "line_start": 109,
+            "line_end": 110,
+            "verified": false
+          },
+          {
+            "quote": "func (c *CourierController) Get(w http.ResponseWriter, r *http.Request) {\n\tidStr := chi.URLParam(r, \"id\")\n\tid, err := strconv.Atoi(idStr)\n\tif err != nil {\n\t\thttp.Error(w, `{\"error\":\"invalid id\"}`, http.StatusBadRequest)\n\t\treturn\n\t}\n\n\tcr, err := c.useCase.GetCourier(r.Context(), id)\n\tif err != nil {",
+            "locator": "internal/handlers/controller.go:29-38",
+            "path": "internal/handlers/controller.go",
+            "line_start": 29,
+            "line_end": 38,
+            "verified": false
+          },
+          {
+            "quote": "// GET /couriers\nfunc (c *CourierController) GetMany(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handlers/controller.go:59-60",
+            "path": "internal/handlers/controller.go",
+            "line_start": 59,
+            "line_end": 60,
+            "verified": false
+          },
+          {
+            "quote": "func (c *CourierController) GetMany(w http.ResponseWriter, r *http.Request) {\n\tlist, err := c.useCase.GetCouriers(r.Context())\n\tif err != nil {\n\t\thttp.Error(w, `{\"error\": \"database error\"}`, http.StatusInternalServerError)\n\t\treturn\n\t}\n\tout := make([]dto.CourierResponse, 0, len(list))\n\tfor _, it := range list {\n\t\tout = append(out, dto.CourierResponse{\n\t\t\tID:     it.ID,\n\t\t\tName:   it.Name,\n\t\t\tPhone:  it.Phone,\n\t\t\tStatus: it.Status,\n\t\t})\n\t}\n\twriteJSON(w, http.StatusOK, out)",
+            "locator": "internal/handlers/controller.go:60-75",
+            "path": "internal/handlers/controller.go",
+            "line_start": 60,
+            "line_end": 75,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751cd",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Оба GET-обработчика реализованы: GET /courier/{id} возвращает 200/404/400, GET /couriers возвращает 200 со списком. Формат ответа соответствует ТЗ.",
+        "evidence": [
+          "cmd/service-courier/main.go:109-110 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:29-38 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:59-60 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:60-75 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "id, err := c.useCase.CreateCourier(r.Context(), &req)\n\tif err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrMissingRequiredFields, usecase.ErrInvalidStatus, usecase.ErrInvalidPhone:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tcase usecase.ErrPhoneExists:\n\t\t\thttp.Error(w, `{\"error\":\"conflict\"}`, http.StatusConflict)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\": \"database error\"}`, http.StatusInternalServerError)\n\t\t}\n\t\treturn\n\t}\n\n\twriteJSON(w, http.StatusCreated, map[string]any{\"id\": id})",
+            "locator": "internal/handlers/controller.go:86-99",
+            "path": "internal/handlers/controller.go",
+            "line_start": 86,
+            "line_end": 99,
+            "verified": false
+          },
+          {
+            "quote": "func (u *CourierUseCase) CreateCourier(ctx context.Context, req *dto.CourierCreateRequest) (int, error) {\n\tif req == nil || req.Name == \"\" || req.Phone == \"\" || req.Status == \"\" {\n\t\treturn 0, ErrMissingRequiredFields\n\t}\n\n\tif !model.IsValidStatus(req.Status) {\n\t\treturn 0, ErrInvalidStatus\n\t}\n\n\tre := regexp.MustCompile(`^\\+?[0-9]{7,15}$`)\n\tif !re.MatchString(req.Phone) {\n\t\treturn 0, ErrInvalidPhone\n\t}",
+            "locator": "internal/usecase/courier.go:69-81",
+            "path": "internal/usecase/courier.go",
+            "line_start": 69,
+            "line_end": 81,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751ce",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "POST /courier возвращает 201 при успехе, 400 при отсутствии обязательных полей или невалидном телефоне, 409 при дубле телефона, что соответствует ТЗ.",
+        "evidence": [
+          "internal/handlers/controller.go:86-99 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:69-81 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tif err := c.useCase.UpdateCourier(r.Context(), &req); err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrBadRequest, usecase.ErrInvalidStatus, usecase.ErrInvalidPhone:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tcase usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrPhoneExists:\n\t\t\thttp.Error(w, `{\"error\":\"conflict\"}`, http.StatusConflict)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\":\"internal error\"}`, http.StatusInternalServerError)\n\t\t}\n\t\treturn\n\t}\n\n\twriteJSON(w, http.StatusOK, map[string]string{\"message\": \"updated\"})",
+            "locator": "internal/handlers/controller.go:110-124",
+            "path": "internal/handlers/controller.go",
+            "line_start": 110,
+            "line_end": 124,
+            "verified": false
+          },
+          {
+            "quote": "func (u *CourierUseCase) UpdateCourier(ctx context.Context, req *dto.CourierUpdateRequest) error {\n\tif req == nil || req.ID <= 0 {\n\t\treturn ErrBadRequest\n\t}\n\n\tif req.Status != nil && *req.Status != \"\" && !model.IsValidStatus(*req.Status) {\n\t\treturn ErrInvalidStatus // статус прислали и он недопустим\n\t}\n\n\tif req.Phone != nil && *req.Phone != \"\" {\n\t\tre := regexp.MustCompile(`^\\+?[0-9]{7,15}$`)\n\t\tif !re.MatchString(*req.Phone) {\n\t\t\treturn ErrInvalidPhone // прислали телефон, но формат неверный\n\t\t}\n\t}",
+            "locator": "internal/usecase/courier.go:102-116",
+            "path": "internal/usecase/courier.go",
+            "line_start": 102,
+            "line_end": 116,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751cf",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "PUT /courier реализован: маршрут в main, обработчик в controller.go возвращает 200 при успехе, 404 при ErrNotFound, 400 при ошибках валидации (ErrBadRequest, ErrInvalidStatus, ErrInvalidPhone). Валидация тела (id, статус, телефон) выполняется в usecase.UpdateCourier.",
+        "evidence": [
+          "internal/handlers/controller.go:110-124 (цитата подтверждена кодом)",
+          "internal/usecase/courier.go:102-116 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверьте, что маршрут PUT /courier зарегистрирован в main.go (в срезе не показан), и что тело запроса содержит id (в dto.CourierUpdateRequest).",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func writeJSON(w http.ResponseWriter, code int, v any) {",
+            "locator": "internal/handlers/controller.go:22-22",
+            "path": "internal/handlers/controller.go",
+            "line_start": 22,
+            "line_end": 22,
+            "verified": false
+          },
+          {
+            "quote": "func (c *CourierController) Get(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handlers/controller.go:29-29",
+            "path": "internal/handlers/controller.go",
+            "line_start": 29,
+            "line_end": 29,
+            "verified": false
+          },
+          {
+            "quote": "func (c *CourierController) GetMany(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handlers/controller.go:60-60",
+            "path": "internal/handlers/controller.go",
+            "line_start": 60,
+            "line_end": 60,
+            "verified": false
+          },
+          {
+            "quote": "func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handlers/controller.go:79-79",
+            "path": "internal/handlers/controller.go",
+            "line_start": 79,
+            "line_end": 79,
+            "verified": false
+          },
+          {
+            "quote": "func (c *CourierController) Update(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handlers/controller.go:103-103",
+            "path": "internal/handlers/controller.go",
+            "line_start": 103,
+            "line_end": 103,
+            "verified": false
+          },
+          {
+            "quote": "func Healthcheck(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handlers/healthcheck.go:5-5",
+            "path": "internal/handlers/healthcheck.go",
+            "line_start": 5,
+            "line_end": 5,
+            "verified": false
+          },
+          {
+            "quote": "func Ping(w http.ResponseWriter, r *http.Request) {",
+            "locator": "internal/handlers/ping.go:8-8",
+            "path": "internal/handlers/ping.go",
+            "line_start": 8,
+            "line_end": 8,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751d0",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: grep: вхождений 'http\\\\.ResponseWriter|gin\\\\.Context|echo\\\\.Context': 7 (нужно от 1)",
+        "evidence": [
+          "internal/handlers/controller.go:22-22 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:29-29 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:60-60 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:79-79 (цитата подтверждена кодом)",
+          "internal/handlers/controller.go:103-103 (цитата подтверждена кодом)",
+          "internal/handlers/healthcheck.go:5-5 (цитата подтверждена кодом)",
+          "internal/handlers/ping.go:8-8 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\trow := r.pool.QueryRow(ctx,\n\t\t\"SELECT id, name, phone, status FROM couriers WHERE id = $1;\", id,",
+            "locator": "internal/repository/courier.go:25-26",
+            "path": "internal/repository/courier.go",
+            "line_start": 25,
+            "line_end": 26,
+            "verified": false
+          },
+          {
+            "quote": "\t\t\"INSERT INTO couriers (name, phone, status) VALUES ($1, $2, $3) RETURNING id;\",\n\t\tc.Name, c.Phone, c.Status,",
+            "locator": "internal/repository/courier.go:75-76",
+            "path": "internal/repository/courier.go",
+            "line_start": 75,
+            "line_end": 76,
+            "verified": false
+          },
+          {
+            "quote": "`UPDATE couriers\n\t\t   SET name       = COALESCE(NULLIF($1, ''), name),\n\t\t       phone      = COALESCE(NULLIF($2, ''), phone),\n\t\t       status     = COALESCE(NULLIF($3, ''), status),\n\t\t       updated_at = now()\n\t\t WHERE id = $4;`",
+            "locator": "internal/repository/courier.go:94-99",
+            "path": "internal/repository/courier.go",
+            "line_start": 94,
+            "line_end": 99,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751d1",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Все SQL-запросы используют плейсхолдеры $1..$4 с параметрами, конкатенации с пользовательскими данными нет; в миграциях CREATE FUNCTION отсутствует.",
+        "evidence": [
+          "internal/repository/courier.go:25-26 (цитата подтверждена кодом)",
+          "internal/repository/courier.go:75-76 (цитата подтверждена кодом)",
+          "internal/repository/courier.go:94-99 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "github.com/jackc/pgx/v5 v5.7.6 // indirect",
+            "locator": "go.mod:13-13",
+            "path": "go.mod",
+            "line_start": 13,
+            "line_end": 13,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-46e1-7f62-bbb4-b6425df751d2",
+        "status": "suggested",
+        "proposed_points": 0.5,
+        "reason": "Проверено кодом: grep: вхождений 'jackc/pgx': 1 (нужно от 1)",
+        "evidence": [
+          "go.mod:13-13 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:56:45Z"
+}

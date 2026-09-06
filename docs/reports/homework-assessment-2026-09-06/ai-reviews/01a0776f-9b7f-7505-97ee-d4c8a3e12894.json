@@ -1,0 +1,431 @@
+{
+  "id": "01a0776f-9b7f-7505-97ee-d4c8a3e12894",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В main.go при чтении конфигурации: сначала порт берётся из os.Getenv(\"PORT\"), затем flag.StringVar перезаписывает переменную значением флага. Объясни, почему порядок именно такой — что произойдёт, если поменять местами чтение .env и вызов flag.Parse()? Какой приоритет получится в итоге?\n2. При graceful shutdown ты используешь signal.NotifyContext и context.WithTimeout. Расскажи, что произойдёт, если сервер не успеет завершить обработку текущих запросов за отведённый таймаут — какой код вернёт srv.Shutdown и как это обрабатывается в твоём коде?\n3. В обработчике HEAD /healthcheck ты возвращаешь 204 No Content. Объясни, почему для HEAD-запроса важно не записывать тело ответа, и что случится, если в обработчике HEAD попытаться вызвать w.Write с каким-то содержимым?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за работу, вот что нужно поправить перед мержем:\n\n- Убери дублирование в обработке ошибок: вынеси повторяющиеся проверки `if err != nil` в общие хелперы или оборачивай ошибки с контекстом, чтобы не повторять один и тот же паттерн в каждом обработчике.\n- Добавь комментарии к нетривиальным местам в `main.go` (например, почему используется `signal.NotifyContext` и как работает приоритет флага над env), чтобы код было проще поддерживать.\n- Проверь, что при чтении порта из `.env` и флага логика приоритета явно задокументирована в коде или в README — сейчас это не очевидно без чтения всего файла.\n- Убедись, что все сообщения в лог (старт, остановка, ошибки) пишутся в едином формате (например, с timestamp), чтобы логи было удобно парсить.\n- Для `HEAD /healthcheck` добавь явную проверку, что тело ответа действительно пустое (сейчас это работает, но лучше застраховаться от случайного изменения).\n- Если планируешь расширять сервис, вынеси конфигурацию порта в отдельный пакет `internal/config`, чтобы не смешивать чтение env и флагов с логикой запуска сервера.\n\nХорошо, что структура проекта чистая, точка входа и graceful shutdown реализованы аккуратно, а все эндпоинты соответствуют ТЗ.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/myapp/main.go:1-1",
+            "path": "cmd/myapp/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          },
+          {
+            "quote": "(файл найден)",
+            "locator": "internal/courier/handler/handler.go:1-1",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd3fa",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: dir_exists: каталог cmd: 1 файлов; dir_exists: каталог internal: 8 файлов",
+        "evidence": [
+          "cmd/myapp/main.go:1-1 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Сборка go build: успешно. Сводка: предложено 15 из 16. Посмотреть самому: При указании и флага и .env берётся значение из флага. Сигнал ИИ: low. Стоимость прогона: 1.35 ₽ (547521 токенов, модель deepseek-v4-flash, исследователь: нет: json harness не по схеме: 1 validation error for HarnessReport\n  Invalid JSON: expected `,` or `}` at line 1 column 615 [type=json_invalid, input_value='{\"criteria\":[{\"criterion...v выполнен.\"}]}', input_type=str]\n    For furt). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "module github.com/Avito-courses/course-go-avito-israpilovsha",
+            "locator": "go.mod:1-1",
+            "path": "go.mod",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd3fb",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: file_exists: найдено: go.mod",
+        "evidence": [
+          "go.mod:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "(файл найден)",
+            "locator": "cmd/myapp/main.go:1-1",
+            "path": "cmd/myapp/main.go",
+            "line_start": 1,
+            "line_end": 1,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd3fc",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Проверено кодом: count_files: файлов по маске ['cmd/*/main.go', 'cmd/main.go']: 1 (нужно от 1)",
+        "evidence": [
+          "cmd/myapp/main.go:1-1 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func main() {\n\tlog := logger.New()\n\tcfg := config.MustLoad()\n\tdatabase := db.New(cfg.Postgres.DSN())\n\tdefer database.Close()\n\n\trepo := repository.NewPostgresCourierRepository(database)\n\tsvc := service.NewCourierService(repo)\n\th := handler.NewHandler(svc)",
+            "locator": "cmd/myapp/main.go:19-27",
+            "path": "cmd/myapp/main.go",
+            "line_start": 19,
+            "line_end": 27,
+            "verified": false
+          },
+          {
+            "quote": "type Handler struct {\n\tservice service.CourierService\n}\n\nfunc NewHandler(s service.CourierService) *Handler {\n\treturn &Handler{service: s}\n}",
+            "locator": "internal/courier/handler/handler.go:13-19",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 13,
+            "line_end": 19,
+            "verified": false
+          },
+          {
+            "quote": "type courierService struct {\n\trepo repository.CourierRepository\n}\n\nfunc NewCourierService(repo repository.CourierRepository) CourierService {\n\treturn &courierService{repo: repo}\n}",
+            "locator": "internal/courier/service/service.go:17-23",
+            "path": "internal/courier/service/service.go",
+            "line_start": 17,
+            "line_end": 23,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd3fd",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Имена идентификаторов понятны, функции небольшие, циклических зависимостей не видно. Есть незначительные дублирования в обработке ошибок, но в целом код чистый.",
+        "evidence": [
+          "cmd/myapp/main.go:19-27 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:13-19 (цитата подтверждена кодом)",
+          "internal/courier/service/service.go:17-23 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить отсутствие циклических зависимостей между пакетами и оценить дублирование кода в обработке ошибок. Оценочный критерий: балл предложен, решение за ревьюером. Наблюдения: Имена идентификаторов в основном понятные и отражают назначение, например, PostgresCourierRepository, CourierService, courierService, но есть и сокращённые имена, такие как c, h, s, r, db, что снижает читаемость в некоторых местах. (internal/courier/repository/postgres.go:12-18, internal/courier/handler/handler.go:13-19); Циклических зависимостей между пакетами не обнаружено: handler зависит от service и model, service от repository и model, repository от db и model, что образует ацикличный граф зависимостей. (internal/courier/handler/handler.go:8-9, internal/courier/service/service.go:6-7, internal/courier/repository/postgres.go:6-7); В коде есть незначительные стилистические огрехи: например, в repository/interface.go определена функция errorNew, которая дублирует стандартную errors.New, и в config.go комментарий на русском языке, что может нарушать единообразие. (internal/courier/repository/interface.go:16-25, internal/server/config/config.go:24-24)",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func (s *Server) Start() error {\n\treturn s.httpServer.ListenAndServe()\n}",
+            "locator": "internal/server/server.go:21-23",
+            "path": "internal/server/server.go",
+            "line_start": 21,
+            "line_end": 23,
+            "verified": false
+          },
+          {
+            "quote": "func New(port string, handler http.Handler) *Server {\n\tsrv := &http.Server{\n\t\tAddr:    fmt.Sprintf(\":%s\", port),\n\t\tHandler: handler,\n\t}\n\treturn &Server{httpServer: srv}\n}",
+            "locator": "internal/server/server.go:13-19",
+            "path": "internal/server/server.go",
+            "line_start": 13,
+            "line_end": 19,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd3fe",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В коде присутствует http.Server и вызов ListenAndServe, что подтверждает запуск HTTP-сервера.",
+        "evidence": [
+          "internal/server/server.go:21-23 (цитата подтверждена кодом)",
+          "internal/server/server.go:13-19 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Фактический запуск сервера не проверялся, но код содержит необходимые компоненты.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tport := os.Getenv(\"PORT\")",
+            "locator": "internal/server/config/config.go:28-28",
+            "path": "internal/server/config/config.go",
+            "line_start": 28,
+            "line_end": 28,
+            "verified": false
+          },
+          {
+            "quote": "\treturn &Config{\n\t\tPort:     port,\n\t\tPostgres: pg,\n\t}",
+            "locator": "internal/server/config/config.go:44-47",
+            "path": "internal/server/config/config.go",
+            "line_start": 44,
+            "line_end": 47,
+            "verified": false
+          },
+          {
+            "quote": "\tsrv := server.New(cfg.Port, r)",
+            "locator": "cmd/myapp/main.go:32-32",
+            "path": "cmd/myapp/main.go",
+            "line_start": 32,
+            "line_end": 32,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd3ff",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Порт читается из переменной окружения PORT через os.Getenv и используется при запуске сервера.",
+        "evidence": [
+          "internal/server/config/config.go:28-28 (цитата подтверждена кодом)",
+          "internal/server/config/config.go:44-47 (цитата подтверждена кодом)",
+          "cmd/myapp/main.go:32-32 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "func New() *log.Logger {\n\treturn log.New(os.Stdout, \"\", log.LstdFlags)",
+            "locator": "pkg/logger/logger.go:8-9",
+            "path": "pkg/logger/logger.go",
+            "line_start": 8,
+            "line_end": 9,
+            "verified": false
+          },
+          {
+            "quote": "go func() {\n\t\tlog.Printf(\"Server is running on :%s\", cfg.Port)",
+            "locator": "cmd/myapp/main.go:37-38",
+            "path": "cmd/myapp/main.go",
+            "line_start": 37,
+            "line_end": 38,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd400",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Логгер создаётся с выводом в stdout, и при старте сервера вызывается log.Printf, что подтверждает выполнение критерия.",
+        "evidence": [
+          "pkg/logger/logger.go:8-9 (цитата подтверждена кодом)",
+          "cmd/myapp/main.go:37-38 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "\tr.HandleFunc(\"/ping\", h.Ping).Methods(\"GET\")",
+            "locator": "internal/courier/handler/handler.go:26-26",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 26,
+            "line_end": 26,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) Ping(w http.ResponseWriter, r *http.Request) {\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}",
+            "locator": "internal/courier/handler/handler.go:30-33",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 30,
+            "line_end": 33,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd401",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Маршрут GET /ping зарегистрирован и обработчик возвращает 200 OK с JSON {\"message\":\"pong\"}.",
+        "evidence": [
+          "internal/courier/handler/handler.go:26-26 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:30-33 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "r.HandleFunc(\"/healthcheck\", h.HealthCheck).Methods(\"HEAD\")",
+            "locator": "internal/courier/handler/handler.go:27-27",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 27,
+            "line_end": 27,
+            "verified": false
+          },
+          {
+            "quote": "func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}",
+            "locator": "internal/courier/handler/handler.go:35-37",
+            "path": "internal/courier/handler/handler.go",
+            "line_start": 35,
+            "line_end": 37,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d51-730f-b929-7c1ae16fd402",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Маршрут /healthcheck зарегистрирован именно с методом HEAD и возвращает статус 204 No Content без тела, что соответствует ТЗ.",
+        "evidence": [
+          "internal/courier/handler/handler.go:27-27 (цитата подтверждена кодом)",
+          "internal/courier/handler/handler.go:35-37 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()",
+            "locator": "cmd/myapp/main.go:34-35",
+            "path": "cmd/myapp/main.go",
+            "line_start": 34,
+            "line_end": 35,
+            "verified": false
+          },
+          {
+            "quote": "<-ctx.Done()\n\tlog.Println(\"Shutting down gracefully...\")\n\n\tshutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\n\tif err := srv.Shutdown(shutdownCtx); err != nil {\n\t\tlog.Fatalf(\"server shutdown failed: %v\", err)\n\t}",
+            "locator": "cmd/myapp/main.go:44-52",
+            "path": "cmd/myapp/main.go",
+            "line_start": 44,
+            "line_end": 52,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d52-7f50-bbce-d5b0e52d817c",
+        "status": "suggested",
+        "proposed_points": 2.0,
+        "reason": "В main.go подписка на SIGINT/SIGTERM через signal.NotifyContext и вызов srv.Shutdown после получения сигнала, что соответствует критерию.",
+        "evidence": [
+          "cmd/myapp/main.go:34-35 (цитата подтверждена кодом)",
+          "cmd/myapp/main.go:44-52 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\tgo func() {\n\t\tlog.Printf(\"Server is running on :%s\", cfg.Port)\n\t\tif err := srv.Start(); err != nil && err != context.Canceled {\n\t\t\tlog.Fatalf(\"server failed: %v\", err)\n\t\t}\n\t}()\n\n\t<-ctx.Done()\n\tlog.Println(\"Shutting down gracefully...\")\n\n\tshutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\n\tif err := srv.Shutdown(shutdownCtx); err != nil {",
+            "locator": "cmd/myapp/main.go:34-50",
+            "path": "cmd/myapp/main.go",
+            "line_start": 34,
+            "line_end": 50,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d52-7f50-bbce-d5b0e52d817d",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "Graceful shutdown реализован через signal.NotifyContext и context.WithTimeout, передаваемый в srv.Shutdown.",
+        "evidence": [
+          "cmd/myapp/main.go:34-50 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "<-ctx.Done()\n\tlog.Println(\"Shutting down gracefully...\")\n\n\tshutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\n\tif err := srv.Shutdown(shutdownCtx); err != nil {\n\t\tlog.Fatalf(\"server shutdown failed: %v\", err)\n\t}\n\n\tlog.Println(\"Server stopped.\")",
+            "locator": "cmd/myapp/main.go:44-54",
+            "path": "cmd/myapp/main.go",
+            "line_start": 44,
+            "line_end": 54,
+            "verified": false
+          },
+          {
+            "quote": "func New() *log.Logger {\n\treturn log.New(os.Stdout, \"\", log.LstdFlags)\n}",
+            "locator": "pkg/logger/logger.go:8-10",
+            "path": "pkg/logger/logger.go",
+            "line_start": 8,
+            "line_end": 10,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d52-7f50-bbce-d5b0e52d817e",
+        "status": "suggested",
+        "proposed_points": 1.5,
+        "reason": "В main.go после получения сигнала и до/после Shutdown в лог (stdout) выводятся сообщения об остановке сервиса.",
+        "evidence": [
+          "cmd/myapp/main.go:44-54 (цитата подтверждена кодом)",
+          "pkg/logger/logger.go:8-10 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "flag.StringVar(&port, \"port\", port, \"Server port\")\n\tflag.Parse()",
+            "locator": "internal/server/config/config.go:37-38",
+            "path": "internal/server/config/config.go",
+            "line_start": 37,
+            "line_end": 38,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a07767-8d52-7f50-bbce-d5b0e52d817f",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В конфигурации используется пакет flag для переопределения порта через флаг --port, значение флага имеет приоритет над переменной окружения.",
+        "evidence": [
+          "internal/server/config/config.go:37-38 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": null
+      },
+      {
+        "requirement_met": null,
+        "sources": [],
+        "criterion_id": "01a07767-8d52-7f50-bbce-d5b0e52d8180",
+        "status": "needs_human",
+        "proposed_points": null,
+        "reason": "Флаг переопределяет значение из окружения: порт читается из .env через os.Getenv(\"PORT\"), затем flag.StringVar перезаписывает переменную значением флага, и flag.Parse() применяет его.",
+        "evidence": [
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "1 цитат(ы) модели не нашлись в работе и удалены. Модель не привела подтверждённой цитаты, балл не показываем.",
+        "student_feedback": null
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:56:38Z"
+}

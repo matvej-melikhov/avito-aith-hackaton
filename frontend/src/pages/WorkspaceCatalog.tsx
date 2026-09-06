@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { moscowDate, moscowBoundary } from "../dateOnly";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Model } from "../api/client";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { useMenuCounts } from "../App";
-import { Resource, useAction, useResource } from "../ui";
+import { Resource, go, useAction, useResource } from "../ui";
 import { WorkspaceSearch } from "./WorkspaceSearch";
+import { WorksList } from "./WorkspaceLists";
 import { CabinetTabs, Modal } from "../workspace-ui";
 import {
   Area,
@@ -102,7 +104,7 @@ export function WorkspaceCatalog({
   mode = "overview",
 }: {
   ws: WorkspaceClient;
-  mode?: "overview" | "courses";
+  mode?: "overview" | "courses" | "runs";
 }) {
   const r = useResource(() => ws.catalog(), "catalog");
   const [modal, setModal] = useState<string>();
@@ -111,6 +113,7 @@ export function WorkspaceCatalog({
   const action = useAction();
   const [courseFilter, setCourseFilter] = useState("");
   const [status, setStatus] = useState("");
+  const [runsCollapsed, setRunsCollapsed] = useState(false);
   const [stats, setStats] = useState<Record<string, RunStats>>({});
   const { setCounts } = useMenuCounts();
   useEffect(() => {
@@ -184,6 +187,120 @@ export function WorkspaceCatalog({
     </Sel>
   );
 
+  if (mode === "runs")
+    return (
+      <>
+        <Topbar
+          title="Потоки"
+          actions={
+            <Btn size="s" variant="dark" onClick={() => setModal("run")}>
+              + Создать поток
+            </Btn>
+          }
+        />
+        <Main data-screen="К1">
+          {action.feedback}
+          <Resource value={r}>
+            {r.data && (
+              <div className="stack">
+                <DsCard>
+                  <CardHead
+                    title="Потоки"
+                    sub={`Показаны ${shownRuns.length} из ${runs.length}, сначала активные`}
+                  >
+                    <BtnRow>
+                      {courseSelect}
+                      <Sel
+                        small
+                        aria-label="Статус"
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                      >
+                        <option value="">Статус: все</option>
+                        <option value="active">Активные</option>
+                        <option value="archived">Архив</option>
+                      </Sel>
+                      <Btn
+                        size="s"
+                        variant="link"
+                        aria-expanded={!runsCollapsed}
+                        onClick={() => setRunsCollapsed((v) => !v)}
+                      >
+                        {runsCollapsed ? "Развернуть" : "Свернуть"}
+                      </Btn>
+                    </BtnRow>
+                  </CardHead>
+                  {!runsCollapsed && (
+                    <CardBody flush>
+                      <table className="tbl">
+                        <thead>
+                          <tr>
+                            <th>Курс</th>
+                            <th>Поток</th>
+                            <th className="n">Студентов</th>
+                            <th className="n">Ближайший дедлайн</th>
+                            <th className="n">Сдано</th>
+                            <th className="n">На ревью</th>
+                            <th className="n">Зависло</th>
+                            <th className="n">Зачтено</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {shownRuns.map((run) => (
+                            <RunRow
+                              key={run.id}
+                              ws={ws}
+                              run={run}
+                              course={
+                                courses.find((c) => c.id === run.course_id)
+                                  ?.title ?? "Курс"
+                              }
+                              report={report}
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                      {shownRuns.length === 0 && (
+                        <DsEmpty
+                          title="Потоков нет"
+                          action={
+                            <Btn
+                              size="s"
+                              variant="dark"
+                              onClick={() => setModal("run")}
+                            >
+                              Создать поток
+                            </Btn>
+                          }
+                        >
+                          {runs.length
+                            ? "По этим фильтрам потоков нет."
+                            : "Поток всегда принадлежит курсу и открывает задания студентам."}
+                        </DsEmpty>
+                      )}
+                    </CardBody>
+                  )}
+                </DsCard>
+              </div>
+            )}
+          </Resource>
+        </Main>
+        {modal === "run" && (
+          <Modal title="Новый поток" close={close} flush>
+            <RunForm
+              ws={ws}
+              courses={courses}
+              done={() => {
+                close();
+                r.refresh();
+              }}
+              cancel={close}
+            />
+          </Modal>
+        )}
+      </>
+    );
+
   if (mode === "courses")
     return (
       <>
@@ -191,7 +308,7 @@ export function WorkspaceCatalog({
           title="Курсы"
           actions={
             <Btn size="s" variant="dark" onClick={() => setModal("course")}>
-              Создать курс
+              + Создать курс
             </Btn>
           }
         />
@@ -207,8 +324,8 @@ export function WorkspaceCatalog({
                         <th>Курс</th>
                         <th className="n">Заданий</th>
                         <th className="n">Потоков</th>
-                        <th className="n">Активных</th>
                         <th>Курс в Stepik</th>
+                        <th className="r"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -220,9 +337,9 @@ export function WorkspaceCatalog({
                             c.status === "archived" && "is-done",
                           )}
                           onClick={(e) => {
-                            if ((e.target as HTMLElement).closest("a")) return;
-                            setEditCourse(c);
-                            setModal("edit-course");
+                            if ((e.target as HTMLElement).closest("a, button"))
+                              return;
+                            go(`/homeworks?course=${c.id}`);
                           }}
                         >
                           <td>
@@ -240,15 +357,6 @@ export function WorkspaceCatalog({
                                 .length
                             }
                           </td>
-                          <td className="n">
-                            {
-                              runs.filter(
-                                (run) =>
-                                  run.course_id === c.id &&
-                                  run.status === "active",
-                              ).length
-                            }
-                          </td>
                           <td>
                             {c.stepik_url ? (
                               <a
@@ -262,6 +370,20 @@ export function WorkspaceCatalog({
                             ) : (
                               <span className="mono dim">—</span>
                             )}
+                          </td>
+                          <td className="r">
+                            <Btn
+                              size="s"
+                              variant="quiet"
+                              aria-label={`Редактировать курс «${c.title}»`}
+                              title="Редактировать"
+                              onClick={() => {
+                                setEditCourse(c);
+                                setModal("edit-course");
+                              }}
+                            >
+                              ✎
+                            </Btn>
                           </td>
                         </tr>
                       ))}
@@ -304,26 +426,15 @@ export function WorkspaceCatalog({
 
   return (
     <>
-      <Topbar
-        center
-        title="Обзор"
-        lead={<WorkspaceSearch ws={ws} />}
-        actions={
-          <>
-            <Btn size="s" onClick={() => setModal("course")}>
-              Создать курс
-            </Btn>
-            <Btn size="s" variant="dark" onClick={() => setModal("run")}>
-              Создать поток
-            </Btn>
-          </>
-        }
-      />
+      <Topbar center title="Обзор" lead={<WorkspaceSearch ws={ws} />} />
       <Main data-screen="К1">
         {action.feedback}
         <Resource value={r}>
           {r.data && (
             <div className="stack">
+              {activeRuns.map((run) => (
+                <RunStatsProbe key={run.id} ws={ws} run={run} report={report} />
+              ))}
               <Tiles>
                 <Tile
                   href="#/registry"
@@ -344,7 +455,7 @@ export function WorkspaceCatalog({
                 <Tile
                   href="#/coord-pool"
                   n={loadingStats ? "…" : totals.pool}
-                  alert={totals.stuck > 0}
+                  alert={totals.pool > 0}
                   l="в пуле без ревьюера"
                   d={
                     totals.stuck
@@ -363,75 +474,8 @@ export function WorkspaceCatalog({
                   }
                 />
               </Tiles>
-
-              <DsCard>
-                <CardHead
-                  title="Потоки"
-                  sub={`Показаны ${shownRuns.length} из ${runs.length}, сначала активные`}
-                >
-                  <BtnRow>
-                    {courseSelect}
-                    <Sel
-                      small
-                      aria-label="Статус"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value)}
-                    >
-                      <option value="">Статус: все</option>
-                      <option value="active">Активные</option>
-                      <option value="archived">Архив</option>
-                    </Sel>
-                  </BtnRow>
-                </CardHead>
-                <CardBody flush>
-                  <table className="tbl">
-                    <thead>
-                      <tr>
-                        <th>Курс</th>
-                        <th>Поток</th>
-                        <th className="n">Студентов</th>
-                        <th className="n">Ближайший дедлайн</th>
-                        <th className="n">Сдано</th>
-                        <th className="n">На ревью</th>
-                        <th className="n">Зависло</th>
-                        <th className="n">Зачтено</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {shownRuns.map((run) => (
-                        <RunRow
-                          key={run.id}
-                          ws={ws}
-                          run={run}
-                          course={
-                            courses.find((c) => c.id === run.course_id)
-                              ?.title ?? "Курс"
-                          }
-                          report={report}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                  {shownRuns.length === 0 && (
-                    <DsEmpty
-                      title="Потоков нет"
-                      action={
-                        <Btn
-                          size="s"
-                          variant="dark"
-                          onClick={() => setModal("run")}
-                        >
-                          Создать поток
-                        </Btn>
-                      }
-                    >
-                      {runs.length
-                        ? "По этим фильтрам потоков нет."
-                        : "Поток всегда принадлежит курсу и открывает задания студентам."}
-                    </DsEmpty>
-                  )}
-                </CardBody>
-              </DsCard>
+              <WorksList ws={ws} coordinatorPool embedded />
+              <WorksList ws={ws} embedded />
 
               <div className="row-2">
                 <DsCard>
@@ -461,20 +505,6 @@ export function WorkspaceCatalog({
                           : "Зависших работ нет: всё берут вовремя."}
                       </p>
                     )}
-                    {known.length > 0 &&
-                      activeRuns
-                        .filter((run) => (stats[run.id]?.homeworks ?? 1) === 0)
-                        .map((run) => (
-                          <Kv
-                            key={`hw:${run.id}`}
-                            ink
-                            label={`В потоке «${run.title}» нет опубликованных заданий`}
-                          >
-                            <Btn variant="link" href="#/homeworks">
-                              Задания
-                            </Btn>
-                          </Kv>
-                        ))}
                   </CardBody>
                 </DsCard>
                 <DsCard>
@@ -520,6 +550,23 @@ export function WorkspaceCatalog({
       )}
     </>
   );
+}
+
+/** Сбор метрик потока без разметки: «Обзор» считает плитки без таблицы. */
+function RunStatsProbe({
+  ws,
+  run,
+  report,
+}: {
+  ws: WorkspaceClient;
+  run: W<"CourseRunView">;
+  report: (id: string, value: RunStats) => void;
+}) {
+  const r = useRunStats(ws, run);
+  useEffect(() => {
+    if (r.data) report(run.id, r.data);
+  }, [r.data, run.id, report]);
+  return null;
 }
 
 function RunRow({
@@ -642,8 +689,7 @@ function CourseForm({
   const [title, setTitle] = useState(course?.title ?? "");
   const [description, setDescription] = useState(course?.description ?? "");
   const [stepikUrl, setStepikUrl] = useState(course?.stepik_url ?? "");
-  const [owner, setOwner] = useState(course?.owner_id ?? "");
-  const people = useResource(() => ws.directory(), "people");
+  const owner = course?.owner_id ?? "";
   const action = useAction();
   return (
     <form
@@ -682,11 +728,7 @@ function CourseForm({
             onChange={(e) => setDescription(e.target.value)}
           />
         </Field>
-        <Field
-          label="Ссылка на курс в Stepik"
-          opt="необязательно"
-          hint="Нужна, чтобы открыть курс на Stepik из справочника."
-        >
+        <Field label="Ссылка на курс в Stepik" opt="необязательно">
           <Inp
             mono
             type="url"
@@ -695,53 +737,9 @@ function CourseForm({
             placeholder="https://stepik.org/course/…"
           />
         </Field>
-        <Field
-          label="Кто ведёт курс"
-          hint="Задания и потоки внутри курса сможет создавать координатор курса."
-        >
-          <Sel value={owner} onChange={(e) => setOwner(e.target.value)}>
-            <option value="">Не выбран</option>
-            {people.data?.items
-              .filter((p) => p.roles.includes("methodologist"))
-              .map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.display_name}
-                </option>
-              ))}
-          </Sel>
-        </Field>
       </div>
       <div className="card__foot card__foot--end">
         <BtnRow>
-          {course && (
-            <Btn
-              variant="quiet"
-              disabled={action.busy}
-              onClick={() =>
-                void action.run(async () => {
-                  if (course.status === "archived")
-                    await ws.core.command(
-                      "restore_course",
-                      course.id,
-                      course.revision,
-                      {},
-                    );
-                  else
-                    await ws.core.command(
-                      "archive_course",
-                      course.id,
-                      course.revision,
-                      {
-                        reason: "Архивирование координатором",
-                      },
-                    );
-                  done();
-                })
-              }
-            >
-              {course.status === "archived" ? "Восстановить" : "В архив"}
-            </Btn>
-          )}
           <Btn variant="quiet" onClick={cancel}>
             Отмена
           </Btn>
@@ -755,6 +753,18 @@ function CourseForm({
 }
 
 /** К4: форма потока. */
+/** Название потока по датам, когда координатор его не задал. */
+function runTitleFromDates(start: string, end: string) {
+  const from = start ? new Date(start) : null;
+  const to = end ? new Date(end) : null;
+  const label = (at: Date) =>
+    at.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  if (!from) return "Поток";
+  const a = label(from);
+  const b = to ? label(to) : a;
+  return a === b ? a : `${a} — ${b}`;
+}
+
 function RunForm({
   ws,
   courses,
@@ -774,12 +784,11 @@ function RunForm({
     fixedCourse?.id ?? run?.course_id ?? "",
   );
   const [title, setTitle] = useState(run?.title ?? "");
-  const [start, setStart] = useState(localDate(run?.starts_at));
-  const [end, setEnd] = useState(localDate(run?.ends_at));
+  const [start, setStart] = useState(moscowDate(run?.starts_at));
+  const [end, setEnd] = useState(moscowDate(run?.ends_at));
   const [zone, setZone] = useState(run?.timezone ?? "Europe/Moscow");
-  const [priority, setPriority] = useState<"assigned" | "deadline">(
-    run?.priority ?? "assigned",
-  );
+  // Порядок рекомендаций один для всех потоков: свои студенты сначала.
+  const priority = run?.priority ?? "assigned";
   const action = useAction();
   const course = fixedCourse ?? courses?.find((c) => c.id === courseId);
   return (
@@ -793,9 +802,9 @@ function RunForm({
             run?.id ?? course.id,
             run?.revision ?? course.revision,
             {
-              title,
-              starts_at: new Date(start).toISOString(),
-              ends_at: new Date(end).toISOString(),
+              title: title.trim() || runTitleFromDates(start, end),
+              starts_at: moscowBoundary(start),
+              ends_at: moscowBoundary(end, true),
               timezone: zone,
               priority,
             },
@@ -824,31 +833,31 @@ function RunForm({
             </Sel>
           )}
         </Field>
-        <Field label="Название потока" hint="Например, «Февраль 2026»">
-          <Inp
-            required
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </Field>
-        <Field group label="Даты">
-          <div className="row-2 row-2--tight">
+        <div className="date-range">
+          <Field label="Дата начала">
             <Inp
-              aria-label="Дата начала"
               required
-              type="datetime-local"
+              type="date"
               value={start}
               onChange={(e) => setStart(e.target.value)}
             />
+          </Field>
+          <Field label="Дата окончания">
             <Inp
-              aria-label="Дата окончания"
               required
-              type="datetime-local"
+              type="date"
               min={start}
               value={end}
               onChange={(e) => setEnd(e.target.value)}
             />
-          </div>
+          </Field>
+        </div>
+        <Field
+          label="Название потока"
+          opt="необязательно"
+          hint="Например, «Февраль 2026». Без названия поток называется по датам."
+        >
+          <Inp value={title} onChange={(e) => setTitle(e.target.value)} />
         </Field>
         <Field label="Часовой пояс">
           <Inp
@@ -858,21 +867,7 @@ function RunForm({
             onChange={(e) => setZone(e.target.value)}
           />
         </Field>
-        <Field
-          group
-          label="Порядок рекомендаций ревьюерам"
-          hint="Порядок рекомендаций не ограничивает доступ к общему пулу."
-        >
-          <Seg
-            value={priority}
-            onChange={setPriority}
-            options={[
-              { value: "assigned", label: "Свои студенты сначала" },
-              { value: "deadline", label: "Ближайший срок сначала" },
-            ]}
-          />
-        </Field>
-        <Callout>
+        <Callout tone="warn">
           <p>
             Студентов добавлять не нужно. Зачисление происходит при первом
             переходе по ссылке задания: платформа узнаёт студента по Stepik ID.
@@ -1025,6 +1020,8 @@ export function RunCard({
   );
 }
 
+const PREFERENCES_AUTOSAVE_DELAY = 1000;
+
 export function WorkspacePreferences({
   ws,
   session,
@@ -1076,16 +1073,43 @@ function PreferencesForm({
     initial?.notifications ?? defaults,
   );
   const [selected, setSelected] = useState(initial?.course_run_ids ?? []);
-  const [from, setFrom] = useState(localDate(initial?.absent_from));
-  const [to, setTo] = useState(localDate(initial?.absent_until));
+  const [from, setFrom] = useState(moscowDate(initial?.absent_from));
+  const [to, setTo] = useState(moscowDate(initial?.absent_until));
   const action = useAction();
-  function reset() {
-    setShowPool(initial?.show_pool ?? true);
-    setNotifications(initial?.notifications ?? defaults);
-    setSelected(initial?.course_run_ids ?? []);
-    setFrom(localDate(initial?.absent_from));
-    setTo(localDate(initial?.absent_until));
-  }
+  const [savedNote, setSavedNote] = useState("");
+  /* Настройки сохраняются сами через секунду после последней правки: отдельных
+     кнопок «Сохранить» и «Отменить» на экране нет. */
+  const payload = JSON.stringify({
+    course_run_ids: selected,
+    show_pool: showPool,
+    notifications,
+    absent_from: from ? moscowBoundary(from) : null,
+    absent_until: from && to ? moscowBoundary(to, true) : null,
+  });
+  const known = useRef(payload);
+  useEffect(() => {
+    if (payload === known.current) return;
+    if (from && !to) return;
+    const timer = window.setTimeout(() => {
+      known.current = payload;
+      setSavedNote("Сохраняем…");
+      void action.run(async () => {
+        await ws.command(
+          "save_preferences",
+          session.user_id,
+          preferences.revision,
+          {
+            ...JSON.parse(payload),
+            planned_minutes: initial?.planned_minutes ?? 0,
+            until_at: initial?.until_at ?? new Date().toISOString(),
+          },
+        );
+        setSavedNote("Настройки сохранены");
+        refresh();
+      });
+    }, PREFERENCES_AUTOSAVE_DELAY);
+    return () => window.clearTimeout(timer);
+  }, [payload, from, to]);
   const courses = catalog.courses
     .map((course) => ({
       course,
@@ -1099,48 +1123,17 @@ function PreferencesForm({
       <Topbar
         title="Кабинет"
         actions={
-          <>
-            <Btn size="s" variant="quiet" onClick={reset}>
-              Отменить
-            </Btn>
-            <Btn
-              size="s"
-              variant="pri"
-              type="submit"
-              form="reviewer-preferences"
-              disabled={action.busy}
-            >
-              Сохранить
-            </Btn>
-          </>
+          savedNote && (
+            <span className="caption" role="status">
+              {savedNote}
+            </span>
+          )
         }
       />
       <Main data-screen="Р3">
         <CabinetTabs on="preferences" />
         {action.feedback}
-        <form
-          id="reviewer-preferences"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void action.run(async () => {
-              await ws.command(
-                "save_preferences",
-                session.user_id,
-                preferences.revision,
-                {
-                  course_run_ids: selected,
-                  show_pool: showPool,
-                  notifications,
-                  planned_minutes: initial?.planned_minutes ?? 0,
-                  until_at: initial?.until_at ?? new Date().toISOString(),
-                  absent_from: from ? new Date(from).toISOString() : null,
-                  absent_until: from && to ? new Date(to).toISOString() : null,
-                },
-              );
-              refresh();
-            }, "Настройки сохранены");
-          }}
-        >
+        <form id="reviewer-preferences" onSubmit={(e) => e.preventDefault()}>
           <div className="row-side">
             <DsCard>
               <CardHead title="Курсы, которые готов проверять" />
@@ -1183,7 +1176,7 @@ function PreferencesForm({
               <DsCard>
                 <CardHead title="Доступность" />
                 <CardBody>
-                  <div className="tgl-row">
+                  <label className="tgl-row">
                     <div>
                       <div id="pref-show-pool">
                         Показывать мне работы из пула
@@ -1197,24 +1190,27 @@ function PreferencesForm({
                       checked={showPool}
                       onChange={(e) => setShowPool(e.target.checked)}
                     />
-                  </div>
+                  </label>
                   <div className="field field--after">
                     <span className="field__lbl" id="pref-absence">
                       Отпуск или отсутствие
                     </span>
-                    <div className="row-2 row-2--tight">
+                    <div className="date-range">
                       <Inp
                         aria-label="Начало отсутствия"
-                        type="datetime-local"
+                        type="date"
                         value={from}
                         onChange={(e) => {
                           setFrom(e.target.value);
                           if (!e.target.value) setTo("");
                         }}
                       />
+                      <span className="date-range__dash" aria-hidden="true">
+                        —
+                      </span>
                       <Inp
                         aria-label="Окончание отсутствия"
-                        type="datetime-local"
+                        type="date"
                         required={!!from}
                         min={from}
                         value={to}
@@ -1238,7 +1234,7 @@ function PreferencesForm({
                         ["revision", "Студент прислал правки"],
                         [
                           "pool",
-                          "В пуле по моим курсам появилось что-то новое",
+                          "В пуле по моим курсам появились новые работы",
                         ],
                       ] as const
                     ).map(([key, label]) => (
@@ -1616,13 +1612,15 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
       ),
     };
   }, "homework-directory");
-  const [courseId, setCourseId] = useState("");
+  // Задания открываются с курса, поэтому фильтр берётся из адреса.
+  const [courseId, setCourseId] = useState(
+    () =>
+      new URLSearchParams(window.location.hash.split("?")[1] ?? "").get(
+        "course",
+      ) ?? "",
+  );
   const [search, setSearch] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [runId, setRunId] = useState("");
-  const [title, setTitle] = useState("");
   const action = useAction();
-  const close = useCallback(() => setCreating(false), []);
   const { setCounts } = useMenuCounts();
   useEffect(() => {
     if (r.data) setCounts({ homeworks: r.data.homeworks.length });
@@ -1649,8 +1647,12 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
           />
         }
         actions={
-          <Btn size="s" variant="dark" onClick={() => setCreating(true)}>
-            Новое задание
+          <Btn
+            size="s"
+            variant="dark"
+            href={`#/homework-new${courseId ? `?course=${courseId}` : ""}`}
+          >
+            + Новое задание
           </Btn>
         }
       />
@@ -1688,7 +1690,7 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
                     <th>Курс</th>
                     <th className="n">Версия</th>
                     <th>Публикации</th>
-                    <th className="r">Поток для настройки</th>
+                    <th className="r">Настройка</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1715,9 +1717,9 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
                     <Btn
                       size="s"
                       variant="dark"
-                      onClick={() => setCreating(true)}
+                      href={`#/homework-new${courseId ? `?course=${courseId}` : ""}`}
                     >
-                      Новое задание
+                      + Новое задание
                     </Btn>
                   }
                 >
@@ -1728,80 +1730,124 @@ export function WorkspaceHomeworkDirectory({ ws }: { ws: WorkspaceClient }) {
           </Resource>
         </DsCard>
       </Main>
-      {creating && (
-        <Modal title="Новое задание" close={close} flush>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void action.run(async () => {
-                const run = r.data?.course_runs.find((run) => run.id === runId);
-                if (!run) throw new Error("Выберите поток.");
-                const fresh = (await ws.catalog()).course_runs.find(
-                  (value) => value.id === runId,
-                );
-                if (!fresh) throw new Error("Поток недоступен.");
-                const created = await ws.core.command(
-                  "create_homework",
-                  runId,
-                  fresh.revision,
-                  { title },
-                );
-                setCreating(false);
-                window.location.hash = `/homework/${created.id}?run=${runId}`;
-              });
-            }}
-          >
-            <div className="card__body">
-              {action.feedback}
-              <Field
-                label="Курс и поток"
-                hint="Задание сохраняется в курсе. Сроки публикации в потоке задаются на последнем шаге мастера."
-              >
-                <Sel
-                  required
-                  value={runId}
-                  onChange={(e) => setRunId(e.target.value)}
-                >
-                  <option value="">Выберите поток</option>
-                  {r.data?.course_runs
-                    .filter((run) => run.status === "active")
-                    .map((run) => (
-                      <option key={run.id} value={run.id}>
-                        {
-                          r.data!.courses.find(
-                            (course) => course.id === run.course_id,
-                          )?.title
-                        }{" "}
-                        · {run.title}
-                      </option>
-                    ))}
-                </Sel>
-              </Field>
-              <Field label="Название задания">
-                <Inp
-                  required
-                  maxLength={512}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </Field>
-            </div>
-            <div className="card__foot card__foot--end">
-              <BtnRow>
-                <Btn variant="quiet" onClick={close}>
-                  Отмена
-                </Btn>
-                <Btn variant="pri" type="submit" disabled={action.busy}>
-                  Создать задание
-                </Btn>
-              </BtnRow>
-            </div>
-          </form>
-        </Modal>
-      )}
     </>
   );
 }
+/**
+ * Создание задания. Задание принадлежит курсу, поэтому спрашиваем только курс и
+ * название: поток подставляется сам, активный поток курса всегда один.
+ */
+export function WorkspaceHomeworkNew({ ws }: { ws: WorkspaceClient }) {
+  const r = useResource(() => ws.catalog(), "catalog");
+  const action = useAction();
+  const [courseId, setCourseId] = useState(
+    () =>
+      new URLSearchParams(window.location.hash.split("?")[1] ?? "").get(
+        "course",
+      ) ?? "",
+  );
+  const [title, setTitle] = useState("");
+  const runs = r.data?.course_runs ?? [];
+  const activeRun = runs.find(
+    (run) => run.course_id === courseId && run.status === "active",
+  );
+  return (
+    <>
+      <Topbar
+        crumbs={
+          <Crumbs
+            back="#/courses"
+            items={[{ href: "#/courses", label: "Курсы" }]}
+            current="Новое задание"
+          />
+        }
+        title="Новое задание"
+      />
+      <Main>
+        <Resource value={r}>
+          {r.data && (
+            <DsCard>
+              <CardHead
+                title="Задание"
+                sub="Условие и критерии заполняются на следующем шаге"
+              />
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void action.run(async () => {
+                    if (!activeRun)
+                      throw new Error(
+                        "У курса нет активного потока. Создайте поток на странице «Потоки».",
+                      );
+                    const fresh = (await ws.catalog()).course_runs.find(
+                      (value) => value.id === activeRun.id,
+                    );
+                    if (!fresh) throw new Error("Поток недоступен.");
+                    const created = await ws.core.command(
+                      "create_homework",
+                      activeRun.id,
+                      fresh.revision,
+                      { title },
+                    );
+                    go(`/homework/${created.id}?run=${activeRun.id}`);
+                  });
+                }}
+              >
+                <CardBody>
+                  {action.feedback}
+                  <Field label="Курс">
+                    <Sel
+                      required
+                      value={courseId}
+                      onChange={(e) => setCourseId(e.target.value)}
+                    >
+                      <option value="">Выберите курс</option>
+                      {r.data.courses.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.title}
+                        </option>
+                      ))}
+                    </Sel>
+                  </Field>
+                  <Field
+                    label="Название задания"
+                    hint={
+                      courseId && !activeRun
+                        ? "У курса нет активного потока: задание некуда опубликовать."
+                        : undefined
+                    }
+                  >
+                    <Inp
+                      required
+                      maxLength={512}
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                    />
+                  </Field>
+                </CardBody>
+                <div className="card__foot card__foot--end">
+                  <BtnRow>
+                    <Btn variant="quiet" href="#/courses">
+                      Отмена
+                    </Btn>
+                    <Btn
+                      variant="pri"
+                      type="submit"
+                      disabled={action.busy || !activeRun}
+                    >
+                      Создать задание
+                    </Btn>
+                  </BtnRow>
+                </div>
+              </form>
+            </DsCard>
+          )}
+        </Resource>
+      </Main>
+    </>
+  );
+}
+
 function HomeworkDirectoryRow({
   item,
   course,
@@ -1811,16 +1857,20 @@ function HomeworkDirectoryRow({
   course: string;
   runs: W<"CourseRunView">[];
 }) {
-  const [runId, setRunId] = useState(
+  /* Задание настраивается для курса целиком. Поток нужен только адресу и
+     берётся сам: активный поток курса всегда один. */
+  const runId =
+    runs.find((run) => run.status === "active")?.id ??
     item.published_run_ids[0] ??
-      runs.find((run) => run.status === "active")?.id ??
-      runs[0]?.id ??
-      "",
-  );
+    runs[0]?.id ??
+    "";
+  const href = `#/homework/${item.id}${runId ? `?run=${runId}` : ""}`;
   return (
     <tr>
       <td>
-        <div className="who">{item.title}</div>
+        <a className="who" href={href}>
+          {item.title}
+        </a>
         {!item.published_run_ids.length && <div className="sub">Черновик</div>}
       </td>
       <td>{course}</td>
@@ -1834,24 +1884,9 @@ function HomeworkDirectoryRow({
       </td>
       <td className="r">
         <BtnRow end>
-          <Sel
-            small
-            aria-label={`Поток: ${item.title}`}
-            value={runId}
-            onChange={(e) => setRunId(e.target.value)}
-          >
-            {!runs.length && <option value="">Нет потоков</option>}
-            {runs.map((run) => (
-              <option key={run.id} value={run.id}>
-                {run.title}
-              </option>
-            ))}
-          </Sel>
-          {runId && (
-            <Btn size="s" href={`#/homework/${item.id}?run=${runId}`}>
-              Настроить →
-            </Btn>
-          )}
+          <Btn size="s" href={href}>
+            Настроить →
+          </Btn>
         </BtnRow>
       </td>
     </tr>

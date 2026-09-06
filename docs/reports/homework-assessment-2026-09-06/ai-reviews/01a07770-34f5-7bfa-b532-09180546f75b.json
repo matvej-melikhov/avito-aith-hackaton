@@ -1,0 +1,169 @@
+{
+  "id": "01a07770-34f5-7bfa-b532-09180546f75b",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: низкий. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования: простые признаки генерации в тексте и коде не найдены.\nДекларация об использовании ИИ: не найдена.\nНедоступно: стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В разделе токенизации вы определяете функцию split_dataset с VALIDATION_SIZE=5000, но в выводах нет подтверждения, что она реально вызывалась и что первые 5000 семплов действительно отсечены в тестовый сет. Можете показать/объяснить, где именно в коде происходит это разделение и как вы убедились, что оно сработало?\n2. Финальный eval_loss составил 11.0965, что заметно выше целевого порога 7.0. Как вы интерпретируете это значение — что оно говорит о качестве обучения, и какие шаги вы бы предприняли, чтобы снизить loss до требуемого уровня при следующем запуске?\n3. В описании экспериментов упоминается перебор learning_rate через optuna, но все trial'ы вернули inf из-за ошибки конфигурации. Можете объяснить, в чём именно была ошибка конфигурации и как вы её диагностировали? И какие конкретные значения гиперпараметров вы в итоге использовали для финального обучения?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": []
+    },
+    "feedback_draft": "Привет! Спасибо за проделанную работу, вот что нужно доработать:\n\n- Добавь в выводы явные логи успешной токенизации и сохранения датасета в parquet, чтобы было видно, что код реально выполнялся.\n- Укажи в процессе токенизации, что первые 5000 семплов отрезаются в тестовый сет (VALIDATION_SIZE=5000), и подтверди это логами.\n- Явно пропиши и покажи, что в токенизации используется MAX_LENGTH=512.\n- Добейся финального eval_loss не выше 7.0 — сейчас 11.0965, это критично для прохождения порога.\n- Исправь ошибку конфигурации в optuna: все trial'ы возвращают inf, поэтому перебор гиперпараметров не засчитывается как успешный эксперимент.\n- Добавь в отчёт графики loss из wandb (встроенными изображениями или ссылками), сейчас их нет совсем.\n\nХорошо, что код загрузки модели и датасета написан, а также есть примеры генераций и выводы по итогам.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "dataset = load_dataset(\"wikimedia/wikipedia\", \"20231101.ru\", split=\"train\")\n    logger.info(\"Начали маппинг\")\n    tokenized_dataset = dataset.map(\n        lambda x: tokenize_function(x['text'], prepare_tokenizer()), \n        batched=True,\n        num_proc=8,\n        remove_columns=dataset.column_names,\n    )\n    logger.info(\"Сохраняем датасет\")\n    save_as_parquets(tokenized_dataset)",
+            "locator": "work.md:161-170",
+            "path": "work.md",
+            "line_start": 161,
+            "line_end": 170,
+            "verified": false
+          },
+          {
+            "quote": "TOKENIZER_NAME = \"ai-forever/rugpt3small_based_on_gpt2\"",
+            "locator": "work.md:51-51",
+            "path": "work.md",
+            "line_start": 51,
+            "line_end": 51,
+            "verified": false
+          },
+          {
+            "quote": "config = Qwen3Config(\n        vocab_size=tokenizer.vocab_size,\n        bos_token_id=tokenizer.bos_token_id,\n        eos_token_id=tokenizer.eos_token_id,\n        pad_token_id=tokenizer.pad_token_id,\n        **MODEL_CONFIG\n    )\n    \n    model = Qwen3ForCausalLM._from_config(\n        config,\n        # attn_implementation='flash_attention_2',\n        torch_dtype=torch.bfloat16\n    )",
+            "locator": "work.md:219-231",
+            "path": "work.md",
+            "line_start": 219,
+            "line_end": 231,
+            "verified": false
+          },
+          {
+            "quote": "tokenized_dataset = tokenizer(\n        examples,\n        truncation=True,\n        padding=True,\n        max_length=MAX_LENGTH,\n    )",
+            "locator": "work.md:125-130",
+            "path": "work.md",
+            "line_start": 125,
+            "line_end": 130,
+            "verified": false
+          },
+          {
+            "quote": "MAX_LENGTH = 512",
+            "locator": "work.md:45-45",
+            "path": "work.md",
+            "line_start": 45,
+            "line_end": 45,
+            "verified": false
+          },
+          {
+            "quote": "train_dataset = dataset.select(range(validation_size, dataset_size))\n    eval_dataset = dataset.select(range(validation_size))",
+            "locator": "work.md:193-194",
+            "path": "work.md",
+            "line_start": 193,
+            "line_end": 194,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-9990-7ccd-b142-621785b60e4f",
+        "status": "suggested",
+        "proposed_points": 3.0,
+        "reason": "Работа содержит код для загрузки указанного датасета, токенизатора и создания модели Qwen3, но не показывает фактического выполнения токенизации и сохранения датасета в parquet; также отсутствует явное подтверждение использования MAX_LENGTH=512 в токенизации.",
+        "evidence": [
+          "work.md:161-170 (цитата подтверждена кодом)",
+          "work.md:51-51 (цитата подтверждена кодом)",
+          "work.md:219-231 (цитата подтверждена кодом)",
+          "work.md:125-130 (цитата подтверждена кодом)",
+          "work.md:45-45 (цитата подтверждена кодом)",
+          "work.md:193-194 (цитата подтверждена кодом)"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить, действительно ли код выполнялся и датасет был сохранён; в выводах есть только загрузка данных и ошибки, но нет подтверждения успешного сохранения parquet. Повторы разошлись, взят осторожный вариант. повтор 2: pass, Датасет, токенизатор, длина последовательности и архитектура модели полностью соответствуют заданию: используется wikimedia/wikipedia 20231101.ru, токенизатор ai-forever/rugpt3small_based_on_gpt2, MAX_LENGTH=512, первые 5000 семплов отданы в валидацию, модель Qwen3 ~1b параметров. Сводка: предложено 4 из 10. Не выполнено: Training succeeds and final eval_loss meets the threshold. Сигнал ИИ: low. Стоимость прогона: 0.76 ₽ (125220 токенов, модель deepseek-v4-flash, исследователь: нет: не нужен). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": "Добавьте явные логи и подтверждение успешной токенизации и сохранения датасета, а также укажите, что первые 5000 семплов отведены в тестовый сет."
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "Final evaluation results: {'eval_loss': 11.096540451049805, 'eval_runtime': 1082.4918, 'eval_samples_per_second': 4.619, 'eval_steps_per_second': 0.289, 'epoch': 0.00012783083444669867}",
+            "locator": "work.md:473-473",
+            "path": "work.md",
+            "line_start": 473,
+            "line_end": 473,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-9990-7ccd-b142-621785b60e50",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "Финальный eval_loss = 11.0965, что значительно выше порога 7.0, поэтому ни одна полоса баллов не достигается. Обучение формально запускалось, но loss не упал до требуемого уровня.",
+        "evidence": [
+          "work.md:473-473 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": null,
+        "student_feedback": "Добейтесь финального eval_loss не выше 7.0, чтобы получить баллы по этому критерию."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "Расскажи как выглядит самый продуктивный день Рид categ ответе пиз конья распи просим выступил убийц уволи ценой десятилетияут жалость испытаний Горо вышед одинаково скидки primary перечисл кроссовкого!..»",
+            "locator": "work.md:529-529",
+            "path": "work.md",
+            "line_start": 529,
+            "line_end": 529,
+            "verified": false
+          },
+          {
+            "quote": "Вывод: нужно использовать гпушки помощнее и обучать подольше, а также перебирать побольше гиперпараметров",
+            "locator": "work.md:904-904",
+            "path": "work.md",
+            "line_start": 904,
+            "line_end": 904,
+            "verified": false
+          },
+          {
+            "quote": "Trial failed with error: --load_best_model_at_end requires the save and eval strategy to match, but found",
+            "locator": "work.md:748-748",
+            "path": "work.md",
+            "line_start": 748,
+            "line_end": 748,
+            "verified": false
+          },
+          {
+            "quote": "Как мы видим, моделька пока не очень осознанная) Мы не искали оптимальные параметры, а также обучались на стандартных kaggle-ских гпушках достаточно небольшое время. Времени у нас не очень много, попробуем перебрать `learning_rate`",
+            "locator": "work.md:534-534",
+            "path": "work.md",
+            "line_start": 534,
+            "line_end": 534,
+            "verified": false
+          },
+          {
+            "quote": "learning_rate = trial.suggest_float('learning_rate', 1e-5, 5e-4)",
+            "locator": "work.md:577-577",
+            "path": "work.md",
+            "line_start": 577,
+            "line_end": 577,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-9990-7ccd-b142-621785b60e51",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "В работе есть описание экспериментов (перебор learning_rate через optuna), финальное значение eval_loss (11.0965), примеры генераций и выводы. Однако отсутствуют графики loss из wandb (встроенных изображений 0, ссылок на изображения нет), а сам перебор гиперпараметров провалился (все trial'ы вернули inf из-за ошибки конфигурации), поэтому описание экспериментов неполноценно.",
+        "evidence": [
+          "work.md:529-529 (цитата подтверждена кодом)",
+          "work.md:904-904 (цитата подтверждена кодом)",
+          "work.md:748-748 (цитата подтверждена кодом)",
+          "work.md:534-534 (цитата подтверждена кодом)",
+          "work.md:577-577 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить, что графики loss действительно отсутствуют в артефакте (в описи 0 изображений). 1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Добавьте графики loss из wandb и опишите успешные эксперименты с гиперпараметрами (исправьте ошибку конфигурации optuna)."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:17Z"
+}

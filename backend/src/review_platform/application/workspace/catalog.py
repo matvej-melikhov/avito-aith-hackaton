@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Literal, cast
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from review_platform.application.foundation_runtime import FoundationRuntime
@@ -59,8 +59,15 @@ class CatalogService:
         require_roles(actor, "methodologist")
         entries = (
             await self.session.execute(
-                select(User, OrganizationMembership)
+                select(User, OrganizationMembership, WorkspacePreferences)
                 .join(OrganizationMembership, OrganizationMembership.user_id == User.id)
+                .outerjoin(
+                    WorkspacePreferences,
+                    and_(
+                        WorkspacePreferences.organization_id == actor.organization_id,
+                        WorkspacePreferences.user_id == User.id,
+                    ),
+                )
                 .where(
                     OrganizationMembership.organization_id == actor.organization_id,
                     OrganizationMembership.status == "active",
@@ -69,7 +76,7 @@ class CatalogService:
             )
         ).all()
         aliases = await student_labels(
-            self.session, actor.organization_id, [u.id for u, _ in entries]
+            self.session, actor.organization_id, [u.id for u, _, _ in entries]
         )
         return DirectoryView(
             items=[
@@ -77,8 +84,10 @@ class CatalogService:
                     id=u.id,
                     display_name=aliases[u.id] if set(m.roles) == {"student"} else u.display_name,
                     roles=m.roles,
+                    absent_from=(p.settings or {}).get("absent_from") if p else None,
+                    absent_until=(p.settings or {}).get("absent_until") if p else None,
                 )
-                for u, m in entries
+                for u, m, p in entries
             ]
         )
 

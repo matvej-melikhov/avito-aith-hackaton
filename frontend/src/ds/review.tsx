@@ -1,26 +1,48 @@
 // Разбор по требованиям: аккордеон, маркеры вердикта, шкала, находка с
 // цитатой, цитата без кода, редактируемый критерий. Разметка из Р5/К6.
-import { useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import { cx } from "./controls";
 import { num } from "./format";
+
+/* Дальше этого числа значений шкала перестаёт быть шкалой: чипы не читаются
+   и не попадают на экран, поэтому остаётся числовое поле. */
+export const SCALE_CHIP_LIMIT = 41;
+/** С этого числа значений ряд переносится на свою строку. */
+export const SCALE_WIDE_FROM = 7;
 
 /** Ряд значений шкалы из максимума и шага (как в конфигурации задания). */
 export function scaleValues(max: number, step: number) {
   if (!Number.isFinite(max) || max < 0 || !Number.isFinite(step) || step <= 0)
     return [] as number[];
   const count = Math.floor(max / step);
-  const values =
-    count <= 12
-      ? Array.from({ length: count + 1 }, (_, i) =>
-          Number((i * step).toFixed(6)),
-        )
-      : [0, step];
+  if (count + 1 > SCALE_CHIP_LIMIT) return [0, step, max];
+  const values = Array.from({ length: count + 1 }, (_, i) =>
+    Number((i * step).toFixed(6)),
+  );
   if (values[values.length - 1] !== max) values.push(max);
   return values;
 }
 
+/** Шкала показывается чипами, а не полем ввода. */
+export function scaleHasChips(max: number, step: number) {
+  const values = scaleValues(max, step);
+  return values.length > 1 && values.length <= SCALE_CHIP_LIMIT;
+}
+
+/** Ряд длинный и должен стоять на своей строке. */
+export function scaleIsWide(max: number, step: number) {
+  return scaleValues(max, step).length >= SCALE_WIDE_FROM;
+}
+
 export function Acc({
   head,
+  headClass,
   open,
   defaultOpen,
   onToggle,
@@ -31,6 +53,8 @@ export function Acc({
   ...rest
 }: Omit<ComponentPropsWithoutRef<"details">, "open" | "onToggle"> & {
   head: ReactNode;
+  /** Сетка заголовка: `acc__h--score` ставит оценку в общую колонку. */
+  headClass?: string;
   open?: boolean;
   defaultOpen?: boolean;
   onToggle?: (open: boolean) => void;
@@ -40,6 +64,12 @@ export function Acc({
   children?: ReactNode;
 }) {
   const [inner, setInner] = useState(defaultOpen ?? open ?? false);
+  /* Разбор модели приходит после первой отрисовки и меняет, что стоит
+     раскрыть. Пока человек не трогал строку, следуем за этим значением. */
+  const touched = useRef(false);
+  useEffect(() => {
+    if (!touched.current && defaultOpen !== undefined) setInner(defaultOpen);
+  }, [defaultOpen]);
   const shown = open ?? inner;
   return (
     <details
@@ -52,7 +82,12 @@ export function Acc({
       }}
       {...rest}
     >
-      <summary className="acc__h">
+      <summary
+        className={cx("acc__h", headClass)}
+        onClick={() => {
+          touched.current = true;
+        }}
+      >
         {head}
         {chevron && (
           <span className="acc__chev" aria-hidden="true">
@@ -116,9 +151,8 @@ export function Scale({
   className?: string;
 }) {
   const values = scaleValues(max, step);
-  // Чипы только для полной шкалы: свёрнутый ряд «0, шаг … максимум»
-  // годится для показа, но не для выбора.
-  const chips = values.length > 0 && Math.floor(max / step) <= 12;
+  const chips = scaleHasChips(max, step);
+  const wide = values.length >= SCALE_WIDE_FROM;
   const tone =
     value === 0
       ? "scale--zero"
@@ -130,7 +164,12 @@ export function Scale({
     const preview = chips ? values : values.length ? values : [value ?? 0];
     return (
       <span
-        className={cx("scale scale--ro", tone, className)}
+        className={cx(
+          "scale scale--ro",
+          values.length >= SCALE_WIDE_FROM && "scale--wide",
+          tone,
+          className,
+        )}
         aria-label={label}
       >
         {preview.map((v, i) => (
@@ -147,7 +186,7 @@ export function Scale({
     <>
       {chips && (
         <span
-          className={cx("scale", tone, className)}
+          className={cx("scale", wide && "scale--wide", tone, className)}
           role="group"
           aria-label={`${label}, шкала`}
         >
@@ -182,30 +221,48 @@ export function Scale({
   );
 }
 
+/** Обёртка для контрола внутри заголовка: клик не сворачивает аккордеон. */
+export function AccCtl({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={className}
+      onClick={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        if (e.key === " " || e.key === "Enter") e.stopPropagation();
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function Finding({
   file,
   lines,
-  href,
+  open,
   why,
   children,
 }: {
   file?: ReactNode;
   lines?: ReactNode;
-  href?: string;
+  /** Действие «Открыть»: ссылка на репозиторий или просмотр файла. */
+  open?: ReactNode;
   why?: ReactNode;
   children?: ReactNode;
 }) {
   return (
     <div className="finding">
-      {(file || lines || href) && (
+      {(file || lines || open) && (
         <div className="finding__src">
           {file && <span className="f">{file}</span>}
           {lines && <span>{lines}</span>}
-          {href && (
-            <a className="o" href={href} target="_blank" rel="noreferrer">
-              Открыть в репозитории ↗
-            </a>
-          )}
+          {open}
         </div>
       )}
       {children}

@@ -1,0 +1,194 @@
+{
+  "id": "01a07770-3a5b-7bfc-a5c8-0c5f13b03540",
+  "status": "succeeded",
+  "revision": 2,
+  "result": {
+    "authorship_signal": {
+      "id": "prereview-signal-v1",
+      "probability": null,
+      "explanation": "Уровень: средний. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора.\nОснования:\n- Заглушки и пометки «остальной код»: 6 мест. Ограничение: Заглушки оставляют и вручную при незавершённой работе.\nДекларация об использовании ИИ: не найдена.\nНедоступно: история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны; стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам.\nВопросы для Q&A:\n1. В README указано, что лучший eval_loss = 5.64. Можешь показать, где в коде/логах зафиксирован этот результат, и объяснить, как именно ты его получил — какой запуск, сколько шагов, на каком валидационном сете?\n2. В работе упоминаются графики all_runs_eval_loss.png, best_run_train_loss.png и all_runs_train_loss.png, но самих файлов в репозитории нет. Расскажи, как ты строил эти графики и какие данные (из wandb или локальных логов) в них попадали?\n3. В разделе про эксперименты описаны перебранные гиперпараметры. Объясни, как именно ты сравнивал запуски между собой — по какому критерию выбрал лучшую комбинацию и почему остановился именно на ней?\nПорог уровня не калибровался на реальном потоке.",
+      "evidence": [
+        {
+          "quote": "TODO: Implement tokenizer preparation.",
+          "locator": "lib/train/train.py:76 (stub_markers)",
+          "path": "lib/train/train.py",
+          "line_start": 76,
+          "line_end": 76,
+          "verified": false
+        },
+        {
+          "quote": "TODO: Implement tokenization function.",
+          "locator": "lib/train/train.py:88 (stub_markers)",
+          "path": "lib/train/train.py",
+          "line_start": 88,
+          "line_end": 88,
+          "verified": false
+        },
+        {
+          "quote": "TODO: Implement saving dataset as parquet shards.",
+          "locator": "lib/train/train.py:101 (stub_markers)",
+          "path": "lib/train/train.py",
+          "line_start": 101,
+          "line_end": 101,
+          "verified": false
+        }
+      ]
+    },
+    "feedback_draft": "Привет! Спасибо за проделанную работу, вот что нужно доработать:\n\n1. Приложи в репозиторий артефакты реального запуска обучения: wandb-логи с графиками loss, чекпоинты или eval-логи. Сейчас в README только самоотчёт, и без подтверждений запуск не верифицируется.\n2. Добавь сами файлы графиков loss'а (all_runs_eval_loss.png, best_run_train_loss.png, all_runs_train_loss.png) в репозиторий — в README на них только ссылки, но файлы отсутствуют.\n3. Убедись, что финальный eval_loss=5.64 подкреплён фактическими логами, а не только текстом в отчёте.\n4. Проверь, что все упомянутые в README изображения реально открываются по относительным путям из репозитория.\n5. Если есть возможность, добавь хотя бы один скриншот процесса обучения (например, из wandb) для наглядности.\n\nХорошо, что датасет, токенизатор и архитектура полностью соответствуют заданию, и ты описал перебор гиперпараметров с итоговой комбинацией.",
+    "suggestions": [
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "dataset = load_dataset(\"wikimedia/wikipedia\", \"20231101.ru\", split=\"train\")",
+            "locator": "lib/train/train.py:130-130",
+            "path": "lib/train/train.py",
+            "line_start": 130,
+            "line_end": 130,
+            "verified": false
+          },
+          {
+            "quote": "TOKENIZER_NAME = \"ai-forever/rugpt3small_based_on_gpt2\"",
+            "locator": "lib/train/train.py:26-26",
+            "path": "lib/train/train.py",
+            "line_start": 26,
+            "line_end": 26,
+            "verified": false
+          },
+          {
+            "quote": "MAX_LENGTH = 512",
+            "locator": "lib/train/train.py:20-20",
+            "path": "lib/train/train.py",
+            "line_start": 20,
+            "line_end": 20,
+            "verified": false
+          },
+          {
+            "quote": "def split_dataset(dataset, validation_size=VALIDATION_SIZE):\n    dataset_size = len(dataset)\n    train_dataset = dataset.select(range(validation_size, dataset_size))\n    eval_dataset = dataset.select(range(validation_size))",
+            "locator": "lib/train/train.py:156-159",
+            "path": "lib/train/train.py",
+            "line_start": 156,
+            "line_end": 159,
+            "verified": false
+          },
+          {
+            "quote": "output = tokenizer(examples, max_length=MAX_LENGTH, padding='max_length', truncation=True)\n    output['labels'] = output['input_ids']",
+            "locator": "lib/train/train.py:94-95",
+            "path": "lib/train/train.py",
+            "line_start": 94,
+            "line_end": 95,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-9dc3-7090-8ca9-e4de39899ac1",
+        "status": "suggested",
+        "proposed_points": 4.0,
+        "reason": "В работе используется заданный датасет wikimedia/wikipedia 20231101.ru, токенизатор ai-forever/rugpt3small_based_on_gpt2, MAX_LENGTH=512, разделение первых 5000 семплов на валидацию и архитектура Qwen3ForCausalLM с конфигом из шаблона.",
+        "evidence": [
+          "lib/train/train.py:130-130 (цитата подтверждена кодом)",
+          "lib/train/train.py:26-26 (цитата подтверждена кодом)",
+          "lib/train/train.py:20-20 (цитата подтверждена кодом)",
+          "lib/train/train.py:156-159 (цитата подтверждена кодом)",
+          "lib/train/train.py:94-95 (цитата подтверждена кодом)"
+        ],
+        "confidence": "high",
+        "reviewer_note": "Проверить, что модель создаётся как Qwen3ForCausalLM с конфигом из шаблона (строки 167-202). Сводка: предложено 5 из 10. Не выполнено: Training succeeds and final eval_loss meets the threshold. Сигнал ИИ: medium. Стоимость прогона: 0.58 ₽ (102951 токенов, модель deepseek-v4-flash, исследователь: harness). Промпты: judge_criterion@599452a78f75, self_review@1e9730ed12fc.",
+        "student_feedback": null
+      },
+      {
+        "requirement_met": false,
+        "sources": [
+          {
+            "quote": "Лучший eval_loss составил 5.64.",
+            "locator": "README.md:25-25",
+            "path": "README.md",
+            "line_start": 25,
+            "line_end": 25,
+            "verified": false
+          },
+          {
+            "quote": "trainer.train()\n\n    # 8. Финальная оценка\n    print(\"Running final evaluation...\")\n    eval_results = trainer.evaluate()\n    print(f\"Final evaluation results: {eval_results}\")",
+            "locator": "lib/train/train.py:255-260",
+            "path": "lib/train/train.py",
+            "line_start": 255,
+            "line_end": 260,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-9dc3-7090-8ca9-e4de39899ac2",
+        "status": "suggested",
+        "proposed_points": 0.0,
+        "reason": "В работе есть только самоотчёт в README о лучшем eval_loss=5.64, но нет артефактов запуска (wandb-логов, чекпоинтов, eval-логов), подтверждающих, что обучение реально завершилось и loss упал. Запуск не верифицирован, поэтому по критерию результат неразрешён.",
+        "evidence": [
+          "README.md:25-25 (цитата подтверждена кодом)",
+          "lib/train/train.py:255-260 (цитата подтверждена кодом)"
+        ],
+        "confidence": "medium",
+        "reviewer_note": "Проверить, есть ли где-то в репозитории (вне показанного среза) сохранённые результаты запуска, подтверждающие eval_loss=5.64. Не найдено в работе: Артефакты реального запуска обучения (wandb-графики loss, чекпоинты, eval-логи), подтверждающие падение loss и финальный eval_loss",
+        "student_feedback": "Приложите подтверждение реального запуска обучения: графики loss из wandb и логи финального eval_loss."
+      },
+      {
+        "requirement_met": true,
+        "sources": [
+          {
+            "quote": "<img src=\"all_runs_eval_loss.png\" height=\"300\">\n</center>\n\n<center>\n<img src=\"best_run_train_loss.png\" height=\"300\">\n</center>\n\n<center>\n<img src=\"all_runs_train_loss.png\" height=\"300\">",
+            "locator": "README.md:28-36",
+            "path": "README.md",
+            "line_start": 28,
+            "line_end": 36,
+            "verified": false
+          },
+          {
+            "quote": "## Пример генерации:\nPrompt:\n```txt\nНа Авито вы можете недорого купить или выгодно продать \n```\n\nAnswer:\n```txt\nв качестве для своей жизни.\n\nИстория \nКлуб был закрыт в составе сборной и не была принято решение в беге.",
+            "locator": "README.md:39-50",
+            "path": "README.md",
+            "line_start": 39,
+            "line_end": 50,
+            "verified": false
+          },
+          {
+            "quote": "Фактически делать какие-то выводы насчет оптимальных конфигураций не имеет смысла, так как для этого нужно либо гораздо больше экспериментов, либо сузить пространство исследуемых гиперпараметров.",
+            "locator": "README.md:23-23",
+            "path": "README.md",
+            "line_start": 23,
+            "line_end": 23,
+            "verified": false
+          },
+          {
+            "quote": "С помощью библиотеки optuna был произведен перебор следующих гиперпараметров:\n- per_device_train_batch_size, [2, 4, 8, 16]\n- learning_rate, 1e-6, 1e-3 (log=True)\n- learning_rate_scheduler, ['linear', 'cosine', 'constant']\n- optim, ['adamw_torch', 'adamw_torch_fused', 'adamw_bnb_8bit']\n- dtype, ['float16', 'bfloat16', 'float32']\n\nДля экономии времени эксперимента и ресурсов Авито всего было перебрано около 10 комбинаций. Лучший результат показала попытка со следующими гиперпараметрами:\n- per_device_train_batch_size = 8\n- learning_rate = 8.7е-4\n- learning_rate_scheduler = \"constant\"\n- optim = \"adamw_torch_fused\"\n- dtype = \"bfloat16\"\n\nФактически делать какие-то выводы насчет оптимальных конфигураций не имеет смысла, так как для этого нужно либо гораздо больше экспериментов, либо сузить пространство исследуемых гиперпараметров.\n\nЛучший eval_loss составил 5.64.",
+            "locator": "README.md:9-25",
+            "path": "README.md",
+            "line_start": 9,
+            "line_end": 25,
+            "verified": false
+          },
+          {
+            "quote": "<center>\n<img src=\"all_runs_eval_loss.png\" height=\"300\">\n</center>\n\n<center>\n<img src=\"best_run_train_loss.png\" height=\"300\">\n</center>\n\n<center>\n<img src=\"all_runs_train_loss.png\" height=\"300\">\n</center>",
+            "locator": "README.md:27-37",
+            "path": "README.md",
+            "line_start": 27,
+            "line_end": 37,
+            "verified": false
+          }
+        ],
+        "criterion_id": "01a0776a-9dc3-7090-8ca9-e4de39899ac3",
+        "status": "suggested",
+        "proposed_points": 1.0,
+        "reason": "Описаны перебранные гиперпараметры, лучшая комбинация, финальный eval_loss=5.64, пример генерации и вывод о недостаточности экспериментов. Однако графики loss'а отсутствуют в репозитории (только ссылки на несуществующие PNG-файлы), поэтому часть требования не выполнена.",
+        "evidence": [
+          "README.md:28-36 (цитата подтверждена кодом)",
+          "README.md:39-50 (цитата подтверждена кодом)",
+          "README.md:23-23 (цитата подтверждена кодом)",
+          "README.md:9-25 (цитата подтверждена кодом)",
+          "README.md:27-37 (цитата подтверждена кодом)",
+          "цитата отклонена: цитата не найдена в работе"
+        ],
+        "confidence": "low",
+        "reviewer_note": "Проверить, действительно ли PNG-файлы отсутствуют в репозитории (по описи встроенных изображений 0, ссылок на изображения 1). 1 цитат(ы) модели не нашлись в работе и удалены.",
+        "student_feedback": "Добавьте в репозиторий сами файлы графиков loss'а, на которые ссылается README."
+      }
+    ]
+  },
+  "error_code": null,
+  "created_at": "2026-09-06T15:57:19Z"
+}

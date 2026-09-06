@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { App } from "../src/App";
@@ -6,6 +6,7 @@ import { ApiClient } from "../src/api/client";
 import { createDemoTransport } from "../src/mocks/transport";
 import { ids } from "../src/mocks/fixtures";
 it("opens the recommended work and requires a saved draft plus human confirmation", async () => {
+  sessionStorage.setItem("review-mode", "1");
   const user = userEvent.setup();
   const demo = createDemoTransport();
   const commandNames: string[] = [];
@@ -16,28 +17,29 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
   });
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} demo />);
-  const save = await screen.findByRole("button", {
-    name: "Сохранить черновик",
-  });
+  await screen.findByLabelText("Обратная связь студенту");
+  expect(
+    screen.queryByRole("button", { name: "Сохранить черновик" }),
+  ).toBeNull();
   const publish = screen.getByRole("button", { name: "Зачесть" });
-  expect(save).toBeDisabled();
+  expect(screen.queryByText("Режим проверки")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Пропустить" })).toBeNull();
   expect(publish).toBeDisabled();
-  await user.clear(screen.getByLabelText("Баллы: HTTP API и обработка ошибок"));
-  await user.type(
-    screen.getByLabelText("Баллы: HTTP API и обработка ошибок"),
-    "8",
-  );
-  await user.type(
-    screen.getByLabelText("Обоснование"),
-    "Проверены успешные и ошибочные ответы",
+  // Балл ставится пилюлей шкалы, как на Р5.
+  await user.click(
+    within(
+      screen.getByRole("group", {
+        name: "Баллы: HTTP API и обработка ошибок, шкала",
+      }),
+    ).getByRole("button", { name: "0,5" }),
   );
   await user.type(
     screen.getByLabelText("Обратная связь студенту"),
     "Хорошая работа. Добавьте тест редиректа.",
   );
-  await user.click(save);
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Зачесть" })).toBeEnabled(),
+  await waitFor(
+    () => expect(screen.getByRole("button", { name: "Зачесть" })).toBeEnabled(),
+    { timeout: 5000 },
   );
   await user.click(screen.getByRole("button", { name: "Зачесть" }));
   expect(commandNames).not.toContain("publish_workspace_review");
@@ -45,6 +47,12 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
     screen.getByRole("button", { name: "Подтвердить публикацию" }),
   );
   await screen.findByText("Зачтена");
+  expect(window.location.hash).toBe(`#/reviews/${ids.review}`);
+  expect(
+    await screen.findByRole("button", { name: "Следующая работа" }),
+  ).toBeEnabled();
+  expect(commandNames).not.toContain("record_review_responsibility");
+  sessionStorage.removeItem("review-mode");
   expect(
     commandNames.filter((n) => n === "publish_workspace_review"),
   ).toHaveLength(1);
@@ -52,7 +60,24 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
 it("submits the latest saved source without requiring a self-review", async () => {
   const user = userEvent.setup();
   const demo = createDemoTransport();
-  const transport = vi.fn(demo);
+  let submitted = false;
+  const transport = vi.fn(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const response = await demo(input, init);
+      if (
+        init?.body &&
+        JSON.parse(String(init.body)).command_name === "submit_work_draft" &&
+        response.ok
+      )
+        submitted = true;
+      if (String(input).includes("/student-context") && !submitted)
+        return new Response(
+          JSON.stringify({ ...(await response.json()), submission_id: null }),
+          { status: response.status },
+        );
+      return response;
+    },
+  );
   const api = new ApiClient(transport);
   window.location.hash = `/submit/${ids.run}/${ids.publication}`;
   const session = await api.session();
@@ -136,20 +161,18 @@ it("does not erase edited feedback when save fails with a conflict", async () =>
   );
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} />);
-  await screen.findByLabelText("Обоснование");
-  await user.type(screen.getByLabelText("Обоснование"), "Ручная проверка");
+  await screen.findByLabelText("Обратная связь студенту");
   await user.type(
     screen.getByLabelText("Обратная связь студенту"),
     "Не потерять этот текст",
   );
-  await user.click(screen.getByRole("button", { name: "Сохранить черновик" }));
-  await screen.findByRole("alert");
+  await screen.findByRole("alert", {}, { timeout: 5000 });
   expect(screen.getByLabelText("Обратная связь студенту")).toHaveValue(
     "Не потерять этот текст",
   );
   expect(screen.getByRole("button", { name: "Зачесть" })).toBeDisabled();
 });
-it("keeps the coordinator review screen read-only even when the API permits editing", async () => {
+it("lets the coordinator edit and publish without taking reviewer responsibility", async () => {
   const api = new ApiClient(createDemoTransport());
   const session = await api.session();
   vi.spyOn(api, "session").mockResolvedValue({
@@ -158,14 +181,15 @@ it("keeps the coordinator review screen read-only even when the API permits edit
   });
   window.location.hash = `/reviews/${ids.review}`;
   render(<App api={api} />);
-  await screen.findByLabelText("Обоснование");
-  expect(screen.getByLabelText("Обоснование")).toBeDisabled();
   expect(
-    screen.queryByRole("button", { name: "Зачесть" }),
-  ).not.toBeInTheDocument();
+    await screen.findByLabelText("Баллы: HTTP API и обработка ошибок"),
+  ).toBeEnabled();
+  expect(screen.getByLabelText("Обратная связь студенту")).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Зачесть" })).toBeInTheDocument();
+  expect(screen.queryByText("только просмотр")).toBeNull();
   expect(
-    screen.queryByRole("button", { name: "Взять в работу" }),
-  ).not.toBeInTheDocument();
+    screen.queryByRole("button", { name: "Снять с себя проверку" }),
+  ).toBeNull();
 });
 it("expires a resource session once without an automatic authentication retry loop", async () => {
   const demo = createDemoTransport();
@@ -184,9 +208,10 @@ it("expires a resource session once without an automatic authentication retry lo
   );
   render(<App api={new ApiClient(transport)} />);
   await screen.findByRole("heading", { name: "Войти в рабочее пространство" });
+  // Список и два счётчика запрашиваются по одному разу; после 401 повторов нет.
   expect(
     transport.mock.calls.filter(([url]) => String(url).includes("/v2/works")),
-  ).toHaveLength(2);
+  ).toHaveLength(3);
 });
 
 it("prepares the first URL draft before self-review and updates server quota without submitting", async () => {
@@ -204,8 +229,14 @@ it("prepares the first URL draft before self-review and updates server quota wit
       const response = await demo(input, init);
       if (String(input).includes("/student-context") && !saved) {
         const context = await response.json();
+        // Первый черновик: у работы ещё нет ни сдачи, ни попыток.
         return new Response(
-          JSON.stringify({ ...context, draft: null, quota: null }),
+          JSON.stringify({
+            ...context,
+            draft: null,
+            quota: null,
+            submission_id: null,
+          }),
           { status: 200 },
         );
       }

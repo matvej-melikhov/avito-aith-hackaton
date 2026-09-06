@@ -6,37 +6,67 @@ import { WorkspaceClient } from "../src/api/workspace";
 import { ReviewerQueue } from "../src/pages/ReviewerQueue";
 import { createDemoTransport } from "../src/mocks/transport";
 
-it("keeps active work and shared pool on screen together without exclusive tabs", async () => {
+function client() {
   const ws = new WorkspaceClient(new ApiClient(createDemoTransport()));
   const works = vi
     .spyOn(ws, "works")
     .mockResolvedValue({ items: [], total: 0, offset: 0, limit: 20 });
+  return { ws, works };
+}
+
+it("shows only active work on the works page", async () => {
+  const { ws, works } = client();
   render(<ReviewerQueue ws={ws} />);
-  await screen.findByText("У вас пока нет активных проверок.");
+  await screen.findByText("Работ к проверке пока нет");
   expect(screen.getByRole("heading", { name: "Активные" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { name: "Пул" })).toBeInTheDocument();
   expect(
-    screen.queryByRole("button", { name: "Мои студенты" }),
+    screen.queryByRole("heading", { name: "Пул" }),
   ).not.toBeInTheDocument();
-  expect(works.mock.calls.some(([params]) => params?.view === "active")).toBe(
+  expect(works.mock.calls.every(([params]) => params?.view === "active")).toBe(
     true,
   );
-  expect(works.mock.calls.some(([params]) => params?.view === "all")).toBe(
+  expect(
+    works.mock.calls.every(([params]) => params?.priority === undefined),
+  ).toBe(true);
+});
+
+it("shows the pool on its own page without a search field", async () => {
+  const { ws, works } = client();
+  render(<ReviewerQueue ws={ws} pool />);
+  await screen.findByText("По этим условиям работ нет.");
+  expect(
+    screen.getByRole("heading", { level: 1, name: "Пул" }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("heading", { name: "Активные" }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Поиск")).not.toBeInTheDocument();
+  expect(works.mock.calls.every(([params]) => params?.view === "pool")).toBe(
     true,
   );
-  const pool = screen.getAllByRole("table")[1];
+  const pool = screen.getByRole("table");
   expect(
     within(pool)
       .getAllByRole("columnheader")
       .map((h) => h.textContent),
   ).toEqual(["Студент", "Задание", "Курс", "Сдана", "В пуле", ""]);
-  expect(
-    works.mock.calls.every(([params]) => params?.priority === undefined),
-  ).toBe(true);
-  await userEvent.type(screen.getByLabelText("Поиск"), "Тест");
+});
+
+it("filters the pool by course run", async () => {
+  const { ws, works } = client();
+  render(<ReviewerQueue ws={ws} pool />);
+  await screen.findByText("По этим условиям работ нет.");
+  const runs = await screen.findByLabelText("Поток");
+  const option = within(runs)
+    .getAllByRole("option")
+    .find((o) => (o as HTMLOptionElement).value !== "")!;
+  await userEvent.selectOptions(runs, option);
   await waitFor(() =>
-    expect(works.mock.calls.some(([params]) => params?.q === "Тест")).toBe(
-      true,
-    ),
+    expect(
+      works.mock.calls.some(
+        ([params]) =>
+          params?.course_run_id === (option as HTMLOptionElement).value,
+      ),
+    ).toBe(true),
   );
 });

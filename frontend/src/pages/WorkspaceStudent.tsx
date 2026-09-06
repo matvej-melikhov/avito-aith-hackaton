@@ -33,11 +33,11 @@ import {
   plural,
   points,
   workStatus,
+  workTone,
   cx,
 } from "../ds";
 
 type StudentContext = W<"StudentContext">;
-type Kind = "github" | "google_docs";
 const FILE_TYPES = [".md", ".pdf", ".docx"];
 const FILE_LIMIT = 10_000_000;
 
@@ -60,10 +60,12 @@ export function WorkspaceSubmit({
   ws,
   id,
   session,
+  attemptId,
 }: {
   ws: WorkspaceClient;
   id: string;
   session: Model<"Session">;
+  attemptId?: string;
 }) {
   const r = useResource(() => ws.studentContext(id), id);
   if (r.loading || r.error)
@@ -84,24 +86,73 @@ export function WorkspaceSubmit({
         </Main>
       </>
     );
-  return <DraftForm key={id} ws={ws} initial={r.data!} session={session} />;
+  return (
+    <DraftForm
+      key={id}
+      ws={ws}
+      initial={r.data!}
+      session={session}
+      attemptId={attemptId}
+    />
+  );
+}
+
+/** Старые ссылки на отправленную работу открывают ту же страницу задания. */
+export function StudentSubmissionPage({
+  ws,
+  id,
+  session,
+  attemptId,
+}: {
+  ws: WorkspaceClient;
+  id: string;
+  session: Model<"Session">;
+  attemptId?: string;
+}) {
+  const data = useResource(() => ws.submission(id), id);
+  return (
+    <Resource value={data}>
+      {data.data && (
+        <WorkspaceSubmit
+          ws={ws}
+          id={data.data.publication_id}
+          session={session}
+          attemptId={attemptId}
+        />
+      )}
+    </Resource>
+  );
 }
 
 function DraftForm({
   ws,
   initial,
   session,
+  attemptId,
 }: {
   ws: WorkspaceClient;
   initial: StudentContext;
   session: Model<"Session">;
+  attemptId?: string;
 }) {
   const [data, setData] = useState(initial);
+  const allowedSources = data.allowed_sources ?? [
+    "upload",
+    "github",
+    "google_docs",
+  ];
+  const linkKinds = allowedSources.filter((kind) => kind !== "upload");
+  const linkAllowed = linkKinds.length > 0;
+  const fileAllowed = allowedSources.includes("upload");
   const [url, setUrl] = useState(initial.draft?.artifact_url ?? "");
   const [comment, setComment] = useState(initial.draft?.comment ?? "");
   const [file, setFile] = useState<File>();
   const [source, setSource] = useState<"url" | "file">(
-    initial.draft?.upload_id ? "file" : "url",
+    initial.draft?.upload_id && fileAllowed
+      ? "file"
+      : linkAllowed
+        ? "url"
+        : "file",
   );
   const [saved, setSaved] = useState(initial.draft);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -120,6 +171,11 @@ function DraftForm({
     initial.submission_id ? "human" : "ai",
   );
   const action = useAction();
+  const [openAttempts, setOpenAttempts] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    setOpenAttempts({});
+    if (attemptId) setReviewTab("human");
+  }, [attemptId]);
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -132,28 +188,21 @@ function DraftForm({
     data.submission_id ?? "no-submission",
   );
   const current = history.data?.reviews.find(
-    (v) => v.id === history.data?.current_publication_id,
+    (v) =>
+      v.id === history.data?.current_publication_id &&
+      v.submission_version_id === history.data?.attempts.at(-1)?.id,
   );
-  /* Какие ссылки принимает задание, задаёт организатор; файл можно всегда. */
-  const kinds = useResource(
-    async () =>
-      (await ws.core.homeworks(data.course_run_id)).items.find(
-        (h) => h.course_run_homework_id === data.publication_id,
-      )?.artifact_kinds ?? (["github", "google_docs"] as Kind[]),
-    `kinds:${data.publication_id}`,
-  );
-  const linkKinds = kinds.data ?? [];
-  const linkAllowed = kinds.loading || linkKinds.length > 0;
   /* Имя и ссылка уже загруженного файла: черновик хранит только его id. */
   const uploaded = useResource(
     async () => (saved?.upload_id ? ws.download(saved.upload_id) : null),
     `upload:${saved?.upload_id ?? "none"}`,
   );
   useEffect(() => {
-    if (!kinds.loading && !linkAllowed && source === "url" && !saved?.upload_id)
-      setSource("file");
-  }, [kinds.loading, linkAllowed, source, saved?.upload_id]);
+    if (!linkAllowed && fileAllowed && source === "url") setSource("file");
+    if (!fileAllowed && linkAllowed && source === "file") setSource("url");
+  }, [linkAllowed, fileAllowed, source]);
   function pickFile(next: File | undefined) {
+    if (!fileAllowed || !maySubmit) return;
     if (!next) return;
     const problem = checkFile(next);
     setFileError(problem);
@@ -182,8 +231,19 @@ function DraftForm({
     `listed:${data.submission_id ?? "none"}`,
   );
   useDirtyGuard(dirty);
+  const maySubmit =
+    !data.submission_id || revision || listed.data?.status === "needs_changes";
 
   async function save() {
+    if (!maySubmit)
+      throw new Error(
+        "Новая попытка доступна после возврата работы на доработку.",
+      );
+    if (
+      (source === "url" && !linkAllowed) ||
+      (source === "file" && !fileAllowed)
+    )
+      throw new Error("Этот тип ответа не разрешён для задания.");
     let uploadId = saved?.upload_id ?? null;
     if (source === "url") {
       let parsed: URL;
@@ -219,7 +279,12 @@ function DraftForm({
     return draft;
   }
   useEffect(() => {
-    if (!dirty) return;
+    if (
+      !dirty ||
+      !maySubmit ||
+      (source === "url" ? !linkAllowed : !fileAllowed)
+    )
+      return;
     if (source === "url") {
       try {
         const parsed = new URL(url);
@@ -234,9 +299,10 @@ function DraftForm({
       });
     }, 1200);
     return () => clearTimeout(timer);
-  }, [dirty, url, comment, file, source]);
+  }, [dirty, url, comment, file, source, linkAllowed, fileAllowed, maySubmit]);
   async function prepare() {
-    const draft = dirty || !saved ? await save() : saved;
+    const changedSource = !!saved && !!saved.upload_id !== (source === "file");
+    const draft = dirty || !saved || changedSource ? await save() : saved;
     setStage("Проверяем доступ и сохраняем снимок работы…");
     let preparation = await ws.command(
       "prepare_work_draft",
@@ -292,9 +358,20 @@ function DraftForm({
       : activeResult || run
         ? { label: "Черновик", late: false }
         : null;
+  // Работа уже у ревьюера: догонять её самопроверкой нечем, пока не вернут
+  // на доработку.
+  const awaitingReview = ["sent", "review", "rereview"].includes(
+    workTone(
+      current?.decision ?? listed.data?.status,
+      lastAttempt?.sequence ?? 1,
+    ) ?? "",
+  );
   const canSelfReview =
     !action.busy &&
+    maySubmit &&
+    (source === "url" ? linkAllowed : fileAllowed) &&
     !run &&
+    !awaitingReview &&
     (data.quota
       ? data.quota.remaining > 0
       : !!data.policy && data.policy.self_review_limit > 0);
@@ -303,40 +380,45 @@ function DraftForm({
 
   return (
     <>
-      <Band
-        data-screen={screen}
-        aside={
-          <BandMeta>
-            <BandVal label={revision ? "Прислать исправления до" : "Сдать до"}>
-              {dayLong(current?.revision_deadline ?? data.submission_deadline)}
-            </BandVal>
-            {data.max_score !== undefined && (
-              <BandVal label={data.policy ? "Порог зачёта" : "Максимум"}>
-                {data.policy
-                  ? outOf(data.policy.pass_score, data.max_score)
-                  : `${num(data.max_score)} ${plural(data.max_score, "балл", "балла", "баллов")}`}
-              </BandVal>
-            )}
-            {bandStatus && (
-              <BandVal label="Статус" late={bandStatus.late}>
-                {bandStatus.label}
-              </BandVal>
-            )}
-          </BandMeta>
-        }
-      >
+      <Band data-screen={screen}>
         {(data.course_title || data.run_title) && (
           <span className="label">
             {[data.course_title, data.run_title].filter(Boolean).join(", ")}
           </span>
         )}
         <h1 className="d2">{data.title}</h1>
+        <BandMeta>
+          <BandVal label={revision ? "Прислать исправления до" : "Сдать до"}>
+            {dayLong(current?.revision_deadline ?? data.submission_deadline)}
+          </BandVal>
+          {data.max_score !== undefined && (
+            <BandVal label={data.policy ? "Порог зачёта" : "Максимум"}>
+              {data.policy
+                ? outOf(data.policy.pass_score, data.max_score)
+                : `${num(data.max_score)} ${plural(data.max_score, "балл", "балла", "баллов")}`}
+            </BandVal>
+          )}
+          {bandStatus && (
+            <BandVal label="Статус" late={bandStatus.late}>
+              {bandStatus.label}
+            </BandVal>
+          )}
+        </BandMeta>
       </Band>
       <Main page data-screen={screen}>
         {action.feedback}
         {!!history.error && (
           <ErrorBox error={history.error} retry={history.refresh} />
         )}
+        {attemptId &&
+          history.data &&
+          !attempts.some((attempt) => attempt.id === attemptId) && (
+            <Callout tone="info">
+              <p>
+                Указанная попытка не найдена. Выберите попытку в истории ниже.
+              </p>
+            </Callout>
+          )}
         <div className="row-side">
           <div className="stack">
             <Card>
@@ -469,7 +551,17 @@ function DraftForm({
                         <Acc
                           key={attempt.id}
                           className="acc--pill"
-                          defaultOpen={last}
+                          open={
+                            openAttempts[attempt.id] ??
+                            (attemptId ? attempt.id === attemptId : last)
+                          }
+                          onToggle={(open) =>
+                            setOpenAttempts((previous) =>
+                              previous[attempt.id] === open
+                                ? previous
+                                : { ...previous, [attempt.id]: open },
+                            )
+                          }
                           head={
                             <>
                               <span className="acc__t">
@@ -480,6 +572,21 @@ function DraftForm({
                             </>
                           }
                         >
+                          {attempt.artifact_id && (
+                            <Kv label="Отправленная работа">
+                              <ArtifactLink ws={ws} id={attempt.artifact_id} />
+                            </Kv>
+                          )}
+                          {attempt.comment && (
+                            <>
+                              <div className="label attempt__label">
+                                Комментарий к сдаче
+                              </div>
+                              <p className="small dim preserve">
+                                {attempt.comment}
+                              </p>
+                            </>
+                          )}
                           {latest ? (
                             <PublishedStudentReview value={latest} />
                           ) : (
@@ -526,7 +633,7 @@ function DraftForm({
                 <Seg
                   label="Как сдаём"
                   value={source}
-                  disabled={action.busy}
+                  disabled={action.busy || !maySubmit}
                   onChange={(value) => {
                     setSource(value);
                     setDirty(true);
@@ -536,20 +643,36 @@ function DraftForm({
                       ? [
                           {
                             value: "url" as const,
-                            label:
-                              linkKinds.length === 1 &&
-                              linkKinds[0] === "google_docs"
-                                ? "Ссылка на Google Docs"
-                                : "Ссылка на репозиторий",
+                            label: "Ссылка",
                           },
                         ]
                       : []),
-                    { value: "file" as const, label: "Файл" },
+                    ...(fileAllowed
+                      ? [{ value: "file" as const, label: "Файл" }]
+                      : []),
                   ]}
                 />
               </CardHead>
               <CardBody compact>
-                <fieldset className="acc-list" disabled={action.busy}>
+                {!maySubmit && (
+                  <Callout tone="info">
+                    <p>
+                      {awaitingReview
+                        ? "Работа уже отправлена на проверку. Результат появится здесь."
+                        : "Новая попытка доступна после возврата работы на доработку."}
+                    </p>
+                  </Callout>
+                )}
+                {maySubmit && attempts.length > 0 && (
+                  <p className="caption">
+                    Новый ответ будет сохранён отдельной попыткой. Предыдущие
+                    попытки не изменятся.
+                  </p>
+                )}
+                <fieldset
+                  className="acc-list"
+                  disabled={action.busy || !maySubmit}
+                >
                   {source === "url" ? (
                     <Field
                       label="Ссылка на репозиторий или Google Docs"
@@ -714,10 +837,14 @@ function DraftForm({
                 </fieldset>
               </CardBody>
               <CardFoot>
-                <span className="foot-actions">
+                <div className="submission-actions">
                   <Btn
                     variant="pri"
-                    disabled={action.busy}
+                    disabled={
+                      action.busy ||
+                      !maySubmit ||
+                      !(source === "url" ? linkAllowed : fileAllowed)
+                    }
                     onClick={() =>
                       void action.run(async () => {
                         try {
@@ -732,56 +859,68 @@ function DraftForm({
                       ? "Отправить исправленную версию"
                       : "Отправить на ревью"}
                   </Btn>
-                  <Btn
-                    aria-label={
-                      activeResult
-                        ? "Проверить повторно"
-                        : "Проверить перед сдачей"
-                    }
-                    disabled={!canSelfReview}
-                    onClick={() =>
-                      void action.run(async () => {
-                        try {
-                          const d = await prepare();
-                          if (!d) return;
-                          setStage("Запускаем ИИ-ревью…");
-                          const started = await ws.command(
-                            "start_self_review",
-                            d.id,
-                            d.revision,
-                            {},
-                          );
-                          setReviewTab("ai");
-                          setCollapsed(true);
-                          setRun(started.id);
-                          setResult(started);
-                        } finally {
-                          setStage("");
-                        }
-                      })
-                    }
-                  >
-                    ИИ-ревью
-                  </Btn>
-                  <span className="caption" role={stage ? "status" : undefined}>
-                    {stage ? (
-                      stage
-                    ) : run ? (
-                      "Проверяем работу, это займёт около минуты."
-                    ) : (
-                      <>
-                        {activeResult
-                          ? `Проверено ИИ-ревью ${dayLong(activeResult.created_at)}. `
-                          : "Результат ИИ-ревью видит ревьюер и учитывает при оценке. "}
-                        {data.quota || !data.policy ? (
-                          <Quota value={data.quota} />
-                        ) : (
-                          "Доступные попытки уточнятся после сохранения работы."
-                        )}
-                      </>
-                    )}
-                  </span>
-                </span>
+                  <div className="submission-actions__precheck">
+                    <Btn
+                      aria-label={
+                        activeResult
+                          ? "Проверить повторно"
+                          : "Проверить перед сдачей"
+                      }
+                      disabled={!canSelfReview}
+                      title={
+                        awaitingReview
+                          ? "Работа уже на ревью, ИИ-ревью запускается до отправки"
+                          : undefined
+                      }
+                      onClick={() =>
+                        void action.run(async () => {
+                          try {
+                            const d = await prepare();
+                            if (!d) return;
+                            setStage("Запускаем ИИ-ревью…");
+                            const started = await ws.command(
+                              "start_self_review",
+                              d.id,
+                              d.revision,
+                              {},
+                            );
+                            setReviewTab("ai");
+                            setCollapsed(true);
+                            setRun(started.id);
+                            setResult(started);
+                          } finally {
+                            setStage("");
+                          }
+                        })
+                      }
+                    >
+                      ИИ-ревью
+                    </Btn>
+                    <span
+                      className="caption"
+                      role={stage ? "status" : undefined}
+                    >
+                      {stage ? (
+                        stage
+                      ) : run ? (
+                        "Проверяем работу, это займёт около минуты."
+                      ) : awaitingReview ? (
+                        "Работа отправлена на ревью. ИИ-ревью запускается до отправки."
+                      ) : (
+                        <>
+                          {
+                            "Результат ИИ-ревью видит ревьюер и учитывает при оценке. "
+                          }
+                          {data.quota || !data.policy ? (
+                            <Quota value={data.quota} />
+                          ) : (
+                            "Доступные попытки уточнятся после сохранения работы."
+                          )}
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
               </CardFoot>
             </Card>
           </div>

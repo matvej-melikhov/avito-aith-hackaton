@@ -104,13 +104,13 @@ export function SelfReviewResult({ value }: { value: W<"SelfReviewView"> }) {
             : "Результат пока пуст."}
         </p>
       )}
-      <div className="caption self-review__foot">
-        {value.disposition === "consumed"
-          ? "За результат списана одна попытка."
-          : value.disposition === "reserved"
+      {value.disposition !== "consumed" && (
+        <div className="caption self-review__foot">
+          {value.disposition === "reserved"
             ? "Попытка зарезервирована до завершения проверки."
             : "Попытка не потрачена."}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

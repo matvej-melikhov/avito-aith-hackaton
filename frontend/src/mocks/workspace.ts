@@ -53,6 +53,16 @@ export function secondFixture(): typeof fixture {
   seed.history.versions = [seed.version];
   return seed;
 }
+/* Единственная цитата демо-разбора: показывается у невыполненных требований. */
+const DEMO_SOURCE = {
+  path: "internal/server/handlers.go",
+  line_start: 42,
+  line_end: 47,
+  quote:
+    'func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {\n\tvar body shortenRequest\n\tif err := json.NewDecoder(r.Body).Decode(&body); err != nil {\n\t\thttp.Error(w, "bad request", http.StatusBadRequest)\n\t\treturn\n\t}',
+  verified: false as const,
+};
+
 export function enhanceWorkspace(first: Core, second: Core): Transport {
   const cores = [first, second];
   const user = first.session.user_id;
@@ -70,6 +80,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
     ends_at: "2026-12-01T18:00:00Z",
     priority: "assigned",
     priority_revision: 0,
+    reviewer_count: 1,
   }));
   const people: W<"DirectoryMember">[] = [
     {
@@ -87,7 +98,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
       display_name: "Дмитрий Соколов",
       roles: ["reviewer"],
     },
-  ];
+  ].map((member) => ({ ...member, absent_from: null, absent_until: null }));
   const drafts = new Map<string, W<"DraftView">>();
   const quotas = new Map<string, W<"QuotaView">>();
   const policies = new Map<string, W<"PublicationPolicyView">>();
@@ -130,7 +141,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
     response({ code: "workspace_demo_error", message, action: null }, status);
   const policy = (n: number): W<"PublicationPolicyView"> => ({
     self_review_limit: n,
-    pass_score: 5,
+    pass_score: 4,
     revision_days: 7,
     penalty_per_day: 0,
     max_resubmissions: 3,
@@ -493,6 +504,8 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             course_title: c.seed.course.title,
             run_title: c.run.title,
             max_score: version.max_score,
+            allowed_sources: privateDetails.get(version.id)
+              ?.allowed_sources ?? ["upload", "github", "google_docs"],
             submission_id: c.submission.submission_id,
             material_upload_ids:
               privateDetails.get(version.id)?.material_upload_ids ?? [],
@@ -560,7 +573,12 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
           if (view === "active")
             items = items.filter(
               (w) =>
-                w.responsible_reviewer_id === user && w.status !== "published",
+                ["pending_review", "in_review", "ready_to_publish"].includes(
+                  w.status,
+                ) &&
+                (w.responsible_reviewer_id === user ||
+                  w.primary_reviewer_id === user ||
+                  (w.participant_ids ?? []).includes(user)),
             );
           const offset = Number(url.searchParams.get("offset") ?? 0),
             limit = Number(url.searchParams.get("limit") ?? 30);
@@ -766,45 +784,27 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
               },
               feedback_draft:
                 "Привет! Сервис создаёт ссылки и делает редирект, ошибки валидации обрабатываются. Что поправить: добавь тест на редирект по несуществующему коду и опиши формат ошибок в README.",
-              suggestions: version.criteria.map((criterion) => ({
-                criterion_id: criterion.id,
-                status: "suggested",
-                proposed_points: Math.max(0, criterion.max_points - 2),
-                requirement_met: false,
-                reason:
-                  "Обработчик проверяет тело запроса и возвращает 400 при невалидном JSON, редирект работает. Формат ошибок описан в README, но теста на несуществующий код нет, поэтому балл не полный.",
-                sources: [
-                  {
-                    path: "internal/server/handlers.go",
-                    line_start: 42,
-                    line_end: 47,
-                    quote:
-                      'func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {\n\tvar body shortenRequest\n\tif err := json.NewDecoder(r.Body).Decode(&body); err != nil {\n\t\thttp.Error(w, "bad request", http.StatusBadRequest)\n\t\treturn\n\t}',
-                    verified: false,
-                  },
-                  {
-                    path: "README.md",
-                    line_start: 12,
-                    line_end: 14,
-                    quote:
-                      '## Ошибки\nВсе ошибки возвращаются как {"error": "..."}\nКоды: 400 для невалидного запроса, 404 для неизвестного кода, 500 для остального.',
-                    verified: false,
-                  },
-                  {
-                    path: "internal/server/handlers_test.go",
-                    line_start: 8,
-                    line_end: 10,
-                    quote:
-                      "func TestShortenRejectsInvalidJSON(t *testing.T) {\n\t// редирект по несуществующему коду не покрыт\n}",
-                    verified: false,
-                  },
-                ],
-                evidence: [],
-                confidence: "medium",
-                reviewer_note: null,
-                student_feedback:
-                  "Добавь тест на редирект по несуществующему коду и вынеси формат ошибок в README.",
-              })),
+              suggestions: version.criteria.map((criterion, index) => {
+                // Каждый третий критерий модель считает невыполненным.
+                const met = index % 3 !== 2;
+                return {
+                  criterion_id: criterion.id,
+                  status: "suggested",
+                  proposed_points: met ? criterion.max_points : 0,
+                  requirement_met: met,
+                  reason: met
+                    ? `Требование «${criterion.title}» выполнено: нужное поведение есть в коде.`
+                    : `Требование «${criterion.title}» не выполнено: нужного поведения в работе нет.`,
+                  // Цитату модель приводит там, где нашла нарушение.
+                  sources: met ? [] : [DEMO_SOURCE],
+                  evidence: [],
+                  confidence: "medium",
+                  reviewer_note: null,
+                  student_feedback: met
+                    ? ""
+                    : `Доработай: ${criterion.title.toLowerCase()}.`,
+                };
+              }),
             },
             error_code: null,
             created_at: new Date().toISOString(),
@@ -860,6 +860,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             priority_revision: 0,
             status: "active",
             revision: 0,
+            reviewer_count: 0,
           });
           result = { id, revision: 0 };
           break;
@@ -956,6 +957,11 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             return error("Черновик задания изменился.");
           const next = {
             revision: (old?.revision ?? 0) + 1,
+            homework_title:
+              owner(cmd.target_id).titles[cmd.target_id] ?? "Задание",
+            homework_revision:
+              owner(cmd.target_id).histories[cmd.target_id]
+                ?.homework_revision ?? 0,
             value: cmd.payload,
           };
           editors.set(key, next);
