@@ -53,6 +53,16 @@ export function secondFixture(): typeof fixture {
   seed.history.versions = [seed.version];
   return seed;
 }
+/* Единственная цитата демо-разбора: показывается у невыполненных требований. */
+const DEMO_SOURCE = {
+  path: "internal/server/handlers.go",
+  line_start: 42,
+  line_end: 47,
+  quote:
+    'func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {\n\tvar body shortenRequest\n\tif err := json.NewDecoder(r.Body).Decode(&body); err != nil {\n\t\thttp.Error(w, "bad request", http.StatusBadRequest)\n\t\treturn\n\t}',
+  verified: false as const,
+};
+
 export function enhanceWorkspace(first: Core, second: Core): Transport {
   const cores = [first, second];
   const user = first.session.user_id;
@@ -130,7 +140,7 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
     response({ code: "workspace_demo_error", message, action: null }, status);
   const policy = (n: number): W<"PublicationPolicyView"> => ({
     self_review_limit: n,
-    pass_score: 5,
+    pass_score: 4,
     revision_days: 7,
     penalty_per_day: 0,
     max_resubmissions: 3,
@@ -766,45 +776,27 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
               },
               feedback_draft:
                 "Привет! Сервис создаёт ссылки и делает редирект, ошибки валидации обрабатываются. Что поправить: добавь тест на редирект по несуществующему коду и опиши формат ошибок в README.",
-              suggestions: version.criteria.map((criterion) => ({
-                criterion_id: criterion.id,
-                status: "suggested",
-                proposed_points: Math.max(0, criterion.max_points - 2),
-                requirement_met: false,
-                reason:
-                  "Обработчик проверяет тело запроса и возвращает 400 при невалидном JSON, редирект работает. Формат ошибок описан в README, но теста на несуществующий код нет, поэтому балл не полный.",
-                sources: [
-                  {
-                    path: "internal/server/handlers.go",
-                    line_start: 42,
-                    line_end: 47,
-                    quote:
-                      'func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {\n\tvar body shortenRequest\n\tif err := json.NewDecoder(r.Body).Decode(&body); err != nil {\n\t\thttp.Error(w, "bad request", http.StatusBadRequest)\n\t\treturn\n\t}',
-                    verified: false,
-                  },
-                  {
-                    path: "README.md",
-                    line_start: 12,
-                    line_end: 14,
-                    quote:
-                      '## Ошибки\nВсе ошибки возвращаются как {"error": "..."}\nКоды: 400 для невалидного запроса, 404 для неизвестного кода, 500 для остального.',
-                    verified: false,
-                  },
-                  {
-                    path: "internal/server/handlers_test.go",
-                    line_start: 8,
-                    line_end: 10,
-                    quote:
-                      "func TestShortenRejectsInvalidJSON(t *testing.T) {\n\t// редирект по несуществующему коду не покрыт\n}",
-                    verified: false,
-                  },
-                ],
-                evidence: [],
-                confidence: "medium",
-                reviewer_note: null,
-                student_feedback:
-                  "Добавь тест на редирект по несуществующему коду и вынеси формат ошибок в README.",
-              })),
+              suggestions: version.criteria.map((criterion, index) => {
+                // Каждый третий критерий модель считает невыполненным.
+                const met = index % 3 !== 2;
+                return {
+                  criterion_id: criterion.id,
+                  status: "suggested",
+                  proposed_points: met ? criterion.max_points : 0,
+                  requirement_met: met,
+                  reason: met
+                    ? `Требование «${criterion.title}» выполнено: нужное поведение есть в коде.`
+                    : `Требование «${criterion.title}» не выполнено: нужного поведения в работе нет.`,
+                  // Цитату модель приводит там, где нашла нарушение.
+                  sources: met ? [] : [DEMO_SOURCE],
+                  evidence: [],
+                  confidence: "medium",
+                  reviewer_note: null,
+                  student_feedback: met
+                    ? ""
+                    : `Доработай: ${criterion.title.toLowerCase()}.`,
+                };
+              }),
             },
             error_code: null,
             created_at: new Date().toISOString(),

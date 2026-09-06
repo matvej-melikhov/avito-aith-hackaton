@@ -1856,3 +1856,39 @@ select.inp:not(.inp--s) {
   margin: 0;
   padding: var(--s-5);
 }
+
+/* --- Длинная шкала: ряд переносится и встаёт на свою строку (Р5, К6) -------- */
+.scale--wide,
+.acc__h--score .scale--wide,
+.crit .scale--wide {
+  width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  border-radius: var(--r-0);
+  gap: 2px;
+}
+.scale--wide > * {
+  flex: 0 0 auto;
+  min-width: var(--ctl-s);
+  border-radius: var(--r-pill);
+}
+.acc__h--score:has(.scale--wide) {
+  grid-template-columns: 21px minmax(0, 1fr) 16px;
+  row-gap: var(--s-3);
+}
+.acc__h--score:has(.scale--wide) > .acc__chev {
+  grid-column: 3;
+  grid-row: 1;
+}
+.acc__h--score:has(.scale--wide) .acc__ctl {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+}
+.acc__h--score .acc__ctl {
+  display: contents;
+}
+.acc__h--score:has(.scale--wide) .acc__ctl {
+  display: block;
+}

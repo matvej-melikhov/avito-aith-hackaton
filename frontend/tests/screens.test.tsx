@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { App } from "../src/App";
@@ -22,10 +22,13 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
   const publish = screen.getByRole("button", { name: "Зачесть" });
   expect(save).toBeDisabled();
   expect(publish).toBeDisabled();
-  await user.clear(screen.getByLabelText("Баллы: HTTP API и обработка ошибок"));
-  await user.type(
-    screen.getByLabelText("Баллы: HTTP API и обработка ошибок"),
-    "8",
+  // Балл ставится пилюлей шкалы, как на Р5.
+  await user.click(
+    within(
+      screen.getByRole("group", {
+        name: "Баллы: HTTP API и обработка ошибок, шкала",
+      }),
+    ).getByRole("button", { name: "0,5" }),
   );
   await user.type(
     screen.getByLabelText("Обратная связь студенту"),

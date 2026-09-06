@@ -1013,11 +1013,13 @@ export function ReviewEditor({
                       suggestion.proposed_points !== null &&
                       points !== null &&
                       points !== suggestion.proposed_points;
+                    /* Раскрыто то, что требует внимания: оценочные требования,
+                       непроставленные баллы и всё, где модель нашла нарушение.
+                       Выполненные свёрнуты, как в макете Р5. */
                     const open =
-                      !readOnly ||
-                      suggestion?.status === "needs_human" ||
-                      (!!suggestion &&
-                        suggestion.proposed_points !== c.max_points);
+                      needsHuman ||
+                      !suggestion ||
+                      suggestion.proposed_points !== c.max_points;
                     const findings = [
                       ...sources.map((source, index) => ({
                         key: `source:${index}`,
@@ -1063,7 +1065,7 @@ export function ReviewEditor({
                                   : outOf(points, c.max_points)}
                               </span>
                             ) : (
-                              <AccCtl>
+                              <AccCtl className="acc__ctl">
                                 <Scale
                                   max={c.max_points}
                                   step={step(c)}

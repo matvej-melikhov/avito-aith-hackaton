@@ -53,9 +53,16 @@ describe("scaleValues", () => {
     expect(scaleValues(0.5, 0.5)).toEqual([0, 0.5]);
     expect(scaleValues(2, 1)).toEqual([0, 1, 2]);
   });
-  it("collapses very long scales and keeps the maximum", () => {
-    expect(scaleValues(10, 0.5)).toEqual([0, 0.5, 10]);
+  it("keeps every value of a scale a reviewer can click", () => {
+    // Шкала показывается пилюлями, поэтому ряд не сворачивается.
+    expect(scaleValues(1, 0.5)).toEqual([0, 0.5, 1]);
+    expect(scaleValues(10, 0.5)).toHaveLength(21);
+    expect(scaleValues(10, 0.5).at(-1)).toBe(10);
     expect(scaleValues(1, 0.3)).toEqual([0, 0.3, 0.6, 0.9, 1]);
+  });
+
+  it("collapses a scale too long to click and keeps the maximum", () => {
+    expect(scaleValues(100, 0.5)).toEqual([0, 0.5, 100]);
   });
   it("rejects invalid input", () => {
     expect(scaleValues(-1, 0.5)).toEqual([]);

@@ -169,7 +169,7 @@ it("criterion settings autosave, derive total and reopen a single expanded form"
     }),
   );
   await user.click(screen.getByLabelText("Ещё и оценить качество"));
-  expect(screen.getByLabelText("Порог зачёта")).toHaveAttribute("max", "12");
+  expect(screen.getByLabelText("Порог зачёта")).toHaveAttribute("max", "8");
   await screen.findByText("Изменения сохранены");
   view.unmount();
   render(

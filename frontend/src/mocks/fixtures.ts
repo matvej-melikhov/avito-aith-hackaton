@@ -58,11 +58,73 @@ export const homework: Model<"HomeworkSummary"> = {
   homework_id: ids.homework,
   current_version_id: ids.homeworkVersion,
   title: "HTTP-сервис коротких ссылок",
-  max_score: 10,
+  max_score: 6,
   artifact_kinds: ["github", "google_docs"],
   submission_deadline: "2026-10-20T20:59:00Z",
   review_deadline: "2026-10-24T20:59:00Z",
 };
+/* Рубрика демо-задания: критерии по 0,5–1 баллу, как в дизайн-паке. Шкала из
+   такого шага и максимума показывается ревьюеру пилюлями. */
+const criterionId = (n: number) =>
+  `00000000-0000-4000-8001-${String(n).padStart(12, "0")}`;
+const DEMO_CRITERIA = [
+  {
+    key: "http",
+    title: "HTTP API и обработка ошибок",
+    description:
+      "Сервис создаёт ссылки и возвращает корректные коды ответа для невалидных запросов.",
+    max_points: 1,
+  },
+  {
+    key: "redirect",
+    title: "Редирект по короткому коду",
+    description:
+      "Переход по короткой ссылке ведёт на исходный адрес, для неизвестного кода возвращается 404.",
+    max_points: 1,
+  },
+  {
+    key: "validation",
+    title: "Валидация входных данных",
+    description: "Пустой и невалидный URL отклоняются с понятной ошибкой.",
+    max_points: 0.5,
+  },
+  {
+    key: "tests",
+    title: "Тесты основных сценариев",
+    description: "Есть тесты на создание ссылки, редирект и обработку ошибок.",
+    max_points: 1,
+  },
+  {
+    key: "layers",
+    title: "Структура проекта и слои",
+    description:
+      "Обработчики, бизнес-логика и хранилище разнесены по пакетам, логики в handlers нет.",
+    max_points: 1,
+  },
+  {
+    key: "config",
+    title: "Конфигурация и логирование",
+    description:
+      "Порт и адрес хранилища читаются из окружения, вместо fmt.Print используется логгер.",
+    max_points: 0.5,
+  },
+  {
+    key: "readability",
+    title: "Читаемость кода",
+    description:
+      "Понятные названия, отсутствие дублирования, ровный стиль по всему проекту.",
+    max_points: 1,
+  },
+].map((c, index) => ({
+  ...c,
+  id: criterionId(index + 1),
+  position: index,
+}));
+export const DEMO_MAX_SCORE = DEMO_CRITERIA.reduce(
+  (sum, c) => sum + c.max_points,
+  0,
+);
+
 export const version: Model<"HomeworkVersionSummary"> = {
   id: ids.homeworkVersion,
   revision: 0,
@@ -70,20 +132,10 @@ export const version: Model<"HomeworkVersionSummary"> = {
   criterion_set_id: ids.criterion,
   student_text:
     "Разработайте HTTP-сервис для создания коротких ссылок. Опишите запуск, обработайте ошибки валидации и добавьте тесты для основных сценариев.",
-  max_score: 10,
+  max_score: DEMO_MAX_SCORE,
   artifact_kinds: ["github", "google_docs"],
   estimated_review_minutes: 30,
-  criteria: [
-    {
-      id: ids.criterion,
-      key: "http",
-      title: "HTTP API и обработка ошибок",
-      description:
-        "Сервис создаёт ссылки, выполняет редирект и возвращает корректные коды ответа для невалидных запросов.",
-      max_points: 10,
-      position: 0,
-    },
-  ],
+  criteria: DEMO_CRITERIA,
 };
 export const history: Model<"HomeworkHistory"> = {
   homework_id: ids.homework,
