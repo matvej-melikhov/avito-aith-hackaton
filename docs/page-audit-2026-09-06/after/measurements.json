@@ -1,0 +1,1185 @@
+{
+  "base_commit": "b5f56b531c911e25a30affa7ab15ad87d429eaf9",
+  "state": "local uncommitted implementation",
+  "tests_passed": 92,
+  "routes": [
+    {
+      "id": "00-coordinator-dashboard",
+      "role": "coordinator",
+      "route": "#/dashboard",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "01-coordinator-courses",
+      "role": "coordinator",
+      "route": "#/courses",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "02-coordinator-homeworks",
+      "role": "coordinator",
+      "route": "#/homeworks",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "03-coordinator-coord-pool",
+      "role": "coordinator",
+      "route": "#/coord-pool",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "04-coordinator-registry",
+      "role": "coordinator",
+      "route": "#/registry",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "05-coordinator-people",
+      "role": "coordinator",
+      "route": "#/people",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "06-coordinator-deliveries",
+      "role": "coordinator",
+      "route": "#/deliveries",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "07-coordinator-registry",
+      "role": "coordinator",
+      "route": "#/registry?state=reviewing",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "08-coordinator-courses",
+      "role": "coordinator",
+      "route": "#/courses/7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "09-coordinator-courses",
+      "role": "coordinator",
+      "route": "#/courses/9b1ca508-02a6-5866-81ce-19a21618c05f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "10-coordinator-homework",
+      "role": "coordinator",
+      "route": "#/homework/df91ca2c-0a47-5db1-82ca-140c610fd935?run=7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "11-coordinator-homework",
+      "role": "coordinator",
+      "route": "#/homework/c21ea2b5-24b3-5a6f-9e98-2c996fc225de?run=9b1ca508-02a6-5866-81ce-19a21618c05f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "12-coordinator-dashboard",
+      "role": "coordinator",
+      "route": "#/dashboard?course=08992fe4-4d29-5842-96ee-6d8061220f4d",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "13-coordinator-submissions",
+      "role": "coordinator",
+      "route": "#/submissions/01a07191-3c44-7864-a9e6-43ea11c66f45",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "14-coordinator-submissions",
+      "role": "coordinator",
+      "route": "#/submissions/01a07191-3c35-771e-8bd6-9ade1822c7ab",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "15-coordinator-assignments",
+      "role": "coordinator",
+      "route": "#/assignments/7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "16-coordinator-assignments",
+      "role": "coordinator",
+      "route": "#/assignments/9b1ca508-02a6-5866-81ce-19a21618c05f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "17-coordinator-works",
+      "role": "coordinator",
+      "route": "#/works",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "18-reviewer-works",
+      "role": "reviewer",
+      "route": "#/works",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "19-reviewer-pool",
+      "role": "reviewer",
+      "route": "#/pool",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "20-reviewer-preferences",
+      "role": "reviewer",
+      "route": "#/preferences",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "21-reviewer-statistics",
+      "role": "reviewer",
+      "route": "#/statistics",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "22-reviewer-courses",
+      "role": "reviewer",
+      "route": "#/courses",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "23-reviewer-reviews",
+      "role": "reviewer",
+      "route": "#/reviews/01a0720f-cc01-7b47-ba11-82d72c382ef6",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "24-reviewer-courses",
+      "role": "reviewer",
+      "route": "#/courses/7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "25-reviewer-courses",
+      "role": "reviewer",
+      "route": "#/courses/9b1ca508-02a6-5866-81ce-19a21618c05f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "26-reviewer-reviews",
+      "role": "reviewer",
+      "route": "#/reviews/01a0719a-5daf-7cc8-bb9a-e29ef72d3a4f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "27-reviewer-homework",
+      "role": "reviewer",
+      "route": "#/homework/df91ca2c-0a47-5db1-82ca-140c610fd935?run=7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "28-reviewer-queue",
+      "role": "reviewer",
+      "route": "#/queue/7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "29-reviewer-homework",
+      "role": "reviewer",
+      "route": "#/homework/c21ea2b5-24b3-5a6f-9e98-2c996fc225de?run=9b1ca508-02a6-5866-81ce-19a21618c05f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "30-reviewer-queue",
+      "role": "reviewer",
+      "route": "#/queue/9b1ca508-02a6-5866-81ce-19a21618c05f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "31-student-works",
+      "role": "student",
+      "route": "#/works",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "32-student-courses",
+      "role": "student",
+      "route": "#/courses",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "33-student-submissions",
+      "role": "student",
+      "route": "#/submissions/01a07191-3c35-771e-8bd6-9ade1822c7ab",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "34-student-submissions",
+      "role": "student",
+      "route": "#/submissions/01a07191-3c4b-7a7a-9eb9-c9c0cbc3b9b0",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "35-student-courses",
+      "role": "student",
+      "route": "#/courses/7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "36-student-courses",
+      "role": "student",
+      "route": "#/courses/9b1ca508-02a6-5866-81ce-19a21618c05f",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "37-student-submit",
+      "role": "student",
+      "route": "#/submit/7a81ee7c-5691-57e7-9f0b-959e8d931bd3/7782054e-15f3-5dc9-967f-d181b77ae7d3",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    },
+    {
+      "id": "38-student-submit",
+      "role": "student",
+      "route": "#/submit/9b1ca508-02a6-5866-81ce-19a21618c05f/c1dba06c-47f2-5013-8533-1a1c1919d268",
+      "errors": [],
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440
+        },
+        {
+          "width": 390,
+          "documentWidth": 390
+        },
+        {
+          "width": 320,
+          "documentWidth": 320
+        }
+      ]
+    }
+  ],
+  "states": [
+    {
+      "role": "coordinator",
+      "route": "#/dashboard",
+      "label": "Создать курс",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": [
+            {
+              "w": 560,
+              "right": 1000,
+              "scroll": 560
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": [
+            {
+              "w": 358,
+              "right": 374,
+              "scroll": 358
+            }
+          ]
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": [
+            {
+              "w": 288,
+              "right": 304,
+              "scroll": 288
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "coordinator",
+      "route": "#/dashboard",
+      "label": "Создать поток",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": [
+            {
+              "w": 560,
+              "right": 1000,
+              "scroll": 560
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": [
+            {
+              "w": 358,
+              "right": 374,
+              "scroll": 358
+            }
+          ]
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": [
+            {
+              "w": 288,
+              "right": 304,
+              "scroll": 288
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "coordinator",
+      "route": "#/courses/7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "label": "Редактировать поток",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": [
+            {
+              "w": 560,
+              "right": 1000,
+              "scroll": 560
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": [
+            {
+              "w": 358,
+              "right": 374,
+              "scroll": 358
+            }
+          ]
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": [
+            {
+              "w": 288,
+              "right": 304,
+              "scroll": 288
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "coordinator",
+      "route": "#/registry",
+      "label": "Выгрузить",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": [
+            {
+              "w": 720,
+              "right": 1080,
+              "scroll": 720
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": [
+            {
+              "w": 358,
+              "right": 374,
+              "scroll": 358
+            }
+          ]
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": [
+            {
+              "w": 288,
+              "right": 304,
+              "scroll": 314
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "coordinator",
+      "route": "#/coord-pool",
+      "label": "Напомнить ревьюерам",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": [
+            {
+              "w": 560,
+              "right": 1000,
+              "scroll": 560
+            }
+          ]
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": [
+            {
+              "w": 358,
+              "right": 374,
+              "scroll": 358
+            }
+          ]
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": [
+            {
+              "w": 288,
+              "right": 304,
+              "scroll": 288
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "coordinator",
+      "route": "#/homework/df91ca2c-0a47-5db1-82ca-140c610fd935?run=7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "label": "Критерии ревью",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": []
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": []
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": []
+        }
+      ]
+    },
+    {
+      "role": "coordinator",
+      "route": "#/homework/df91ca2c-0a47-5db1-82ca-140c610fd935?run=7a81ee7c-5691-57e7-9f0b-959e8d931bd3",
+      "label": "Публикация",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": []
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": []
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": []
+        }
+      ]
+    },
+    {
+      "role": "reviewer",
+      "route": "#/preferences",
+      "label": "Ваш профиль",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": []
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": []
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": []
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "route": "#/submissions/01a07191-3c35-771e-8bd6-9ade1822c7ab",
+      "label": "Ревью",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": []
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": []
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": []
+        }
+      ]
+    },
+    {
+      "role": "student",
+      "route": "#/submissions/01a07191-3c35-771e-8bd6-9ade1822c7ab",
+      "label": "ИИ-ревью",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": []
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": []
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": []
+        }
+      ]
+    },
+    {
+      "role": "coordinator",
+      "route": "#/dashboard",
+      "label": "Ваш профиль",
+      "blocked": [],
+      "layouts": [
+        {
+          "width": 1440,
+          "documentWidth": 1440,
+          "dialog": []
+        },
+        {
+          "width": 390,
+          "documentWidth": 390,
+          "dialog": []
+        },
+        {
+          "width": 320,
+          "documentWidth": 320,
+          "dialog": []
+        }
+      ]
+    }
+  ],
+  "directory_error": [
+    {
+      "width": 1440,
+      "documentWidth": 1440
+    },
+    {
+      "width": 390,
+      "documentWidth": 390
+    },
+    {
+      "width": 320,
+      "documentWidth": 320
+    }
+  ]
+}

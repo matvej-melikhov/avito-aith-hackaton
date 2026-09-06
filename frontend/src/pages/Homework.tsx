@@ -2,8 +2,27 @@ import { useState } from "react";
 import type { ApiClient, Model, Role } from "../api/client";
 import type { CommandPayloads } from "../api/commands";
 import { Card, Empty, Resource, date, useAction, useResource } from "../ui";
+import { HomeworkReadView } from "./HomeworkReadView";
 type Draft = CommandPayloads["create_homework_version"];
 export function HomeworkPage({
+  api,
+  id,
+  run,
+  role,
+}: {
+  api: ApiClient;
+  id: string;
+  run: string;
+  role: Role;
+}) {
+  return role === "methodologist" ? (
+    <LegacyHomeworkPage api={api} id={id} run={run} role={role} />
+  ) : (
+    <HomeworkReadView api={api} id={id} run={run} />
+  );
+}
+
+function LegacyHomeworkPage({
   api,
   id,
   run,

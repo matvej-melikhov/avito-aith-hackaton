@@ -1,9 +1,11 @@
 import { useState } from "react";
 import type { ApiClient, Model, Role } from "../api/client";
+import { Btn, Inp, Sel } from "../ds";
+import { ScreenTitle } from "../workspace-ui";
+import { WorkspaceClient } from "../api/workspace";
 import {
   Card,
   Empty,
-  Id,
   Resource,
   Status,
   date,
@@ -12,6 +14,19 @@ import {
   useResource,
 } from "../ui";
 export function PeoplePage({ api }: { api: ApiClient }) {
+  const directory = useResource(
+    () => new WorkspaceClient(api).directory(),
+    "people-directory",
+  );
+  const names = new Map(
+    directory.data?.items.map((person) => [
+      person.id,
+      person.display_name.trim(),
+    ]),
+  );
+  const counts = new Map<string, number>();
+  for (const name of names.values())
+    if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
   const s = useResource(async () => {
     const [members, invitations, organization] = await Promise.all([
       api.memberships(),
@@ -26,14 +41,22 @@ export function PeoplePage({ api }: { api: ApiClient }) {
   const [expires, setExpires] = useState("");
   return (
     <>
-      <h1>Участники и приглашения</h1>
+      <ScreenTitle code="К4" title="Участники и приглашения" />
       {action.feedback}
+      {!!directory.error && (
+        <div className="notice" role="alert">
+          Не удалось загрузить имена участников.{" "}
+          <Btn size="s" onClick={directory.refresh}>
+            Повторить загрузку имён
+          </Btn>
+        </div>
+      )}
       <Resource value={s}>
         {s.data && (
           <>
             <Card title="Участники организации">
               <div className="table-wrap">
-                <table>
+                <table className="tbl">
                   <thead>
                     <tr>
                       <th>Пользователь</th>
@@ -48,6 +71,10 @@ export function PeoplePage({ api }: { api: ApiClient }) {
                         key={`${m.id}:${m.revision}`}
                         api={api}
                         member={m}
+                        name={names.get(m.user_id)}
+                        duplicate={
+                          (counts.get(names.get(m.user_id) ?? "") ?? 0) > 1
+                        }
                         refresh={s.refresh}
                       />
                     ))}
@@ -78,7 +105,7 @@ export function PeoplePage({ api }: { api: ApiClient }) {
                 >
                   <label>
                     Email
-                    <input
+                    <Inp
                       type="email"
                       required
                       value={email}
@@ -87,26 +114,26 @@ export function PeoplePage({ api }: { api: ApiClient }) {
                   </label>
                   <label>
                     Роль
-                    <select
+                    <Sel
                       value={role}
                       onChange={(e) => setRole(e.target.value as typeof role)}
                     >
                       <option value="reviewer">Ревьюер</option>
                       <option value="methodologist">Координатор</option>
-                    </select>
+                    </Sel>
                   </label>
                   <label>
                     Действует до
-                    <input
+                    <Inp
                       type="datetime-local"
                       required
                       value={expires}
                       onChange={(e) => setExpires(e.target.value)}
                     />
                   </label>
-                  <button className="primary" disabled={action.busy}>
+                  <Btn type="submit" variant="pri" disabled={action.busy}>
                     Пригласить
-                  </button>
+                  </Btn>
                 </form>
               </Card>
               <Card title="Приглашения">
@@ -118,7 +145,7 @@ export function PeoplePage({ api }: { api: ApiClient }) {
                     </p>
                     <small>До {date(i.expires_at)}</small>
                     {i.status === "active" && (
-                      <button
+                      <Btn
                         disabled={action.busy}
                         onClick={() =>
                           void action.run(async () => {
@@ -136,7 +163,7 @@ export function PeoplePage({ api }: { api: ApiClient }) {
                         }
                       >
                         Отозвать приглашение
-                      </button>
+                      </Btn>
                     )}
                   </div>
                 ))}
@@ -155,17 +182,21 @@ function MemberRow({
   api,
   member,
   refresh,
+  name,
+  duplicate,
 }: {
   api: ApiClient;
   member: Model<"OrganizationMembershipList">["items"][number];
   refresh: () => void;
+  name?: string;
+  duplicate: boolean;
 }) {
   const [roles, setRoles] = useState<Role[]>(member.roles);
   const action = useAction();
   return (
     <tr>
       <td>
-        <Id value={member.user_id} />
+        <MemberIdentity id={member.user_id} name={name} duplicate={duplicate} />
       </td>
       <td>
         {(Object.keys(roleNames) as Role[]).map((r) => (
@@ -190,7 +221,8 @@ function MemberRow({
         <Status value={member.status} />
       </td>
       <td>
-        <button
+        <Btn
+          size="s"
           disabled={action.busy}
           onClick={() =>
             void action.run(async () => {
@@ -205,10 +237,31 @@ function MemberRow({
           }
         >
           Сохранить роли
-        </button>
+        </Btn>
         {action.feedback}
       </td>
     </tr>
+  );
+}
+export function MemberIdentity({
+  id,
+  name,
+  duplicate = false,
+}: {
+  id: string;
+  name?: string;
+  duplicate?: boolean;
+}) {
+  const displayName = name?.trim();
+  return (
+    <div className="member-identity">
+      <strong>{displayName || "Имя недоступно"}</strong>
+      {(!displayName || duplicate) && <small>ID: {id.slice(0, 8)}</small>}
+      <details>
+        <summary>ID участника</summary>
+        <code>{id}</code>
+      </details>
+    </div>
   );
 }
 export function PreferencesPage({

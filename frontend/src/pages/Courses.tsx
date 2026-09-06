@@ -1,5 +1,5 @@
 import { Field, Inp, Btn } from "../ds";
-import { HeaderProfile } from "../workspace-ui";
+import { HeaderProfile, ScreenTitle } from "../workspace-ui";
 import { WorkspaceClient } from "../api/workspace";
 import { WorkspaceRunSettings } from "./WorkspaceCatalog";
 import { useEffect, useState } from "react";
@@ -297,7 +297,7 @@ export function QueuePage({ api, id }: { api: ApiClient; id: string }) {
   const action = useAction();
   return (
     <>
-      <h1>Следующая работа</h1>
+      <ScreenTitle code="Р2" title="Следующая работа" />
       <p className="muted">
         Рекомендация учитывает выбранный поток и доступность ревьюера.
       </p>
@@ -305,7 +305,7 @@ export function QueuePage({ api, id }: { api: ApiClient; id: string }) {
       <Resource value={s}>
         {s.data ? (
           <Card title="Работа готова к проверке">
-            <p>{s.data.reason.join(" · ")}</p>
+            <RecommendationExplanation reasons={s.data.reason} />
             <Btn
               variant="pri"
               disabled={action.busy}
@@ -331,6 +331,28 @@ export function QueuePage({ api, id }: { api: ApiClient; id: string }) {
       </Resource>
       <Btn onClick={s.refresh}>Обновить рекомендацию</Btn>
     </>
+  );
+}
+
+export function RecommendationExplanation({ reasons }: { reasons: string[] }) {
+  function reasonDate(prefix: string) {
+    const value = reasons
+      .find((reason) => reason.startsWith(prefix))
+      ?.slice(prefix.length);
+    return value && Number.isFinite(Date.parse(value)) ? date(value) : null;
+  }
+  const deadline = reasonDate("review_deadline:");
+  const submitted = reasonDate("submitted_at:");
+  const continuation = reasons.includes("same_reviewer_continuation");
+  return (
+    <div className="recommendation-explanation">
+      {deadline && <p>Проверить до {deadline}.</p>}
+      {submitted && <p>Работа сдана {submitted}.</p>}
+      {continuation && <p>Вы уже проверяли предыдущую попытку этой работы.</p>}
+      {!deadline && !submitted && !continuation && (
+        <p>Для вас подобрана работа из этого потока.</p>
+      )}
+    </div>
   );
 }
 

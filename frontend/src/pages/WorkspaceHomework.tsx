@@ -5,6 +5,7 @@ import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
 import { Card, Resource, date, useAction, useResource } from "../ui";
 import { ScreenTitle, useDirtyGuard } from "../workspace-ui";
 import { MarkdownArea } from "../MarkdownArea";
+import { num } from "../ds";
 export function WorkspaceHomework({
   ws,
   id,
@@ -1143,7 +1144,13 @@ function HomeworkWizard({
   );
 }
 
-function ScorePreview({ maximum, step }: { maximum: number; step: number }) {
+export function ScorePreview({
+  maximum,
+  step,
+}: {
+  maximum: number;
+  step: number;
+}) {
   if (
     !Number.isFinite(maximum) ||
     maximum < 0 ||
@@ -1161,15 +1168,21 @@ function ScorePreview({ maximum, step }: { maximum: number; step: number }) {
   if (values[values.length - 1] !== maximum) values.push(maximum);
   return (
     <>
-      <span className="scale scale--ro">
+      <span
+        className="scale scale--ro score-preview"
+        role="group"
+        aria-label="Предпросмотр шкалы"
+      >
         {values.map((value, i) => (
           <span key={i}>
-            {count > 12 && i === values.length - 1 ? `… ${value}` : value}
+            {count > 12 && i === values.length - 1
+              ? `… ${num(value, 20)}`
+              : num(value, 20)}
           </span>
         ))}
       </span>
       <small>
-        Число от 0 до {maximum}, шаг {step}
+        Число от 0 до {num(maximum, 20)}, шаг {num(step, 20)}
       </small>
     </>
   );

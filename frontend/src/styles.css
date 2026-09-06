@@ -2,6 +2,49 @@
 @import "../../docs/design/components.css";
 @import "./ds/ds.css";
 
+.scale.score-preview {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: visible;
+  max-width: 100%;
+  width: fit-content;
+  gap: var(--s-1);
+  border-radius: 0;
+  background: transparent;
+}
+.scale.score-preview > span {
+  flex: 0 0 auto;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+}
+.recommendation-explanation {
+  margin-bottom: var(--s-4);
+}
+.homework-reading-text {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.homework-reading-criterion + .homework-reading-criterion,
+.homework-publication + .homework-publication {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+.homework-reading-criterion h3 {
+  margin: 0 0 var(--s-3);
+}
+.member-identity {
+  min-width: 160px;
+  overflow-wrap: anywhere;
+}
+.member-identity details {
+  margin-top: var(--s-2);
+}
+.member-identity summary {
+  cursor: pointer;
+  font-size: var(--small-size);
+}
+
 .artifact-actions {
   display: inline-flex;
   align-items: center;
@@ -1165,6 +1208,9 @@ dd {
   .app-shell {
     grid-template-columns: minmax(0, 1fr);
   }
+  .app-shell:not(.student-shell) {
+    grid-template-rows: auto 1fr;
+  }
   .sidebar {
     min-height: auto;
     border-right: 0;
@@ -1480,6 +1526,23 @@ dd {
 }
 .page-heading .crumbs {
   margin: 0 0 var(--s-2);
+}
+@media (max-width: 640px) {
+  .page-heading-crumbs,
+  .card-head {
+    flex-wrap: wrap;
+  }
+  .coordinator-compact-filters select {
+    max-width: min(220px, 100%);
+  }
+  .coordinator-compact-filters label,
+  .card-head > .btn {
+    max-width: 100%;
+    height: auto;
+    min-height: var(--ctl-s);
+    white-space: normal;
+    padding-block: var(--s-1);
+  }
 }
 .flow-heading {
   display: inline-flex;
