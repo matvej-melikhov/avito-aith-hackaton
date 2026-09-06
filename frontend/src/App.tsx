@@ -28,7 +28,6 @@ import { CoursePage, CoursesPage, QueuePage } from "./pages/Courses";
 import { ReviewPage } from "./pages/Review";
 import { HomeworkPage } from "./pages/Homework";
 import { OperationPage } from "./pages/Operations";
-import { StudentCabinet } from "./pages/Cabinet";
 import { PeoplePage } from "./pages/People";
 import {
   Ava,
@@ -250,8 +249,6 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
         role={activeRole}
       />
     );
-  else if (section === "cabinet" && activeRole === "student")
-    page = <StudentCabinet ws={ws} account={accountProps} />;
   else if (
     (section === "cabinet" ||
       section === "people" ||

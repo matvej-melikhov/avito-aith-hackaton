@@ -431,6 +431,9 @@ export function WorkspaceCatalog({
         <Resource value={r}>
           {r.data && (
             <div className="stack">
+              {activeRuns.map((run) => (
+                <RunStatsProbe key={run.id} ws={ws} run={run} report={report} />
+              ))}
               <Tiles>
                 <Tile
                   href="#/registry"
@@ -560,6 +563,23 @@ export function WorkspaceCatalog({
       )}
     </>
   );
+}
+
+/** Сбор метрик потока без разметки: «Обзор» считает плитки без таблицы. */
+function RunStatsProbe({
+  ws,
+  run,
+  report,
+}: {
+  ws: WorkspaceClient;
+  run: W<"CourseRunView">;
+  report: (id: string, value: RunStats) => void;
+}) {
+  const r = useRunStats(ws, run);
+  useEffect(() => {
+    if (r.data) report(run.id, r.data);
+  }, [r.data, run.id, report]);
+  return null;
 }
 
 function RunRow({

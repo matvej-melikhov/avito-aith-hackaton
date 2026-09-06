@@ -52,6 +52,8 @@ a.brand {
   display: flex;
   align-items: center;
   gap: var(--s-5);
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .topbar__title {
   display: flex;
@@ -337,8 +339,15 @@ a.btn--link:hover {
 }
 
 /* --- Поля (screens.html:1866, 2199, 1586) ----------------------------------- */
-.srch--w .inp {
-  width: min(420px, 100%);
+/* Поиск координатора: ищем по ID студента и названию задания, поле длинное. */
+.srch--w {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 440px;
+}
+.srch--w .inp,
+.topbar .srch--w .inp {
+  width: 100%;
 }
 .inp--w-56 {
   width: 56px;
@@ -1838,11 +1847,12 @@ select.inp:not(.inp--s) {
   cursor: pointer;
 }
 
-/* --- Заголовок встроенной секции на «Обзоре» -------------------------------- */
-.section-title {
-  margin: 0 0 var(--s-4);
-  font-size: var(--h3-size);
-  line-height: var(--h3-lh);
-  font-weight: var(--w-semi);
-  color: var(--ink);
+/* --- Встроенные секции «Обзора»: табы и пустая строка внутри карточки ------- */
+.tabs--row-in {
+  padding: 0 var(--s-5);
+  border-bottom: var(--bw-hair) solid var(--line);
+}
+.table-note {
+  margin: 0;
+  padding: var(--s-5);
 }

@@ -258,7 +258,6 @@ export function WorksList({
         <Frame screen="К7">
           {action.feedback}
           <div className="stack">
-            {embedded && <h2 className="section-title">Пул проверок</h2>}
             {r.data && !embedded && (
               <Tiles>
                 <Tile
@@ -288,7 +287,14 @@ export function WorksList({
               </Tiles>
             )}
             <Card>
-              <CardHead title="Работы без ревьюера">
+              <CardHead
+                title={embedded ? "Пул проверок" : "Работы без ревьюера"}
+                sub={
+                  embedded
+                    ? "Сданные работы, которые ещё никто не взял"
+                    : undefined
+                }
+              >
                 <BtnRow>
                   {runSelect}
                   <Btn
@@ -362,13 +368,20 @@ export function WorksList({
                           ))}
                         </tbody>
                       </table>
-                      {shown.length === 0 && (
-                        <Empty title="В пуле пусто">
-                          {hotOnly
-                            ? "Зависших работ нет: всё берут вовремя."
-                            : "Все сданные работы уже у ревьюеров."}
-                        </Empty>
-                      )}
+                      {shown.length === 0 &&
+                        (embedded ? (
+                          <p className="small dim table-note">
+                            {hotOnly
+                              ? "Зависших работ нет: всё берут вовремя."
+                              : "Все сданные работы уже у ревьюеров."}
+                          </p>
+                        ) : (
+                          <Empty title="В пуле пусто">
+                            {hotOnly
+                              ? "Зависших работ нет: всё берут вовремя."
+                              : "Все сданные работы уже у ревьюеров."}
+                          </Empty>
+                        ))}
                     </CardBody>
                     {foot}
                   </>
@@ -440,28 +453,29 @@ export function WorksList({
       )}
       <Frame screen="К8">
         {action.feedback}
-        {embedded && <h2 className="section-title">Домашки</h2>}
-        <div className="tabs--row">
-          <Tabs className="tabs--wrap" label="Статус">
-            {REGISTRY_TABS.map(([value, label]) => (
-              <Tab
-                key={value}
-                on={state === value}
-                onClick={() => {
-                  setState(value);
-                  setOffset(0);
-                }}
-              >
-                {label}
-              </Tab>
-            ))}
-          </Tabs>
-          {runSelect}
-        </div>
+        {!embedded && (
+          <div className="tabs--row">
+            <Tabs className="tabs--wrap" label="Статус">
+              {REGISTRY_TABS.map(([value, label]) => (
+                <Tab
+                  key={value}
+                  on={state === value}
+                  onClick={() => {
+                    setState(value);
+                    setOffset(0);
+                  }}
+                >
+                  {label}
+                </Tab>
+              ))}
+            </Tabs>
+            {runSelect}
+          </div>
+        )}
         <Card>
           <CardHead
-            title={currentRun?.title ?? "Все потоки"}
-            sub={course?.title}
+            title={embedded ? "Домашки" : (currentRun?.title ?? "Все потоки")}
+            sub={embedded ? undefined : course?.title}
           >
             {r.data && (
               <span className="caption">
@@ -470,6 +484,25 @@ export function WorksList({
               </span>
             )}
           </CardHead>
+          {embedded && (
+            <div className="tabs--row tabs--row-in">
+              <Tabs className="tabs--wrap" label="Статус">
+                {REGISTRY_TABS.map(([value, label]) => (
+                  <Tab
+                    key={value}
+                    on={state === value}
+                    onClick={() => {
+                      setState(value);
+                      setOffset(0);
+                    }}
+                  >
+                    {label}
+                  </Tab>
+                ))}
+              </Tabs>
+              {runSelect}
+            </div>
+          )}
           <Resource value={r}>
             {r.data && (
               <>
