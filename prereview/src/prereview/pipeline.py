@@ -309,6 +309,9 @@ def run_review_assist(request: ReviewAssistRequest, settings: Settings, *, clien
     summary = build_note + reviewer_summary(results, signal_record.get("level", "low"), ledger.cost_rub,
                                ledger.prompt_tokens + ledger.completion_tokens, record.prompt_versions,
                                client.model, _harness_label(pack))
+    questions = signal_record.get("questions") or []
+    if questions:
+        summary += " Вопросы студенту: " + " ".join(f"{i}) {q}" for i, q in enumerate(questions, 1))
     suggestions = [_suggestion(r, summary if i == 0 else "") for i, r in enumerate(results)]
     result = ReviewAssistResult(authorship_signal=signal, feedback_draft=feedback, suggestions=suggestions)
     problems = validate_assist_result(result, request.criteria)

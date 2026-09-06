@@ -74,29 +74,33 @@ def build_signal(work: Work, meta: dict, *, client=None, prompts=None, results_t
             questions = [q.strip() for q in res.value.questions[:3] if q.strip()]
         except Exception as e:  # noqa: BLE001
             log.warning("qa questions failed: %s", e)
-    lines = [f"Уровень: {LEVEL_RU[level]}. Сигнал не влияет на баллы и не доказывает авторство, это повод для разговора."]
+    # Оценка в процентах: грубая, по уровню и числу оснований, не калибрована. Нужна ревьюеру
+    # как ориентир, поэтому диапазоны разнесены: низкий до 25, средний 40–60, высокий 70–90.
+    base = {"low": 0.08, "medium": 0.40, "high": 0.70}[level]
+    cap = {"low": 0.25, "medium": 0.60, "high": 0.90}[level]
+    probability = round(min(cap, base + 0.05 * len(grounds)), 2)
+    decl_text = ("студент задекларировал использование ИИ, нарушения нет" if declaration == "declared"
+                 else "декларации об использовании ИИ в работе нет")
     if grounds:
-        lines.append("Основания:")
-        lines += [f"- {g.text} Ограничение: {g.limitation}" for g in grounds]
+        head = f"Оценка модели: {round(probability * 100)}%, уровень {LEVEL_RU[level]}. Основания ниже, каждое с примером из работы; {decl_text}."
     else:
-        lines.append("Основания: простые признаки генерации в тексте и коде не найдены.")
-    lines.append("Декларация об использовании ИИ: " + ("есть, нарушения нет, стоит проверить понимание." if declaration == "declared" else "не найдена."))
+        head = f"Оценка модели: {round(probability * 100)}%, уровень {LEVEL_RU[level]}. Простые признаки генерации в тексте и коде не найдены; {decl_text}."
+    lines = [head, "Порог не калибровался на реальном потоке, на балл не влияет, это повод для разговора со студентом."]
     if not_available:
         lines.append("Недоступно: " + "; ".join(not_available) + ".")
-    if questions:
-        lines.append("Вопросы для Q&A:")
-        lines += [f"{i}. {q}" for i, q in enumerate(questions, 1)]
-    lines.append("Порог уровня не калибровался на реальном потоке.")
+    # Основания уходят списком причин: текст основания, пример и адрес.
     evidence = []
     for g in grounds:
-        for path, line, snippet in g.evidence[:3]:
-            if snippet.strip():
-                evidence.append(AssistEvidence(quote=snippet[:1000], locator=f"{path}:{line} ({g.signal})", path=path if path and "/" in path or "." in path else None,
-                                               line_start=line if line >= 1 else None, line_end=line if line >= 1 else None))
-    for path, line, snippet in decl_hits[:2]:
-        evidence.append(AssistEvidence(quote=snippet[:1000], locator=f"{path}:{line} (декларация)", path=path if "." in path else None,
-                                       line_start=line, line_end=line))
-    signal = AuthorshipSignal(id=SIGNAL_ID, probability=None, explanation="\n".join(lines)[:10000], evidence=evidence[:50])
-    record = {"level": level, "declaration": declaration, "grounds": [g.to_dict() for g in grounds],
+        sample = next((snippet.strip() for _, _, snippet in g.evidence if snippet.strip()), "")
+        path, line = (g.evidence[0][0], g.evidence[0][1]) if g.evidence else ("", 0)
+        reason = g.text if not sample else f"{g.text} Пример: «{sample[:140]}»"
+        evidence.append(AssistEvidence(quote=reason[:1000], locator=f"{path}:{line}" if path else g.signal,
+                                       path=path if path and ("/" in path or "." in path) else None,
+                                       line_start=line if line >= 1 else None, line_end=line if line >= 1 else None))
+    for path, line, snippet in decl_hits[:1]:
+        evidence.append(AssistEvidence(quote=f"Декларация об использовании ИИ: «{snippet[:140]}»", locator=f"{path}:{line}",
+                                       path=path if "." in path else None, line_start=line, line_end=line))
+    signal = AuthorshipSignal(id=SIGNAL_ID, probability=probability, explanation="\n".join(lines)[:10000], evidence=evidence[:50])
+    record = {"level": level, "probability": probability, "questions": questions, "declaration": declaration, "grounds": [g.to_dict() for g in grounds],
               "not_available": not_available, "questions": questions}
     return signal, record

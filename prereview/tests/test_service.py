@@ -39,7 +39,7 @@ def test_assist_running_then_succeeded(settings, md_artifact):
     assert ev["status"] == "succeeded" and ev["sequence"] >= first["sequence"]
     ids = [s["criterion_id"] for s in ev["result"]["suggestions"]]
     assert sorted(ids) == sorted(c["id"] for c in req["criteria"])
-    assert ev["result"]["authorship_signal"]["probability"] is None
+    assert 0 <= ev["result"]["authorship_signal"]["probability"] <= 1
     # повтор POST не создаёт вторую работу и отдаёт то же финальное событие
     r2 = client.post(f"/v2/review-assists/{req['run_id']}", json=req)
     assert r2.json()["event_id"] == ev["event_id"]
