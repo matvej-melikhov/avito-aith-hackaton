@@ -21,7 +21,8 @@ import {
   isClosed,
 } from "../ds";
 import { Resource, go, useAction, useResource } from "../ui";
-import { enterReviewMode, exitReviewMode, nextFromPool } from "../reviewMode";
+import { nextFromPool } from "../reviewQueue";
+import { ActionMessage, useActionMessage } from "../ActionMessage";
 
 const LIMIT = 20;
 const CLOSED = ["published", "passed", "failed", "needs_changes"];
@@ -77,12 +78,12 @@ export function ReviewerQueue({
       </Sel>
     </BtnRow>
   );
-  const startMode = () =>
+  const message = useActionMessage();
+  const openNext = () =>
     void action.run(async () => {
-      enterReviewMode();
+      message.clear();
       const id = await nextFromPool(ws);
       if (!id) {
-        exitReviewMode();
         throw new Error("В пуле нет свободных работ по вашим курсам.");
       }
       go(`/reviews/${id}`);
@@ -100,15 +101,16 @@ export function ReviewerQueue({
               size="s"
               variant="pri"
               disabled={action.busy}
-              title="Работы из пула будут открываться одна за другой, ближайший дедлайн первым"
-              onClick={startMode}
+              title="Открыть следующую подходящую работу из пула"
+              onClick={openNext}
             >
-              Войти в режим проверки
+              Открыть работу из пула
             </Btn>
           </>
         }
       />
       <Main data-screen="Р2">
+        <ActionMessage />
         {action.feedback}
         <div className="stack">
           {pool ? (
@@ -129,7 +131,7 @@ export function ReviewerQueue({
               filters={filters}
               run={run}
               courseRunIds={courseRunIds}
-              onStartMode={startMode}
+              onNextWork={openNext}
               busy={action.busy}
             />
           )}
@@ -147,7 +149,7 @@ function QueueSection({
   run = "",
   courseRunIds = null,
   filters,
-  onStartMode,
+  onNextWork,
   busy,
 }: {
   ws: WorkspaceClient;
@@ -158,7 +160,7 @@ function QueueSection({
   /** Потоки выбранного курса, когда сам поток не выбран. */
   courseRunIds?: string[] | null;
   filters?: ReactNode;
-  onStartMode?: () => void;
+  onNextWork?: () => void;
   busy?: boolean;
 }) {
   const [offset, setOffset] = useState(0);
@@ -172,6 +174,7 @@ function QueueSection({
   const r = useResource(() => ws.works(params), JSON.stringify(params));
   const action = useAction();
   const { setCounts } = useMenuCounts();
+  const message = useActionMessage();
   useEffect(() => {
     if (r.data && !run && !courseRunIds)
       setCounts(
@@ -180,6 +183,7 @@ function QueueSection({
   }, [r.data, run, courseRunIds, view, setCounts]);
 
   async function open(w: W<"WorkItem">) {
+    message.clear();
     if (
       w.review_iteration_id &&
       w.review_submission_version_id === w.submission_version_id
@@ -339,10 +343,13 @@ function QueueSection({
                                       { action: "released" },
                                     );
                                     r.refresh();
+                                    message.show(
+                                      "Вы сняли с себя проверку. Работа остаётся доступной в пуле.",
+                                    );
                                   })
                                 }
                               >
-                                Вернуть в пул
+                                Снять с себя проверку
                               </Btn>
                             )}
                           </BtnRow>
@@ -361,9 +368,9 @@ function QueueSection({
                         size="s"
                         variant="dark"
                         disabled={busy}
-                        onClick={onStartMode}
+                        onClick={onNextWork}
                       >
-                        Войти в режим проверки
+                        Открыть работу из пула
                       </Btn>
                     )
                   }

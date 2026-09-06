@@ -59,10 +59,12 @@ export function WorkspaceSubmit({
   ws,
   id,
   session,
+  attemptId,
 }: {
   ws: WorkspaceClient;
   id: string;
   session: Model<"Session">;
+  attemptId?: string;
 }) {
   const r = useResource(() => ws.studentContext(id), id);
   if (r.loading || r.error)
@@ -83,17 +85,54 @@ export function WorkspaceSubmit({
         </Main>
       </>
     );
-  return <DraftForm key={id} ws={ws} initial={r.data!} session={session} />;
+  return (
+    <DraftForm
+      key={id}
+      ws={ws}
+      initial={r.data!}
+      session={session}
+      attemptId={attemptId}
+    />
+  );
+}
+
+/** Старые ссылки на отправленную работу открывают ту же страницу задания. */
+export function StudentSubmissionPage({
+  ws,
+  id,
+  session,
+  attemptId,
+}: {
+  ws: WorkspaceClient;
+  id: string;
+  session: Model<"Session">;
+  attemptId?: string;
+}) {
+  const data = useResource(() => ws.submission(id), id);
+  return (
+    <Resource value={data}>
+      {data.data && (
+        <WorkspaceSubmit
+          ws={ws}
+          id={data.data.publication_id}
+          session={session}
+          attemptId={attemptId}
+        />
+      )}
+    </Resource>
+  );
 }
 
 function DraftForm({
   ws,
   initial,
   session,
+  attemptId,
 }: {
   ws: WorkspaceClient;
   initial: StudentContext;
   session: Model<"Session">;
+  attemptId?: string;
 }) {
   const [data, setData] = useState(initial);
   const allowedSources = data.allowed_sources ?? [
@@ -132,6 +171,11 @@ function DraftForm({
     initial.submission_id ? "human" : "ai",
   );
   const action = useAction();
+  const [openAttempts, setOpenAttempts] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    setOpenAttempts({});
+    if (attemptId) setReviewTab("human");
+  }, [attemptId]);
   const mounted = useRef(true);
   useEffect(() => {
     mounted.current = true;
@@ -144,7 +188,9 @@ function DraftForm({
     data.submission_id ?? "no-submission",
   );
   const current = history.data?.reviews.find(
-    (v) => v.id === history.data?.current_publication_id,
+    (v) =>
+      v.id === history.data?.current_publication_id &&
+      v.submission_version_id === history.data?.attempts.at(-1)?.id,
   );
   /* Имя и ссылка уже загруженного файла: черновик хранит только его id. */
   const uploaded = useResource(
@@ -156,7 +202,7 @@ function DraftForm({
     if (!fileAllowed && linkAllowed && source === "file") setSource("url");
   }, [linkAllowed, fileAllowed, source]);
   function pickFile(next: File | undefined) {
-    if (!fileAllowed) return;
+    if (!fileAllowed || !maySubmit) return;
     if (!next) return;
     const problem = checkFile(next);
     setFileError(problem);
@@ -185,8 +231,14 @@ function DraftForm({
     `listed:${data.submission_id ?? "none"}`,
   );
   useDirtyGuard(dirty);
+  const maySubmit =
+    !data.submission_id || revision || listed.data?.status === "needs_changes";
 
   async function save() {
+    if (!maySubmit)
+      throw new Error(
+        "Новая попытка доступна после возврата работы на доработку.",
+      );
     if (
       (source === "url" && !linkAllowed) ||
       (source === "file" && !fileAllowed)
@@ -227,7 +279,12 @@ function DraftForm({
     return draft;
   }
   useEffect(() => {
-    if (!dirty || (source === "url" ? !linkAllowed : !fileAllowed)) return;
+    if (
+      !dirty ||
+      !maySubmit ||
+      (source === "url" ? !linkAllowed : !fileAllowed)
+    )
+      return;
     if (source === "url") {
       try {
         const parsed = new URL(url);
@@ -242,7 +299,7 @@ function DraftForm({
       });
     }, 1200);
     return () => clearTimeout(timer);
-  }, [dirty, url, comment, file, source, linkAllowed, fileAllowed]);
+  }, [dirty, url, comment, file, source, linkAllowed, fileAllowed, maySubmit]);
   async function prepare() {
     const changedSource = !!saved && !!saved.upload_id !== (source === "file");
     const draft = dirty || !saved || changedSource ? await save() : saved;
@@ -310,6 +367,7 @@ function DraftForm({
   );
   const canSelfReview =
     !action.busy &&
+    maySubmit &&
     (source === "url" ? linkAllowed : fileAllowed) &&
     !run &&
     !awaitingReview &&
@@ -351,6 +409,15 @@ function DraftForm({
         {!!history.error && (
           <ErrorBox error={history.error} retry={history.refresh} />
         )}
+        {attemptId &&
+          history.data &&
+          !attempts.some((attempt) => attempt.id === attemptId) && (
+            <Callout tone="info">
+              <p>
+                Указанная попытка не найдена. Выберите попытку в истории ниже.
+              </p>
+            </Callout>
+          )}
         <div className="row-side">
           <div className="stack">
             <Card>
@@ -483,7 +550,17 @@ function DraftForm({
                         <Acc
                           key={attempt.id}
                           className="acc--pill"
-                          defaultOpen={last}
+                          open={
+                            openAttempts[attempt.id] ??
+                            (attemptId ? attempt.id === attemptId : last)
+                          }
+                          onToggle={(open) =>
+                            setOpenAttempts((previous) =>
+                              previous[attempt.id] === open
+                                ? previous
+                                : { ...previous, [attempt.id]: open },
+                            )
+                          }
                           head={
                             <>
                               <span className="acc__t">
@@ -494,6 +571,21 @@ function DraftForm({
                             </>
                           }
                         >
+                          {attempt.artifact_id && (
+                            <Kv label="Отправленная работа">
+                              <ArtifactLink ws={ws} id={attempt.artifact_id} />
+                            </Kv>
+                          )}
+                          {attempt.comment && (
+                            <>
+                              <div className="label attempt__label">
+                                Комментарий к сдаче
+                              </div>
+                              <p className="small dim preserve">
+                                {attempt.comment}
+                              </p>
+                            </>
+                          )}
                           {latest ? (
                             <PublishedStudentReview value={latest} />
                           ) : (
@@ -540,7 +632,7 @@ function DraftForm({
                 <Seg
                   label="Как сдаём"
                   value={source}
-                  disabled={action.busy}
+                  disabled={action.busy || !maySubmit}
                   onChange={(value) => {
                     setSource(value);
                     setDirty(true);
@@ -561,7 +653,25 @@ function DraftForm({
                 />
               </CardHead>
               <CardBody compact>
-                <fieldset className="acc-list" disabled={action.busy}>
+                {!maySubmit && (
+                  <Callout tone="info">
+                    <p>
+                      {awaitingReview
+                        ? "Работа уже отправлена на проверку. Результат появится здесь."
+                        : "Новая попытка доступна после возврата работы на доработку."}
+                    </p>
+                  </Callout>
+                )}
+                {maySubmit && attempts.length > 0 && (
+                  <p className="caption">
+                    Новый ответ будет сохранён отдельной попыткой. Предыдущие
+                    попытки не изменятся.
+                  </p>
+                )}
+                <fieldset
+                  className="acc-list"
+                  disabled={action.busy || !maySubmit}
+                >
                   {source === "url" ? (
                     <Field
                       label="Ссылка на репозиторий или Google Docs"
@@ -713,6 +823,7 @@ function DraftForm({
                     variant="pri"
                     disabled={
                       action.busy ||
+                      !maySubmit ||
                       !(source === "url" ? linkAllowed : fileAllowed)
                     }
                     onClick={() =>

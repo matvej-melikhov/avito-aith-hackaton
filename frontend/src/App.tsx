@@ -13,7 +13,11 @@ import { WorkspaceNotifications } from "./WorkspaceNotifications";
 import { WorkspaceClient } from "./api/workspace";
 import { WorkspaceHomework } from "./pages/WorkspaceHomework";
 import { WorkspaceSubmissionDetail } from "./pages/WorkspaceSubmissionDetail";
-import { WorkspaceSubmit } from "./pages/WorkspaceStudent";
+import {
+  WorkspaceSubmit,
+  StudentSubmissionPage,
+} from "./pages/WorkspaceStudent";
+import { ActionMessageProvider, useActionMessage } from "./ActionMessage";
 import { WorkspaceWorks, WorkspaceStatistics } from "./pages/WorkspaceLists";
 import {
   WorkspaceCatalog,
@@ -35,6 +39,7 @@ import {
   Brand,
   Btn,
   Callout,
+  Modal,
   Pill,
   Sel,
   Shell,
@@ -61,8 +66,18 @@ export function useMenuCounts() {
 }
 
 export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
+  return (
+    <ActionMessageProvider>
+      <Application api={api} demo={demo} />
+    </ActionMessageProvider>
+  );
+}
+
+function Application({ api, demo }: { api: ApiClient; demo: boolean }) {
   const ws = useMemo(() => new WorkspaceClient(api), [api]);
   const s = useResource(() => api.session(), "session");
+  const message = useActionMessage();
+  useEffect(() => message.clear(), [s.data?.user_id, message.clear]);
   const [expired, setExpired] = useState(false);
   useEffect(() => {
     api.onUnauthorized = () => setExpired(true);
@@ -206,7 +221,14 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
   else if (section === "assignments" && id && activeRole === "methodologist")
     page = <WorkspaceAssignments ws={ws} runId={id} />;
   else if (section === "prepare" && id && activeRole === "student")
-    page = <WorkspaceSubmit ws={ws} id={id} session={session} />;
+    page = (
+      <WorkspaceSubmit
+        ws={ws}
+        id={id}
+        session={session}
+        attemptId={new URLSearchParams(query).get("attempt") ?? undefined}
+      />
+    );
   else if (section === "courses")
     page = id ? (
       <CoursePage api={api} id={id} role={activeRole} />
@@ -228,9 +250,26 @@ export function App({ api, demo = false }: { api: ApiClient; demo?: boolean }) {
       />
     );
   else if (section === "submit" && activeRole === "student" && id && subId)
-    page = <WorkspaceSubmit ws={ws} id={subId} session={session} />;
+    page = (
+      <WorkspaceSubmit
+        ws={ws}
+        id={subId}
+        session={session}
+        attemptId={new URLSearchParams(query).get("attempt") ?? undefined}
+      />
+    );
   else if (section === "submissions" && id)
-    page = <WorkspaceSubmissionDetail ws={ws} id={id} />;
+    page =
+      activeRole === "student" ? (
+        <StudentSubmissionPage
+          ws={ws}
+          id={id}
+          session={session}
+          attemptId={new URLSearchParams(query).get("attempt") ?? undefined}
+        />
+      ) : (
+        <WorkspaceSubmissionDetail ws={ws} id={id} />
+      );
   else if (section === "homework" && id && activeRole === "methodologist")
     page = (
       <WorkspaceHomework
@@ -509,6 +548,7 @@ function Login({
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const action = useAction();
   const attempted = useRef(false);
+  const [stepikInfo, setStepikInfo] = useState(false);
   const local = useResource(
     () =>
       api.request<{
@@ -565,6 +605,14 @@ function Login({
               <ErrorBox error={error} retry={refresh} />
             )}
           {action.feedback}
+          {!!local.error && (
+            <Callout tone="bad" role="alert">
+              <p>Не удалось проверить доступные способы входа.</p>
+              <Btn size="s" onClick={local.refresh}>
+                Повторить загрузку способов входа
+              </Btn>
+            </Callout>
+          )}
           {action.busy ? (
             <p role="status" className="caption">
               Завершаем вход…
@@ -592,12 +640,27 @@ function Login({
             </>
           ) : (
             <>
-              <Btn href="/api/v1/auth/stepik/start" variant="pri" size="l">
-                Войти через Stepik
-              </Btn>
+              {local.data?.enabled ? (
+                <Btn variant="pri" size="l" onClick={() => setStepikInfo(true)}>
+                  Войти через Stepik
+                </Btn>
+              ) : (
+                <Btn
+                  href="/api/v1/auth/stepik/start"
+                  variant="pri"
+                  size="l"
+                  aria-disabled={local.loading || !!local.error}
+                  onClick={(event) => {
+                    if (local.loading || local.error) event.preventDefault();
+                  }}
+                >
+                  Войти через Stepik
+                </Btn>
+              )}
               <span className="caption">
-                Для студентов и координаторов. После входа откроется ваше
-                рабочее пространство.
+                {local.data?.enabled
+                  ? "Для демонстрации выберите участника локального стенда."
+                  : "Для студентов и координаторов. После входа откроется ваше рабочее пространство."}
               </span>
             </>
           )}
@@ -607,6 +670,20 @@ function Login({
               <p className="small dim">
                 Выберите участника для входа на локальный стенд.
               </p>
+              {stepikInfo && (
+                <Modal
+                  title="Вход через Stepik"
+                  close={() => setStepikInfo(false)}
+                >
+                  <p>
+                    Вход через Stepik пока не подключён на этом стенде. Для
+                    демонстрации выберите участника ниже.
+                  </p>
+                  <Btn variant="pri" onClick={() => setStepikInfo(false)}>
+                    Понятно
+                  </Btn>
+                </Modal>
+              )}
               <div className="stack--login">
                 {local.data.items.map((identity) => (
                   <Btn

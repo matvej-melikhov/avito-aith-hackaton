@@ -6,6 +6,7 @@ import { ApiClient } from "../src/api/client";
 import { createDemoTransport } from "../src/mocks/transport";
 import { ids } from "../src/mocks/fixtures";
 it("opens the recommended work and requires a saved draft plus human confirmation", async () => {
+  sessionStorage.setItem("review-mode", "1");
   const user = userEvent.setup();
   const demo = createDemoTransport();
   const commandNames: string[] = [];
@@ -20,6 +21,8 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
     name: "Сохранить черновик",
   });
   const publish = screen.getByRole("button", { name: "Зачесть" });
+  expect(screen.queryByText("Режим проверки")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Пропустить" })).toBeNull();
   expect(save).toBeDisabled();
   expect(publish).toBeDisabled();
   // Балл ставится пилюлей шкалы, как на Р5.
@@ -44,6 +47,12 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
     screen.getByRole("button", { name: "Подтвердить публикацию" }),
   );
   await screen.findByText("Зачтена");
+  expect(window.location.hash).toBe(`#/reviews/${ids.review}`);
+  expect(
+    await screen.findByRole("button", { name: "Следующая работа" }),
+  ).toBeEnabled();
+  expect(commandNames).not.toContain("record_review_responsibility");
+  sessionStorage.removeItem("review-mode");
   expect(
     commandNames.filter((n) => n === "publish_workspace_review"),
   ).toHaveLength(1);
@@ -51,7 +60,24 @@ it("opens the recommended work and requires a saved draft plus human confirmatio
 it("submits the latest saved source without requiring a self-review", async () => {
   const user = userEvent.setup();
   const demo = createDemoTransport();
-  const transport = vi.fn(demo);
+  let submitted = false;
+  const transport = vi.fn(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const response = await demo(input, init);
+      if (
+        init?.body &&
+        JSON.parse(String(init.body)).command_name === "submit_work_draft" &&
+        response.ok
+      )
+        submitted = true;
+      if (String(input).includes("/student-context") && !submitted)
+        return new Response(
+          JSON.stringify({ ...(await response.json()), submission_id: null }),
+          { status: response.status },
+        );
+      return response;
+    },
+  );
   const api = new ApiClient(transport);
   window.location.hash = `/submit/${ids.run}/${ids.publication}`;
   const session = await api.session();

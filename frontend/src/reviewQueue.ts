@@ -1,31 +1,7 @@
-// Режим проверки: ревьюер не выбирает работы руками, платформа выдаёт их из
-// пула одну за другой, ближайший дедлайн первым. Флаг живёт во вкладке.
+// Явный переход к следующей работе по нажатию кнопки.
 import { WorkspaceClient, type W } from "./api/workspace";
 
-const KEY = "review-mode";
 const CLOSED = ["published", "passed", "failed", "needs_changes", "canceled"];
-
-export function isReviewMode() {
-  try {
-    return sessionStorage.getItem(KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-export function enterReviewMode() {
-  try {
-    sessionStorage.setItem(KEY, "1");
-  } catch {
-    /* хранилище недоступно: режим не переживёт перезагрузку */
-  }
-}
-export function exitReviewMode() {
-  try {
-    sessionStorage.removeItem(KEY);
-  } catch {
-    /* см. выше */
-  }
-}
 
 function deadlineOf(w: W<"WorkItem">) {
   const at = Date.parse(

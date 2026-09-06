@@ -4,7 +4,8 @@ import { ErrorBox, go, safeUrl, useAction, useResource } from "../ui";
 import { WorkspaceClient, type W } from "../api/workspace";
 import { Modal, useDirtyGuard } from "../workspace-ui";
 import { FileActions, FileIcon, FilePreview, fileKind } from "../FileView";
-import { exitReviewMode, isReviewMode, nextFromPool } from "../reviewMode";
+import { nextFromPool } from "../reviewQueue";
+import { ActionMessage, useActionMessage } from "../ActionMessage";
 import {
   Acc,
   AccCtl,
@@ -220,7 +221,7 @@ export function ReviewEditor({
   const [penalty, setPenalty] = useState(true);
   const [showFeedback, setShowFeedback] = useState(false);
   const [preview, setPreview] = useState(false);
-  const [mode, setMode] = useState(isReviewMode);
+  const message = useActionMessage();
   const feedbackTouched = useRef(false);
   const editable =
     !readOnly &&
@@ -436,34 +437,33 @@ export function ReviewEditor({
         { review_revision_id: live.current_review_revision_id },
       );
     close();
-    if (ws && mode) {
-      const nextId = await nextFromPool(ws, [context?.submission_id ?? ""]);
-      if (nextId) {
-        go(`/reviews/${nextId}`);
-        return;
-      }
-      exitReviewMode();
-      setMode(false);
-      go("/works");
-      return;
-    }
+    message.show(
+      decision === "passed"
+        ? "Работа зачтена. Оценка и отзыв опубликованы для студента."
+        : "Работа возвращена на доработку. Оценка и отзыв опубликованы для студента.",
+    );
     refresh();
   }
-  async function skipToNext() {
+  async function openNext() {
     if (!ws) return;
+    message.clear();
+    const nextId = await nextFromPool(ws, [context?.submission_id ?? ""]);
+    if (nextId) go(`/reviews/${nextId}`);
+    else {
+      message.show("В пуле пока нет подходящих работ.");
+      go("/works");
+    }
+  }
+  async function release() {
+    message.clear();
     await api.command(
       "record_review_responsibility",
       live.review_iteration_id,
       live.revision,
       { action: "released" },
     );
-    const nextId = await nextFromPool(ws, [context?.submission_id ?? ""]);
-    if (nextId) go(`/reviews/${nextId}`);
-    else {
-      exitReviewMode();
-      setMode(false);
-      go("/works");
-    }
+    message.show("Вы сняли с себя проверку. Работа остаётся доступной в пуле.");
+    go("/works");
   }
 
   const activePeople = new Map<string, string>();
@@ -519,6 +519,7 @@ export function ReviewEditor({
   return (
     <>
       <Topbar
+        className="topbar--review"
         crumbs={
           <Crumbs
             back={backHref}
@@ -542,58 +543,20 @@ export function ReviewEditor({
           <>
             <St status={statusValue} attempt={context?.attempt} />
             {readOnly && <Pill>только просмотр</Pill>}
-            {editable && mode && (
-              <Pill tone="info" className="mode-pill">
-                Режим проверки
-                <button
-                  type="button"
-                  className="mode-pill__x"
-                  aria-label="Выйти из режима проверки"
-                  onClick={() => {
-                    exitReviewMode();
-                    setMode(false);
-                  }}
-                >
-                  ✕
-                </button>
-              </Pill>
-            )}
           </>
         }
         actions={
           editable ? (
             <>
-              {mode && ws && (
-                <Btn
-                  size="s"
-                  variant="quiet"
-                  disabled={action.busy}
-                  title="Вернуть эту работу в пул и открыть следующую"
-                  onClick={() => void action.run(skipToNext)}
-                >
-                  Пропустить
-                </Btn>
-              )}
-              {!repeat && (
-                <Btn
-                  size="s"
-                  variant="quiet"
-                  disabled={action.busy || dirty}
-                  onClick={() =>
-                    void action.run(async () => {
-                      await api.command(
-                        "record_review_responsibility",
-                        live.review_iteration_id,
-                        live.revision,
-                        { action: "released" },
-                      );
-                      refresh();
-                    })
-                  }
-                >
-                  Вернуть в пул
-                </Btn>
-              )}
+              <Btn
+                size="s"
+                variant="quiet"
+                disabled={action.busy || dirty}
+                title={dirty ? "Дождитесь сохранения черновика" : undefined}
+                onClick={() => void action.run(release)}
+              >
+                Снять с себя проверку
+              </Btn>
               <Btn
                 size="s"
                 disabled={action.busy || !canSave || !dirty}
@@ -603,21 +566,34 @@ export function ReviewEditor({
               </Btn>
             </>
           ) : (
-            artifactHref && (
-              <Btn
-                size="s"
-                variant="quiet"
-                href={artifactHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Открыть работу ↗
-              </Btn>
-            )
+            <>
+              {artifactHref && (
+                <Btn
+                  size="s"
+                  variant="quiet"
+                  href={artifactHref}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Открыть работу ↗
+                </Btn>
+              )}
+              {!readOnly && ws && live.status === "published" && (
+                <Btn
+                  size="s"
+                  variant="pri"
+                  disabled={action.busy}
+                  onClick={() => void action.run(openNext)}
+                >
+                  Следующая работа
+                </Btn>
+              )}
+            </>
           )
         }
       />
       <Main data-screen={screen}>
+        <ActionMessage />
         {!outcome && action.feedback}
         {attempts.length > 1 && (
           <Tabs className="tabs--attempts" label="Попытки сдачи">

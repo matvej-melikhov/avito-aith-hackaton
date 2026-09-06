@@ -74,11 +74,7 @@ export function StudentWorks({ ws }: { ws: WorkspaceClient }) {
                   </thead>
                   <tbody>
                     {r.data.items.map((item) => {
-                      const href =
-                        item.submission_id &&
-                        !["draft", "needs_changes"].includes(item.status)
-                          ? `#/submissions/${item.submission_id}`
-                          : `#/prepare/${item.publication_id}`;
+                      const href = `#/prepare/${item.publication_id}`;
                       return (
                         <tr
                           key={item.publication_id}

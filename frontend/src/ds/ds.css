@@ -1599,20 +1599,12 @@ body.fb-on .login {
 .review-sum__note {
   margin-top: var(--s-3);
 }
-.mode-pill {
-  gap: var(--s-2);
-}
-.mode-pill__x {
-  background: none;
-  border: 0;
-  padding: 0 0 0 var(--s-1);
-  cursor: pointer;
-  color: inherit;
-  font-size: var(--caption-size);
-  line-height: 1;
-}
-.mode-pill__x:hover {
-  color: var(--bad);
+/* Длинные подписи действий ревью остаются внутри узкого экрана. */
+@media (max-width: 640px) {
+  .topbar--review,
+  .topbar--review > .btn-row {
+    flex-wrap: wrap;
+  }
 }
 
 /* Зона загрузки файла работы */

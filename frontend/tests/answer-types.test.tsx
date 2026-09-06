@@ -86,6 +86,7 @@ it("does not prepare a saved link after the assignment switches to files only", 
   const context = await ws.studentContext(ids.publication);
   vi.spyOn(ws, "studentContext").mockResolvedValue({
     ...context,
+    submission_id: null,
     allowed_sources: ["upload"],
   });
   const command = vi.spyOn(ws, "command");
