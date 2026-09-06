@@ -1,0 +1,3146 @@
+{
+ "run_id": "a47a5113-7105-4ca0-8e78-94a8164da4c8",
+ "attempt": 1,
+ "purpose": "reviewer_assist",
+ "started_at": "2026-09-06T16:24:53.266959+00:00",
+ "finished_at": "2026-09-06T16:27:57.130325+00:00",
+ "model": "deepseek-v4-flash",
+ "pipeline_version": "0.1.0",
+ "prompt_versions": {
+  "class_guidance": "f5f45b82f7cd",
+  "feedback": "be7d74d90e5a",
+  "harness_repo_task": "a8e3cccb9452",
+  "judge_criterion": "94a1500abf36",
+  "observations": "6ec991a22e85",
+  "qa_questions": "47ca1e8e0f27",
+  "self_review": "1e9730ed12fc",
+  "self_review_summary": "f940bf23cbdc"
+ },
+ "assignment": "go_tasks_1_3",
+ "work": {
+  "root": "course-go-avito-shft1-919f6618661d89fc6a42b2a0f9a1179a2c73e1ab-snapshot",
+  "files": 7,
+  "secret_files_present": [
+   ".env"
+  ],
+  "chars": 1163,
+  "format": "zip",
+  "flags": [
+   "secret_file_present"
+  ],
+  "skipped": 0
+ },
+ "redaction": {
+  "replacements": {},
+  "injection_hits": []
+ },
+ "harness": {
+  "source": "harness",
+  "elapsed": 40.8,
+  "error": null,
+  "session_id": "session-c651609c-c156-4370-b59b-0dff6dd74358",
+  "usage": {
+   "prompt_tokens": 7397,
+   "completion_tokens": 5115
+  },
+  "criteria": {
+   "code_quality": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Repository is tiny (only cmd/main.go, internal/handler/health_handler.go, internal/route/*.go, go.mod/sum). Identifier names (PingHandler, HealthCheckHandler, SetupRoute, HealthRoute) are clear; functions are short; no cyclic imports observed. Tiny sample, so quality judgement is very limited. No ev"
+   },
+   "server_starts": {
+    "found": true,
+    "quotes": 1,
+    "notes": "stdlib http functions used. main calls http.ListenAndServe with chi router from setupRoute(). Per instructions, if runtime facts exist they would decide; none provided here, so judged by code. Server is present."
+   },
+   "port_env": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No env/.env/Getenv/os.Getenv reading anywhere: grep for 'os.Getenv|Getenv|.env|dotenv' returned no matches. Port is hardcoded ':8080' in cmd/main.go:9. Searched entire tree (glob **/* and grep across files)."
+   },
+   "start_log": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No logger call (no log./slog/zap) anywhere; grep for 'logger|log\\.|slog|Stdout|os\\.Stdout|Stderr' returned no matches. No start message is logged. Searched entire tree."
+   },
+   "ping": {
+    "found": true,
+    "quotes": 2,
+    "notes": "GET /ping registered via chi .Get and handler writes JSON body; no explicit status code is set so it defaults to 200. Whether the code/shape matches the course TZ exactly must be decided by run facts; none provided."
+   },
+   "healthcheck": {
+    "found": true,
+    "quotes": 2,
+    "notes": "HEAD /healthcheck registered with chi .Head and handler writes 204 NoContent (http.StatusNoContent). This matches an expected 204; whether it matches the TZ is decided by run facts (none provided)."
+   },
+   "graceful_signal": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No signal handling: grep for 'signal|SIGINT|SIGTERM|NotifyContext|Shutdown' returned nothing relevant. main.go:9 just calls http.ListenAndServe; no graceful shutdown present. Searched entire tree."
+   },
+   "graceful_context": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No context.WithTimeout/NotifyContext used with a server Shutdown; no Shutdown call exists. Searched entire tree."
+   },
+   "shutdown_log": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No shutdown logging and no graceful shutdown code at all. No occurrence of a message like 'Shutting down service-courier'. Searched entire tree."
+   },
+   "port_flag": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No flag usage ('flag|pflag') anywhere; grep returned no matches. Port hardcoded to :8080. Searched entire tree."
+   },
+   "flag_over_env": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No flag reading and no env reading exist (flag_over_env cannot be implemented). Grep for flag/env patterns returned nothing. Searched entire tree."
+   },
+   "db_connect": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No Postgres/pgx/sql connection code anywhere. go.mod requires only github.com/go-chi/chi/v5 (no pgx/pg driver). grep for 'postgres|pgx|PingContext|sql' returned no matches. Searched entire tree."
+   },
+   "db_defer_close": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No DB connection exists; no 'defer pool.Close()' or 'defer db.Close()'. Searched entire tree."
+   },
+   "db_ping": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No database Ping call (pool.Ping/pgx.Ping). The only 'ping' in the code is the HTTP /ping endpoint (health_handler.go). Searched entire tree."
+   },
+   "db_ping_retry": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No DB ping and no retry loop exists. Searched entire tree."
+   },
+   "db_panic": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No DB connection failure handling (no panic()/log.Fatal tied to a DB connect). Searched entire tree for 'panic' and 'Fatal' — no matches."
+   },
+   "migrations_tool": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No migrations directory, no goose/migrate/atlas in go.mod or scripts. go.mod requires only chi. glob for **/*.sql returned nothing; grep for 'migrat|goose' returned nothing. Searched entire tree."
+   },
+   "migrations_command": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No Makefile (glob **/Makefile no matches), no migration scripts, no goose.Up. Migrations not handled anywhere. Searched entire tree."
+   },
+   "migrations_clean": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No migration files or tables exist at all (no .sql files in tree); clean-base run cannot be assessed. No table definitions found. confidence low because there is no code and no run fact."
+   },
+   "migrations_idempotent": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No migration tool/files at all, so versioning/isolation on rerun is not implemented. No run fact provided. Searched entire tree."
+   },
+   "crud_get": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No courier handlers/routes, no GET list or GET by id. Only routes are /ping and /healthcheck in internal/route/health_route.go. Searched entire tree."
+   },
+   "crud_post": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No POST courier handler or registration. No body validation logic. Only GET /ping (200-equivalent) and HEAD /healthcheck (204) exist. Searched entire tree."
+   },
+   "crud_put": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No PUT handler or registration, no validation logic. Searched entire tree."
+   },
+   "sql_safety": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No SQL queries and no DB migrations exist; nothing queryable for placeholder usage ($1) or SQL-injection-free code. There are also no CREATE FUNCTION statements (no .sql files). Basis for judgement absent."
+   },
+   "clean_layers": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Only partial layering exists: pkg dirs internal/handler and internal/route. There is NO internal/usecase, internal/service, internal/repository, or internal/model. So the full handler/usecase/repository/model separation required for Task 3 is not present/found."
+   },
+   "di_constructors": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No New* constructor functions. SetupRoute()/HealthRoute() build routes directly and handler is instantiated inline as handler.HealthHandler{} (health_route.go:10); health_handler's constructors taking dependencies as params do not exist. grep for 'func New' returned no matches."
+   },
+   "constructors_interfaces": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No constructors between layers exist, so none accept interfaces/return structs. No usecase or repository packages present. Searched entire tree."
+   },
+   "interfaces_at_use": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No interface declarations at all (no interface{} or repository/service interfaces). grep for 'interface' returned nothing. Cannot place interfaces 'at point of use'. Searched entire tree."
+   },
+   "interfaces_private": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No interfaces exist; grep for 'interface' returned nothing. Searched entire tree."
+   },
+   "no_layer_leaks": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No DB models, json/db tagged structs, or DTOs exist. The only struct is handler.HealthHandler{} (health_handler.go:8) which carries no tags. Cannot evaluate, code absent."
+   },
+   "no_sql_in_usecase": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No usecase/service package or SQL code exists at all; nothing to evaluate. Searched entire tree."
+   },
+   "no_logic_in_handlers": {
+    "found": true,
+    "quotes": 1,
+    "notes": "The only existing handlers (ping/healthcheck) contain no business rules — they write a fixed body/status. However, there are no business-logic handlers at all to check (no CRUD). So naively 'no logic' holds only trivially for the health endpoints."
+   },
+   "thin_models": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No models/entities/DTOs with business-logic methods or validators exist. Only empty struct handler.HealthHandler{} (health_handler.go:8). Underlying CRUD layer absent, so thinness of models/handlers not genuinely demonstrated."
+   },
+   "layer_packages": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No per-entity subpackages such as internal/handler/courier or internal/repository/courier. Only flat internal/handler and internal/route exist. Searched entire tree."
+   },
+   "di_package": {
+    "found": false,
+    "quotes": 0,
+    "notes": "No DI container/package. go.mod requires only chi (no dig/fx/wire/do); grep for 'dig|fx|wire|do' returned nothing. No container in main. Searched entire tree."
+   }
+  }
+ },
+ "build": {
+  "available": true,
+  "build_ok": true,
+  "vet_ok": true,
+  "elapsed": 1.4,
+  "note": "",
+  "build_output": "",
+  "vet_output": ""
+ },
+ "runtime": {
+  "available": true,
+  "ran": true,
+  "note": "",
+  "entrypoint": "cmd/main.go",
+  "goos": "darwin",
+  "goarch": "arm64",
+  "compile_ok": true,
+  "compile_output": "",
+  "migrations": [],
+  "env_roles": {},
+  "scenarios": [
+   {
+    "id": "env_port",
+    "kind": "service",
+    "title": "запуск с портом из .env",
+    "started": true,
+    "ok": true,
+    "detail": "стартовал за 3.0 с, но слушает порт 8080 вместо заданного 64757",
+    "exit_code": null,
+    "probes": [
+     {
+      "id": "ping",
+      "method": "GET",
+      "path": "/ping",
+      "ok": true,
+      "status": 200,
+      "detail": "GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ",
+      "elapsed_ms": 1
+     },
+     {
+      "id": "healthcheck",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "ok": true,
+      "status": 204,
+      "detail": "HEAD /healthcheck → 204: как в ТЗ",
+      "elapsed_ms": 0
+     }
+    ],
+    "checks": {
+     "port": {
+      "ok": false,
+      "detail": "слушает порт 8080 вместо заданного 64757: настройка порта не применяется, НЕ по ТЗ"
+     },
+     "stdout": {
+      "ok": false,
+      "detail": "при старте ни stdout, ни stderr ничего не получили"
+     },
+     "stop": {
+      "ok": false,
+      "detail": "SIGTERM: процесс убит сигналом без обработки (код -15), корректного завершения нет"
+     },
+     "log": {
+      "ok": false,
+      "detail": "после сигнала в лог ничего не выведено"
+     },
+     "log_exact": {
+      "ok": false,
+      "detail": "текста из ТЗ «Shutting down service-courier» в логе нет"
+     }
+    },
+    "log_tail": "",
+    "elapsed": 3.3
+   },
+   {
+    "id": "dotenv_only",
+    "kind": "service",
+    "title": "порт только из файла .env, без переменных процесса",
+    "started": true,
+    "ok": true,
+    "detail": "стартовал за 0.3 с, но слушает порт 8080 вместо заданного 64757",
+    "exit_code": null,
+    "probes": [],
+    "checks": {
+     "port": {
+      "ok": false,
+      "detail": "слушает порт 8080 вместо заданного 64757: настройка порта не применяется, НЕ по ТЗ"
+     },
+     "stdout": {
+      "ok": false,
+      "detail": "при старте ни stdout, ни stderr ничего не получили"
+     },
+     "stop": {
+      "ok": false,
+      "detail": "SIGINT: процесс убит сигналом без обработки (код -2), корректного завершения нет"
+     },
+     "log": {
+      "ok": false,
+      "detail": "после сигнала в лог ничего не выведено"
+     }
+    },
+    "log_tail": "",
+    "elapsed": 0.6
+   },
+   {
+    "id": "flag_port",
+    "kind": "service",
+    "title": "флаг --port важнее .env",
+    "started": true,
+    "ok": true,
+    "detail": "стартовал за 0.3 с, но слушает порт 8080 вместо заданного 64758",
+    "exit_code": null,
+    "probes": [],
+    "checks": {
+     "port": {
+      "ok": false,
+      "detail": "слушает порт 8080 вместо заданного 64758: настройка порта не применяется, НЕ по ТЗ, порт 64757 закрыт"
+     },
+     "stdout": {
+      "ok": false,
+      "detail": "при старте ни stdout, ни stderr ничего не получили"
+     },
+     "stop": {
+      "ok": false,
+      "detail": "SIGINT: процесс убит сигналом без обработки (код -2), корректного завершения нет"
+     },
+     "log": {
+      "ok": false,
+      "detail": "после сигнала в лог ничего не выведено"
+     }
+    },
+    "log_tail": "",
+    "elapsed": 0.6
+   },
+   {
+    "id": "db_down",
+    "kind": "service",
+    "title": "паника при недоступной базе",
+    "started": true,
+    "ok": false,
+    "detail": "сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с",
+    "exit_code": null,
+    "probes": [],
+    "checks": {},
+    "log_tail": "",
+    "elapsed": 20.1
+   },
+   {
+    "id": "migrate",
+    "kind": "migrations",
+    "title": "миграции на чистой базе и повторно",
+    "started": null,
+    "ok": null,
+    "detail": "в снимке не найдены файлы миграций (goose или migrate)",
+    "exit_code": null,
+    "probes": [],
+    "checks": {},
+    "log_tail": "",
+    "elapsed": 0.0
+   },
+   {
+    "id": "crud",
+    "kind": "service",
+    "title": "CRUD курьеров по ТЗ задания 2",
+    "started": null,
+    "ok": null,
+    "detail": "миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись",
+    "exit_code": null,
+    "probes": [],
+    "checks": {},
+    "log_tail": "",
+    "elapsed": 0.1
+   }
+  ],
+  "outcomes": {
+   "env_port": {
+    "status": "pass",
+    "detail": "сценарий «запуск с портом из .env»: стартовал за 3.0 с, но слушает порт 8080 вместо заданного 64757"
+   },
+   "env_port.port": {
+    "status": "fail",
+    "detail": "слушает порт 8080 вместо заданного 64757: настройка порта не применяется, НЕ по ТЗ"
+   },
+   "env_port.stdout": {
+    "status": "fail",
+    "detail": "при старте ни stdout, ни stderr ничего не получили"
+   },
+   "env_port.stop": {
+    "status": "fail",
+    "detail": "SIGTERM: процесс убит сигналом без обработки (код -15), корректного завершения нет"
+   },
+   "env_port.log": {
+    "status": "fail",
+    "detail": "после сигнала в лог ничего не выведено"
+   },
+   "env_port.log_exact": {
+    "status": "fail",
+    "detail": "текста из ТЗ «Shutting down service-courier» в логе нет"
+   },
+   "env_port.ping": {
+    "status": "pass",
+    "detail": "GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ"
+   },
+   "env_port.healthcheck": {
+    "status": "pass",
+    "detail": "HEAD /healthcheck → 204: как в ТЗ"
+   },
+   "dotenv_only": {
+    "status": "pass",
+    "detail": "сценарий «порт только из файла .env, без переменных процесса»: стартовал за 0.3 с, но слушает порт 8080 вместо заданного 64757"
+   },
+   "dotenv_only.port": {
+    "status": "fail",
+    "detail": "слушает порт 8080 вместо заданного 64757: настройка порта не применяется, НЕ по ТЗ"
+   },
+   "dotenv_only.stdout": {
+    "status": "fail",
+    "detail": "при старте ни stdout, ни stderr ничего не получили"
+   },
+   "dotenv_only.stop": {
+    "status": "fail",
+    "detail": "SIGINT: процесс убит сигналом без обработки (код -2), корректного завершения нет"
+   },
+   "dotenv_only.log": {
+    "status": "fail",
+    "detail": "после сигнала в лог ничего не выведено"
+   },
+   "flag_port": {
+    "status": "pass",
+    "detail": "сценарий «флаг --port важнее .env»: стартовал за 0.3 с, но слушает порт 8080 вместо заданного 64758"
+   },
+   "flag_port.port": {
+    "status": "fail",
+    "detail": "слушает порт 8080 вместо заданного 64758: настройка порта не применяется, НЕ по ТЗ, порт 64757 закрыт"
+   },
+   "flag_port.stdout": {
+    "status": "fail",
+    "detail": "при старте ни stdout, ни stderr ничего не получили"
+   },
+   "flag_port.stop": {
+    "status": "fail",
+    "detail": "SIGINT: процесс убит сигналом без обработки (код -2), корректного завершения нет"
+   },
+   "flag_port.log": {
+    "status": "fail",
+    "detail": "после сигнала в лог ничего не выведено"
+   },
+   "db_down": {
+    "status": "fail",
+    "detail": "сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+   },
+   "migrate": {
+    "status": "na",
+    "detail": "миграции: в снимке не найдены файлы миграций (goose или migrate)"
+   },
+   "migrate.first": {
+    "status": "na",
+    "detail": "миграции: в снимке не найдены файлы миграций (goose или migrate)"
+   },
+   "migrate.second": {
+    "status": "na",
+    "detail": "миграции: в снимке не найдены файлы миграций (goose или migrate)"
+   },
+   "crud": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.port": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.stop": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.log": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.log_exact": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.stdout": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "dotenv_only.log_exact": {
+    "status": "na",
+    "detail": "сценарий «порт только из файла .env, без переменных процесса»: стартовал за 0.3 с, но слушает порт 8080 вместо заданного 64757"
+   },
+   "flag_port.log_exact": {
+    "status": "na",
+    "detail": "сценарий «флаг --port важнее .env»: стартовал за 0.3 с, но слушает порт 8080 вместо заданного 64758"
+   },
+   "db_down.port": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+   },
+   "db_down.stop": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+   },
+   "db_down.log": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+   },
+   "db_down.log_exact": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+   },
+   "db_down.stdout": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+   },
+   "crud.post_create": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.post_conflict": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.post_invalid": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.get_list": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.get_one": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.get_missing": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.get_bad_id": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.put_update": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.put_missing": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   },
+   "crud.put_invalid": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   }
+  },
+  "elapsed": 26.3,
+  "error": ""
+ },
+ "criteria": [
+  {
+   "key": "structure",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: dir_exists: каталог cmd: 1 файлов; dir_exists: каталог internal: 3 файлов",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "go_mod",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: file_exists: найдено: go.mod",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "entrypoint",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: count_files: файлов по маске ['cmd/*/main.go', 'cmd/main.go']: 1 (нужно от 1)",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "code_quality",
+   "class": "judgement",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.5,
+   "max": 1.0,
+   "confidence": "low",
+   "verdict": "partial",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Имена функций и обработчиков понятны, функции короткие, циклических зависимостей нет, но код минимален и не охватывает основную часть проекта (БД, CRUD, слои), поэтому качество оценить сложно.",
+   "repeats": [
+    {
+     "verdict": "partial",
+     "proposed_points": 0.5,
+     "confidence": "low",
+     "reason": "Имена функций и обработчиков понятны, функции короткие, циклических зависимостей нет, но код минимален и не охватывает основную часть проекта (БД, CRUD, слои), поэтому качество оценить сложно.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 8,
+       "line_end": 16,
+       "quote": "type HealthHandler struct{}\n\nfunc (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}\n\nfunc (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}"
+      }
+     ],
+     "missing": [
+      "Код для БД, CRUD, слоёв и DI отсутствует в срезе; искал в cmd/main.go, internal/handler, internal/route"
+     ],
+     "reviewer_note": "Обратите внимание, что работа содержит только минимальный HTTP-сервер; основная часть задания отсутствует, что ограничивает оценку качества кода.",
+     "student_feedback": "Добавьте остальные части проекта (БД, CRUD, слои) для полноценной оценки качества кода."
+    },
+    {
+     "verdict": "partial",
+     "proposed_points": 0.5,
+     "confidence": "low",
+     "reason": "Имена функций и обработчиков понятны, функции короткие, циклических зависимостей нет, но код минимален и не охватывает основную часть проекта (БД, CRUD, слои), поэтому качество оценить сложно.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 8,
+       "line_end": 16,
+       "quote": "type HealthHandler struct{}\n\nfunc (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}\n\nfunc (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Обратите внимание, что в работе отсутствуют основные части проекта (БД, CRUD, слои), поэтому оценка качества кода ограничена. Проверьте, насколько понятны имена и отсутствуют ли циклы в полном коде, если он будет предоставлен.",
+     "student_feedback": "Добавьте остальные части проекта (БД, CRUD, слои) и убедитесь, что имена идентификаторов понятны и нет циклических зависимостей."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "server_starts",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime_overrides_model",
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: сценарий «запуск с портом из .env»: стартовал за 3.0 с, но слушает порт 8080 вместо заданного 64757",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Факты запуска показывают, что сервер слушает порт 8080 вместо заданного, что не соответствует ТЗ, и при старте ничего не выводится в stdout. Код содержит http.ListenAndServe, но поведение не по ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "\thttp.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Факты запуска указывают на несоответствие порта и отсутствие логов старта, что критично для критерия.",
+     "student_feedback": "Исправьте запуск сервера: используйте порт из .env и флага --port, добавьте лог старта и graceful shutdown."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Факты запуска показывают, что сервер слушает порт 8080 вместо заданного, и при старте ничего не выводится в stdout, что не соответствует ТЗ. Код содержит http.ListenAndServe, но поведение не по ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "\thttp.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Факты запуска указывают на несоответствие порта и отсутствие лога старта, что критично для критерия.",
+     "student_feedback": "Исправьте запуск сервера: используйте порт из .env и флага --port, добавьте лог старта в stdout."
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «запуск с портом из .env»: стартовал за 3.0 с, но слушает порт 8080 вместо заданного 64757"
+   ]
+  },
+  {
+   "key": "port_env",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: слушает порт 8080 вместо заданного 64757: настройка порта не применяется, НЕ по ТЗ",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Порт жёстко задан как \":8080\" в cmd/main.go, чтения переменной окружения или .env нет нигде в коде.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "\thttp.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [
+      "Чтение переменной окружения или .env для порта не найдено; искал по всем файлам среза, включая cmd/main.go и README.md"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте чтение порта из переменной окружения или .env и используйте его при запуске сервера."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Порт жёстко задан как \":8080\" в cmd/main.go, чтения переменной окружения или .env нет нигде в срезе.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "\thttp.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [
+      "Чтение порта из env/.env (os.Getenv, godotenv и т.п.) не найдено ни в одном файле среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте чтение порта из переменной окружения или .env и используйте его при запуске сервера."
+    }
+   ],
+   "runtime": [
+    "запуск: слушает порт 8080 вместо заданного 64757: настройка порта не применяется, НЕ по ТЗ"
+   ]
+  },
+  {
+   "key": "start_log",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: при старте ни stdout, ни stderr ничего не получили",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет ни одного вызова логгера при старте сервера; main.go просто вызывает http.ListenAndServe без логирования, а факты запуска подтверждают, что в stdout ничего не выводилось.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Вызов логгера (log.Println, slog.Info, zap) при старте сервера — не найден ни в одном файле среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте лог старта сервера, выводящий сообщение в stdout (например, через slog.Info или log.Println с перенаправлением в stdout)."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет ни одного вызова логгера при старте сервера; main.go просто вызывает http.ListenAndServe без логирования, а факты запуска подтверждают, что в stdout ничего не выводилось.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Вызов логгера (log.Println, slog.Info, zap) при старте сервера — не найден ни в одном файле среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте логирование сообщения о старте сервера в stdout, например через slog.Info или log.Println."
+    }
+   ],
+   "runtime": [
+    "запуск: при старте ни stdout, ни stderr ничего не получили"
+   ]
+  },
+  {
+   "key": "ping",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Маршрут GET /ping зарегистрирован и обработчик возвращает JSON с телом {\"message\":\"pong\"} без явного кода, что по умолчанию даёт 200. Факты запуска подтверждают: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 12,
+       "quote": "\thr.Get(\"/ping\", hh.PingHandler)"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 11,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Маршрут GET /ping зарегистрирован и обработчик возвращает JSON с телом {\"message\":\"pong\"} без явного кода, что по умолчанию даёт 200. Факты запуска подтверждают: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 12,
+       "quote": "\thr.Get(\"/ping\", hh.PingHandler)"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 11,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ"
+   ]
+  },
+  {
+   "key": "healthcheck",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: HEAD /healthcheck → 204: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Метод HEAD зарегистрирован и обработчик возвращает 204 No Content, что соответствует ТЗ.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 13,
+       "line_end": 13,
+       "quote": "\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 14,
+       "line_end": 15,
+       "quote": "func (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Метод HEAD и статус 204 реализованы в коде: маршрут hr.Head и обработчик пишет http.StatusNoContent.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 13,
+       "line_end": 13,
+       "quote": "\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 14,
+       "line_end": 15,
+       "quote": "func (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: HEAD /healthcheck → 204: как в ТЗ"
+   ]
+  },
+  {
+   "key": "graceful_signal",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 2.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: SIGTERM: процесс убит сигналом без обработки (код -15), корректного завершения нет; SIGINT: процесс убит сигналом без обработки (код -2), корректного завершения нет",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет подписки на сигналы и вызова Shutdown; факты запуска подтверждают, что процесс убит сигналом без обработки.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Подписка на SIGINT/SIGTERM (signal.Notify/NotifyContext) и вызов Shutdown не найдены в cmd/main.go и других файлах среза."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте обработку SIGINT/SIGTERM с graceful shutdown через context и вызовом Shutdown."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет подписки на сигналы и вызова Shutdown; main.go вызывает http.ListenAndServe без graceful shutdown. Факты запуска подтверждают: после SIGINT/SIGTERM процесс убит сигналом без обработки.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Подписка на SIGINT/SIGTERM (signal.Notify/NotifyContext) не найдена в cmd/main.go и других файлах",
+      "Вызов Shutdown у http.Server отсутствует"
+     ],
+     "reviewer_note": "Факты запуска: SIGTERM и SIGINT приводят к убийству процесса без обработки, что подтверждает отсутствие graceful shutdown.",
+     "student_feedback": "Добавьте обработку сигналов SIGINT/SIGTERM и graceful shutdown через http.Server.Shutdown."
+    }
+   ],
+   "runtime": [
+    "запуск: SIGTERM: процесс убит сигналом без обработки (код -15), корректного завершения нет",
+    "запуск: SIGINT: процесс убит сигналом без обработки (код -2), корректного завершения нет"
+   ]
+  },
+  {
+   "key": "graceful_context",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет обработки сигналов, вызова Shutdown и использования context.WithTimeout или NotifyContext; сервер запускается через http.ListenAndServe без graceful shutdown.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет обработки сигналов, вызова Shutdown и использования context.WithTimeout или NotifyContext; сервер запускается через http.ListenAndServe без graceful shutdown.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Вызов server.Shutdown с context.WithTimeout или signal.NotifyContext не найден ни в одном файле среза."
+     ],
+     "reviewer_note": "Факты запуска подтверждают отсутствие graceful shutdown: процесс убит сигналом без обработки.",
+     "student_feedback": "Добавьте graceful shutdown: используйте signal.NotifyContext и server.Shutdown(ctx) с таймаутом."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет обработки сигналов, вызова Shutdown и использования context.WithTimeout или NotifyContext; сервер запускается через http.ListenAndServe без graceful shutdown.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Вызов server.Shutdown с context (context.WithTimeout или NotifyContext) не найден; обработка сигналов SIGINT/SIGTERM отсутствует (вхождений signal.Notify|NotifyContext|SIGTERM: 0)."
+     ],
+     "reviewer_note": "Факты запуска подтверждают: процесс убит сигналом без обработки, лог не выведен.",
+     "student_feedback": "Реализуйте graceful shutdown: используйте http.Server, signal.NotifyContext и Shutdown с таймаутом."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "shutdown_log",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: после сигнала в лог ничего не выведено",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет обработки сигналов и вывода сообщения об остановке; факты запуска подтверждают, что при SIGTERM/SIGINT процесс убит без вывода в лог.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Нет обработки сигналов (signal.Notify и т.п.) и нет вывода сообщения об остановке; искал во всех файлах среза."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте graceful shutdown с обработкой SIGINT/SIGTERM и выводом сообщения об остановке в лог."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет обработки сигналов и вывода сообщения об остановке; факты запуска подтверждают, что при SIGTERM/SIGINT процесс убит без вывода в лог.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Нет graceful shutdown и сообщения об остановке; искал во всех файлах среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте graceful shutdown с обработкой SIGINT/SIGTERM и выводом сообщения об остановке в лог."
+    }
+   ],
+   "runtime": [
+    "запуск: после сигнала в лог ничего не выведено"
+   ]
+  },
+  {
+   "key": "port_flag",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: слушает порт 8080 вместо заданного 64758: настройка порта не применяется, НЕ по ТЗ, порт 64757 закрыт",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде порт жёстко задан как \":8080\", нет использования пакета flag или pflag, а факты запуска подтверждают, что флаг --port не применяется.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [
+      "Нет обработки флага --port (flag.String/Int/Parse или pflag) во всех файлах среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте обработку флага --port через пакет flag или pflag и используйте его для выбора порта."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде порт жёстко задан как \":8080\", нет использования пакета flag или pflag, а факты запуска подтверждают, что флаг --port не применяется.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [
+      "Нет обработки флага --port (нет импорта flag/pflag, нет чтения аргументов)."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте обработку флага --port через пакет flag или pflag и используйте его для выбора порта."
+    }
+   ],
+   "runtime": [
+    "запуск: слушает порт 8080 вместо заданного 64758: настройка порта не применяется, НЕ по ТЗ, порт 64757 закрыт"
+   ]
+  },
+  {
+   "key": "flag_over_env",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: слушает порт 8080 вместо заданного 64758: настройка порта не применяется, НЕ по ТЗ, порт 64757 закрыт",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет чтения ни флага, ни .env: порт жёстко задан как \":8080\" в cmd/main.go, поэтому приоритет флага над .env не реализован. Факты запуска подтверждают: сервис всегда слушает 8080, игнорируя и .env, и флаг.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [
+      "Чтение флага --port (flag.String/Int/Parse) не найдено ни в одном файле среза.",
+      "Чтение .env (os.Getenv, godotenv и т.п.) не найдено ни в одном файле среза."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Реализуйте чтение порта из .env и флага --port с приоритетом флага."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В коде нет чтения ни флага, ни .env: порт жёстко задан как \":8080\", поэтому приоритет флага над .env не реализован. Факты запуска подтверждают: сервис всегда слушает 8080, игнорируя и .env, и флаг.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "http.ListenAndServe(\":8080\", route.SetupRoute())"
+      }
+     ],
+     "missing": [
+      "Чтение флага --port (flag.String/Int, pflag) не найдено ни в одном файле среза.",
+      "Чтение .env (os.Getenv, godotenv и т.п.) не найдено ни в одном файле среза."
+     ],
+     "reviewer_note": "Факты запуска показывают, что порт всегда 8080, что подтверждает отсутствие логики приоритета.",
+     "student_feedback": "Реализуйте чтение порта из .env и флага --port с приоритетом флага."
+    }
+   ],
+   "runtime": [
+    "запуск: слушает порт 8080 вместо заданного 64758: настройка порта не применяется, НЕ по ТЗ, порт 64757 закрыт"
+   ]
+  },
+  {
+   "key": "db_connect",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [
+    "runtime_na"
+   ],
+   "reason": "В работе нет подключения к базе данных и конфига: main.go только запускает HTTP-сервер на :8080, go.mod не содержит драйвера БД, а поиск по коду не нашёл ни postgres/pgx/sql, ни чтения конфига.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет подключения к базе данных и конфига: main.go только запускает HTTP-сервер на :8080, go.mod не содержит драйвера БД, а поиск по коду не нашёл ни postgres/pgx/sql, ни чтения конфига.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      },
+      {
+       "path": "go.mod",
+       "line_start": 1,
+       "line_end": 5,
+       "quote": "module serviceDelivery\n\ngo 1.24.5\n\nrequire github.com/go-chi/chi/v5 v5.2.3"
+      }
+     ],
+     "missing": [
+      "Подключение к Postgres/pgx/sql отсутствует во всех файлах среза",
+      "Данные для подключения из конфига/окружения не найдены (нет os.Getenv, godotenv и т.п.)"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте подключение к базе данных с конфигурацией подключения (например, DSN из окружения или конфиг-файла) и инициализацию пула соединений."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет подключения к базе данных: нет кода, использующего pgx, database/sql или любой драйвер, нет конфигурации для DSN. go.mod содержит только chi, а main.go просто запускает HTTP-сервер.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      },
+      {
+       "path": "go.mod",
+       "line_start": 5,
+       "line_end": 5,
+       "quote": "require github.com/go-chi/chi/v5 v5.2.3"
+      }
+     ],
+     "missing": [
+      "Код подключения к БД (pgx, database/sql и т.п.) не найден ни в одном файле среза.",
+      "Конфигурация для DSN (из .env, окружения или конфиг-файла) отсутствует."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте подключение к Postgres с конфигурацией DSN из окружения или конфига."
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   ]
+  },
+  {
+   "key": "db_defer_close",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет подключения к БД и, соответственно, нет defer Close() для соединения.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет подключения к БД и, соответственно, нет defer Close() для соединения.",
+     "evidence": [],
+     "missing": [
+      "defer pool.Close() или defer db.Close() рядом с подключением — во всех файлах среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте подключение к БД и закройте его через defer Close()."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет подключения к базе данных и, соответственно, нет defer Close() для соединения.",
+     "evidence": [],
+     "missing": [
+      "defer pool.Close() или defer db.Close() рядом с подключением к БД; во всех файлах среза нет кода подключения к БД"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте подключение к БД и закройте соединение через defer Close()."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "db_ping",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет Ping к базе данных: код содержит только HTTP-маршрут /ping, а подключение к БД и вызов Ping отсутствуют.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет Ping к базе данных: код содержит только HTTP-маршрут /ping, а подключение к БД и вызов Ping отсутствуют.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 11,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})"
+      }
+     ],
+     "missing": [
+      "Ping к базе данных (pool.Ping, db.Ping, conn.Ping) не найден; искал во всех файлах среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте вызов Ping к базе данных после подключения."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет вызова Ping к базе данных; есть только HTTP-маршрут /ping, который не соответствует критерию.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 12,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}"
+      }
+     ],
+     "missing": [
+      "Вызов Ping к базе данных (pool.Ping, db.Ping, conn.Ping) не найден ни в одном файле среза."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте вызов Ping к базе данных после подключения."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "db_ping_retry",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет ни одного вызова Ping к базе данных и нет цикла повторов с задержкой. Код содержит только HTTP-обработчики и маршруты, без подключения к БД.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного вызова Ping к базе данных и нет цикла повторов с задержкой. Код содержит только HTTP-обработчики и маршруты, без подключения к БД.",
+     "evidence": [],
+     "missing": [
+      "Ping к БД",
+      "цикл повторов с задержкой"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте подключение к БД с вызовом Ping и циклом повторов с задержкой."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного вызова Ping к базе данных и нет цикла повторов с задержкой. Код содержит только HTTP-обработчики и маршруты, без подключения к БД.",
+     "evidence": [],
+     "missing": [
+      "Ping к БД",
+      "цикл повторов с задержкой"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте подключение к БД с вызовом Ping в цикле с ретраями."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "db_panic",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 0.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет подключения к базе данных и, соответственно, нет panic или log.Fatal при ошибке подключения. Факт запуска подтверждает: сервис стартовал и слушает порт, хотя база недоступна, паники нет.",
+     "evidence": [],
+     "missing": [
+      "panic или log.Fatal при ошибке подключения к БД — не найдено ни в одном файле среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте обработку ошибки подключения к базе данных с вызовом panic или log.Fatal."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет подключения к базе данных и нет panic/log.Fatal при ошибке подключения; сервис стартует и слушает порт даже при недоступной базе.",
+     "evidence": [],
+     "missing": [
+      "panic или log.Fatal при ошибке подключения к БД — не найдено ни в одном файле среза"
+     ],
+     "reviewer_note": "Факт запуска: сервис стартовал при недоступной базе, паники нет — подтверждает fail.",
+     "student_feedback": "Добавьте подключение к БД с panic/log.Fatal при ошибке."
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «паника при недоступной базе»: сервис стартовал и слушает порт, хотя база недоступна: паники или остановки нет за 20 с"
+   ]
+  },
+  {
+   "key": "migrations_tool",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет миграций популярным пакетом: нет каталога миграций, нет упоминаний goose/migrate/atlas в go.mod, Makefile или скриптах.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет миграций популярным пакетом: нет каталога миграций, нет упоминаний goose/migrate/atlas в go.mod, Makefile или скриптах.",
+     "evidence": [],
+     "missing": [
+      "каталог migrations",
+      "упоминание goose/migrate/atlas в go.mod, Makefile, скриптах"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте миграции с помощью goose или migrate и команду для их запуска вне main.go."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет миграций: нет каталога migrations, нет упоминаний goose/migrate/atlas в go.mod, Makefile или скриптах; go.mod содержит только chi.",
+     "evidence": [],
+     "missing": [
+      "каталог migrations",
+      "упоминание goose/migrate/atlas в go.mod, Makefile, скриптах"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте миграции с помощью популярного пакета (goose, migrate или atlas) и команду для их запуска вне main.go."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "migrations_command",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет Makefile, скриптов миграций и вызова goose.Up; миграции не накатываются нигде.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет Makefile, скриптов миграций и вызова goose.Up; миграции не накатываются нигде.",
+     "evidence": [],
+     "missing": [
+      "Makefile или скрипт миграций не найден во всём дереве"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте Makefile или скрипт для запуска миграций, не вызывая их из main.go."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет Makefile, скриптов миграций и вызова goose.Up; миграции не накатываются нигде.",
+     "evidence": [],
+     "missing": [
+      "Makefile или скрипт миграций не найден во всём дереве"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте Makefile или скрипт для запуска миграций, не вызывая их из main.go."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "migrations_clean",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime_na"
+   ],
+   "reason": "В работе нет миграций и подключения к БД, запуск на чистой базе невозможен; факты запуска подтверждают отсутствие паники при недоступной базе и отсутствие файлов миграций.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет миграций и подключения к БД, запуск на чистой базе невозможен; факты запуска подтверждают отсутствие паники при недоступной базе и отсутствие файлов миграций.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Миграции (goose/migrate) и файлы .sql не найдены в дереве; нет подключения к Postgres и таблиц, на которые опирался бы репозиторий."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте миграции для создания всех таблиц и подключение к БД, чтобы запуск на чистой базе был возможен."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет миграций и подключения к БД, запуск на чистой базе невозможен; факты запуска подтверждают отсутствие паники при недоступной базе и отсутствие файлов миграций.",
+     "evidence": [
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "Миграции (goose/migrate) и файлы .sql не найдены; в коде нет подключения к Postgres, Ping, паники при ошибке БД."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте миграции и подключение к БД с проверкой доступности."
+    }
+   ],
+   "runtime": [
+    "запуск: миграции: в снимке не найдены файлы миграций (goose или migrate)"
+   ]
+  },
+  {
+   "key": "migrations_idempotent",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [
+    "runtime_na"
+   ],
+   "reason": "В работе нет инструмента миграций и файлов миграций, повторный запуск миграций не реализован.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет инструмента миграций и файлов миграций, повторный запуск миграций не реализован.",
+     "evidence": [],
+     "missing": [
+      "Инструмент миграций (goose/migrate) и файлы миграций не найдены во всём срезе"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте инструмент миграций (goose или migrate) с версионированием и файлы миграций."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет инструмента миграций и файлов миграций, повторный запуск не реализован.",
+     "evidence": [],
+     "missing": [
+      "Инструмент миграций (goose/migrate) и файлы миграций не найдены во всём срезе"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте инструмент миграций с версионированием и файлы миграций."
+    }
+   ],
+   "runtime": [
+    "запуск: миграции: в снимке не найдены файлы миграций (goose или migrate)"
+   ]
+  },
+  {
+   "key": "crud_get",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime_na"
+   ],
+   "reason": "В работе нет ни одного обработчика GET списка курьеров или GET по id; есть только маршруты /ping и /healthcheck.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного обработчика GET списка курьеров или GET по id; есть только маршруты /ping и /healthcheck.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 13,
+       "quote": "\thr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      }
+     ],
+     "missing": [
+      "GET /couriers и GET /courier/{id} не найдены ни в одном файле среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Реализуйте GET /couriers и GET /courier/{id} с кодами 200, 404 и 400 по ТЗ."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного обработчика GET списка курьеров или GET по id; есть только маршруты /ping и /healthcheck.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 13,
+       "quote": "\thr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      }
+     ],
+     "missing": [
+      "GET /couriers и GET /courier/{id} не найдены ни в одном файле среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Реализуйте GET /couriers и GET /courier/{id} с кодами 200, 404 и 400 по ТЗ."
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   ]
+  },
+  {
+   "key": "crud_post",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime_na"
+   ],
+   "reason": "В работе нет POST-обработчика курьеров и валидации тела; реализованы только GET /ping и HEAD /healthcheck.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет POST-обработчика курьеров и валидации тела; реализованы только GET /ping и HEAD /healthcheck.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 13,
+       "quote": "hr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      }
+     ],
+     "missing": [
+      "POST-маршрут для создания курьера",
+      "Обработчик POST в internal/handler",
+      "Валидация обязательных полей и телефона",
+      "Коды ответов 201, 400, 409"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Реализуйте POST-запрос для создания курьера с валидацией полей и кодами 201, 400, 409."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет POST-обработчика курьеров и валидации тела; реализованы только GET /ping и HEAD /healthcheck.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 13,
+       "quote": "hr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      }
+     ],
+     "missing": [
+      "POST-маршрут для создания курьера (например, POST /couriers) не найден ни в одном файле среза",
+      "Обработчик POST и валидация полей (400, 409) отсутствуют"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Реализуйте POST-запрос для создания курьера с кодами 201, 400 и 409 согласно ТЗ."
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   ]
+  },
+  {
+   "key": "crud_put",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime_na"
+   ],
+   "reason": "В работе нет ни обработчика PUT /courier, ни маршрута, ни валидации; код содержит только GET /ping и HEAD /healthcheck.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни обработчика PUT /courier, ни маршрута, ни валидации; код содержит только GET /ping и HEAD /healthcheck.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 13,
+       "quote": "hr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      }
+     ],
+     "missing": [
+      "PUT-обработчик и маршрут /courier не найдены во всех файлах среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Реализуйте PUT /courier с обработкой 200, 404 и 400."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни PUT-обработчика, ни регистрации маршрута PUT /courier, ни валидации тела; весь код содержит только GET /ping и HEAD /healthcheck.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 12,
+       "line_end": 13,
+       "quote": "hr.Get(\"/ping\", hh.PingHandler)\n\thr.Head(\"/healthcheck\", hh.HealthCheckHandler)"
+      }
+     ],
+     "missing": [
+      "PUT-обработчик и маршрут PUT /courier не найдены во всех файлах среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Реализуйте PUT /courier с валидацией тела и кодами 200/404/400."
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: миграции перед сценарием не накатились (миграции не найдены), пробы не выполнялись"
+   ]
+  },
+  {
+   "key": "handlers_in_internal",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: grep: вхождений 'http\\\\.ResponseWriter|gin\\\\.Context|echo\\\\.Context': 2 (нужно от 1)",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "sql_safety",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет ни одного SQL-запроса и ни одной миграции, поэтому требование отсутствия sql-инъекций и функций на БД не выполнено.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного SQL-запроса и ни одной миграции, поэтому требование отсутствия sql-инъекций и функций на БД не выполнено.",
+     "evidence": [],
+     "missing": [
+      "SQL-запросы с плейсхолдерами $1 не найдены ни в одном файле",
+      "Миграции (файлы .sql) не найдены",
+      "CREATE FUNCTION в миграциях не найдено"
+     ],
+     "reviewer_note": "Проверьте, что в полном снимке действительно нет SQL-запросов и миграций; в представленном срезе их нет.",
+     "student_feedback": "Добавьте SQL-запросы с плейсхолдерами и миграции без функций на БД."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного SQL-запроса и ни одной миграции, поэтому требование отсутствия sql-инъекций и функций на БД не выполнено.",
+     "evidence": [],
+     "missing": [
+      "SQL-запросы с плейсхолдерами $1 не найдены ни в одном файле",
+      "Миграции (файлы .sql) не найдены",
+      "CREATE FUNCTION в миграциях не найдено"
+     ],
+     "reviewer_note": "Проверьте, что в полном снимке действительно нет SQL-запросов и миграций; в представленном срезе их нет.",
+     "student_feedback": "Добавьте SQL-запросы с плейсхолдерами и миграции без функций на БД."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "pgx",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 0.5,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: grep: вхождений 'jackc/pgx': 0 (нужно от 1)",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "clean_layers",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе отсутствуют слои internal/usecase, internal/repository и internal/model; есть только internal/handler и internal/route, что не соответствует требуемому разделению.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе отсутствуют слои internal/usecase, internal/repository и internal/model; есть только internal/handler и internal/route, что не соответствует требуемому разделению.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package handler"
+      },
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package route"
+      }
+     ],
+     "missing": [
+      "internal/usecase, internal/repository, internal/model не найдены; в срезе только internal/handler и internal/route"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте слои usecase, repository и model в internal/."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе отсутствуют слои internal/usecase, internal/repository и internal/model; есть только internal/handler и internal/route, что не соответствует требуемому разделению.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package handler"
+      },
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package route"
+      }
+     ],
+     "missing": [
+      "internal/usecase, internal/repository, internal/model не найдены; в срезе только internal/handler и internal/route"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте слои usecase, repository и model в internal/."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "di_constructors",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет функций New*, принимающих зависимости параметрами; обработчик создаётся напрямую как handler.HealthHandler{} без внедрения зависимостей.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет функций New*, принимающих зависимости параметрами; обработчик создаётся напрямую как handler.HealthHandler{} без внедрения зависимостей.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 10,
+       "line_end": 10,
+       "quote": "\thh := handler.HealthHandler{}"
+      }
+     ],
+     "missing": [
+      "Функции New* с параметрами-зависимостями не найдены; конструкторы отсутствуют во всех файлах среза."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте конструкторы (например, NewHealthHandler), принимающие зависимости параметрами, и используйте их вместо прямого создания структур."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет функций New*, принимающих зависимости параметрами; обработчик создаётся напрямую через литерал структуры, зависимости не внедряются через конструкторы.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 10,
+       "line_end": 10,
+       "quote": "hh := handler.HealthHandler{}"
+      }
+     ],
+     "missing": [
+      "Функции New* с параметрами-зависимостями не найдены ни в одном файле среза"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте конструкторы New*, принимающие зависимости параметрами, и используйте их вместо прямого создания структур."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "constructors_interfaces",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет конструкторов между слоями: отсутствуют usecase и repository, а handler создаётся как пустая структура без параметров.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет конструкторов между слоями: отсутствуют usecase и repository, а handler создаётся как пустая структура без параметров.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "type HealthHandler struct{}\n\nfunc (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {"
+      },
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 9,
+       "line_end": 11,
+       "quote": "func HealthRoute() chi.Router {\n\thh := handler.HealthHandler{}\n\thr := chi.NewRouter()"
+      }
+     ],
+     "missing": [
+      "Конструкторы, принимающие интерфейсы и возвращающие структуры, не найдены; отсутствуют слои usecase и repository."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте слои usecase и repository с конструкторами, принимающими интерфейсы и возвращающими структуры."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет конструкторов между слоями: отсутствуют слои usecase и repository, а handler создаётся напрямую без интерфейсов.",
+     "evidence": [
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 10,
+       "line_end": 10,
+       "quote": "hh := handler.HealthHandler{}"
+      }
+     ],
+     "missing": [
+      "Конструкторы, принимающие интерфейсы и возвращающие структуры, не найдены; отсутствуют пакеты usecase и repository."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте слои usecase и repository с конструкторами, принимающими интерфейсы."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "interfaces_at_use",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет ни одного объявления интерфейса, включая интерфейс репозитория в пакете usecase/service; все файлы содержат только структуры и функции.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного объявления интерфейса, включая интерфейс репозитория в пакете usecase/service; все файлы содержат только структуры и функции.",
+     "evidence": [],
+     "missing": [
+      "Интерфейс репозитория в пакете usecase/service не найден; во всех файлах internal/ отсутствуют объявления interface."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте интерфейс репозитория в пакет usecase/service и используйте его в конструкторах."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного объявления интерфейса, следовательно интерфейсы не расположены в месте использования.",
+     "evidence": [],
+     "missing": [
+      "Интерфейсы не найдены ни в одном файле среза; поиск по 'interface' не дал результатов."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте интерфейс репозитория в пакете usecase/service и используйте его в конструкторах."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "interfaces_private",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет ни одного интерфейса (ни приватного с маленькой буквы, ни экспортируемого). Суб-агент подтвердил: grep по 'interface' ничего не нашёл по всему дереву.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного интерфейса (ни приватного с маленькой буквы, ни экспортируемого). Суб-агент подтвердил: grep по 'interface' ничего не нашёл по всему дереву.",
+     "evidence": [],
+     "missing": [
+      "Приватный интерфейс (имя с маленькой буквы) не найден ни в одном файле среза: cmd/main.go, internal/handler/health_handler.go, internal/route/health_route.go, internal/route/route.go"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте приватный интерфейс (имя с маленькой буквы) в месте использования."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет ни одного интерфейса (ни приватного с маленькой буквы, ни экспортируемого). Суб-агент подтвердил: grep по 'interface' ничего не нашёл по всему дереву.",
+     "evidence": [],
+     "missing": [
+      "Приватный интерфейс (имя с маленькой буквы) не найден ни в одном файле среза: cmd/main.go, internal/handler/*, internal/route/*"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте приватный интерфейс (имя с маленькой буквы) в месте его использования."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "no_layer_leaks",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет доменных моделей БД и DTO; единственная структура HealthHandler без тегов, но она не является моделью БД. Требование о разделении моделей и DTO не реализовано.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет доменных моделей БД и DTO; единственная структура HealthHandler без тегов, но она не является моделью БД. Требование о разделении моделей и DTO не реализовано.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 8,
+       "line_end": 8,
+       "quote": "type HealthHandler struct{}"
+      }
+     ],
+     "missing": [
+      "Доменные модели БД и DTO не найдены; в срезе только HealthHandler без тегов."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте доменные модели без json/db тегов и отдельные DTO для транспорта."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет доменных моделей БД и DTO; единственная структура HealthHandler не имеет тегов, но и самих моделей нет, поэтому требование не выполнено.",
+     "evidence": [],
+     "missing": [
+      "Доменные модели БД и DTO не найдены; в срезе только handler.HealthHandler{} без тегов (internal/handler/health_handler.go:8)"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте доменные модели БД без json/db тегов и отдельные DTO для транспорта."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "no_sql_in_usecase",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "not_found",
+   "path": "model",
+   "verified": 0,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет ни пакета usecase/service, ни репозитория, ни SQL-кода вовсе — оценивать маппинг ошибок БД в доменные не на чем. Срез показан целиком, но критерий требует наличия слоёв, которых в работе нет.",
+   "repeats": [
+    {
+     "verdict": "not_found",
+     "proposed_points": null,
+     "confidence": "high",
+     "reason": "В работе нет ни пакета usecase/service, ни репозитория, ни SQL-кода вовсе — оценивать маппинг ошибок БД в доменные не на чем. Срез показан целиком, но критерий требует наличия слоёв, которых в работе нет.",
+     "evidence": [],
+     "missing": [
+      "Пакеты internal/**/usecase*/** или internal/**/service*/** и repository отсутствуют во всём дереве (в работе только handler и route)"
+     ],
+     "reviewer_note": "Критерий относится к заданию 3 (чистая архитектура), которого в работе нет вовсе — нет usecase/service, repository и SQL. Проверить, не является ли это следствием неполного среза.",
+     "student_feedback": "Добавьте слои usecase/service и repository с маппингом ошибок БД в доменные."
+    },
+    {
+     "verdict": "not_found",
+     "proposed_points": null,
+     "confidence": "high",
+     "reason": "В работе нет ни usecase/service, ни repository слоёв, ни SQL-кода вовсе — критерий не к чему применить. Срез показан целиком, но требуемого слоя в принципе не существует.",
+     "evidence": [],
+     "missing": [
+      "usecase/service пакет не найден во всём дереве (internal содержит только handler и route)",
+      "repository слой и SQL-код отсутствуют"
+     ],
+     "reviewer_note": "Критерий относится к отсутствию sql в usecase, но usecase/service слоя в работе нет вовсе (нет и SQL). Проверить, не является ли это следствием невыполнения задания 2/3 в целом.",
+     "student_feedback": "Добавьте слой usecase/service и repository с маппингом ошибок БД в доменные."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "no_logic_in_handlers",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе есть только два handler'а (ping и healthcheck), которые не содержат бизнес-логики: они лишь пишут фиксированный ответ и статус. Бизнес-правил в handler'ах нет.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В работе есть только два handler'а (ping и healthcheck), которые не содержат бизнес-логики: они лишь пишут фиксированный ответ и статус. Бизнес-правил в handler'ах нет.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 15,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}\n\nfunc (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "В работе нет CRUD-хендлеров, поэтому проверка отсутствия логики возможна только на этих двух. Следует учесть, что требование может относиться ко всем хендлерам, но других нет.",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Оба существующих handler'а (ping/healthcheck) не содержат бизнес-правил: они лишь пишут фиксированный ответ и статус, что соответствует критерию.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 15,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}\n\nfunc (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "thin_models",
+   "class": "judgement",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "low",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Обработчики содержат только вызовы, но отсутствуют модели и usecase-слой, поэтому тонкость моделей и обработчиков не продемонстрирована; обработчики не разбирают запрос и не вызывают usecase.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Обработчики содержат только вызовы, но отсутствуют модели и usecase-слой, поэтому тонкость моделей и обработчиков не продемонстрирована; обработчики не разбирают запрос и не вызывают usecase.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 12,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 14,
+       "line_end": 16,
+       "quote": "func (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}"
+      }
+     ],
+     "missing": [
+      "Модели/сущности (internal/model, internal/domain) отсутствуют",
+      "Usecase/service слой отсутствует",
+      "Обработчики не разбирают запрос и не вызывают usecase"
+     ],
+     "reviewer_note": "Проверьте, что в работе нет других файлов с моделями или обработчиками, так как срез показан целиком.",
+     "student_feedback": "Добавьте модели и usecase-слой, чтобы обработчики разбирали запрос, вызывали usecase и возвращали ответ."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Обработчики короткие, но модели отсутствуют, а в обработчиках нет вызова usecase — только запись ответа, что не соответствует требуемой структуре (разобрать запрос, вызвать usecase, отдать ответ).",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 10,
+       "line_end": 12,
+       "quote": "func (hh *HealthHandler) PingHandler(w http.ResponseWriter, r *http.Request) {\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})\n}"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 14,
+       "line_end": 16,
+       "quote": "func (hh *HealthHandler) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)\n}"
+      },
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 8,
+       "line_end": 8,
+       "quote": "type HealthHandler struct{}"
+      }
+     ],
+     "missing": [
+      "Модели/сущности с бизнес-логикой или без не найдены; обработчики не вызывают usecase"
+     ],
+     "reviewer_note": "Проверить, есть ли вообще модели и usecase в полной работе; здесь только health-обработчики.",
+     "student_feedback": "Добавьте модели и обработчики, которые разбирают запрос, вызывают usecase и возвращают ответ."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "layer_packages",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет пакетов по сущностям внутри слоёв: есть только плоские internal/handler и internal/route, без подпакетов вида internal/handler/courier или internal/repository/courier.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет пакетов по сущностям внутри слоёв: есть только плоские internal/handler и internal/route, без подпакетов вида internal/handler/courier или internal/repository/courier.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package handler"
+      },
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package route"
+      }
+     ],
+     "missing": [
+      "Подпакеты по сущностям внутри internal/handler и internal/repository не найдены; есть только плоские internal/handler и internal/route."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Разбейте слои handler и repository на подпакеты по сущностям, например internal/handler/courier и internal/repository/courier."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет пакетов по сущностям внутри слоёв: есть только плоские internal/handler и internal/route, без подпакетов вида internal/handler/courier или internal/repository/courier.",
+     "evidence": [
+      {
+       "path": "internal/handler/health_handler.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package handler"
+      },
+      {
+       "path": "internal/route/health_route.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package route"
+      }
+     ],
+     "missing": [
+      "Подпакеты по сущностям внутри слоёв (например internal/handler/courier, internal/repository/courier) не найдены; в дереве только internal/handler и internal/route."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Разбейте слои handler и repository на подпакеты по сущностям, например internal/handler/courier и internal/repository/courier."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "di_package",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 2.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В go.mod нет DI-пакета (dig/fx/wire/do), в main нет контейнера, код не разделён на слои чистой архитектуры.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В go.mod нет DI-пакета (dig/fx/wire/do), в main нет контейнера, код не разделён на слои чистой архитектуры.",
+     "evidence": [
+      {
+       "path": "go.mod",
+       "line_start": 5,
+       "line_end": 5,
+       "quote": "require github.com/go-chi/chi/v5 v5.2.3"
+      },
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "DI-пакет (dig/fx/wire/do) в go.mod",
+      "контейнер DI в main",
+      "слои handler/usecase/repository/model"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте DI-пакет (например dig) и разделите код на слои чистой архитектуры."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В go.mod нет DI-пакета (dig/fx/wire/do), в main нет контейнера, код не разделён на слои чистой архитектуры.",
+     "evidence": [
+      {
+       "path": "go.mod",
+       "line_start": 5,
+       "line_end": 5,
+       "quote": "require github.com/go-chi/chi/v5 v5.2.3"
+      },
+      {
+       "path": "cmd/main.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func main() {\n\thttp.ListenAndServe(\":8080\", route.SetupRoute())\n}"
+      }
+     ],
+     "missing": [
+      "DI-пакет (dig/fx/wire/do) в go.mod",
+      "контейнер в main",
+      "слои handler/usecase/repository/model"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте DI-пакет (например dig) и разделите код на слои чистой архитектуры."
+    }
+   ],
+   "runtime": []
+  }
+ ],
+ "signal": {
+  "level": "low",
+  "declaration": "not_declared",
+  "grounds": [],
+  "not_available": [
+   "история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны",
+   "стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам"
+  ],
+  "questions": [
+   "В коде сервер запускается на порту 8080, но по ТЗ порт должен браться из .env и переопределяться флагом --port. Расскажи, как ты планировал реализовать чтение порта из конфигурации и приоритет флага над .env — где в твоём коде это должно было происходить?",
+   "В работе нет обработки сигналов SIGINT/SIGTERM и вызова server.Shutdown. Как бы ты реализовал graceful shutdown через signal.NotifyContext и что должно было выводиться в лог при остановке сервера?",
+   "Сейчас в срезе только HTTP-сервер с /ping и /healthcheck. Опиши, как ты видишь структуру подключения к Postgres (конфиг, defer Close, Ping с ретраем) и как это должно было быть встроено в main.go или отдельном файле?"
+  ]
+ },
+ "ledger": {
+  "calls": 75,
+  "prompt_tokens": 910198,
+  "completion_tokens": 71035,
+  "cache_hit_tokens": 855552,
+  "cost_usd": 0.03451,
+  "cost_rub": 2.76,
+  "usd_rub": 80.0,
+  "usd_rub_note": "допущение",
+  "elapsed_seconds": 552.7,
+  "by_tag": {
+   "harness": {
+    "calls": 1,
+    "prompt_tokens": 7397,
+    "completion_tokens": 5115,
+    "cost_usd": 0.00154
+   },
+   "judge:server_starts#1": {
+    "calls": 1,
+    "prompt_tokens": 11831,
+    "completion_tokens": 812,
+    "cost_usd": 0.00102
+   },
+   "judge:start_log#1": {
+    "calls": 1,
+    "prompt_tokens": 13544,
+    "completion_tokens": 829,
+    "cost_usd": 0.00118
+   },
+   "judge:port_env#1": {
+    "calls": 1,
+    "prompt_tokens": 13547,
+    "completion_tokens": 1037,
+    "cost_usd": 0.00124
+   },
+   "judge:code_quality#1": {
+    "calls": 1,
+    "prompt_tokens": 13472,
+    "completion_tokens": 1457,
+    "cost_usd": 0.00135
+   },
+   "judge:server_starts#2": {
+    "calls": 1,
+    "prompt_tokens": 11831,
+    "completion_tokens": 780,
+    "cost_usd": 0.00029
+   },
+   "judge:start_log#2": {
+    "calls": 1,
+    "prompt_tokens": 13544,
+    "completion_tokens": 798,
+    "cost_usd": 0.00028
+   },
+   "judge:port_env#2": {
+    "calls": 1,
+    "prompt_tokens": 13547,
+    "completion_tokens": 987,
+    "cost_usd": 0.00033
+   },
+   "judge:healthcheck#1": {
+    "calls": 1,
+    "prompt_tokens": 12605,
+    "completion_tokens": 744,
+    "cost_usd": 0.00081
+   },
+   "judge:ping#1": {
+    "calls": 1,
+    "prompt_tokens": 12647,
+    "completion_tokens": 905,
+    "cost_usd": 0.00113
+   },
+   "judge:code_quality#2": {
+    "calls": 1,
+    "prompt_tokens": 13472,
+    "completion_tokens": 1364,
+    "cost_usd": 0.00042
+   },
+   "judge:graceful_signal#1": {
+    "calls": 1,
+    "prompt_tokens": 13499,
+    "completion_tokens": 882,
+    "cost_usd": 0.00056
+   },
+   "judge:healthcheck#2": {
+    "calls": 1,
+    "prompt_tokens": 12605,
+    "completion_tokens": 746,
+    "cost_usd": 0.00029
+   },
+   "judge:ping#2": {
+    "calls": 1,
+    "prompt_tokens": 12647,
+    "completion_tokens": 908,
+    "cost_usd": 0.00032
+   },
+   "observe:code_quality": {
+    "calls": 1,
+    "prompt_tokens": 3451,
+    "completion_tokens": 1040,
+    "cost_usd": 0.00034
+   },
+   "judge:graceful_signal#2": {
+    "calls": 1,
+    "prompt_tokens": 13499,
+    "completion_tokens": 1028,
+    "cost_usd": 0.00033
+   },
+   "judge:graceful_context#1": {
+    "calls": 1,
+    "prompt_tokens": 13232,
+    "completion_tokens": 844,
+    "cost_usd": 0.00044
+   },
+   "judge:shutdown_log#1": {
+    "calls": 1,
+    "prompt_tokens": 13538,
+    "completion_tokens": 965,
+    "cost_usd": 0.0005
+   },
+   "judge:port_flag#1": {
+    "calls": 1,
+    "prompt_tokens": 13397,
+    "completion_tokens": 949,
+    "cost_usd": 0.00049
+   },
+   "judge:flag_over_env#1": {
+    "calls": 1,
+    "prompt_tokens": 13469,
+    "completion_tokens": 1062,
+    "cost_usd": 0.00053
+   },
+   "judge:graceful_context#2": {
+    "calls": 1,
+    "prompt_tokens": 13232,
+    "completion_tokens": 959,
+    "cost_usd": 0.00033
+   },
+   "judge:shutdown_log#2": {
+    "calls": 1,
+    "prompt_tokens": 13538,
+    "completion_tokens": 943,
+    "cost_usd": 0.00032
+   },
+   "judge:port_flag#2": {
+    "calls": 1,
+    "prompt_tokens": 13397,
+    "completion_tokens": 980,
+    "cost_usd": 0.00034
+   },
+   "judge:db_defer_close#1": {
+    "calls": 1,
+    "prompt_tokens": 13223,
+    "completion_tokens": 653,
+    "cost_usd": 0.00038
+   },
+   "judge:flag_over_env#2": {
+    "calls": 1,
+    "prompt_tokens": 13469,
+    "completion_tokens": 1003,
+    "cost_usd": 0.00036
+   },
+   "judge:db_connect#1": {
+    "calls": 1,
+    "prompt_tokens": 13532,
+    "completion_tokens": 981,
+    "cost_usd": 0.0005
+   },
+   "judge:db_ping#1": {
+    "calls": 1,
+    "prompt_tokens": 13313,
+    "completion_tokens": 878,
+    "cost_usd": 0.00046
+   },
+   "judge:db_defer_close#2": {
+    "calls": 1,
+    "prompt_tokens": 13223,
+    "completion_tokens": 801,
+    "cost_usd": 0.00028
+   },
+   "judge:db_ping_retry#1": {
+    "calls": 1,
+    "prompt_tokens": 13217,
+    "completion_tokens": 927,
+    "cost_usd": 0.00046
+   },
+   "judge:db_connect#2": {
+    "calls": 1,
+    "prompt_tokens": 13532,
+    "completion_tokens": 1014,
+    "cost_usd": 0.00033
+   },
+   "judge:db_ping#2": {
+    "calls": 1,
+    "prompt_tokens": 13313,
+    "completion_tokens": 925,
+    "cost_usd": 0.00033
+   },
+   "judge:db_panic#1": {
+    "calls": 1,
+    "prompt_tokens": 13484,
+    "completion_tokens": 894,
+    "cost_usd": 0.00047
+   },
+   "judge:db_ping_retry#2": {
+    "calls": 1,
+    "prompt_tokens": 13217,
+    "completion_tokens": 924,
+    "cost_usd": 0.00032
+   },
+   "judge:migrations_tool#1": {
+    "calls": 1,
+    "prompt_tokens": 13352,
+    "completion_tokens": 817,
+    "cost_usd": 0.00045
+   },
+   "judge:migrations_command#1": {
+    "calls": 1,
+    "prompt_tokens": 13319,
+    "completion_tokens": 812,
+    "cost_usd": 0.00044
+   },
+   "judge:db_panic#2": {
+    "calls": 1,
+    "prompt_tokens": 13484,
+    "completion_tokens": 920,
+    "cost_usd": 0.0003
+   },
+   "judge:migrations_tool#2": {
+    "calls": 1,
+    "prompt_tokens": 13352,
+    "completion_tokens": 824,
+    "cost_usd": 0.00031
+   },
+   "judge:migrations_clean#1": {
+    "calls": 1,
+    "prompt_tokens": 13520,
+    "completion_tokens": 1103,
+    "cost_usd": 0.00053
+   },
+   "judge:migrations_command#2": {
+    "calls": 1,
+    "prompt_tokens": 13319,
+    "completion_tokens": 853,
+    "cost_usd": 0.00031
+   },
+   "judge:migrations_idempotent#1": {
+    "calls": 1,
+    "prompt_tokens": 13454,
+    "completion_tokens": 953,
+    "cost_usd": 0.0005
+   },
+   "judge:crud_get#1": {
+    "calls": 1,
+    "prompt_tokens": 13571,
+    "completion_tokens": 874,
+    "cost_usd": 0.00048
+   },
+   "judge:crud_post#1": {
+    "calls": 1,
+    "prompt_tokens": 13586,
+    "completion_tokens": 967,
+    "cost_usd": 0.0005
+   },
+   "judge:migrations_clean#2": {
+    "calls": 1,
+    "prompt_tokens": 13520,
+    "completion_tokens": 1059,
+    "cost_usd": 0.00035
+   },
+   "judge:crud_get#2": {
+    "calls": 1,
+    "prompt_tokens": 13571,
+    "completion_tokens": 896,
+    "cost_usd": 0.00031
+   },
+   "judge:migrations_idempotent#2": {
+    "calls": 1,
+    "prompt_tokens": 13454,
+    "completion_tokens": 914,
+    "cost_usd": 0.00033
+   },
+   "judge:crud_put#1": {
+    "calls": 1,
+    "prompt_tokens": 13502,
+    "completion_tokens": 962,
+    "cost_usd": 0.00049
+   },
+   "judge:crud_post#2": {
+    "calls": 1,
+    "prompt_tokens": 13586,
+    "completion_tokens": 1083,
+    "cost_usd": 0.00036
+   },
+   "judge:clean_layers#1": {
+    "calls": 1,
+    "prompt_tokens": 12773,
+    "completion_tokens": 827,
+    "cost_usd": 0.00058
+   },
+   "judge:sql_safety#1": {
+    "calls": 1,
+    "prompt_tokens": 13379,
+    "completion_tokens": 1104,
+    "cost_usd": 0.00053
+   },
+   "judge:crud_put#2": {
+    "calls": 1,
+    "prompt_tokens": 13502,
+    "completion_tokens": 939,
+    "cost_usd": 0.00031
+   },
+   "judge:di_constructors#1": {
+    "calls": 1,
+    "prompt_tokens": 12530,
+    "completion_tokens": 815,
+    "cost_usd": 0.00049
+   },
+   "judge:clean_layers#2": {
+    "calls": 1,
+    "prompt_tokens": 12773,
+    "completion_tokens": 857,
+    "cost_usd": 0.00029
+   },
+   "judge:di_constructors#2": {
+    "calls": 1,
+    "prompt_tokens": 12530,
+    "completion_tokens": 804,
+    "cost_usd": 0.00029
+   },
+   "judge:sql_safety#2": {
+    "calls": 1,
+    "prompt_tokens": 13379,
+    "completion_tokens": 1050,
+    "cost_usd": 0.00038
+   },
+   "judge:constructors_interfaces#1": {
+    "calls": 1,
+    "prompt_tokens": 12590,
+    "completion_tokens": 998,
+    "cost_usd": 0.0005
+   },
+   "judge:interfaces_private#1": {
+    "calls": 1,
+    "prompt_tokens": 4382,
+    "completion_tokens": 277,
+    "cost_usd": 0.00013
+   },
+   "judge:interfaces_at_use#1": {
+    "calls": 1,
+    "prompt_tokens": 12482,
+    "completion_tokens": 885,
+    "cost_usd": 0.00045
+   },
+   "judge:interfaces_private#2": {
+    "calls": 1,
+    "prompt_tokens": 4382,
+    "completion_tokens": 264,
+    "cost_usd": 9e-05
+   },
+   "judge:no_sql_in_usecase#1": {
+    "calls": 1,
+    "prompt_tokens": 4402,
+    "completion_tokens": 325,
+    "cost_usd": 0.00015
+   },
+   "judge:no_layer_leaks#1": {
+    "calls": 1,
+    "prompt_tokens": 13319,
+    "completion_tokens": 832,
+    "cost_usd": 0.00045
+   },
+   "judge:constructors_interfaces#2": {
+    "calls": 1,
+    "prompt_tokens": 12590,
+    "completion_tokens": 935,
+    "cost_usd": 0.00034
+   },
+   "judge:no_sql_in_usecase#2": {
+    "calls": 1,
+    "prompt_tokens": 4402,
+    "completion_tokens": 313,
+    "cost_usd": 0.00011
+   },
+   "judge:interfaces_at_use#2": {
+    "calls": 1,
+    "prompt_tokens": 12482,
+    "completion_tokens": 965,
+    "cost_usd": 0.00033
+   },
+   "judge:no_layer_leaks#2": {
+    "calls": 1,
+    "prompt_tokens": 13319,
+    "completion_tokens": 803,
+    "cost_usd": 0.0003
+   },
+   "judge:no_logic_in_handlers#1": {
+    "calls": 1,
+    "prompt_tokens": 12335,
+    "completion_tokens": 1011,
+    "cost_usd": 0.00057
+   },
+   "judge:layer_packages#1": {
+    "calls": 1,
+    "prompt_tokens": 13319,
+    "completion_tokens": 877,
+    "cost_usd": 0.00046
+   },
+   "judge:thin_models#1": {
+    "calls": 1,
+    "prompt_tokens": 13487,
+    "completion_tokens": 1365,
+    "cost_usd": 0.0006
+   },
+   "judge:di_package#1": {
+    "calls": 1,
+    "prompt_tokens": 13316,
+    "completion_tokens": 975,
+    "cost_usd": 0.00049
+   },
+   "judge:no_logic_in_handlers#2": {
+    "calls": 1,
+    "prompt_tokens": 12335,
+    "completion_tokens": 916,
+    "cost_usd": 0.0003
+   },
+   "judge:layer_packages#2": {
+    "calls": 1,
+    "prompt_tokens": 13319,
+    "completion_tokens": 950,
+    "cost_usd": 0.00034
+   },
+   "judge:di_package#2": {
+    "calls": 1,
+    "prompt_tokens": 13316,
+    "completion_tokens": 927,
+    "cost_usd": 0.00033
+   },
+   "judge:thin_models#2": {
+    "calls": 1,
+    "prompt_tokens": 13487,
+    "completion_tokens": 1394,
+    "cost_usd": 0.00043
+   },
+   "observe:thin_models": {
+    "calls": 1,
+    "prompt_tokens": 3394,
+    "completion_tokens": 899,
+    "cost_usd": 0.00029
+   },
+   "qa_questions": {
+    "calls": 1,
+    "prompt_tokens": 2701,
+    "completion_tokens": 239,
+    "cost_usd": 0.00032
+   },
+   "feedback": {
+    "calls": 1,
+    "prompt_tokens": 4919,
+    "completion_tokens": 318,
+    "cost_usd": 0.00074
+   }
+  }
+ },
+ "flags": [
+  "secret_file_present",
+  "runtime_checked"
+ ],
+ "errors": [],
+ "elapsed_seconds": 183.9
+}

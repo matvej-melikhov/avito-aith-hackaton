@@ -1,0 +1,3557 @@
+{
+ "run_id": "2d84722b-0093-44c0-9942-7412e0f7cebb",
+ "attempt": 1,
+ "purpose": "reviewer_assist",
+ "started_at": "2026-09-06T15:56:36.952353+00:00",
+ "finished_at": "2026-09-06T16:00:54.987681+00:00",
+ "model": "deepseek-v4-flash",
+ "pipeline_version": "0.1.0",
+ "prompt_versions": {
+  "class_guidance": "f5f45b82f7cd",
+  "feedback": "be7d74d90e5a",
+  "harness_repo_task": "a8e3cccb9452",
+  "judge_criterion": "94a1500abf36",
+  "observations": "6ec991a22e85",
+  "qa_questions": "47ca1e8e0f27",
+  "self_review": "1e9730ed12fc",
+  "self_review_summary": "f940bf23cbdc"
+ },
+ "assignment": "go_tasks_1_3",
+ "work": {
+  "root": "course-go-avito-Turbina0N-b9b83c74d73f67e1097cb8c2348e640cdc801f8c-snapshot",
+  "files": 19,
+  "secret_files_present": [
+   ".env.example"
+  ],
+  "chars": 21845,
+  "format": "zip",
+  "flags": [
+   "secret_file_present"
+  ],
+  "skipped": 0
+ },
+ "redaction": {
+  "replacements": {},
+  "injection_hits": []
+ },
+ "harness": {
+  "source": "harness",
+  "elapsed": 103.8,
+  "error": null,
+  "session_id": "session-b3535da7-3f00-45e6-a466-a25957748805",
+  "usage": {
+   "prompt_tokens": 15509,
+   "completion_tokens": 16696
+  },
+  "criteria": {
+   "code_quality": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Имена идентификаторов понятные, функции небольшие, пакеты не образуют циклов (repository не импортирует usecase, usecase импортирует repository для ошибок). Но заметно дублирование: идентичные структуры model.Courier (internal/model/models.go:5-12) и entity.Courier (internal/entity/courier.go:5-12) "
+   },
+   "server_starts": {
+    "found": true,
+    "quotes": 2,
+    "notes": "HTTP-сервер stdlib http.Server с http.ServeMux-подобным chi router (chi присвоен в Handler). ListenAndServe вызывается на строке 51."
+   },
+   "port_env": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Порт читается из os.Getenv(\"PORT\") (строка 89); .env подгружается через godotenv.Load (стройки 26-28). Используется в Addr на строке 41."
+   },
+   "start_log": {
+    "found": false,
+    "quotes": 1,
+    "notes": "Сообщение о старте выводится через пакет log, который по умолчанию пишет в stderr, а не stdout. Конфигурации вывода в stdout (SetOutput/Stdout, slog, zap) в коде нет (grep по Stdout/SetOutput/slog/zap — 0 совпадений). При старте песочница смотрит stdout отдельно от stderr, поэтому лог старта в stdou"
+   },
+   "ping": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Маршрут GET /ping зарегистрирован (main.go:105). Обработчик не вызывает WriteHeader, т.е. возвращается код по умолчанию 200 с JSON {\"message\":\"pong\"}. Код соответствует ТЗ; фактический прогон отсутствует."
+   },
+   "healthcheck": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Маршрут зарегистрирован именно как r.Head (метод HEAD), обработчик возвращает 204 No Content. Соответствует ТЗ."
+   },
+   "graceful_signal": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Подписка на SIGINT/SIGTERM через signal.NotifyContext (строка 118), затем вызов srv.Shutdown (строка 126) в горутине (строка 48). После Shutdown main() корректно завершается, когда ListenAndServe вернёт ErrServerClosed."
+   },
+   "graceful_context": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Shutdown получает context.WithTimeout(5s) (строка 124), кроме того сигналы обрабатываются через signal.NotifyContext (строка 118)."
+   },
+   "shutdown_log": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Сообщение об остановке присутствует с точным текстом «Shutting down service-courier» (строка 122). Формально оно идёт в stderr (пакет log), но требование о наличии сообщения при остановке выполнено."
+   },
+   "port_flag": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Флаг --port объявлен через пакет pflag (переименован в flag на строке 18) и парсится на строке 91."
+   },
+   "flag_over_env": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Сначала порт берётся из env PORT, затем, если флаг задан (непуст), он его перезаписывает (строки 92-94). Приоритет флага над env реализован."
+   },
+   "db_connect": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Подключение к БД в initDBPool через pgxpool.NewWithConfig (строка 78); DSN собирается из переменных окружения POSTGRES_* (строка 67), не захардкожен."
+   },
+   "db_defer_close": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Закрытие пула в defer db.Close() непосредственно после подключения (строка 33)."
+   },
+   "db_ping": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Ping к базе (pool.Ping) выполняется после создания пула (строка 82); это проверка соединения, не HTTP-маршрут /ping."
+   },
+   "db_ping_retry": {
+    "found": false,
+    "quotes": 1,
+    "notes": "Ping выполняется один раз без цикла повторов и задержек (строка 82). Требование «Ping с ретраем» в коде не реализовано. Искал циклы повторного Ping в initDBPool и main — не найдено."
+   },
+   "db_panic": {
+    "found": true,
+    "quotes": 2,
+    "notes": "При ошибке подключения и Ping используется log.Fatal (строки 80, 83), что по рубрике считается эквивалентом паники при ошибке подключения. Непосредственно panic() в коде нет — используется log.Fatal."
+   },
+   "migrations_tool": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Используется популярный инструмент goose: каталог migrations/, пометки -- +goose Up/Down в SQL и вызов goose в Makefile. Сам модуль goose отсутствует в go.mod/go.sum (goose ожидается как отдельный CLI — grep по go.sum не дал совпадений). Каталог migrations найден."
+   },
+   "migrations_command": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Команды миграций (migrate-up/down/status) вынесены в Makefile и вызывают goose. В main.go миграции не запускаются — вызовов goose.Up в Go-коде нет (проверено grep по cmd/internal)."
+   },
+   "migrations_clean": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Единственная миграция создаёт таблицу couriers, которую репозиторий использует (repository/courier.go запросы к couriers). Прогона на чистой базе в снимке нет — факт запуска отсутствует, поэтому confidence low; вывод по коду."
+   },
+   "migrations_idempotent": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Используются IF NOT EXISTS / DROP IF EXISTS, а goose ведёт таблицу версий goose_db_version, поэтому повторный запуск не должен падать. Прогон повторного запуска в снимке отсутствует — confidence low."
+   },
+   "crud_get": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Оба GET-обработчика есть: GET /courier/{id} и GET /couriers. Коды: 200 при успехе (writeJSON, строки 56/75 controller.go), 400 при невалидном id (строка 33), 404 при отсутствии (строка 41)."
+   },
+   "crud_post": {
+    "found": true,
+    "quotes": 2,
+    "notes": "POST /courier есть. Коды: 201 при создании (writeJSON с http.StatusCreated, строка 99 controller.go), 400 при пустых обязательных полях/невалидном телефоне/статусе (валидация в usecase courier.go:70-81 маппится на 400), 409 при дубле телефона (usecase ErrPhoneExists → 409)."
+   },
+   "crud_put": {
+    "found": true,
+    "quotes": 2,
+    "notes": "PUT /courier есть, id приходит из тела (dto.CourierUpdateRequest.ID). Коды: 200 при успехе (writeJSON StatusOK, строка 124 controller.go), 404 при отсутствии курьера (строка 115), 400 при ошибках валидации (строка 113), 409 при дубле телефона (строка 117)."
+   },
+   "sql_safety": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Все SQL-запросы repository используют параметризованные плейсхолдеры $1/$2/... без конкатенации строк или fmt.Sprintf с пользовательскими данными (repository/courier.go:26,43,75,94-99). В миграциях нет CREATE FUNCTION. Проверено grep по fmt.Sprintf в repository/usecase."
+   },
+   "clean_layers": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Слои выделены отдельными пакетами: internal/handlers (handler/controller), internal/usecase (service), internal/repository (storage), internal/model/entity/dto (модели). Каждый слой имеет свои типы построены через конструкторы."
+   },
+   "di_constructors": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Все зависимости внедряются через конструкторы New* (NewCourierRepository, NewCourierUseCase, NewCourierController), глобальных синглтонов нет. Сборка — вручную в main.go."
+   },
+   "constructors_interfaces": {
+    "found": true,
+    "quotes": 4,
+    "notes": "Конструкторы между слоями принимают интерфейсы и возвращают структуры/указатели: usecase.NewCourierUseCase(courierRepository), handlers.NewCourierController(courierUseCase). Конструктор репозитория принимает конкретный pgxpool.Pool, что допустимо."
+   },
+   "interfaces_at_use": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Интерфейс репозитория courierRepository объявлен в пакете usecase/contract.go (место использования), а интерфейс usecase courierUseCase — в пакете handlers/contract.go; они не объявлены в пакетах реализации."
+   },
+   "interfaces_private": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Оба интерфейса названы с маленькой буквы: courierRepository и courierUseCase — приватные."
+   },
+   "no_layer_leaks": {
+    "found": true,
+    "quotes": 3,
+    "notes": "Модели БД/домена (entity.Courier, model.Courier) не имеют json/db тегов; JSON-теги вынесены только в отдельный transport-DTO пакет (internal/dto/courier.go). Отмечу сопутствующее: у моделей entity и model дублированы поля, а usecase импортирует конкретный пакет repository (для сравнения ошибок), что"
+   },
+   "no_sql_in_usecase": {
+    "found": true,
+    "quotes": 2,
+    "notes": "В usecase нет SQL-строк/запросов — работа идёт через абстракцию courierRepository; ошибки БД маппятся на доменные (repository.ErrNotFound→ErrNotFound и т.д.). SQL содержится только в repository/courier.go. Замечание: чтобы маппить ошибки, usecase импортирует конкретный пакет repository (courier.go:1"
+   },
+   "no_logic_in_handlers": {
+    "found": true,
+    "quotes": 2,
+    "notes": "Обработчики разбирают запрос, вызывают usecase и отображают ошибки usecase на HTTP-коды; бизнес-правила (валидация телефона/статуса/полей) находятся в usecase (courier.go:70-81,107-116), а не в handler. Проверено по всем методам CourierController (Get/GetMany/Create/Update)."
+   },
+   "thin_models": {
+    "found": true,
+    "quotes": 1,
+    "notes": "Модели тонкие — не содержат бизнес-методов, лишь допустимый вспомогательный валидатор IsValidStatus. Обработчики короткие (разбор запроса → вызов usecase → ответ), например Get на controller.go:29-57. Оценочный критерий."
+   },
+   "layer_packages": {
+    "found": false,
+    "quotes": 3,
+    "notes": "Внутри слоя нет подпакетов по сущностям (например internal/handler/courier, internal/repository/courier). Каждый слой — один плоский пакет (handlers, repository, usecase), где вся функциональность (courier, ping, healthcheck в handlers; courier в repository/usecase) лежит в одном пакете на этаж. Дер"
+   },
+   "di_package": {
+    "found": false,
+    "quotes": 1,
+    "notes": "DI-пакета (dig/fx/wire/do) нет: go.mod/go.sum не содержат таких зависимостей (grep по dig/fx/wire/do в go.mod,go.sum — 0 совпадений), контейнера в main нет. Сборка зависимостей выполняется вручную в main.go."
+   }
+  }
+ },
+ "build": {
+  "available": true,
+  "build_ok": true,
+  "vet_ok": true,
+  "elapsed": 1.7,
+  "note": "",
+  "build_output": "",
+  "vet_output": ""
+ },
+ "runtime": {
+  "available": true,
+  "ran": true,
+  "note": "",
+  "entrypoint": "cmd/service-courier/main.go",
+  "goos": "darwin",
+  "goarch": "arm64",
+  "compile_ok": true,
+  "compile_output": "",
+  "migrations": [
+   {
+    "dir": "migrations",
+    "tool": "goose",
+    "files": 1
+   }
+  ],
+  "env_roles": {
+   "PORT": "http_port",
+   "POSTGRES_DB": "dbname",
+   "POSTGRES_HOST": "host",
+   "POSTGRES_PASSWORD": "password",
+   "POSTGRES_PORT": "port",
+   "POSTGRES_USER": "user"
+  },
+  "scenarios": [
+   {
+    "id": "env_port",
+    "kind": "service",
+    "title": "запуск с портом из .env",
+    "started": true,
+    "ok": true,
+    "detail": "стартовал за 1.3 с и слушает порт 59598",
+    "exit_code": null,
+    "probes": [
+     {
+      "id": "ping",
+      "method": "GET",
+      "path": "/ping",
+      "ok": true,
+      "status": 200,
+      "detail": "GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ",
+      "elapsed_ms": 0
+     },
+     {
+      "id": "healthcheck",
+      "method": "HEAD",
+      "path": "/healthcheck",
+      "ok": true,
+      "status": 204,
+      "detail": "HEAD /healthcheck → 204: как в ТЗ",
+      "elapsed_ms": 0
+     }
+    ],
+    "checks": {
+     "stdout": {
+      "ok": false,
+      "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598»"
+     },
+     "stop": {
+      "ok": true,
+      "detail": "SIGTERM: завершился за 0.1 с (код 0)"
+     },
+     "log": {
+      "ok": true,
+      "detail": "после сигнала в лог выведено: 2026/09/06 18:56:42 Shutting down service-courier"
+     },
+     "log_exact": {
+      "ok": true,
+      "detail": "в логе есть текст из ТЗ «Shutting down service-courier»"
+     }
+    },
+    "log_tail": "2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598 | 2026/09/06 18:56:42 \"GET http://127.0.0.1:59598/ping HTTP/1.1\" from 127.0.0.1:59648 - 200 19B in 126.917µs | 2026/09/06 18:56:42 \"HEAD http://127.0.0.1:59598/healthcheck HTTP/1.1\" from 127.0.0.1:59649 - 204 0B in 1.5µs | 2026/09/06 18:56:42 Shutting down service-courier",
+    "elapsed": 1.6
+   },
+   {
+    "id": "dotenv_only",
+    "kind": "service",
+    "title": "порт только из файла .env, без переменных процесса",
+    "started": true,
+    "ok": true,
+    "detail": "стартовал за 0.3 с и слушает порт 59598",
+    "exit_code": null,
+    "probes": [],
+    "checks": {
+     "stdout": {
+      "ok": false,
+      "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598»"
+     },
+     "stop": {
+      "ok": true,
+      "detail": "SIGINT: завершился за 0.1 с (код 0)"
+     },
+     "log": {
+      "ok": true,
+      "detail": "после сигнала в лог выведено: 2026/09/06 18:56:42 Shutting down service-courier"
+     }
+    },
+    "log_tail": "2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598 | 2026/09/06 18:56:42 Shutting down service-courier",
+    "elapsed": 0.6
+   },
+   {
+    "id": "flag_port",
+    "kind": "service",
+    "title": "флаг --port важнее .env",
+    "started": true,
+    "ok": true,
+    "detail": "стартовал за 0.3 с и слушает порт 59599, порт 59598 закрыт: как в ТЗ",
+    "exit_code": null,
+    "probes": [],
+    "checks": {
+     "stdout": {
+      "ok": false,
+      "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:43 postgres connected | 2026/09/06 18:56:43 service-courier listening on :59599»"
+     },
+     "stop": {
+      "ok": true,
+      "detail": "SIGINT: завершился за 0.1 с (код 0)"
+     },
+     "log": {
+      "ok": true,
+      "detail": "после сигнала в лог выведено: 2026/09/06 18:56:43 Shutting down service-courier"
+     }
+    },
+    "log_tail": "2026/09/06 18:56:43 postgres connected | 2026/09/06 18:56:43 service-courier listening on :59599 | 2026/09/06 18:56:43 Shutting down service-courier",
+    "elapsed": 0.6
+   },
+   {
+    "id": "db_down",
+    "kind": "service",
+    "title": "паника при недоступной базе",
+    "started": true,
+    "ok": true,
+    "detail": "завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused",
+    "exit_code": 1,
+    "probes": [],
+    "checks": {},
+    "log_tail": "2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused",
+    "elapsed": 0.1
+   },
+   {
+    "id": "migrate",
+    "kind": "migrations",
+    "title": "миграции на чистой базе и повторно",
+    "started": true,
+    "ok": true,
+    "detail": "goose (migrations): таблицы: couriers, goose_db_version",
+    "exit_code": null,
+    "probes": [],
+    "checks": {
+     "first": {
+      "ok": true,
+      "detail": "чистая база: goose up успешно: 2026/09/06 18:56:44 OK   20251105174855_create_couriers.sql (4.35ms) | 2026/09/06 18:56:44 goose: successfully migrated database to version: 20251105174855"
+     },
+     "second": {
+      "ok": true,
+      "detail": "повторный запуск: goose up успешно: 2026/09/06 18:56:44 goose: no migrations to run. current version: 20251105174855"
+     }
+    },
+    "log_tail": "",
+    "elapsed": 0.4
+   },
+   {
+    "id": "crud",
+    "kind": "service",
+    "title": "CRUD курьеров по ТЗ задания 2",
+    "started": true,
+    "ok": true,
+    "detail": "стартовал за 0.4 с и слушает порт 59598",
+    "exit_code": null,
+    "probes": [
+     {
+      "id": "post_create",
+      "method": "POST",
+      "path": "/courier",
+      "ok": true,
+      "status": 201,
+      "detail": "POST /courier → 201, тело {\"id\":1}: как в ТЗ",
+      "elapsed_ms": 2
+     },
+     {
+      "id": "post_conflict",
+      "method": "POST",
+      "path": "/courier",
+      "ok": true,
+      "status": 409,
+      "detail": "POST /courier → 409, тело {\"error\":\"conflict\"}: как в ТЗ",
+      "elapsed_ms": 1
+     },
+     {
+      "id": "post_invalid",
+      "method": "POST",
+      "path": "/courier",
+      "ok": true,
+      "status": 400,
+      "detail": "POST /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ",
+      "elapsed_ms": 0
+     },
+     {
+      "id": "get_list",
+      "method": "GET",
+      "path": "/couriers",
+      "ok": true,
+      "status": 200,
+      "detail": "GET /couriers → 200, тело [{\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}]: как в ТЗ",
+      "elapsed_ms": 0
+     },
+     {
+      "id": "get_one",
+      "method": "GET",
+      "path": "/courier/1",
+      "ok": true,
+      "status": 200,
+      "detail": "GET /courier/1 → 200, тело {\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}: как в ТЗ",
+      "elapsed_ms": 0
+     },
+     {
+      "id": "get_missing",
+      "method": "GET",
+      "path": "/courier/999999",
+      "ok": true,
+      "status": 404,
+      "detail": "GET /courier/999999 → 404, тело {\"error\":\"not found\"}: как в ТЗ",
+      "elapsed_ms": 0
+     },
+     {
+      "id": "get_bad_id",
+      "method": "GET",
+      "path": "/courier/abc",
+      "ok": true,
+      "status": 400,
+      "detail": "GET /courier/abc → 400, тело {\"error\":\"invalid id\"}: как в ТЗ",
+      "elapsed_ms": 0
+     },
+     {
+      "id": "put_update",
+      "method": "PUT",
+      "path": "/courier",
+      "ok": true,
+      "status": 200,
+      "detail": "PUT /courier → 200, тело {\"message\":\"updated\"}: как в ТЗ",
+      "elapsed_ms": 1
+     },
+     {
+      "id": "put_missing",
+      "method": "PUT",
+      "path": "/courier",
+      "ok": true,
+      "status": 404,
+      "detail": "PUT /courier → 404, тело {\"error\":\"not found\"}: как в ТЗ",
+      "elapsed_ms": 0
+     },
+     {
+      "id": "put_invalid",
+      "method": "PUT",
+      "path": "/courier",
+      "ok": true,
+      "status": 400,
+      "detail": "PUT /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ",
+      "elapsed_ms": 0
+     }
+    ],
+    "checks": {
+     "stdout": {
+      "ok": false,
+      "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:44 postgres connected | 2026/09/06 18:56:44 service-courier listening on :59598»"
+     },
+     "stop": {
+      "ok": true,
+      "detail": "SIGTERM: завершился за 0.1 с (код 0)"
+     },
+     "log": {
+      "ok": true,
+      "detail": "после сигнала в лог выведено: 2026/09/06 18:56:44 Shutting down service-courier"
+     }
+    },
+    "log_tail": "2026/09/06 18:56:44 postgres connected | 2026/09/06 18:56:44 service-courier listening on :59598 | 2026/09/06 18:56:44 \"POST http://127.0.0.1:59598/courier HTTP/1.1\" from 127.0.0.1:59746 - 201 9B in 1.946709ms | 2026/09/06 18:56:44 \"POST http://127.0.0.1:59598/courier HTTP/1.1\" from 127.0.0.1:59747 - 409 21B in 798.834µs | 2026/09/06 18:56:44 \"POST http://127.0.0.1:59598/courier HTTP/1.1\" from 127.0.0.1:59748 - 400 24B in 10.042µs | 2026/09/06 18:56:44 \"GET http://127.0.0.1:59598/couriers HTTP/1.1\" from 127.0.0.1:59749 - 200 75B in 496.75µs | 2026/09/06 18:56:44 \"GET http://127.0.0.1:59598/courier/1 HTTP/1.1\" from 127.0.0.1:59750 - 200 73B in 209.125µs | 2026/09/06 18:56:44 \"GET http://127.0.0.1:59598/courier/999999 HTTP/1.1\" from 127.0.0.1:59751 - 404 22B in 96.167µs | 2026/09/06 18:56:44 \"GET http://127.0.0.1:59598/courier/abc HTTP/1.1\" from 127.0.0.1:59752 - 400 23B in 7.375µs | 2026/09/06 18:56:44 \"PUT http://127.0.0.1:59598/courier HTTP/1.1\" from 127.0.0.1:59753 - 200 22B in 1.30425ms | 2026/09/06 18:56:44 \"PUT http://127.0.0.1:59598/courier HTTP/1.1\" from 127.0.0.1:59754 - 404 22B in 123.292µs | 2026/09/06 18:56:44 \"PUT http://127.0.0.1:59598/courier HTTP/1.1\" from 127.0.0.1:59755 - 400 24B in 29µs | 2026/09/06 18:56:44 Shutting down service-courier",
+    "elapsed": 0.6
+   }
+  ],
+  "outcomes": {
+   "env_port": {
+    "status": "pass",
+    "detail": "сценарий «запуск с портом из .env»: стартовал за 1.3 с и слушает порт 59598"
+   },
+   "env_port.stdout": {
+    "status": "fail",
+    "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598»"
+   },
+   "env_port.stop": {
+    "status": "pass",
+    "detail": "SIGTERM: завершился за 0.1 с (код 0)"
+   },
+   "env_port.log": {
+    "status": "pass",
+    "detail": "после сигнала в лог выведено: 2026/09/06 18:56:42 Shutting down service-courier"
+   },
+   "env_port.log_exact": {
+    "status": "pass",
+    "detail": "в логе есть текст из ТЗ «Shutting down service-courier»"
+   },
+   "env_port.ping": {
+    "status": "pass",
+    "detail": "GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ"
+   },
+   "env_port.healthcheck": {
+    "status": "pass",
+    "detail": "HEAD /healthcheck → 204: как в ТЗ"
+   },
+   "dotenv_only": {
+    "status": "pass",
+    "detail": "сценарий «порт только из файла .env, без переменных процесса»: стартовал за 0.3 с и слушает порт 59598"
+   },
+   "dotenv_only.stdout": {
+    "status": "fail",
+    "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598»"
+   },
+   "dotenv_only.stop": {
+    "status": "pass",
+    "detail": "SIGINT: завершился за 0.1 с (код 0)"
+   },
+   "dotenv_only.log": {
+    "status": "pass",
+    "detail": "после сигнала в лог выведено: 2026/09/06 18:56:42 Shutting down service-courier"
+   },
+   "flag_port": {
+    "status": "pass",
+    "detail": "сценарий «флаг --port важнее .env»: стартовал за 0.3 с и слушает порт 59599, порт 59598 закрыт: как в ТЗ"
+   },
+   "flag_port.stdout": {
+    "status": "fail",
+    "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:43 postgres connected | 2026/09/06 18:56:43 service-courier listening on :59599»"
+   },
+   "flag_port.stop": {
+    "status": "pass",
+    "detail": "SIGINT: завершился за 0.1 с (код 0)"
+   },
+   "flag_port.log": {
+    "status": "pass",
+    "detail": "после сигнала в лог выведено: 2026/09/06 18:56:43 Shutting down service-courier"
+   },
+   "db_down": {
+    "status": "pass",
+    "detail": "сценарий «паника при недоступной базе»: завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused"
+   },
+   "migrate": {
+    "status": "pass",
+    "detail": "миграции goose (migrations): таблицы: couriers, goose_db_version"
+   },
+   "migrate.first": {
+    "status": "pass",
+    "detail": "чистая база: goose up успешно: 2026/09/06 18:56:44 OK   20251105174855_create_couriers.sql (4.35ms) | 2026/09/06 18:56:44 goose: successfully migrated database to version: 20251105174855"
+   },
+   "migrate.second": {
+    "status": "pass",
+    "detail": "повторный запуск: goose up успешно: 2026/09/06 18:56:44 goose: no migrations to run. current version: 20251105174855"
+   },
+   "crud": {
+    "status": "pass",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: стартовал за 0.4 с и слушает порт 59598"
+   },
+   "crud.stdout": {
+    "status": "fail",
+    "detail": "при старте stdout пуст, в stderr: «2026/09/06 18:56:44 postgres connected | 2026/09/06 18:56:44 service-courier listening on :59598»"
+   },
+   "crud.stop": {
+    "status": "pass",
+    "detail": "SIGTERM: завершился за 0.1 с (код 0)"
+   },
+   "crud.log": {
+    "status": "pass",
+    "detail": "после сигнала в лог выведено: 2026/09/06 18:56:44 Shutting down service-courier"
+   },
+   "crud.post_create": {
+    "status": "pass",
+    "detail": "POST /courier → 201, тело {\"id\":1}: как в ТЗ"
+   },
+   "crud.post_conflict": {
+    "status": "pass",
+    "detail": "POST /courier → 409, тело {\"error\":\"conflict\"}: как в ТЗ"
+   },
+   "crud.post_invalid": {
+    "status": "pass",
+    "detail": "POST /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ"
+   },
+   "crud.get_list": {
+    "status": "pass",
+    "detail": "GET /couriers → 200, тело [{\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}]: как в ТЗ"
+   },
+   "crud.get_one": {
+    "status": "pass",
+    "detail": "GET /courier/1 → 200, тело {\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}: как в ТЗ"
+   },
+   "crud.get_missing": {
+    "status": "pass",
+    "detail": "GET /courier/999999 → 404, тело {\"error\":\"not found\"}: как в ТЗ"
+   },
+   "crud.get_bad_id": {
+    "status": "pass",
+    "detail": "GET /courier/abc → 400, тело {\"error\":\"invalid id\"}: как в ТЗ"
+   },
+   "crud.put_update": {
+    "status": "pass",
+    "detail": "PUT /courier → 200, тело {\"message\":\"updated\"}: как в ТЗ"
+   },
+   "crud.put_missing": {
+    "status": "pass",
+    "detail": "PUT /courier → 404, тело {\"error\":\"not found\"}: как в ТЗ"
+   },
+   "crud.put_invalid": {
+    "status": "pass",
+    "detail": "PUT /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ"
+   },
+   "dotenv_only.log_exact": {
+    "status": "na",
+    "detail": "сценарий «порт только из файла .env, без переменных процесса»: стартовал за 0.3 с и слушает порт 59598"
+   },
+   "flag_port.log_exact": {
+    "status": "na",
+    "detail": "сценарий «флаг --port важнее .env»: стартовал за 0.3 с и слушает порт 59599, порт 59598 закрыт: как в ТЗ"
+   },
+   "db_down.stop": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused"
+   },
+   "db_down.log": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused"
+   },
+   "db_down.log_exact": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused"
+   },
+   "db_down.stdout": {
+    "status": "na",
+    "detail": "сценарий «паника при недоступной базе»: завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused"
+   },
+   "crud.log_exact": {
+    "status": "na",
+    "detail": "сценарий «CRUD курьеров по ТЗ задания 2»: стартовал за 0.4 с и слушает порт 59598"
+   }
+  },
+  "elapsed": 6.5,
+  "error": ""
+ },
+ "criteria": [
+  {
+   "key": "structure",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: dir_exists: каталог cmd: 1 файлов; dir_exists: каталог internal: 12 файлов",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "go_mod",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: file_exists: найдено: go.mod",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "entrypoint",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: count_files: файлов по маске ['cmd/*/main.go', 'cmd/main.go']: 1 (нужно от 1)",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "code_quality",
+   "class": "judgement",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.5,
+   "max": 1.0,
+   "confidence": "low",
+   "verdict": "partial",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Имена идентификаторов понятные, функции небольшие, циклических зависимостей нет, но есть дублирование структур model.Courier и entity.Courier и лишний импорт repository в usecase.",
+   "repeats": [
+    {
+     "verdict": "partial",
+     "proposed_points": 0.5,
+     "confidence": "low",
+     "reason": "Имена идентификаторов понятные, функции небольшие, циклических зависимостей нет, но есть дублирование структур model.Courier и entity.Courier и лишний импорт repository в usecase.",
+     "evidence": [
+      {
+       "path": "internal/model/models.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/entity/courier.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 3,
+       "line_end": 12,
+       "quote": "import (\n\t\"context\"\n\t\"errors\"\n\t\"regexp\"\n\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/dto\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/entity\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/model\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/repository\"\n)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Обратите внимание на дублирование структур и связанность usecase с repository; решите, насколько это снижает качество.",
+     "student_feedback": "Устраните дублирование структур и лишнюю зависимость usecase от repository."
+    },
+    {
+     "verdict": "partial",
+     "proposed_points": 0.5,
+     "confidence": "low",
+     "reason": "Имена идентификаторов понятные, функции небольшие, циклических зависимостей нет, но есть дублирование структур model.Courier и entity.Courier, а usecase импортирует repository для сравнения ошибок, что создаёт связанность.",
+     "evidence": [
+      {
+       "path": "internal/model/models.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/entity/courier.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 3,
+       "line_end": 12,
+       "quote": "import (\n\t\"context\"\n\t\"errors\"\n\t\"regexp\"\n\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/dto\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/entity\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/model\"\n\t\"github.com/Avito-courses/course-go-avito-Turbina0N/internal/repository\"\n)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Обратите внимание на дублирование структур и связанность usecase с repository; оцените, насколько это влияет на качество.",
+     "student_feedback": "Устраните дублирование структур и уменьшите связанность usecase с repository."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "server_starts",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: сценарий «запуск с портом из .env»: стартовал за 1.3 с и слушает порт 59598",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "HTTP-сервер создаётся через http.Server и запускается ListenAndServe; факты запуска подтверждают работу по ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 40,
+       "line_end": 46,
+       "quote": "srv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),\n\t\tHandler:      initRouter(courierCtrl),\n\t\tReadTimeout:  10 * time.Second,\n\t\tWriteTimeout: 10 * time.Second,\n\t\tIdleTimeout:  60 * time.Second,\n\t}"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 51,
+       "line_end": 53,
+       "quote": "if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {\n\t\tlog.Fatalf(\"server start error: %v\\n\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В коде создаётся http.Server и вызывается ListenAndServe, что подтверждает запуск HTTP-сервера. Факты запуска подтверждают работу сервера.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 40,
+       "line_end": 46,
+       "quote": "srv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),\n\t\tHandler:      initRouter(courierCtrl),\n\t\tReadTimeout:  10 * time.Second,\n\t\tWriteTimeout: 10 * time.Second,\n\t\tIdleTimeout:  60 * time.Second,\n\t}"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 51,
+       "line_end": 53,
+       "quote": "if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {\n\t\tlog.Fatalf(\"server start error: %v\\n\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «запуск с портом из .env»: стартовал за 1.3 с и слушает порт 59598"
+   ]
+  },
+  {
+   "key": "port_env",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: сценарий «порт только из файла .env, без переменных процесса»: стартовал за 0.3 с и слушает порт 59598",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Порт читается из переменной окружения PORT (строка 89) и используется при запуске сервера (строка 41); .env подгружается через godotenv.Load (строки 26-28). Факты запуска подтверждают чтение порта из .env.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 88,
+       "line_end": 94,
+       "quote": "func resolvePort() string {\n\tport := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 26,
+       "line_end": 28,
+       "quote": "if err := godotenv.Load(); err != nil {\n\t\tlog.Printf(\"warn: .env not loaded: %v\", err)\n\t}"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 40,
+       "line_end": 42,
+       "quote": "srv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),\n\t\tHandler:      initRouter(courierCtrl),"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Порт читается из переменной окружения PORT (строка 89) и используется при запуске сервера (строка 41). Факты запуска подтверждают, что порт из .env используется.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 88,
+       "line_end": 94,
+       "quote": "func resolvePort() string {\n\tport := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 40,
+       "line_end": 42,
+       "quote": "srv := &http.Server{\n\t\tAddr:         \":\" + resolvePort(),\n\t\tHandler:      initRouter(courierCtrl),"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «порт только из файла .env, без переменных процесса»: стартовал за 0.3 с и слушает порт 59598"
+   ]
+  },
+  {
+   "key": "start_log",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Проверено запуском: при старте stdout пуст, в stderr: «2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598»",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Лог старта выводится через log.Printf, который по умолчанию пишет в stderr, а не stdout; конфигурации вывода в stdout нет. Факты запуска подтверждают, что stdout пуст.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 50,
+       "line_end": 50,
+       "quote": "log.Printf(\"service-courier listening on %s\\n\", srv.Addr)"
+      }
+     ],
+     "missing": [
+      "Вывод в stdout (например, log.SetOutput(os.Stdout) или использование slog/zap с stdout) не найден"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Настройте вывод логгера в stdout (например, log.SetOutput(os.Stdout)) перед записью лога старта."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Лог старта выводится через log.Printf, который по умолчанию пишет в stderr, а не stdout; конфигурации вывода в stdout нет. Факты запуска подтверждают, что stdout пуст.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 50,
+       "line_end": 50,
+       "quote": "log.Printf(\"service-courier listening on %s\\n\", srv.Addr)"
+      }
+     ],
+     "missing": [
+      "Вывод в stdout (например, log.SetOutput(os.Stdout) или использование slog/zap с stdout) не найден"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Настройте вывод логгера в stdout (например, log.SetOutput(os.Stdout)) перед записью лога старта."
+    }
+   ],
+   "runtime": [
+    "запуск: при старте stdout пуст, в stderr: «2026/09/06 18:56:42 postgres connected | 2026/09/06 18:56:42 service-courier listening on :59598»"
+   ]
+  },
+  {
+   "key": "ping",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Маршрут GET /ping зарегистрирован, обработчик возвращает JSON {\"message\":\"pong\"} с кодом 200 по умолчанию; факт запуска подтверждает «как в ТЗ».",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 105,
+       "line_end": 105,
+       "quote": "r.Get(\"/ping\", handlers.Ping)"
+      },
+      {
+       "path": "internal/handlers/ping.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func Ping(w http.ResponseWriter, r *http.Request) {\n\tw.Header().Set(\"Content-Type\", \"application/json; charset=utf-8\")\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Маршрут GET /ping зарегистрирован и обработчик возвращает JSON с кодом 200, что подтверждено фактами запуска «как в ТЗ».",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 105,
+       "line_end": 105,
+       "quote": "r.Get(\"/ping\", handlers.Ping)"
+      },
+      {
+       "path": "internal/handlers/ping.go",
+       "line_start": 8,
+       "line_end": 10,
+       "quote": "func Ping(w http.ResponseWriter, r *http.Request) {\n\tw.Header().Set(\"Content-Type\", \"application/json; charset=utf-8\")\n\tjson.NewEncoder(w).Encode(map[string]string{\"message\": \"pong\"})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: GET /ping → 200, тело {\"message\":\"pong\"}: как в ТЗ"
+   ]
+  },
+  {
+   "key": "healthcheck",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: HEAD /healthcheck → 204: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Маршрут зарегистрирован методом HEAD и обработчик возвращает 204 No Content, что соответствует ТЗ; факт запуска подтверждает «как в ТЗ» для HEAD /healthcheck → 204.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 106,
+       "line_end": 106,
+       "quote": "r.Head(\"/healthcheck\", handlers.Healthcheck)"
+      },
+      {
+       "path": "internal/handlers/healthcheck.go",
+       "line_start": 5,
+       "line_end": 6,
+       "quote": "func Healthcheck(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Маршрут HEAD /healthcheck зарегистрирован и обработчик возвращает 204 No Content, что подтверждено фактами запуска как в ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 106,
+       "line_end": 106,
+       "quote": "r.Head(\"/healthcheck\", handlers.Healthcheck)"
+      },
+      {
+       "path": "internal/handlers/healthcheck.go",
+       "line_start": 5,
+       "line_end": 6,
+       "quote": "func Healthcheck(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusNoContent)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: HEAD /healthcheck → 204: как в ТЗ"
+   ]
+  },
+  {
+   "key": "graceful_signal",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 2.0,
+   "max": 2.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: SIGTERM: завершился за 0.1 с (код 0); SIGINT: завершился за 0.1 с (код 0)",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 2.0,
+     "confidence": "high",
+     "reason": "В коде есть подписка на SIGINT/SIGTERM через signal.NotifyContext и вызов srv.Shutdown в горутине; факты запуска подтверждают корректную остановку по обоим сигналам с логом «Shutting down service-courier».",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 117,
+       "line_end": 121,
+       "quote": "func gracefulShutdown(srv *http.Server) {\n\tctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\t<-ctx.Done()"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 126,
+       "line_end": 129,
+       "quote": "if err := srv.Shutdown(shCtx); err != nil {\n\t\tlog.Printf(\"graceful shutdown failed: %v\", err)\n\t\t_ = srv.Close()\n\t}"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 48,
+       "line_end": 48,
+       "quote": "go gracefulShutdown(srv)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 2.0,
+     "confidence": "high",
+     "reason": "В коде есть подписка на SIGINT/SIGTERM через signal.NotifyContext и вызов srv.Shutdown в горутине; факты запуска подтверждают корректное завершение с логом «Shutting down service-courier» после сигналов.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 117,
+       "line_end": 121,
+       "quote": "func gracefulShutdown(srv *http.Server) {\n\tctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)\n\tdefer stop()\n\n\t<-ctx.Done()"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 126,
+       "line_end": 129,
+       "quote": "if err := srv.Shutdown(shCtx); err != nil {\n\t\tlog.Printf(\"graceful shutdown failed: %v\", err)\n\t\t_ = srv.Close()\n\t}"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 48,
+       "line_end": 48,
+       "quote": "go gracefulShutdown(srv)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: SIGTERM: завершился за 0.1 с (код 0)",
+    "запуск: SIGINT: завершился за 0.1 с (код 0)"
+   ]
+  },
+  {
+   "key": "graceful_context",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Graceful shutdown реализован через signal.NotifyContext и srv.Shutdown получает context.WithTimeout с таймаутом 5 секунд.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Graceful shutdown реализован через signal.NotifyContext и srv.Shutdown получает context.WithTimeout с таймаутом 5 секунд.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 118,
+       "line_end": 118,
+       "quote": "ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 124,
+       "line_end": 126,
+       "quote": "shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\tif err := srv.Shutdown(shCtx); err != nil {"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Graceful shutdown реализован через signal.NotifyContext и srv.Shutdown с context.WithTimeout, что соответствует требованию.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 118,
+       "line_end": 118,
+       "quote": "ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 124,
+       "line_end": 126,
+       "quote": "shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\tif err := srv.Shutdown(shCtx); err != nil {"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "shutdown_log",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: после сигнала в лог выведено: 2026/09/06 18:56:42 Shutting down service-courier",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "В коде при остановке сервера вызывается log.Println с точным текстом «Shutting down service-courier», что подтверждено фактами запуска: после SIGTERM/SIGINT в лог выведено это сообщение.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 122,
+       "line_end": 122,
+       "quote": "log.Println(\"Shutting down service-courier\")"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "При остановке в лог выводится сообщение «Shutting down service-courier» (строка 122), что подтверждено фактами запуска: после SIGINT/SIGTERM в лог выведено «Shutting down service-courier» — как в ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 122,
+       "line_end": 122,
+       "quote": "log.Println(\"Shutting down service-courier\")"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: после сигнала в лог выведено: 2026/09/06 18:56:42 Shutting down service-courier"
+   ]
+  },
+  {
+   "key": "port_flag",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: сценарий «флаг --port важнее .env»: стартовал за 0.3 с и слушает порт 59599, порт 59598 закрыт: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Флаг --port объявлен через pflag и парсится, значение флага переопределяет порт из .env.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 90,
+       "line_end": 94,
+       "quote": "var portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Флаг --port объявлен через pflag и парсится, значение флага переопределяет порт из .env.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 90,
+       "line_end": 94,
+       "quote": "var portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «флаг --port важнее .env»: стартовал за 0.3 с и слушает порт 59599, порт 59598 закрыт: как в ТЗ"
+   ]
+  },
+  {
+   "key": "flag_over_env",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: сценарий «флаг --port важнее .env»: стартовал за 0.3 с и слушает порт 59599, порт 59598 закрыт: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В коде порт сначала берётся из окружения, затем флаг --port перезаписывает его, если задан. Факты запуска подтверждают приоритет флага.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 89,
+       "line_end": 94,
+       "quote": "port := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В коде порт сначала берётся из окружения, затем флаг --port перезаписывает его, если задан. Факты запуска подтверждают приоритет флага: при указании флага сервер слушает порт 59599, а порт из .env 59598 закрыт.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 89,
+       "line_end": 94,
+       "quote": "port := os.Getenv(\"PORT\")\n\tvar portFlag = flag.String(\"port\", \"\", \"HTTP port to listen on\")\n\tflag.Parse()\n\tif portFlag != nil && *portFlag != \"\" {\n\t\tport = *portFlag\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «флаг --port важнее .env»: стартовал за 0.3 с и слушает порт 59599, порт 59598 закрыт: как в ТЗ"
+   ]
+  },
+  {
+   "key": "db_connect",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: сценарий «CRUD курьеров по ТЗ задания 2»: стартовал за 0.4 с и слушает порт 59598",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Подключение к БД выполняется в main.go, DSN собирается из переменных окружения POSTGRES_*, не захардкожен.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 56,
+       "line_end": 67,
+       "quote": "func initDBPool(ctx context.Context) *pgxpool.Pool {\n\thost := os.Getenv(\"POSTGRES_HOST\")\n\tport := os.Getenv(\"POSTGRES_PORT\")\n\tuser := os.Getenv(\"POSTGRES_USER\")\n\tpass := os.Getenv(\"POSTGRES_PASSWORD\")\n\tdbname := os.Getenv(\"POSTGRES_DB\")\n\n\tif host == \"\" || port == \"\" || user == \"\" || dbname == \"\" {\n\t\tlog.Fatal(\"POSTGRES_* env vars are required: POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB\")\n\t}\n\n\tdsn := fmt.Sprintf(\"postgres://%s:%s@%s:%s/%s\", user, pass, host, port, dbname)"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 78,
+       "line_end": 81,
+       "quote": "pool, err := pgxpool.NewWithConfig(ctx, cfg)\n\tif err != nil {\n\t\tlog.Fatalf(\"pgxpool.NewWithConfig: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Подключение к БД выполняется в main.go через pgxpool.NewWithConfig, DSN собирается из переменных окружения POSTGRES_*, не захардкожен.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 57,
+       "line_end": 67,
+       "quote": "host := os.Getenv(\"POSTGRES_HOST\")\n\tport := os.Getenv(\"POSTGRES_PORT\")\n\tuser := os.Getenv(\"POSTGRES_USER\")\n\tpass := os.Getenv(\"POSTGRES_PASSWORD\")\n\tdbname := os.Getenv(\"POSTGRES_DB\")\n\n\tif host == \"\" || port == \"\" || user == \"\" || dbname == \"\" {\n\t\tlog.Fatal(\"POSTGRES_* env vars are required: POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB\")\n\t}\n\n\tdsn := fmt.Sprintf(\"postgres://%s:%s@%s:%s/%s\", user, pass, host, port, dbname)"
+      },
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 78,
+       "line_end": 81,
+       "quote": "pool, err := pgxpool.NewWithConfig(ctx, cfg)\n\tif err != nil {\n\t\tlog.Fatalf(\"pgxpool.NewWithConfig: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «CRUD курьеров по ТЗ задания 2»: стартовал за 0.4 с и слушает порт 59598"
+   ]
+  },
+  {
+   "key": "db_defer_close",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В main.go сразу после создания пула подключения к БД стоит defer db.Close(), что соответствует требованию закрытия соединения в defer Close().",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В main.go сразу после создания пула подключения к БД стоит defer db.Close(), что соответствует требованию закрытия соединения в defer Close().",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 32,
+       "line_end": 33,
+       "quote": "\tdb := initDBPool(ctx)\n\tdefer db.Close()"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В main.go сразу после создания пула подключения к БД стоит defer db.Close(), что соответствует требованию закрытия соединения в defer Close().",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 32,
+       "line_end": 33,
+       "quote": "\tdb := initDBPool(ctx)\n\tdefer db.Close()"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "db_ping",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе выполнен Ping к базе данных после создания пула: pool.Ping(ctx) с обработкой ошибки через log.Fatalf.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В работе выполнен Ping к базе данных после создания пула: pool.Ping(ctx) с обработкой ошибки через log.Fatalf.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 82,
+       "line_end": 84,
+       "quote": "if err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В коде после создания пула pgxpool выполняется Ping к базе данных (pool.Ping(ctx)), что соответствует критерию проверки соединения с БД, а не HTTP-маршруту /ping.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 82,
+       "line_end": 84,
+       "quote": "\tif err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "db_ping_retry",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Ping выполняется один раз без цикла повторов и задержки, что не соответствует требованию ретрая.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Ping выполняется один раз без цикла повторов и задержки, что не соответствует требованию ретрая.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 82,
+       "line_end": 84,
+       "quote": "if err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [
+      "Цикл повторов с задержкой вокруг Ping в initDBPool и main"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте цикл повторов с задержкой вокруг Ping."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Ping выполняется один раз без цикла повторов и задержек, что по подсказке критерия является fail.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 82,
+       "line_end": 84,
+       "quote": "if err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [
+      "Цикл повторов с задержкой вокруг Ping в initDBPool/main"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Добавьте цикл повторов Ping с задержкой вместо однократного вызова."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "db_panic",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.5,
+   "max": 0.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: сценарий «паника при недоступной базе»: завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 0.5,
+     "confidence": "high",
+     "reason": "При ошибке подключения к БД (создание пула и Ping) используется log.Fatal, что по рубрике эквивалентно панике.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 78,
+       "line_end": 84,
+       "quote": "pool, err := pgxpool.NewWithConfig(ctx, cfg)\n\tif err != nil {\n\t\tlog.Fatalf(\"pgxpool.NewWithConfig: %v\", err)\n\t}\n\tif err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 0.5,
+     "confidence": "high",
+     "reason": "При ошибке подключения к БД (создание пула и Ping) используется log.Fatal, что по рубрике эквивалентно панике.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 78,
+       "line_end": 84,
+       "quote": "pool, err := pgxpool.NewWithConfig(ctx, cfg)\n\tif err != nil {\n\t\tlog.Fatalf(\"pgxpool.NewWithConfig: %v\", err)\n\t}\n\tif err := pool.Ping(ctx); err != nil {\n\t\tlog.Fatalf(\"db ping failed: %v\", err)\n\t}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: сценарий «паника при недоступной базе»: завершение с ошибкой, код 1, через 0.1 с. Лог: 2026/09/06 18:56:43 db ping failed: failed to connect to `user=nobody database=nodb`: 127.0.0.1:59721 (127.0.0.1): dial error: dial tcp 127.0.0.1:59721: connect: connection refused"
+   ]
+  },
+  {
+   "key": "migrations_tool",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе есть каталог migrations с SQL-файлом, размеченным для goose, и Makefile вызывает goose для применения миграций.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В работе есть каталог migrations с SQL-файлом, размеченным для goose, и Makefile вызывает goose для применения миграций.",
+     "evidence": [
+      {
+       "path": "Makefile",
+       "line_start": 5,
+       "line_end": 5,
+       "quote": "GOOSE_DRIVER = postgres"
+      },
+      {
+       "path": "Makefile",
+       "line_start": 15,
+       "line_end": 15,
+       "quote": "GOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=\"$(GOOSE_DBSTRING)\" goose -dir $(MIGRATIONS_DIR) up"
+      },
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 1,
+       "line_end": 2,
+       "quote": "-- +goose Up\nCREATE TABLE IF NOT EXISTS couriers ("
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В работе есть каталог migrations с SQL-файлом, размеченным для goose, и Makefile вызывает goose для применения миграций.",
+     "evidence": [
+      {
+       "path": "Makefile",
+       "line_start": 5,
+       "line_end": 5,
+       "quote": "GOOSE_DRIVER = postgres"
+      },
+      {
+       "path": "Makefile",
+       "line_start": 15,
+       "line_end": 15,
+       "quote": "GOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=\"$(GOOSE_DBSTRING)\" goose -dir $(MIGRATIONS_DIR) up"
+      },
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 1,
+       "line_end": 2,
+       "quote": "-- +goose Up\nCREATE TABLE IF NOT EXISTS couriers ("
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "migrations_command",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В Makefile определены цели migrate-up/down/status, вызывающие goose, миграции не запускаются из main.go.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В Makefile определены цели migrate-up/down/status, вызывающие goose, миграции не запускаются из main.go.",
+     "evidence": [
+      {
+       "path": "Makefile",
+       "line_start": 13,
+       "line_end": 15,
+       "quote": "migrate-up:\n\t@echo \"Applying migrations from $(MIGRATIONS_DIR)...\"\n\tGOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=\"$(GOOSE_DBSTRING)\" goose -dir $(MIGRATIONS_DIR) up"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В Makefile есть цель migrate-up, вызывающая goose, а в main.go миграции не запускаются.",
+     "evidence": [
+      {
+       "path": "Makefile",
+       "line_start": 13,
+       "line_end": 15,
+       "quote": "migrate-up:\n\t@echo \"Applying migrations from $(MIGRATIONS_DIR)...\"\n\tGOOSE_DRIVER=$(GOOSE_DRIVER) GOOSE_DBSTRING=\"$(GOOSE_DBSTRING)\" goose -dir $(MIGRATIONS_DIR) up"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "migrations_clean",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: чистая база: goose up успешно: 2026/09/06 18:56:44 OK   20251105174855_create_couriers.sql (4.35ms) | 2026/09/06 18:56:44 goose: successfully migrated database to version: 20251105174855",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Факт запуска подтверждает успешный прогон миграций на чистой базе и повторно, что соответствует критерию.",
+     "evidence": [
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 1,
+       "line_end": 9,
+       "quote": "-- +goose Up\nCREATE TABLE IF NOT EXISTS couriers (\n    id          BIGSERIAL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    phone       TEXT NOT NULL UNIQUE,\n    status      TEXT NOT NULL,  -- например: 'available', 'busy', 'paused'\n    created_at  TIMESTAMP NOT NULL DEFAULT now(),\n    updated_at  "
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Факт запуска миграций на чистой базе и повторно указан в описании: 'goose up успешно' и 'no migrations to run', что подтверждает выполнение.",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "В фактах запуска есть результат для этого сценария: «чистая база: goose up успешно» и «повторный запуск: goose up успешно», что подтверждает запуск на чистой базе. Миграция создаёт таблицу couriers, на которую опирается репозиторий.",
+     "evidence": [
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 1,
+       "line_end": 9,
+       "quote": "-- +goose Up\nCREATE TABLE IF NOT EXISTS couriers (\n    id          BIGSERIAL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    phone       TEXT NOT NULL UNIQUE,\n    status      TEXT NOT NULL,  -- например: 'available', 'busy', 'paused'\n    created_at  TIMESTAMP NOT NULL DEFAULT now(),\n    updated_at  TIMESTAMP NOT NULL DEFAULT now()\n);"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Факт запуска в песочнице подтверждает: goose up на чистой базе успешно, повторный запуск также успешен.",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: чистая база: goose up успешно: 2026/09/06 18:56:44 OK   20251105174855_create_couriers.sql (4.35ms) | 2026/09/06 18:56:44 goose: successfully migrated database to version: 20251105174855"
+   ]
+  },
+  {
+   "key": "migrations_idempotent",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: повторный запуск: goose up успешно: 2026/09/06 18:56:44 goose: no migrations to run. current version: 20251105174855",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Миграция использует IF NOT EXISTS и DROP IF EXISTS, а goose ведёт таблицу версий, что обеспечивает идемпотентность. Факт запуска подтверждает успешный повторный запуск.",
+     "evidence": [
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 2,
+       "line_end": 2,
+       "quote": "CREATE TABLE IF NOT EXISTS couriers ("
+      },
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 12,
+       "line_end": 12,
+       "quote": "DROP TABLE IF EXISTS couriers;"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Факт запуска повторного goose up подтверждает выполнение требования.",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Миграция использует IF NOT EXISTS и DROP IF EXISTS, а goose ведёт таблицу версий, что обеспечивает идемпотентность. Факт запуска подтверждает успешный повторный запуск.",
+     "evidence": [
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 2,
+       "line_end": 2,
+       "quote": "CREATE TABLE IF NOT EXISTS couriers ("
+      },
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 12,
+       "line_end": 12,
+       "quote": "DROP TABLE IF EXISTS couriers;"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: повторный запуск: goose up успешно: 2026/09/06 18:56:44 goose: no migrations to run. current version: 20251105174855"
+   ]
+  },
+  {
+   "key": "crud_get",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: GET /couriers → 200, тело [{\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}]: как в ТЗ; GET /courier/1 → 200, тело {\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}: как в ТЗ; GET /courier/999999 → 404, тело {\"error\":\"not found\"}: как в ТЗ; GET /courier/abc → 400, тело {\"error\":\"invalid id\"}: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Оба GET-обработчика реализованы: GET /courier/{id} и GET /couriers, с кодами 200, 400 при невалидном id и 404 при отсутствии, что подтверждено фактами запуска и кодом.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 109,
+       "line_end": 110,
+       "quote": "r.Get(\"/courier/{id}\", courier.Get)\n\tr.Get(\"/couriers\", courier.GetMany)"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 32,
+       "line_end": 35,
+       "quote": "if err != nil {\n\t\thttp.Error(w, `{\"error\":\"invalid id\"}`, http.StatusBadRequest)\n\t\treturn\n\t}"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 40,
+       "line_end": 45,
+       "quote": "case usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrBadRequest:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\":\"database error\"}`, http.StatusInternalServerError)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Оба GET-обработчика реализованы: GET /courier/{id} и GET /couriers, с кодами 200, 400 при невалидном id и 404 при отсутствии, что подтверждено фактами запуска и кодом.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 109,
+       "line_end": 110,
+       "quote": "r.Get(\"/courier/{id}\", courier.Get)\n\tr.Get(\"/couriers\", courier.GetMany)"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 32,
+       "line_end": 35,
+       "quote": "if err != nil {\n\t\thttp.Error(w, `{\"error\":\"invalid id\"}`, http.StatusBadRequest)\n\t\treturn\n\t}"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 40,
+       "line_end": 45,
+       "quote": "case usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrBadRequest:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\":\"database error\"}`, http.StatusInternalServerError)"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: GET /couriers → 200, тело [{\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}]: как в ТЗ",
+    "запуск: GET /courier/1 → 200, тело {\"id\":1,\"name\":\"Антон\",\"phone\":\"+37444111222\",\"status\":\"available\"}: как в ТЗ",
+    "запуск: GET /courier/999999 → 404, тело {\"error\":\"not found\"}: как в ТЗ",
+    "запуск: GET /courier/abc → 400, тело {\"error\":\"invalid id\"}: как в ТЗ"
+   ]
+  },
+  {
+   "key": "crud_post",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: POST /courier → 201, тело {\"id\":1}: как в ТЗ; POST /courier → 409, тело {\"error\":\"conflict\"}: как в ТЗ; POST /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "POST /courier реализован: маршрут зарегистрирован, при создании возвращается 201 с id, при невалидных данных — 400, при дубле телефона — 409, что соответствует ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 111,
+       "line_end": 111,
+       "quote": "r.Post(\"/courier\", courier.Create)"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 86,
+       "line_end": 99,
+       "quote": "id, err := c.useCase.CreateCourier(r.Context(), &req)\n\tif err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrMissingRequiredFields, usecase.ErrInvalidStatus, usecase.ErrInvalidPhone:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tcase usecase.ErrPhoneExists:\n\t\t\thttp.Error(w, `{\"error\":\"conflict\"}`, http.StatusConflict)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\": \"database error\"}`, http.StatusInternalServerError)\n\t\t}\n\t\treturn\n\t}\n\n\twriteJSON(w, http.StatusCreated, map[string]any{\"id\": id})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "POST /courier реализован: маршрут зарегистрирован, при создании возвращается 201 с id, при невалидных данных — 400, при дубле телефона — 409, что соответствует ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 111,
+       "line_end": 111,
+       "quote": "r.Post(\"/courier\", courier.Create)"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 86,
+       "line_end": 99,
+       "quote": "id, err := c.useCase.CreateCourier(r.Context(), &req)\n\tif err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrMissingRequiredFields, usecase.ErrInvalidStatus, usecase.ErrInvalidPhone:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tcase usecase.ErrPhoneExists:\n\t\t\thttp.Error(w, `{\"error\":\"conflict\"}`, http.StatusConflict)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\": \"database error\"}`, http.StatusInternalServerError)\n\t\t}\n\t\treturn\n\t}\n\n\twriteJSON(w, http.StatusCreated, map[string]any{\"id\": id})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: POST /courier → 201, тело {\"id\":1}: как в ТЗ",
+    "запуск: POST /courier → 409, тело {\"error\":\"conflict\"}: как в ТЗ",
+    "запуск: POST /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ"
+   ]
+  },
+  {
+   "key": "crud_put",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "runtime",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [
+    "runtime"
+   ],
+   "reason": "Подтверждено запуском: PUT /courier → 200, тело {\"message\":\"updated\"}: как в ТЗ; PUT /courier → 404, тело {\"error\":\"not found\"}: как в ТЗ; PUT /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "PUT /courier реализован: маршрут зарегистрирован, обработчик вызывает usecase и возвращает 200 при успехе, 404 при отсутствии курьера, 400 при ошибках валидации. Факты запуска подтверждают поведение как в ТЗ.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 112,
+       "line_end": 112,
+       "quote": "r.Put(\"/courier\", courier.Update)"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 110,
+       "line_end": 124,
+       "quote": "if err := c.useCase.UpdateCourier(r.Context(), &req); err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrBadRequest, usecase.ErrInvalidStatus, usecase.ErrInvalidPhone:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tcase usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrPhoneExists:\n\t\t\thttp.Error(w, `{\"error\":\"conflict\"}`, http.StatusConflict)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\":\"internal error\"}`, http.StatusInternalServerError)\n\t\t}\n\t\treturn\n\t}\n\n\twriteJSON(w, http.StatusOK, map[string]string{\"message\": \"updated\"})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "PUT /courier реализован: маршрут зарегистрирован, id берётся из тела, коды 200/404/400/409 соответствуют ТЗ, что подтверждено фактами запуска.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 112,
+       "line_end": 112,
+       "quote": "r.Put(\"/courier\", courier.Update)"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 110,
+       "line_end": 124,
+       "quote": "if err := c.useCase.UpdateCourier(r.Context(), &req); err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrBadRequest, usecase.ErrInvalidStatus, usecase.ErrInvalidPhone:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tcase usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrPhoneExists:\n\t\t\thttp.Error(w, `{\"error\":\"conflict\"}`, http.StatusConflict)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\"error\":\"internal error\"}`, http.StatusInternalServerError)\n\t\t}\n\t\treturn\n\t}\n\n\twriteJSON(w, http.StatusOK, map[string]string{\"message\": \"updated\"})"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "Факты запуска подтверждают: PUT /courier → 200, 404, 400, 409 как в ТЗ.",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": [
+    "запуск: PUT /courier → 200, тело {\"message\":\"updated\"}: как в ТЗ",
+    "запуск: PUT /courier → 404, тело {\"error\":\"not found\"}: как в ТЗ",
+    "запуск: PUT /courier → 400, тело {\"error\":\"bad request\"}: как в ТЗ"
+   ]
+  },
+  {
+   "key": "handlers_in_internal",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 7,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: grep: вхождений 'http\\\\.ResponseWriter|gin\\\\.Context|echo\\\\.Context': 7 (нужно от 1)",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "sql_safety",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Все SQL-запросы в repository используют параметризованные плейсхолдеры $1, $2 и т.д., без конкатенации строк или fmt.Sprintf с пользовательскими данными. В миграциях нет CREATE FUNCTION.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Все SQL-запросы в repository используют параметризованные плейсхолдеры $1, $2 и т.д., без конкатенации строк или fmt.Sprintf с пользовательскими данными. В миграциях нет CREATE FUNCTION.",
+     "evidence": [
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 25,
+       "line_end": 26,
+       "quote": "row := r.pool.QueryRow(ctx,\n\t\t\"SELECT id, name, phone, status FROM couriers WHERE id = $1;\", id,"
+      },
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 74,
+       "line_end": 76,
+       "quote": "row := r.pool.QueryRow(ctx,\n\t\t\"INSERT INTO couriers (name, phone, status) VALUES ($1, $2, $3) RETURNING id;\",\n\t\tc.Name, c.Phone, c.Status,"
+      },
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 2,
+       "line_end": 9,
+       "quote": "CREATE TABLE IF NOT EXISTS couriers (\n    id          BIGSERIAL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    phone       TEXT NOT NULL UNIQUE,\n    status      TEXT NOT NULL,  -- например: 'available', 'busy', 'paused'\n    created_at  TIMESTAMP NOT NULL DEFAULT now(),\n    updated_at  TIMESTAMP NOT NULL DEFAULT now()\n);"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Все SQL-запросы используют параметризованные плейсхолдеры $1/$2, конкатенации и fmt.Sprintf с пользовательскими данными нет; в миграциях CREATE FUNCTION отсутствует.",
+     "evidence": [
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 25,
+       "line_end": 26,
+       "quote": "row := r.pool.QueryRow(ctx,\n\t\t\"SELECT id, name, phone, status FROM couriers WHERE id = $1;\", id,"
+      },
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 74,
+       "line_end": 76,
+       "quote": "row := r.pool.QueryRow(ctx,\n\t\t\"INSERT INTO couriers (name, phone, status) VALUES ($1, $2, $3) RETURNING id;\",\n\t\tc.Name, c.Phone, c.Status,"
+      },
+      {
+       "path": "migrations/20251105174855_create_couriers.sql",
+       "line_start": 2,
+       "line_end": 9,
+       "quote": "CREATE TABLE IF NOT EXISTS couriers (\n    id          BIGSERIAL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    phone       TEXT NOT NULL UNIQUE,\n    status      TEXT NOT NULL,  -- например: 'available', 'busy', 'paused'\n    created_at  TIMESTAMP NOT NULL DEFAULT now(),\n    updated_at  TIMESTAMP NOT NULL DEFAULT now()\n);"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "pgx",
+   "class": "formal",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.5,
+   "max": 0.5,
+   "confidence": "high",
+   "verdict": null,
+   "path": "formal",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Проверено кодом: grep: вхождений 'jackc/pgx': 1 (нужно от 1)",
+   "repeats": [],
+   "runtime": []
+  },
+  {
+   "key": "clean_layers",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Слои выделены отдельными пакетами: internal/handlers (handler), internal/usecase (service), internal/repository (storage), internal/model/entity/dto (модели). Каждый слой имеет свои типы и конструкторы.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Слои выделены отдельными пакетами: internal/handlers (handler), internal/usecase (service), internal/repository (storage), internal/model/entity/dto (модели). Каждый слой имеет свои типы и конструкторы.",
+     "evidence": [
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 14,
+       "line_end": 16,
+       "quote": "type CourierController struct {\n\tuseCase courierUseCase\n}"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 14,
+       "line_end": 16,
+       "quote": "type CourierUseCase struct {\n\trepository courierRepository\n}"
+      },
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 15,
+       "line_end": 17,
+       "quote": "type CourierRepository struct {\n\tpool *pgxpool.Pool\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Слои выделены отдельными пакетами: internal/handlers (handler), internal/usecase (service), internal/repository (storage), internal/model/entity/dto (модели). Каждый слой имеет свои типы и конструкторы.",
+     "evidence": [
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 14,
+       "line_end": 16,
+       "quote": "type CourierController struct {\n\tuseCase courierUseCase\n}"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 14,
+       "line_end": 16,
+       "quote": "type CourierUseCase struct {\n\trepository courierRepository\n}"
+      },
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 15,
+       "line_end": 17,
+       "quote": "type CourierRepository struct {\n\tpool *pgxpool.Pool\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "di_constructors",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Все зависимости внедряются через конструкторы New*, которые принимают зависимости параметрами; глобальных синглтонов нет.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Все зависимости внедряются через конструкторы New*, которые принимают зависимости параметрами; глобальных синглтонов нет.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 36,
+       "line_end": 38,
+       "quote": "courierRepo := repository.NewCourierRepository(db)\n\tcourierUC := usecase.NewCourierUseCase(courierRepo)\n\tcourierCtrl := handlers.NewCourierController(courierUC)"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 18,
+       "line_end": 20,
+       "quote": "func NewCourierUseCase(repository courierRepository) *CourierUseCase {\n\treturn &CourierUseCase{repository: repository}\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Все зависимости внедряются через конструкторы New*, которые принимают зависимости параметрами; глобальных синглтонов нет.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 36,
+       "line_end": 38,
+       "quote": "courierRepo := repository.NewCourierRepository(db)\n\tcourierUC := usecase.NewCourierUseCase(courierRepo)\n\tcourierCtrl := handlers.NewCourierController(courierUC)"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 18,
+       "line_end": 20,
+       "quote": "func NewCourierUseCase(repository courierRepository) *CourierUseCase {\n\treturn &CourierUseCase{repository: repository}\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "constructors_interfaces",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Конструкторы между слоями принимают интерфейсы и возвращают структуры: usecase.NewCourierUseCase(courierRepository) и handlers.NewCourierController(courierUseCase). Конструктор репозитория принимает конкретный pgxpool.Pool, что допустимо по подсказке.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Конструкторы между слоями принимают интерфейсы и возвращают структуры: usecase.NewCourierUseCase(courierRepository) и handlers.NewCourierController(courierUseCase). Конструктор репозитория принимает конкретный pgxpool.Pool, что допустимо по подсказке.",
+     "evidence": [
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 18,
+       "line_end": 18,
+       "quote": "func NewCourierUseCase(repository courierRepository) *CourierUseCase {"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 18,
+       "line_end": 20,
+       "quote": "func NewCourierController(useCase courierUseCase) *CourierController {\n\treturn &CourierController{useCase: useCase}\n}"
+      },
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 14,
+       "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "Конструкторы между слоями принимают интерфейсы и возвращают структуры: usecase.NewCourierUseCase(courierRepository) и handlers.NewCourierController(courierUseCase). Конструктор репозитория принимает конкретный pgxpool.Pool, что допустимо по подсказке.",
+     "evidence": [
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 18,
+       "line_end": 20,
+       "quote": "func NewCourierUseCase(repository courierRepository) *CourierUseCase {\n\treturn &CourierUseCase{repository: repository}\n}"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 18,
+       "line_end": 20,
+       "quote": "func NewCourierController(useCase courierUseCase) *CourierController {\n\treturn &CourierController{useCase: useCase}\n}"
+      },
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 14,
+       "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "interfaces_at_use",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Интерфейс репозитория объявлен в пакете usecase (место использования), а не в repository; интерфейс usecase объявлен в handlers.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Интерфейс репозитория объявлен в пакете usecase (место использования), а не в repository; интерфейс usecase объявлен в handlers.",
+     "evidence": [
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 14,
+       "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}"
+      },
+      {
+       "path": "internal/handlers/contract.go",
+       "line_start": 10,
+       "line_end": 15,
+       "quote": "type courierUseCase interface {\n\tGetCourier(ctx context.Context, id int) (*model.Courier, error)\n\tGetCouriers(ctx context.Context) ([]model.Courier, error)\n\tCreateCourier(ctx context.Context, req *dto.CourierCreateRequest) (int, error)\n\tUpdateCourier(ctx context.Context, req *dto.CourierUpdateRequest) error\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Интерфейс репозитория объявлен в пакете usecase (место использования), а не в repository; интерфейс usecase — в пакете handlers.",
+     "evidence": [
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 14,
+       "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}"
+      },
+      {
+       "path": "internal/handlers/contract.go",
+       "line_start": 10,
+       "line_end": 15,
+       "quote": "type courierUseCase interface {\n\tGetCourier(ctx context.Context, id int) (*model.Courier, error)\n\tGetCouriers(ctx context.Context) ([]model.Courier, error)\n\tCreateCourier(ctx context.Context, req *dto.CourierCreateRequest) (int, error)\n\tUpdateCourier(ctx context.Context, req *dto.CourierUpdateRequest) error\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "interfaces_private",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Оба интерфейса объявлены с маленькой буквы: courierRepository и courierUseCase, что соответствует требованию приватности.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Оба интерфейса объявлены с маленькой буквы: courierRepository и courierUseCase, что соответствует требованию приватности.",
+     "evidence": [
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "type courierRepository interface {"
+      },
+      {
+       "path": "internal/handlers/contract.go",
+       "line_start": 10,
+       "line_end": 10,
+       "quote": "type courierUseCase interface {"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Оба интерфейса, используемые в слоях, объявлены с маленькой буквы, что соответствует требованию приватности.",
+     "evidence": [
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 9,
+       "quote": "type courierRepository interface {"
+      },
+      {
+       "path": "internal/handlers/contract.go",
+       "line_start": 10,
+       "line_end": 10,
+       "quote": "type courierUseCase interface {"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "no_layer_leaks",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Доменные модели (entity.Courier, model.Courier) не содержат json/db тегов, а JSON-теги вынесены в отдельный DTO-пакет internal/dto.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Доменные модели (entity.Courier, model.Courier) не содержат json/db тегов, а JSON-теги вынесены в отдельный DTO-пакет internal/dto.",
+     "evidence": [
+      {
+       "path": "internal/entity/courier.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/model/models.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string    // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/dto/courier.go",
+       "line_start": 3,
+       "line_end": 7,
+       "quote": "type CourierCreateRequest struct {\n\tName   string `json:\"name\"`\n\tPhone  string `json:\"phone\"`\n\tStatus string `json:\"status\"`\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Доменные модели (entity.Courier, model.Courier) не содержат json/db тегов, а JSON-теги вынесены в отдельный DTO-пакет internal/dto.",
+     "evidence": [
+      {
+       "path": "internal/entity/courier.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/model/models.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName      string\n\tPhone     string\n\tStatus    string    // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/dto/courier.go",
+       "line_start": 3,
+       "line_end": 7,
+       "quote": "type CourierCreateRequest struct {\n\tName   string `json:\"name\"`\n\tPhone  string `json:\"phone\"`\n\tStatus string `json:\"status\"`\n}"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "no_sql_in_usecase",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.5,
+   "max": 1.5,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В usecase нет SQL-запросов: работа идёт через абстракцию courierRepository, ошибки БД маппятся в доменные в репозитории.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "В usecase нет SQL-запросов: работа идёт через абстракцию courierRepository, ошибки БД маппятся в доменные в репозитории.",
+     "evidence": [
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 14,
+       "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 89,
+       "line_end": 95,
+       "quote": "id, err := u.repository.Create(ctx, courier)\n\n\tif err != nil {\n\t\tif errors.Is(err, repository.ErrConflict) {\n\t\t\treturn 0, ErrPhoneExists\n\t\t}\n\t\treturn 0, err"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.5,
+     "confidence": "high",
+     "reason": "В usecase нет SQL-запросов: работа идёт через абстракцию courierRepository, ошибки БД маппятся в доменные в репозитории.",
+     "evidence": [
+      {
+       "path": "internal/usecase/contract.go",
+       "line_start": 9,
+       "line_end": 14,
+       "quote": "type courierRepository interface {\n\tGetOneByID(ctx context.Context, id int) (*entity.Courier, error)\n\tGetAll(ctx context.Context) ([]entity.Courier, error)\n\tCreate(ctx context.Context, courier *entity.Courier) (int, error)\n\tUpdate(ctx context.Context, courier *entity.Courier) error\n}"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 89,
+       "line_end": 95,
+       "quote": "id, err := u.repository.Create(ctx, courier)\n\n\tif err != nil {\n\t\tif errors.Is(err, repository.ErrConflict) {\n\t\t\treturn 0, ErrPhoneExists\n\t\t}\n\t\treturn 0, err"
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "no_logic_in_handlers",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 1.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "pass",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Обработчики только разбирают запрос, вызывают usecase и формируют HTTP-ответ; бизнес-правила вынесены в usecase, что подтверждается цитатами.",
+   "repeats": [
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Обработчики только разбирают запрос, вызывают usecase и формируют HTTP-ответ; бизнес-правила вынесены в usecase, что подтверждается цитатами.",
+     "evidence": [
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 79,
+       "line_end": 86,
+       "quote": "func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {\n\tvar req dto.CourierCreateRequest\n\tif err := json.NewDecoder(r.Body).Decode(&req); err != nil {\n\t\thttp.Error(w, `{\"error\":\"invalid json\"}`, http.StatusBadRequest)\n\t\treturn\n\t}\n\n\tid, err := c.useCase.CreateCourier(r.Context()"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 37,
+       "line_end": 48,
+       "quote": "cr, err := c.useCase.GetCourier(r.Context(), id)\n\tif err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrBadRequest:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\""
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    },
+    {
+     "verdict": "pass",
+     "proposed_points": 1.0,
+     "confidence": "high",
+     "reason": "Обработчики только разбирают запрос, вызывают usecase и формируют HTTP-ответ; бизнес-правила вынесены в usecase.",
+     "evidence": [
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 79,
+       "line_end": 86,
+       "quote": "func (c *CourierController) Create(w http.ResponseWriter, r *http.Request) {\n\tvar req dto.CourierCreateRequest\n\tif err := json.NewDecoder(r.Body).Decode(&req); err != nil {\n\t\thttp.Error(w, `{\"error\":\"invalid json\"}`, http.StatusBadRequest)\n\t\treturn\n\t}\n\n\tid, err := c.useCase.CreateCourier(r.Context()"
+      },
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 37,
+       "line_end": 48,
+       "quote": "cr, err := c.useCase.GetCourier(r.Context(), id)\n\tif err != nil {\n\t\tswitch err {\n\t\tcase usecase.ErrNotFound:\n\t\t\thttp.Error(w, `{\"error\":\"not found\"}`, http.StatusNotFound)\n\t\tcase usecase.ErrBadRequest:\n\t\t\thttp.Error(w, `{\"error\":\"bad request\"}`, http.StatusBadRequest)\n\t\tdefault:\n\t\t\thttp.Error(w, `{\""
+      }
+     ],
+     "missing": [],
+     "reviewer_note": "",
+     "student_feedback": ""
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "thin_models",
+   "class": "judgement",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.5,
+   "max": 1.0,
+   "confidence": "low",
+   "verdict": "partial",
+   "path": "model",
+   "verified": 2,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Модель Courier тонкая, содержит только допустимый валидатор IsValidStatus, но обработчики в срезе не показаны, поэтому оценить их краткость невозможно.",
+   "repeats": [
+    {
+     "verdict": "partial",
+     "proposed_points": 0.5,
+     "confidence": "low",
+     "reason": "Модель Courier тонкая, содержит только допустимый валидатор IsValidStatus, но обработчики в срезе не показаны, поэтому оценить их краткость невозможно.",
+     "evidence": [
+      {
+       "path": "internal/model/models.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName     string\n\tPhone    string\n\tStatus   string // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/model/models.go",
+       "line_start": 20,
+       "line_end": 26,
+       "quote": "func IsValidStatus(s string) bool {\n\tswitch s {\n\tcase StatusAvailable, StatusBusy, StatusPaused:\n\t\treturn true\n\t}\n\treturn false\n}"
+      }
+     ],
+     "missing": [
+      "Обработчики (handlers) не представлены в срезе, поэтому их краткость не проверена."
+     ],
+     "reviewer_note": "Проверьте обработчики в полной работе: должны быть короткими (разбор запроса, вызов usecase, ответ).",
+     "student_feedback": "Покажите обработчики, чтобы можно было оценить их краткость."
+    },
+    {
+     "verdict": "partial",
+     "proposed_points": 0.5,
+     "confidence": "low",
+     "reason": "Модель Courier тонкая, содержит только допустимый валидатор IsValidStatus, но обработчики в срезе не показаны, поэтому оценить их краткость невозможно.",
+     "evidence": [
+      {
+       "path": "internal/model/models.go",
+       "line_start": 5,
+       "line_end": 12,
+       "quote": "type Courier struct {\n\tID        int\n\tName     string\n\tPhone    string\n\tStatus   string // \"available\" | \"busy\" | \"paused\"\n\tCreatedAt time.Time\n\tUpdatedAt time.Time\n}"
+      },
+      {
+       "path": "internal/model/models.go",
+       "line_start": 20,
+       "line_end": 26,
+       "quote": "func IsValidStatus(s string) bool {\n\tswitch s {\n\tcase StatusAvailable, StatusBusy, StatusPaused:\n\t\treturn true\n\t}\n\treturn false\n}"
+      }
+     ],
+     "missing": [
+      "Обработчики (handlers) не представлены в срезе, поэтому их краткость не проверена."
+     ],
+     "reviewer_note": "Проверьте обработчики в полной работе: должны быть короткими (разбор запроса, вызов usecase, ответ).",
+     "student_feedback": "Покажите обработчики, чтобы можно было оценить их краткость."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "layer_packages",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 1.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 3,
+   "dropped": 0,
+   "flags": [],
+   "reason": "Слой handlers и repository представлены одним плоским пакетом на этаж, без подпакетов по сущностям (например internal/handlers/courier, internal/repository/courier).",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Слой handlers и repository представлены одним плоским пакетом на этаж, без подпакетов по сущностям (например internal/handlers/courier, internal/repository/courier).",
+     "evidence": [
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package handlers"
+      },
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package repository"
+      }
+     ],
+     "missing": [
+      "Подпакеты по сущностям внутри слоёв handlers и repository не найдены; искал в каталогах internal/handlers и internal/repository"
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Разбейте слои handlers и repository на подпакеты по сущностям, например internal/handlers/courier и internal/repository/courier."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "Слои handlers, repository и usecase представлены одним плоским пакетом на этаж (package handlers, package repository, package usecase), без подпакетов по сущностям, как требует критерий.",
+     "evidence": [
+      {
+       "path": "internal/handlers/controller.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package handlers"
+      },
+      {
+       "path": "internal/repository/courier.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package repository"
+      },
+      {
+       "path": "internal/usecase/courier.go",
+       "line_start": 1,
+       "line_end": 1,
+       "quote": "package usecase"
+      }
+     ],
+     "missing": [
+      "Подпакеты по сущностям внутри слоёв (например internal/handler/courier, internal/repository/courier) не найдены; каждый слой — один плоский пакет."
+     ],
+     "reviewer_note": "",
+     "student_feedback": "Разбейте каждый слой на подпакеты по сущностям, например internal/handler/courier и internal/repository/courier."
+    }
+   ],
+   "runtime": []
+  },
+  {
+   "key": "di_package",
+   "class": "content",
+   "class_source": "assignment",
+   "status": "suggested",
+   "points": 0.0,
+   "max": 2.0,
+   "confidence": "high",
+   "verdict": "fail",
+   "path": "model",
+   "verified": 1,
+   "dropped": 0,
+   "flags": [],
+   "reason": "В работе нет DI-пакета (dig/fx/wire/do) в go.mod и контейнера в main; зависимости собираются вручную в main.go.",
+   "repeats": [
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет DI-пакета (dig/fx/wire/do) в go.mod и контейнера в main; зависимости собираются вручную в main.go.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 36,
+       "line_end": 38,
+       "quote": "courierRepo := repository.NewCourierRepository(db)\n\tcourierUC := usecase.NewCourierUseCase(courierRepo)\n\tcourierCtrl := handlers.NewCourierController(courierUC)"
+      }
+     ],
+     "missing": [
+      "DI-пакет (dig/fx/wire/do) в go.mod/go.sum",
+      "контейнер в main"
+     ],
+     "reviewer_note": "Проверьте go.mod и main.go: DI-пакет отсутствует, зависимости создаются вручную.",
+     "student_feedback": "Добавьте DI-пакет (например, dig) и контейнер в main."
+    },
+    {
+     "verdict": "fail",
+     "proposed_points": 0.0,
+     "confidence": "high",
+     "reason": "В работе нет DI-пакета (dig/fx/wire/do) в go.mod и контейнера в main; зависимости собираются вручную в main.go.",
+     "evidence": [
+      {
+       "path": "cmd/service-courier/main.go",
+       "line_start": 36,
+       "line_end": 38,
+       "quote": "courierRepo := repository.NewCourierRepository(db)\n\tcourierUC := usecase.NewCourierUseCase(courierRepo)\n\tcourierCtrl := handlers.NewCourierController(courierUC)"
+      }
+     ],
+     "missing": [
+      "DI-пакет (dig/fx/wire/do) в go.mod/go.sum",
+      "контейнер в main"
+     ],
+     "reviewer_note": "Проверьте go.mod и main.go: DI-пакет отсутствует, зависимости создаются вручную.",
+     "student_feedback": "Добавьте DI-пакет (например, dig) и контейнер в main."
+    }
+   ],
+   "runtime": []
+  }
+ ],
+ "signal": {
+  "level": "low",
+  "declaration": "not_declared",
+  "grounds": [],
+  "not_available": [
+   "история git: снимок GitHub приходит без .git, признаки процесса (один коммит перед дедлайном, авторство) недоступны",
+   "стилометрия относительно прошлых работ студента: нет доступа к предыдущим сдачам"
+  ],
+  "questions": [
+   "В коде есть дублирование структур model.Courier и entity.Courier, а также лишний импорт repository в usecase. Расскажи, как ты видишь разделение ответственности между слоями и что бы ты изменил, чтобы убрать это дублирование и лишнюю зависимость?",
+   "Лог старта уходит в stderr, а не в stdout (например, сообщение «service-courier listening on :59598»). Как ты настраиваешь вывод логов в своём сервисе и что нужно поменять, чтобы он попадал в stdout?",
+   "Ping к базе данных выполняется один раз без цикла повторов. Если база временно недоступна при старте, сервис сразу завершится. Как бы ты добавил ретрай с задержкой вокруг Ping, чтобы сервис переживал кратковременные сбои подключения?"
+  ]
+ },
+ "ledger": {
+  "calls": 75,
+  "prompt_tokens": 1466916,
+  "completion_tokens": 91089,
+  "cache_hit_tokens": 1358208,
+  "cost_usd": 0.0561,
+  "cost_rub": 4.49,
+  "usd_rub": 80.0,
+  "usd_rub_note": "допущение",
+  "elapsed_seconds": 657.5,
+  "by_tag": {
+   "harness": {
+    "calls": 1,
+    "prompt_tokens": 15509,
+    "completion_tokens": 16696,
+    "cost_usd": 0.00495
+   },
+   "judge:server_starts#1": {
+    "calls": 1,
+    "prompt_tokens": 18209,
+    "completion_tokens": 1007,
+    "cost_usd": 0.00167
+   },
+   "judge:start_log#1": {
+    "calls": 1,
+    "prompt_tokens": 18062,
+    "completion_tokens": 1005,
+    "cost_usd": 0.00165
+   },
+   "judge:port_env#1": {
+    "calls": 1,
+    "prompt_tokens": 18161,
+    "completion_tokens": 1086,
+    "cost_usd": 0.00167
+   },
+   "judge:code_quality#1": {
+    "calls": 1,
+    "prompt_tokens": 35615,
+    "completion_tokens": 2072,
+    "cost_usd": 0.0036
+   },
+   "judge:server_starts#2": {
+    "calls": 1,
+    "prompt_tokens": 18209,
+    "completion_tokens": 1067,
+    "cost_usd": 0.00037
+   },
+   "judge:port_env#2": {
+    "calls": 1,
+    "prompt_tokens": 18161,
+    "completion_tokens": 1074,
+    "cost_usd": 0.00037
+   },
+   "judge:start_log#2": {
+    "calls": 1,
+    "prompt_tokens": 18062,
+    "completion_tokens": 986,
+    "cost_usd": 0.00036
+   },
+   "judge:ping#1": {
+    "calls": 1,
+    "prompt_tokens": 18446,
+    "completion_tokens": 845,
+    "cost_usd": 0.00112
+   },
+   "judge:healthcheck#1": {
+    "calls": 1,
+    "prompt_tokens": 18107,
+    "completion_tokens": 711,
+    "cost_usd": 0.00049
+   },
+   "judge:graceful_signal#1": {
+    "calls": 1,
+    "prompt_tokens": 18263,
+    "completion_tokens": 1066,
+    "cost_usd": 0.00059
+   },
+   "judge:code_quality#2": {
+    "calls": 1,
+    "prompt_tokens": 35615,
+    "completion_tokens": 1772,
+    "cost_usd": 0.00064
+   },
+   "judge:ping#2": {
+    "calls": 1,
+    "prompt_tokens": 18446,
+    "completion_tokens": 826,
+    "cost_usd": 0.00032
+   },
+   "judge:healthcheck#2": {
+    "calls": 1,
+    "prompt_tokens": 18107,
+    "completion_tokens": 697,
+    "cost_usd": 0.00025
+   },
+   "judge:graceful_signal#2": {
+    "calls": 1,
+    "prompt_tokens": 18263,
+    "completion_tokens": 1116,
+    "cost_usd": 0.00039
+   },
+   "judge:graceful_context#1": {
+    "calls": 1,
+    "prompt_tokens": 17825,
+    "completion_tokens": 843,
+    "cost_usd": 0.00048
+   },
+   "judge:shutdown_log#1": {
+    "calls": 1,
+    "prompt_tokens": 17954,
+    "completion_tokens": 648,
+    "cost_usd": 0.00045
+   },
+   "judge:port_flag#1": {
+    "calls": 1,
+    "prompt_tokens": 17867,
+    "completion_tokens": 779,
+    "cost_usd": 0.00047
+   },
+   "judge:shutdown_log#2": {
+    "calls": 1,
+    "prompt_tokens": 11950,
+    "completion_tokens": 483,
+    "cost_usd": 0.00019
+   },
+   "judge:graceful_context#2": {
+    "calls": 1,
+    "prompt_tokens": 17825,
+    "completion_tokens": 828,
+    "cost_usd": 0.0003
+   },
+   "observe:code_quality": {
+    "calls": 1,
+    "prompt_tokens": 32782,
+    "completion_tokens": 2089,
+    "cost_usd": 0.0007
+   },
+   "judge:port_flag#2": {
+    "calls": 1,
+    "prompt_tokens": 17867,
+    "completion_tokens": 779,
+    "cost_usd": 0.0003
+   },
+   "judge:flag_over_env#1": {
+    "calls": 1,
+    "prompt_tokens": 18017,
+    "completion_tokens": 842,
+    "cost_usd": 0.00051
+   },
+   "judge:db_defer_close#1": {
+    "calls": 1,
+    "prompt_tokens": 17558,
+    "completion_tokens": 519,
+    "cost_usd": 0.00037
+   },
+   "judge:db_connect#1": {
+    "calls": 1,
+    "prompt_tokens": 18338,
+    "completion_tokens": 1226,
+    "cost_usd": 0.00065
+   },
+   "judge:db_ping#1": {
+    "calls": 1,
+    "prompt_tokens": 17714,
+    "completion_tokens": 611,
+    "cost_usd": 0.0004
+   },
+   "judge:db_defer_close#2": {
+    "calls": 1,
+    "prompt_tokens": 17558,
+    "completion_tokens": 515,
+    "cost_usd": 0.00023
+   },
+   "judge:flag_over_env#2": {
+    "calls": 1,
+    "prompt_tokens": 18017,
+    "completion_tokens": 858,
+    "cost_usd": 0.00032
+   },
+   "judge:db_ping#2": {
+    "calls": 1,
+    "prompt_tokens": 17714,
+    "completion_tokens": 616,
+    "cost_usd": 0.00023
+   },
+   "judge:db_connect#2": {
+    "calls": 1,
+    "prompt_tokens": 18338,
+    "completion_tokens": 1347,
+    "cost_usd": 0.00047
+   },
+   "judge:db_ping_retry#1": {
+    "calls": 1,
+    "prompt_tokens": 17753,
+    "completion_tokens": 748,
+    "cost_usd": 0.00045
+   },
+   "judge:db_panic#1": {
+    "calls": 1,
+    "prompt_tokens": 18125,
+    "completion_tokens": 885,
+    "cost_usd": 0.00052
+   },
+   "judge:db_ping_retry#2": {
+    "calls": 1,
+    "prompt_tokens": 5908,
+    "completion_tokens": 283,
+    "cost_usd": 0.0001
+   },
+   "judge:migrations_tool#1": {
+    "calls": 1,
+    "prompt_tokens": 14996,
+    "completion_tokens": 830,
+    "cost_usd": 0.00131
+   },
+   "judge:migrations_command#1": {
+    "calls": 1,
+    "prompt_tokens": 14801,
+    "completion_tokens": 880,
+    "cost_usd": 0.00065
+   },
+   "judge:db_panic#2": {
+    "calls": 1,
+    "prompt_tokens": 18125,
+    "completion_tokens": 893,
+    "cost_usd": 0.00031
+   },
+   "judge:migrations_clean#1": {
+    "calls": 1,
+    "prompt_tokens": 14003,
+    "completion_tokens": 1085,
+    "cost_usd": 0.00063
+   },
+   "judge:migrations_command#2": {
+    "calls": 1,
+    "prompt_tokens": 14801,
+    "completion_tokens": 871,
+    "cost_usd": 0.00031
+   },
+   "judge:migrations_tool#2": {
+    "calls": 1,
+    "prompt_tokens": 14996,
+    "completion_tokens": 877,
+    "cost_usd": 0.00033
+   },
+   "judge:migrations_clean#2": {
+    "calls": 1,
+    "prompt_tokens": 9316,
+    "completion_tokens": 891,
+    "cost_usd": 0.00029
+   },
+   "judge:migrations_idempotent#1": {
+    "calls": 1,
+    "prompt_tokens": 13793,
+    "completion_tokens": 833,
+    "cost_usd": 0.00055
+   },
+   "judge:crud_get#1": {
+    "calls": 1,
+    "prompt_tokens": 22907,
+    "completion_tokens": 1221,
+    "cost_usd": 0.00109
+   },
+   "judge:crud_post#1": {
+    "calls": 1,
+    "prompt_tokens": 22853,
+    "completion_tokens": 1215,
+    "cost_usd": 0.00108
+   },
+   "judge:migrations_idempotent#2": {
+    "calls": 1,
+    "prompt_tokens": 13793,
+    "completion_tokens": 800,
+    "cost_usd": 0.00029
+   },
+   "judge:crud_put#1": {
+    "calls": 1,
+    "prompt_tokens": 22814,
+    "completion_tokens": 1374,
+    "cost_usd": 0.0007
+   },
+   "judge:crud_get#2": {
+    "calls": 1,
+    "prompt_tokens": 22907,
+    "completion_tokens": 1237,
+    "cost_usd": 0.00044
+   },
+   "judge:crud_post#2": {
+    "calls": 1,
+    "prompt_tokens": 22853,
+    "completion_tokens": 1227,
+    "cost_usd": 0.00043
+   },
+   "judge:sql_safety#1": {
+    "calls": 1,
+    "prompt_tokens": 17996,
+    "completion_tokens": 1610,
+    "cost_usd": 0.00116
+   },
+   "judge:crud_put#2": {
+    "calls": 1,
+    "prompt_tokens": 22814,
+    "completion_tokens": 1335,
+    "cost_usd": 0.00046
+   },
+   "judge:clean_layers#1": {
+    "calls": 1,
+    "prompt_tokens": 26165,
+    "completion_tokens": 941,
+    "cost_usd": 0.00173
+   },
+   "judge:di_constructors#1": {
+    "calls": 1,
+    "prompt_tokens": 34709,
+    "completion_tokens": 1029,
+    "cost_usd": 0.00214
+   },
+   "judge:constructors_interfaces#1": {
+    "calls": 1,
+    "prompt_tokens": 30647,
+    "completion_tokens": 1283,
+    "cost_usd": 0.00226
+   },
+   "judge:sql_safety#2": {
+    "calls": 1,
+    "prompt_tokens": 17996,
+    "completion_tokens": 1598,
+    "cost_usd": 0.00053
+   },
+   "judge:clean_layers#2": {
+    "calls": 1,
+    "prompt_tokens": 26165,
+    "completion_tokens": 937,
+    "cost_usd": 0.00034
+   },
+   "judge:di_constructors#2": {
+    "calls": 1,
+    "prompt_tokens": 34709,
+    "completion_tokens": 1029,
+    "cost_usd": 0.00041
+   },
+   "judge:interfaces_private#1": {
+    "calls": 1,
+    "prompt_tokens": 14126,
+    "completion_tokens": 652,
+    "cost_usd": 0.00053
+   },
+   "judge:interfaces_at_use#1": {
+    "calls": 1,
+    "prompt_tokens": 30419,
+    "completion_tokens": 889,
+    "cost_usd": 0.00212
+   },
+   "judge:constructors_interfaces#2": {
+    "calls": 1,
+    "prompt_tokens": 30647,
+    "completion_tokens": 1133,
+    "cost_usd": 0.00045
+   },
+   "judge:interfaces_private#2": {
+    "calls": 1,
+    "prompt_tokens": 14126,
+    "completion_tokens": 658,
+    "cost_usd": 0.00027
+   },
+   "judge:no_layer_leaks#1": {
+    "calls": 1,
+    "prompt_tokens": 15245,
+    "completion_tokens": 1281,
+    "cost_usd": 0.00081
+   },
+   "judge:interfaces_at_use#2": {
+    "calls": 1,
+    "prompt_tokens": 30419,
+    "completion_tokens": 1186,
+    "cost_usd": 0.00043
+   },
+   "judge:no_sql_in_usecase#1": {
+    "calls": 1,
+    "prompt_tokens": 18854,
+    "completion_tokens": 1120,
+    "cost_usd": 0.00109
+   },
+   "judge:no_logic_in_handlers#1": {
+    "calls": 1,
+    "prompt_tokens": 22820,
+    "completion_tokens": 1309,
+    "cost_usd": 0.00068
+   },
+   "judge:no_layer_leaks#2": {
+    "calls": 1,
+    "prompt_tokens": 15245,
+    "completion_tokens": 1281,
+    "cost_usd": 0.00044
+   },
+   "judge:no_sql_in_usecase#2": {
+    "calls": 1,
+    "prompt_tokens": 18854,
+    "completion_tokens": 1072,
+    "cost_usd": 0.00036
+   },
+   "judge:thin_models#1": {
+    "calls": 1,
+    "prompt_tokens": 13982,
+    "completion_tokens": 1206,
+    "cost_usd": 0.00066
+   },
+   "judge:no_logic_in_handlers#2": {
+    "calls": 1,
+    "prompt_tokens": 22820,
+    "completion_tokens": 1258,
+    "cost_usd": 0.00044
+   },
+   "judge:layer_packages#1": {
+    "calls": 1,
+    "prompt_tokens": 26126,
+    "completion_tokens": 934,
+    "cost_usd": 0.00174
+   },
+   "judge:di_package#1": {
+    "calls": 1,
+    "prompt_tokens": 17843,
+    "completion_tokens": 878,
+    "cost_usd": 0.0005
+   },
+   "judge:thin_models#2": {
+    "calls": 1,
+    "prompt_tokens": 13982,
+    "completion_tokens": 1173,
+    "cost_usd": 0.00039
+   },
+   "judge:di_package#2": {
+    "calls": 1,
+    "prompt_tokens": 17843,
+    "completion_tokens": 869,
+    "cost_usd": 0.00032
+   },
+   "judge:layer_packages#2": {
+    "calls": 1,
+    "prompt_tokens": 26126,
+    "completion_tokens": 1056,
+    "cost_usd": 0.00041
+   },
+   "observe:thin_models": {
+    "calls": 1,
+    "prompt_tokens": 32725,
+    "completion_tokens": 1660,
+    "cost_usd": 0.00057
+   },
+   "qa_questions": {
+    "calls": 1,
+    "prompt_tokens": 2835,
+    "completion_tokens": 241,
+    "cost_usd": 0.00036
+   },
+   "feedback": {
+    "calls": 1,
+    "prompt_tokens": 3375,
+    "completion_tokens": 312,
+    "cost_usd": 0.00052
+   }
+  }
+ },
+ "flags": [
+  "secret_file_present",
+  "runtime_checked"
+ ],
+ "errors": [],
+ "elapsed_seconds": 258.0
+}
