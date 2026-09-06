@@ -837,6 +837,20 @@
       "EditorDraftInput": {
         "additionalProperties": false,
         "properties": {
+          "allowed_sources": {
+            "items": {
+              "enum": [
+                "upload",
+                "github",
+                "google_docs"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Allowed Sources",
+            "type": "array"
+          },
           "artifact_kinds": {
             "items": {
               "enum": [
@@ -1691,6 +1705,20 @@
       "PrivateHomeworkInput": {
         "additionalProperties": false,
         "properties": {
+          "allowed_sources": {
+            "items": {
+              "enum": [
+                "upload",
+                "github",
+                "google_docs"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Allowed Sources",
+            "type": "array"
+          },
           "criterion_classes": {
             "additionalProperties": {
               "enum": [
@@ -1744,6 +1772,20 @@
       "PrivateHomeworkView": {
         "additionalProperties": false,
         "properties": {
+          "allowed_sources": {
+            "items": {
+              "enum": [
+                "upload",
+                "github",
+                "google_docs"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Allowed Sources",
+            "type": "array"
+          },
           "criterion_classes": {
             "additionalProperties": {
               "enum": [
@@ -3187,6 +3229,20 @@
       "StudentContext": {
         "additionalProperties": false,
         "properties": {
+          "allowed_sources": {
+            "items": {
+              "enum": [
+                "upload",
+                "github",
+                "google_docs"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Allowed Sources",
+            "type": "array"
+          },
           "course_run_id": {
             "format": "uuid",
             "title": "Course Run Id",

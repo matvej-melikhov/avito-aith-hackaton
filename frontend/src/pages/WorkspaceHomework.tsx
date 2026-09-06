@@ -41,26 +41,11 @@ function reviewDeadline(submission: Date) {
   return at;
 }
 
-type Kind = "github" | "google_docs";
-/* Формат сдачи: что принимаем ссылкой. Файл студент может приложить всегда,
-   поэтому пустой набор — «только файлы».                                    */
-const KIND_SETS: Record<string, Kind[]> = {
-  both: ["github", "google_docs"],
-  github: ["github"],
-  google_docs: ["google_docs"],
-  files: [],
-};
-const KIND_OPTIONS = [
-  { value: "both", label: "GitHub и Google Docs" },
-  { value: "github", label: "Только GitHub" },
-  { value: "google_docs", label: "Только Google Docs" },
-  { value: "files", label: "Только файлы" },
+const DEFAULT_SOURCES: NonNullable<W<"EditorDraftInput">["allowed_sources"]> = [
+  "upload",
+  "github",
+  "google_docs",
 ];
-function kindsValue(kinds: Kind[] | undefined) {
-  const set = kinds ?? [];
-  if (set.length > 1) return "both";
-  return set[0] ?? "files";
-}
 
 /* Условие пишется в markdown, поэтому рядом лежат самые частые обёртки. */
 const MARKS: { label: string; title: string; wrap: [string, string] }[] = [
@@ -236,6 +221,7 @@ function versionContent(value: W<"EditorDraftInput">) {
     value.max_score,
     value.estimated_review_minutes,
     value.artifact_kinds,
+    value.allowed_sources ?? DEFAULT_SOURCES,
     value.criteria?.map((c) => [
       c.key,
       c.title,
@@ -294,6 +280,7 @@ function HomeworkWizard({
     max_score: data.latest?.max_score ?? 0,
     estimated_review_minutes: data.latest?.estimated_review_minutes ?? 30,
     artifact_kinds: data.latest?.artifact_kinds ?? ["github", "google_docs"],
+    allowed_sources: data.privateDetails?.allowed_sources ?? DEFAULT_SOURCES,
     criteria:
       data.latest?.criteria.map((c) => ({
         key: c.key,
@@ -325,6 +312,10 @@ function HomeworkWizard({
   };
   const [draft, setDraft] = useState<W<"EditorDraftInput">>({
     ...initial,
+    allowed_sources:
+      initial.allowed_sources ??
+      data.privateDetails?.allowed_sources ??
+      DEFAULT_SOURCES,
     max_score: (initial.criteria ?? []).reduce(
       (sum, c) => sum + (c.max_points ?? 0),
       0,
@@ -352,6 +343,8 @@ function HomeworkWizard({
           max_score: data.latest.max_score,
           estimated_review_minutes: data.latest.estimated_review_minutes,
           artifact_kinds: data.latest.artifact_kinds,
+          allowed_sources:
+            data.privateDetails?.allowed_sources ?? DEFAULT_SOURCES,
           criteria: data.latest.criteria.map((c) => ({
             key: c.key,
             title: c.title,
@@ -436,6 +429,8 @@ function HomeworkWizard({
     const pending = saveQueue.current.then(async () => {
       let next = draftRef.current;
       const original = next;
+      if (!next.allowed_sources?.length)
+        throw new Error("Выберите хотя бы один тип ответа: ссылки или файлы.");
       setAutoStatus("Сохраняется…");
       if (referenceRef.current) {
         const file = await uploadFile(
@@ -501,6 +496,7 @@ function HomeworkWizard({
   useEffect(() => {
     if (
       !dirty ||
+      !draft.allowed_sources?.length ||
       !Number.isFinite(draft.max_score) ||
       draft.criteria?.some(
         (c) => !Number.isFinite(c.score_step) || c.score_step <= 0,
@@ -520,8 +516,8 @@ function HomeworkWizard({
     const value = draft;
     if (!value.student_text.trim())
       throw new Error("Заполните условие задания.");
-    if (!value.artifact_kinds?.length)
-      throw new Error("Выберите хотя бы один формат сдачи.");
+    if (!value.allowed_sources?.length)
+      throw new Error("Выберите хотя бы один тип ответа: ссылки или файлы.");
     if (!Number.isFinite(value.max_score) || value.max_score < 0)
       throw new Error("Укажите корректный максимальный балл.");
     if (
@@ -559,7 +555,10 @@ function HomeworkWizard({
       {
         student_text: value.student_text ?? "",
         max_score: value.max_score ?? 0,
-        artifact_kinds: value.artifact_kinds ?? [],
+        // Legacy v1 требует хотя бы один вид ссылки; допуск ответа задаёт allowed_sources.
+        artifact_kinds: value.artifact_kinds?.length
+          ? value.artifact_kinds
+          : ["github", "google_docs"],
         estimated_review_minutes: value.estimated_review_minutes ?? 30,
         criteria: value.criteria.map((c) => ({
           key: c.key,
@@ -571,6 +570,7 @@ function HomeworkWizard({
     );
     await ws.command("save_private_homework", created.id, 0, {
       reviewer_guidance: value.reviewer_guidance ?? "",
+      allowed_sources: savedDraft.allowed_sources,
       reference_upload_id: savedDraft.reference_upload_id ?? null,
       material_upload_ids: savedDraft.material_upload_ids ?? [],
       criterion_settings: Object.fromEntries(
@@ -597,6 +597,19 @@ function HomeworkWizard({
   const title =
     data.title ?? data.latest?.student_text.slice(0, 60) ?? "Задание";
   const criteria = draft.criteria ?? [];
+  const sources = draft.allowed_sources ?? DEFAULT_SOURCES;
+  const linksAllowed = sources.some((source) => source !== "upload");
+  const filesAllowed = sources.includes("upload");
+  function changeSources(links: boolean, files: boolean) {
+    const existingLinks = sources.filter((source) => source !== "upload");
+    change({
+      allowed_sources: DEFAULT_SOURCES.filter((source) =>
+        source === "upload"
+          ? files
+          : links && (!existingLinks.length || existingLinks.includes(source)),
+      ),
+    });
+  }
   const stepItems = ["Для студента", "Критерии ревью", "Публикация"].map(
     (label, i) => ({
       n: i + 1,
@@ -737,13 +750,31 @@ function HomeworkWizard({
                   <Field
                     group
                     label="Что прикрепляет студент для ответа"
-                    hint="Какие ссылки принимаем. Файл Markdown, PDF или DOCX студент может приложить всегда."
+                    hint="Можно разрешить оба типа. Ссылки — GitHub или Google Docs; файлы — Markdown, PDF или DOCX."
+                    error={
+                      !sources.length
+                        ? "Выберите хотя бы один тип ответа."
+                        : undefined
+                    }
                   >
-                    <Seg
-                      value={kindsValue(draft.artifact_kinds)}
-                      onChange={(v) => change({ artifact_kinds: KIND_SETS[v] })}
-                      options={KIND_OPTIONS}
-                    />
+                    <div className="btn-row" role="group">
+                      <Chk
+                        checked={linksAllowed}
+                        onChange={(e) =>
+                          changeSources(e.target.checked, filesAllowed)
+                        }
+                      >
+                        Ссылки
+                      </Chk>
+                      <Chk
+                        checked={filesAllowed}
+                        onChange={(e) =>
+                          changeSources(linksAllowed, e.target.checked)
+                        }
+                      >
+                        Файлы
+                      </Chk>
+                    </div>
                   </Field>
                 </CardBody>
               </Card>

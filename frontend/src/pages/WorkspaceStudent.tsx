@@ -37,7 +37,6 @@ import {
 } from "../ds";
 
 type StudentContext = W<"StudentContext">;
-type Kind = "github" | "google_docs";
 const FILE_TYPES = [".md", ".pdf", ".docx"];
 const FILE_LIMIT = 10_000_000;
 
@@ -97,11 +96,23 @@ function DraftForm({
   session: Model<"Session">;
 }) {
   const [data, setData] = useState(initial);
+  const allowedSources = data.allowed_sources ?? [
+    "upload",
+    "github",
+    "google_docs",
+  ];
+  const linkKinds = allowedSources.filter((kind) => kind !== "upload");
+  const linkAllowed = linkKinds.length > 0;
+  const fileAllowed = allowedSources.includes("upload");
   const [url, setUrl] = useState(initial.draft?.artifact_url ?? "");
   const [comment, setComment] = useState(initial.draft?.comment ?? "");
   const [file, setFile] = useState<File>();
   const [source, setSource] = useState<"url" | "file">(
-    initial.draft?.upload_id ? "file" : "url",
+    initial.draft?.upload_id && fileAllowed
+      ? "file"
+      : linkAllowed
+        ? "url"
+        : "file",
   );
   const [saved, setSaved] = useState(initial.draft);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -135,26 +146,17 @@ function DraftForm({
   const current = history.data?.reviews.find(
     (v) => v.id === history.data?.current_publication_id,
   );
-  /* Какие ссылки принимает задание, задаёт организатор; файл можно всегда. */
-  const kinds = useResource(
-    async () =>
-      (await ws.core.homeworks(data.course_run_id)).items.find(
-        (h) => h.course_run_homework_id === data.publication_id,
-      )?.artifact_kinds ?? (["github", "google_docs"] as Kind[]),
-    `kinds:${data.publication_id}`,
-  );
-  const linkKinds = kinds.data ?? [];
-  const linkAllowed = kinds.loading || linkKinds.length > 0;
   /* Имя и ссылка уже загруженного файла: черновик хранит только его id. */
   const uploaded = useResource(
     async () => (saved?.upload_id ? ws.download(saved.upload_id) : null),
     `upload:${saved?.upload_id ?? "none"}`,
   );
   useEffect(() => {
-    if (!kinds.loading && !linkAllowed && source === "url" && !saved?.upload_id)
-      setSource("file");
-  }, [kinds.loading, linkAllowed, source, saved?.upload_id]);
+    if (!linkAllowed && fileAllowed && source === "url") setSource("file");
+    if (!fileAllowed && linkAllowed && source === "file") setSource("url");
+  }, [linkAllowed, fileAllowed, source]);
   function pickFile(next: File | undefined) {
+    if (!fileAllowed) return;
     if (!next) return;
     const problem = checkFile(next);
     setFileError(problem);
@@ -185,6 +187,11 @@ function DraftForm({
   useDirtyGuard(dirty);
 
   async function save() {
+    if (
+      (source === "url" && !linkAllowed) ||
+      (source === "file" && !fileAllowed)
+    )
+      throw new Error("Этот тип ответа не разрешён для задания.");
     let uploadId = saved?.upload_id ?? null;
     if (source === "url") {
       let parsed: URL;
@@ -220,7 +227,7 @@ function DraftForm({
     return draft;
   }
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty || (source === "url" ? !linkAllowed : !fileAllowed)) return;
     if (source === "url") {
       try {
         const parsed = new URL(url);
@@ -235,9 +242,10 @@ function DraftForm({
       });
     }, 1200);
     return () => clearTimeout(timer);
-  }, [dirty, url, comment, file, source]);
+  }, [dirty, url, comment, file, source, linkAllowed, fileAllowed]);
   async function prepare() {
-    const draft = dirty || !saved ? await save() : saved;
+    const changedSource = !!saved && !!saved.upload_id !== (source === "file");
+    const draft = dirty || !saved || changedSource ? await save() : saved;
     setStage("Проверяем доступ и сохраняем снимок работы…");
     let preparation = await ws.command(
       "prepare_work_draft",
@@ -302,6 +310,7 @@ function DraftForm({
   );
   const canSelfReview =
     !action.busy &&
+    (source === "url" ? linkAllowed : fileAllowed) &&
     !run &&
     !awaitingReview &&
     (data.quota
@@ -541,15 +550,13 @@ function DraftForm({
                       ? [
                           {
                             value: "url" as const,
-                            label:
-                              linkKinds.length === 1 &&
-                              linkKinds[0] === "google_docs"
-                                ? "Ссылка на Google Docs"
-                                : "Ссылка на репозиторий",
+                            label: "Ссылка",
                           },
                         ]
                       : []),
-                    { value: "file" as const, label: "Файл" },
+                    ...(fileAllowed
+                      ? [{ value: "file" as const, label: "Файл" }]
+                      : []),
                   ]}
                 />
               </CardHead>
@@ -704,7 +711,10 @@ function DraftForm({
                 <div className="submission-actions">
                   <Btn
                     variant="pri"
-                    disabled={action.busy}
+                    disabled={
+                      action.busy ||
+                      !(source === "url" ? linkAllowed : fileAllowed)
+                    }
                     onClick={() =>
                       void action.run(async () => {
                         try {

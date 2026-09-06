@@ -503,6 +503,8 @@ export function enhanceWorkspace(first: Core, second: Core): Transport {
             course_title: c.seed.course.title,
             run_title: c.run.title,
             max_score: version.max_score,
+            allowed_sources: privateDetails.get(version.id)
+              ?.allowed_sources ?? ["upload", "github", "google_docs"],
             submission_id: c.submission.submission_id,
             material_upload_ids:
               privateDetails.get(version.id)?.material_upload_ids ?? [],

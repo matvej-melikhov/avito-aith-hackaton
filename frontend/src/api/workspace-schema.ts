@@ -1156,6 +1156,8 @@ export interface components {
         };
         /** EditorDraftInput */
         EditorDraftInput: {
+            /** Allowed Sources */
+            allowed_sources?: ("upload" | "github" | "google_docs")[];
             /** Artifact Kinds */
             artifact_kinds?: ("github" | "google_docs")[];
             /**
@@ -1478,6 +1480,8 @@ export interface components {
         };
         /** PrivateHomeworkInput */
         PrivateHomeworkInput: {
+            /** Allowed Sources */
+            allowed_sources?: ("upload" | "github" | "google_docs")[];
             /** Criterion Classes */
             criterion_classes?: {
                 [key: string]: "formal" | "content" | "judgement";
@@ -1498,6 +1502,8 @@ export interface components {
         };
         /** PrivateHomeworkView */
         PrivateHomeworkView: {
+            /** Allowed Sources */
+            allowed_sources?: ("upload" | "github" | "google_docs")[];
             /** Criterion Classes */
             criterion_classes?: {
                 [key: string]: "formal" | "content" | "judgement";
@@ -2064,6 +2070,8 @@ export interface components {
         };
         /** StudentContext */
         StudentContext: {
+            /** Allowed Sources */
+            allowed_sources?: ("upload" | "github" | "google_docs")[];
             /**
              * Course Run Id
              * Format: uuid
