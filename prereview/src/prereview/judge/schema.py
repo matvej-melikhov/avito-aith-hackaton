@@ -15,10 +15,11 @@ class EvidenceItem(BaseModel):
 
     path: str = Field(description="Путь к файлу из среза, как в заголовке ===== FILE:",
                       validation_alias=AliasChoices("path", "file", "filename", "file_path"))
-    line_start: int = Field(description="Первая строка цитаты по нумерации среза",
-                            validation_alias=AliasChoices("line_start", "start_line", "line", "from"))
-    line_end: int = Field(description="Последняя строка цитаты",
-                          validation_alias=AliasChoices("line_end", "end_line", "to"))
+    # Номера строк могут прийти пустыми (Harness иногда отдаёт null): тогда цитата ищется по всему файлу.
+    line_start: int | None = Field(default=None, description="Первая строка цитаты по нумерации среза",
+                                   validation_alias=AliasChoices("line_start", "start_line", "line", "from"))
+    line_end: int | None = Field(default=None, description="Последняя строка цитаты",
+                                 validation_alias=AliasChoices("line_end", "end_line", "to"))
     quote: str = Field(description="Дословная цитата из работы, без правок и сокращений",
                        validation_alias=AliasChoices("quote", "text", "snippet"))
 
