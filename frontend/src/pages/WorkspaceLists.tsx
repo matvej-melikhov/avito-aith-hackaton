@@ -230,7 +230,7 @@ export function WorksList({
             disabled={offset + LIMIT >= r.data.total}
             onClick={() => setOffset(offset + LIMIT)}
           >
-            Показать ещё
+            Вперед
           </Btn>
         </BtnRow>
       )}
