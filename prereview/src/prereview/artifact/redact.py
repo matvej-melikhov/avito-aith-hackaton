@@ -23,7 +23,7 @@ KEY_PATTERNS = [
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
 ]
 ASSIGN_SECRET = re.compile(
-    r"(?i)\b(api[_-]?key|secret|token|password|passwd|pwd)\b\s*[:=]\s*['\"]?([A-Za-z0-9_\-./+=]{12,})['\"]?"
+    r"(?i)\b(api[_-]?key|secret|token|password|passwd|pwd)\b\s*(?::=|[:=])\s*['\"]?([A-Za-z0-9_\-./+=]{12,})['\"]?"
 )
 
 INJECTION = [
@@ -80,6 +80,11 @@ def redact_text(text: str, report: RedactionReport) -> str:
 
     def assign_repl(m: re.Match) -> str:
         value = m.group(2)
+        # Выражение вида cfg.DBPassword или os.Getenv это код, а не секрет: без цифр и без кавычек не трогаем,
+        # иначе замена ломает синтаксис и сбивает модель.
+        quoted = m.group(0).rstrip().endswith(("'", '"'))
+        if not quoted and not re.search(r"\d", value):
+            return m.group(0)
         if _entropy(value) >= 3.0 or len(value) >= 20:
             bump("secret")
             return f"{m.group(1)}=<SECRET>"

@@ -49,3 +49,17 @@ def test_rewrite_url_keeps_host():
     url, headers = rewrite_url("http://127.0.0.1:19000/bucket/key?X-Amz-Signature=abc", "http://127.0.0.1:19000=http://minio:9000")
     assert url == "http://minio:9000/bucket/key?X-Amz-Signature=abc" and headers == {"Host": "127.0.0.1:19000"}
     assert rewrite_url("https://other/x", "http://127.0.0.1:19000=http://minio:9000") == ("https://other/x", {})
+
+
+def test_redaction_keeps_code_expressions_but_hides_literal_secrets():
+    from prereview.artifact.model import Work, WorkFile
+    from prereview.artifact.redact import redact_work
+
+    src = ('poolConfig.ConnConfig.Password = cfg.DBPassword\n'
+           'password := "s3cr3t-Value-9f8e7d6c"\n'
+           'token = os.Getenv("API_TOKEN")\n')
+    clean, report = redact_work(Work("zip", "application/zip", [WorkFile("db.go", src, "go")]))
+    lines = clean.files[0].lines
+    assert lines[0] == "poolConfig.ConnConfig.Password = cfg.DBPassword"
+    assert "<SECRET>" in lines[1]
+    assert lines[2] == 'token = os.Getenv("API_TOKEN")'
