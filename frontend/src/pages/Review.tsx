@@ -913,9 +913,12 @@ export function ReviewEditor({
                       context?.private_details?.criterion_classes?.[c.key] ===
                         "judgement";
                     const sources = suggestion?.sources ?? [];
+                    // Факты запуска из песочницы («запуск: …») показываем и рядом с цитатами из кода.
                     const quotes = !sources.length
                       ? (suggestion?.evidence ?? [])
-                      : [];
+                      : (suggestion?.evidence ?? []).filter((e) =>
+                          e.startsWith("запуск:"),
+                        );
                     const hasEvidence = sources.length > 0 || quotes.length > 0;
                     const met =
                       suggestion?.requirement_met ??
