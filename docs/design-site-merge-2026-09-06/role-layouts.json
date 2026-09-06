@@ -1,0 +1,254 @@
+[
+  {
+    "role": "coordinator",
+    "width": 1440,
+    "documentWidth": 1440,
+    "sidebar": 232,
+    "links": [
+      {
+        "text": "Обзор",
+        "visible": true
+      },
+      {
+        "text": "Курсы",
+        "visible": true
+      },
+      {
+        "text": "Задания",
+        "visible": true
+      },
+      {
+        "text": "Пул проверок",
+        "visible": true
+      },
+      {
+        "text": "Домашки",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "coordinator",
+    "width": 1600,
+    "documentWidth": 1600,
+    "sidebar": 232,
+    "links": [
+      {
+        "text": "Обзор",
+        "visible": true
+      },
+      {
+        "text": "Курсы",
+        "visible": true
+      },
+      {
+        "text": "Задания",
+        "visible": true
+      },
+      {
+        "text": "Пул проверок",
+        "visible": true
+      },
+      {
+        "text": "Домашки",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "coordinator",
+    "width": 390,
+    "documentWidth": 390,
+    "sidebar": 390,
+    "links": [
+      {
+        "text": "Обзор",
+        "visible": true
+      },
+      {
+        "text": "Курсы",
+        "visible": true
+      },
+      {
+        "text": "Задания",
+        "visible": true
+      },
+      {
+        "text": "Пул проверок",
+        "visible": true
+      },
+      {
+        "text": "Домашки",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "coordinator",
+    "width": 320,
+    "documentWidth": 320,
+    "sidebar": 320,
+    "links": [
+      {
+        "text": "Обзор",
+        "visible": true
+      },
+      {
+        "text": "Курсы",
+        "visible": true
+      },
+      {
+        "text": "Задания",
+        "visible": true
+      },
+      {
+        "text": "Пул проверок",
+        "visible": true
+      },
+      {
+        "text": "Домашки",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "coordinator",
+    "rail": 60
+  },
+  {
+    "role": "coordinator",
+    "draggedWidth": 280
+  },
+  {
+    "role": "coordinator",
+    "restoredRail": 60
+  },
+  {
+    "role": "reviewer",
+    "width": 1440,
+    "documentWidth": 1440,
+    "sidebar": 232,
+    "links": [
+      {
+        "text": "Мои работы",
+        "visible": true
+      },
+      {
+        "text": "Пул",
+        "visible": true
+      },
+      {
+        "text": "Кабинет",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "reviewer",
+    "width": 1600,
+    "documentWidth": 1600,
+    "sidebar": 232,
+    "links": [
+      {
+        "text": "Мои работы",
+        "visible": true
+      },
+      {
+        "text": "Пул",
+        "visible": true
+      },
+      {
+        "text": "Кабинет",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "reviewer",
+    "width": 390,
+    "documentWidth": 390,
+    "sidebar": 390,
+    "links": [
+      {
+        "text": "Мои работы",
+        "visible": true
+      },
+      {
+        "text": "Пул",
+        "visible": true
+      },
+      {
+        "text": "Кабинет",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "reviewer",
+    "width": 320,
+    "documentWidth": 320,
+    "sidebar": 320,
+    "links": [
+      {
+        "text": "Мои работы",
+        "visible": true
+      },
+      {
+        "text": "Пул",
+        "visible": true
+      },
+      {
+        "text": "Кабинет",
+        "visible": true
+      }
+    ],
+    "errors": []
+  },
+  {
+    "role": "reviewer",
+    "rail": 60
+  },
+  {
+    "role": "reviewer",
+    "draggedWidth": 280
+  },
+  {
+    "role": "reviewer",
+    "restoredRail": 60
+  },
+  {
+    "role": "student",
+    "width": 1440,
+    "documentWidth": 1440,
+    "links": [],
+    "errors": []
+  },
+  {
+    "role": "student",
+    "width": 1600,
+    "documentWidth": 1600,
+    "links": [],
+    "errors": []
+  },
+  {
+    "role": "student",
+    "width": 390,
+    "documentWidth": 390,
+    "links": [],
+    "errors": []
+  },
+  {
+    "role": "student",
+    "width": 320,
+    "documentWidth": 320,
+    "links": [],
+    "errors": []
+  }
+]

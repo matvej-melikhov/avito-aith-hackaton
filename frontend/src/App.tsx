@@ -1,5 +1,5 @@
 import { HeaderProfileContext } from "./workspace-ui";
-import { Aside, Brand, Btn } from "./ds";
+import { Aside, Brand, Btn, type MenuIcon } from "./ds";
 import { confirmNavigation, consumeProgrammaticNavigation } from "./navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { WorkspaceNotifications } from "./WorkspaceNotifications";
@@ -390,6 +390,18 @@ function SidebarNavigation({
       menu={items.map(([link, label]) => ({
         href: `#/${link}`,
         label,
+        icon: (
+          {
+            dashboard: "overview",
+            courses: "courses",
+            homeworks: "runs",
+            works: "works",
+            pool: "pool",
+            preferences: "cabinet",
+            registry: "works",
+            "coord-pool": "pool",
+          } as Record<string, MenuIcon>
+        )[link],
         on:
           section === link ||
           (link === "preferences" && section === "statistics"),
@@ -459,14 +471,7 @@ function Login({
           <i />
         </div>
         <div className="band-content">
-          <a className="brand" href="#/home">
-            <span className="brand-dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            Авито Ревью
-          </a>
+          <Brand href="#/home" />
           <h1 className="d2"> Проверка учебных работ </h1>
           <p>
             Модель разбирает работу по требованиям задания и готовит черновик.

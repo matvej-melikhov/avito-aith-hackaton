@@ -438,14 +438,17 @@ a:hover { border-bottom-color: var(--ink); }
 .aside { border-right: var(--bw-hair) solid var(--line); padding: var(--s-5) 0; display: flex; flex-direction: column; }
 .brand { display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-5);
          font-family: var(--font-display); font-weight: var(--w-semi); font-size: 15px; letter-spacing: -.03em; }
-.brand .dots { display: flex; align-items: center; gap: 3px; }
-.brand .dots i { display: block; border-radius: var(--r-circle); }
+.brand .logo { display: block; width: 152px; height: auto; }
+.brand .logo--mark { width: 26px; }
 .menu { display: flex; flex-direction: column; }
+/* Активный раздел — пилюля зелёной пастелью. Строка размечена целиком, а не
+   полосой у края: так раздел виден с любого места панели. Чёрная заливка сюда
+   не идёт, она занята кнопкой действия. */
 .menu a { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
-          padding: var(--s-3) var(--s-5); font-size: var(--small-size); color: var(--ink-2); border: 0;
-          border-left: var(--bw-focus) solid transparent; }
+          margin: 1px var(--s-3); padding: var(--s-3) var(--s-4);
+          font-size: var(--small-size); color: var(--ink-2); border: 0; border-radius: var(--r-pill); }
 .menu a:hover { background: var(--surface-2); color: var(--ink); }
-.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
+.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); background: var(--green-pale); }
 .menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
 .aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
                display: flex; align-items: center; gap: var(--s-3); }

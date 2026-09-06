@@ -476,3 +476,193 @@ details.student-history[open] > summary:not(:has(.acc__chev))::after {
     animation: none;
   }
 }
+
+/* --- Работа как файл: иконка типа, просмотр в модалке ----------------------- */
+.fileicon-wrap {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink-3);
+  flex: none;
+}
+.fileicon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+/* Строка файла: подпись и действия — два флекс-ряда, поэтому строка не растёт
+   от базовой линии кнопок и держит высоту соседних строк. */
+.kv--file > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.kv--file > span:last-child {
+  flex: none;
+}
+.kv--file .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kv--file .btn {
+  flex: none;
+}
+.file-preview__text {
+  margin: 0;
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--small-size);
+  line-height: var(--body-lh);
+  color: var(--ink);
+}
+.file-preview__frame {
+  width: 100%;
+  height: 60vh;
+  border: var(--bw-hair) solid var(--line-2);
+  background: var(--surface);
+}
+.file-preview__img {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  margin: 0 auto;
+}
+
+/* --- Логотип и сворачиваемая панель ----------------------------------------
+   Знак и название из docs/design/logo-options-2026-09-05/04-highlight.svg.  */
+.logo {
+  display: block;
+  height: auto;
+}
+.logo--full {
+  width: 152px;
+}
+.logo--mark {
+  width: 26px;
+}
+.brand {
+  padding-bottom: 0;
+}
+.aside__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: 0 var(--s-5) var(--s-5);
+}
+.aside__top .brand {
+  padding: 0;
+  min-width: 0;
+}
+/* Правый край панели — ручка ширины. Видна линией границы, при наведении и
+   перетаскивании темнеет. */
+.aside {
+  position: relative;
+}
+.aside__grip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(-1 * var(--bw-hair));
+  width: 7px;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  border-right: var(--bw-hair) solid transparent;
+  transition: border-color var(--t-fast);
+}
+.aside__grip:hover,
+.aside__grip:focus-visible,
+.aside__grip.is-dragging {
+  outline: 0;
+  border-right-color: var(--ink);
+}
+.aside__grip.is-dragging {
+  border-right-width: var(--bw-focus);
+}
+/* Пока тянут край, текст страницы не выделяется. */
+.app:has(.aside__grip.is-dragging) {
+  user-select: none;
+  cursor: col-resize;
+}
+
+.menu__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+.mi {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ink-3);
+}
+.menu a.is-on .mi,
+.menu a:hover .mi {
+  color: var(--ink);
+}
+.menu__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Свёрнутая панель: остаются знак и значки разделов. */
+.app--rail .menu a {
+  justify-content: center;
+}
+.aside--rail .aside__top {
+  flex-direction: column;
+  gap: var(--s-3);
+  padding-inline: 0;
+}
+.aside--rail .menu a {
+  justify-content: center;
+  margin-inline: var(--s-2);
+  padding-inline: 0;
+}
+.aside--rail .menu__lead {
+  justify-content: center;
+}
+.aside--rail .menu__label,
+.aside--rail .menu a .c {
+  display: none;
+}
+.aside--rail .aside__foot {
+  justify-content: center;
+  padding-inline: 0;
+}
+.aside--rail .aside__foot > div {
+  display: none;
+}
+
+/* --- Узкое окно: панель ложится строкой, тонкая колонка отменяется ----------
+   Блок стоит последним, иначе правила колонки перебивают его по порядку.   */
+@media (max-width: 1100px) {
+  .aside__grip {
+    display: none;
+  }
+  .aside--rail .menu a {
+    justify-content: flex-start;
+    padding-inline: var(--s-4);
+    margin-inline: var(--s-3);
+  }
+  .aside--rail .menu__lead {
+    justify-content: flex-start;
+  }
+  .aside--rail .menu__label {
+    display: inline;
+  }
+  .aside--rail .menu a .c {
+    display: inline;
+  }
+  .aside--rail .aside__top {
+    flex-direction: row;
+    padding-inline: var(--s-5);
+  }
+}

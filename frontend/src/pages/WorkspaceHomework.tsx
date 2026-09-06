@@ -4,6 +4,7 @@ import type { Model } from "../api/client";
 import { WorkspaceClient, uploadFile, type W } from "../api/workspace";
 import { Card, Resource, date, useAction, useResource } from "../ui";
 import { ScreenTitle, useDirtyGuard } from "../workspace-ui";
+import { MarkdownArea } from "../MarkdownArea";
 export function WorkspaceHomework({
   ws,
   id,
@@ -497,10 +498,10 @@ function HomeworkWizard({
                 />
               </Field>
               <Field label="Условие">
-                <Area
+                <MarkdownArea
                   rows={12}
                   value={draft.student_text ?? ""}
-                  onChange={(e) => change({ student_text: e.target.value })}
+                  onChange={(value) => change({ student_text: value })}
                 />
               </Field>
               <label>

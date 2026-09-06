@@ -1,7 +1,30 @@
-@import url("https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&family=Unbounded:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "../../docs/design/tokens.css";
 @import "../../docs/design/components.css";
 @import "./ds/ds.css";
+
+.artifact-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.artifact-actions > a {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.md-bar {
+  margin-bottom: var(--s-2);
+  flex-wrap: wrap;
+}
+.md-bar .btn {
+  min-width: var(--ctl-s);
+  padding: 0 var(--s-3);
+}
+.app-shell:has(.aside__grip.is-dragging) {
+  user-select: none;
+  cursor: col-resize;
+}
 
 /* Existing React class names mapped verbatim to the supplied component rules. */
 button:not(:where(.btn, .tab)),
@@ -130,6 +153,12 @@ button[disabled],
   font-size: var(--h3-size);
   font-weight: var(--w-medium);
   letter-spacing: var(--h3-ls);
+}
+.card-head:has(.coordinator-compact-filters) {
+  flex-wrap: wrap;
+}
+.coordinator-compact-filters {
+  max-width: 100%;
 }
 .card-body {
   padding: var(--s-5);
@@ -322,11 +351,10 @@ blockquote {
   align-items: center;
   justify-content: space-between;
   gap: var(--s-2);
-  padding: var(--s-3) var(--s-5);
+  padding: var(--s-3) var(--s-4);
   font-size: var(--small-size);
   color: var(--ink-2);
   border: 0;
-  border-left: var(--bw-focus) solid transparent;
 }
 .sidebar nav a:hover {
   background: var(--surface-2);
@@ -335,8 +363,12 @@ blockquote {
 .sidebar nav a[aria-current] {
   color: var(--ink);
   font-weight: var(--w-medium);
-  border-left-color: var(--brand-green);
-  background: var(--green-wash);
+  background: var(--green-pale);
+}
+.sidebar.aside--rail nav a {
+  justify-content: center;
+  padding-inline: 0;
+  margin-inline: var(--s-2);
 }
 .nav-count {
   font-family: var(--font-mono);
@@ -918,9 +950,10 @@ dd {
   font-size: var(--small-size);
 }
 .review-artifact-row {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 .review-artifact-row .mono {
+  flex-basis: 100%;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1149,7 +1182,10 @@ dd {
   .sidebar nav a {
     white-space: nowrap;
   }
-  .sidebar nav a span {
+  .sidebar nav a .c {
+    display: none;
+  }
+  .sidebar .aside__top {
     display: none;
   }
   .student-grid,

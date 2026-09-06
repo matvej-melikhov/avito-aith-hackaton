@@ -5,6 +5,7 @@ import {
   isValidElement,
   useId,
   type ComponentPropsWithoutRef,
+  type ComponentPropsWithRef,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -415,7 +416,7 @@ export function Area({
   err,
   className,
   ...rest
-}: InpMods & ComponentPropsWithoutRef<"textarea">) {
+}: InpMods & ComponentPropsWithRef<"textarea">) {
   return (
     <textarea
       className={inpClass({ small, mono, err, className }, "inp--area")}

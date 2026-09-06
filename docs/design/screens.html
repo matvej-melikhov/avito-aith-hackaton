@@ -121,7 +121,7 @@
   /* --- Размеры управляющих элементов -------------------------------------- */
   --ctl-l: 48px; --ctl-m: 40px; --ctl-s: 32px;
   --review-score-w: 136px; /* общая колонка оценки и предпросмотр шкалы */
-  --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px;
+  --page-max: 1280px; --gutter: 28px; --sidebar-w: 232px; /* стартовая ширина, дальше её тянут за край */
 
   /* --- Замечание ---------------------------------------------------------- */
   --callout-mark: 20px;   /* диаметр залитого кружка со знаком                */
@@ -596,14 +596,17 @@ a:hover { border-bottom-color: var(--ink); }
 .aside { border-right: var(--bw-hair) solid var(--line); padding: var(--s-5) 0; display: flex; flex-direction: column; }
 .brand { display: flex; align-items: center; gap: var(--s-2); padding: 0 var(--s-5) var(--s-5);
          font-family: var(--font-display); font-weight: var(--w-semi); font-size: 15px; letter-spacing: -.03em; }
-.brand .dots { display: flex; align-items: center; gap: 3px; }
-.brand .dots i { display: block; border-radius: var(--r-circle); }
+.brand .logo { display: block; width: 152px; height: auto; }
+.brand .logo--mark { width: 26px; }
 .menu { display: flex; flex-direction: column; }
+/* Активный раздел — пилюля зелёной пастелью. Строка размечена целиком, а не
+   полосой у края: так раздел виден с любого места панели. Чёрная заливка сюда
+   не идёт, она занята кнопкой действия. */
 .menu a { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
-          padding: var(--s-3) var(--s-5); font-size: var(--small-size); color: var(--ink-2); border: 0;
-          border-left: var(--bw-focus) solid transparent; }
+          margin: 1px var(--s-3); padding: var(--s-3) var(--s-4);
+          font-size: var(--small-size); color: var(--ink-2); border: 0; border-radius: var(--r-pill); }
 .menu a:hover { background: var(--surface-2); color: var(--ink); }
-.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); border-left-color: var(--brand-green); background: var(--green-wash); }
+.menu a.is-on { color: var(--ink); font-weight: var(--w-medium); background: var(--green-pale); }
 .menu a .c { font-family: var(--font-mono); font-size: var(--caption-size); color: var(--ink-3); }
 .aside__foot { margin-top: auto; padding: var(--s-5) var(--s-5) 0; border-top: var(--bw-hair) solid var(--line);
                display: flex; align-items: center; gap: var(--s-3); }
@@ -839,7 +842,7 @@ a.step { border: 0; }
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
           <span class="brand" style="padding:0">
-            <span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью
+            <svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg>
           </span>
         </div>
         <div class="btn-row">
@@ -947,7 +950,7 @@ a.step { border: 0; }
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
-          <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</span>
+          <span class="brand" style="padding:0"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></span>
         </div>
         <div class="btn-row"><span class="btn btn--s btn--quiet">Мои домашки</span><span class="ava">4821</span></div>
       </div>
@@ -1068,7 +1071,7 @@ a.step { border: 0; }
     <div style="background:var(--surface);min-height:900px">
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
-          <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</span>
+          <span class="brand" style="padding:0"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></span>
         </div>
         <div class="btn-row"><span class="btn btn--s btn--quiet">Мои домашки</span><span class="ava">4821</span></div>
       </div>
@@ -1190,7 +1193,7 @@ a.step { border: 0; }
     <div style="background:var(--surface);min-height:670px">
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
-          <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</span>
+          <span class="brand" style="padding:0"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></span>
         </div>
         <div class="btn-row"><span class="ava">4821</span></div>
       </div>
@@ -1250,7 +1253,7 @@ a.step { border: 0; }
     <div style="background:var(--surface);min-height:1130px">
       <div class="topbar" style="align-items:center">
         <div style="display:flex;align-items:center;gap:var(--s-4)">
-          <span class="brand" style="padding:0"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</span>
+          <span class="brand" style="padding:0"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></span>
         </div>
         <div class="btn-row"><span class="ava">4821</span></div>
       </div>
@@ -1322,7 +1325,7 @@ a.step { border: 0; }
         <div class="circ circ--b" style="width:150px;height:150px;right:60px;top:-40px;opacity:.55"></div>
         <div class="circ circ--r" style="width:70px;height:70px;right:180px;bottom:90px;opacity:.7"></div>
         <div class="band__in">
-          <span class="brand" style="padding:0 0 var(--s-8)"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</span>
+          <span class="brand" style="padding:0 0 var(--s-8)"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></span>
           <h1 class="d2" style="max-width:14ch">Готовый разбор по каждой работе</h1>
           <p style="max-width:36ch">Модель заранее разбирает работу по требованиям задания и готовит черновик. Вы соглашаетесь или правите.</p>
         </div>
@@ -1344,7 +1347,7 @@ a.step { border: 0; }
   <div class="shot" style="height:767px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a class="is-on" href="#">Мои работы<span class="c">5</span></a>
           <a href="#">Пул<span class="c">12</span></a>
@@ -1452,7 +1455,7 @@ a.step { border: 0; }
   <div class="shot" style="height:530px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Мои работы<span class="c">5</span></a>
           <a href="#">Пул<span class="c">12</span></a>
@@ -1521,7 +1524,7 @@ a.step { border: 0; }
   <div class="shot" style="height:535px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Мои работы<span class="c">5</span></a>
           <a href="#">Пул<span class="c">12</span></a>
@@ -1587,7 +1590,7 @@ a.step { border: 0; }
   <div class="shot" style="height:1178px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a class="is-on" href="#">Мои работы<span class="c">5</span></a>
           <a href="#">Пул<span class="c">12</span></a>
@@ -1766,7 +1769,7 @@ a.step { border: 0; }
   <div class="shot" style="height:1015px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a class="is-on" href="#">Мои работы<span class="c">5</span></a>
           <a href="#">Пул<span class="c">12</span></a>
@@ -1913,7 +1916,7 @@ a.step { border: 0; }
   <div class="shot" style="height:689px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a class="is-on" href="#">Обзор</a>
           <a href="#">Курсы<span class="c">4</span></a>
@@ -2022,7 +2025,7 @@ a.step { border: 0; }
     <div style="min-height:540px">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a class="is-on" href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
           <a href="#">Задания<span class="c">17</span></a><a href="#">Пул проверок<span class="c">12</span></a>
@@ -2085,7 +2088,7 @@ a.step { border: 0; }
   <div class="shot" style="height:361px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Обзор</a><a class="is-on" href="#">Курсы<span class="c">4</span></a>
           <a href="#">Задания<span class="c">17</span></a><a href="#">Пул проверок<span class="c">12</span></a>
@@ -2141,7 +2144,7 @@ a.step { border: 0; }
     <div style="position:relative;min-height:840px">
       <div class="app">
         <aside class="aside">
-          <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+          <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
           <nav class="menu">
             <a class="is-on" href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
             <a href="#">Задания<span class="c">17</span></a><a href="#">Пул проверок<span class="c">12</span></a>
@@ -2186,7 +2189,7 @@ a.step { border: 0; }
     <div style="position:relative;min-height:776px">
       <div class="app">
         <aside class="aside">
-          <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+          <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
           <nav class="menu">
             <a class="is-on" href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
             <a href="#">Задания<span class="c">17</span></a><a href="#">Пул проверок<span class="c">12</span></a>
@@ -2237,7 +2240,7 @@ a.step { border: 0; }
   <div class="shot" style="height:632px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
           <a class="is-on" href="#">Задания<span class="c">17</span></a>
@@ -2320,7 +2323,7 @@ a.step { border: 0; }
   <div class="shot" style="height:1178px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a>
           <a class="is-on" href="#">Задания<span class="c">17</span></a>
@@ -2498,7 +2501,7 @@ a.step { border: 0; }
   <div class="shot" style="height:776px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
           <a class="is-on" href="#">Пул проверок<span class="c">12</span></a><a href="#">Домашки<span class="c">284</span></a>
@@ -2574,7 +2577,7 @@ a.step { border: 0; }
   <div class="shot" style="height:639px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a><a class="is-on" href="#">Домашки<span class="c">284</span></a>
@@ -2637,7 +2640,7 @@ a.step { border: 0; }
   <div class="shot" style="height:891px"><div class="vp">
     <div class="app">
       <aside class="aside">
-        <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+        <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
         <nav class="menu">
           <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
           <a href="#">Пул проверок<span class="c">12</span></a><a class="is-on" href="#">Домашки<span class="c">284</span></a>
@@ -2744,7 +2747,7 @@ a.step { border: 0; }
     <div style="position:relative;min-height:948px">
       <div class="app">
         <aside class="aside">
-          <div class="brand"><span class="dots"><i style="width:11px;height:11px;background:var(--brand-green)"></i><i style="width:8px;height:8px;background:var(--brand-blue)"></i><i style="width:6px;height:6px;background:var(--brand-red)"></i></span>Авито Ревью</div>
+          <div class="brand"><svg class="logo" viewBox="179 126 1744 238" role="img" aria-label="Avito Reviewer"><path d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z" fill="var(--brand-blue)"/><path d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z" fill="var(--brand-violet)"/><text x="469" y="317" fill="var(--ink)" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="464" lengthAdjust="spacingAndGlyphs">Avito</text><rect x="984" y="126" width="939" height="238" rx="119" fill="var(--brand-green)"/><text x="1071" y="315" fill="#1A1A1A" font-family="var(--font-text)" font-size="190" font-weight="700" letter-spacing="-8" textLength="780" lengthAdjust="spacingAndGlyphs">Reviewer</text></svg></div>
           <nav class="menu">
             <a href="#">Обзор</a><a href="#">Курсы<span class="c">4</span></a><a href="#">Задания<span class="c">17</span></a>
             <a href="#">Пул проверок<span class="c">12</span></a><a class="is-on" href="#">Домашки<span class="c">284</span></a>
