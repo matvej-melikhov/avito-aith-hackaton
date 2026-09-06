@@ -4,11 +4,10 @@
 import { useId } from "react";
 import { cx } from "./controls";
 
-/** Скобки с кавычками: знак без названия. Он же остаётся в узкой панели. */
-function MarkPaths() {
+/** Кавычки: сердцевина знака. */
+function QuotePaths() {
   return (
-    <g shapeRendering="geometricPrecision">
-      <path d="M78 99H172V141H123V357H172V399H78Z" fill="var(--ink)" />
+    <>
       <path
         d="M179 160H273V254C273 304 246 334 192 345V298C217 291 229 275 232 250H179Z"
         fill="var(--brand-blue)"
@@ -17,6 +16,16 @@ function MarkPaths() {
         d="M294 158H391V254C391 305 363 336 307 347V299C333 292 346 275 349 249H294Z"
         fill="var(--brand-violet)"
       />
+    </>
+  );
+}
+
+/** Скобки вокруг кавычек: полный знак логотипа. */
+function MarkPaths() {
+  return (
+    <g shapeRendering="geometricPrecision">
+      <path d="M78 99H172V141H123V357H172V399H78Z" fill="var(--ink)" />
+      <QuotePaths />
       <path d="M393 99H487V399H393V357H442V141H393Z" fill="var(--ink)" />
     </g>
   );
@@ -29,12 +38,12 @@ export function LogoMark({ className }: { className?: string }) {
   return (
     <svg
       className={cx("logo logo--mark", className)}
-      viewBox="78 99 409 300"
+      viewBox="179 158 212 189"
       role="img"
       aria-labelledby={id}
     >
       <title id={id}>{TITLE}</title>
-      <MarkPaths />
+      <QuotePaths />
     </svg>
   );
 }

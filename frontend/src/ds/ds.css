@@ -623,6 +623,18 @@ button.step[disabled] {
   .aside__foot {
     display: none;
   }
+  /* Панель легла горизонтально: ширину тянуть нечем и незачем. */
+  .aside__grip {
+    display: none;
+  }
+  .aside--rail .menu__label,
+  .aside--rail .menu a .c {
+    display: revert;
+  }
+  .aside--rail .aside__top {
+    flex-direction: row;
+    padding-inline: var(--s-5);
+  }
   .band__meta {
     gap: var(--s-6);
   }
@@ -1903,7 +1915,7 @@ select.inp:not(.inp--s) {
   width: 152px;
 }
 .logo--mark {
-  width: 32px;
+  width: 26px;
 }
 .brand {
   padding-bottom: 0;
