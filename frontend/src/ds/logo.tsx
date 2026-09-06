@@ -20,17 +20,6 @@ function QuotePaths() {
   );
 }
 
-/** Скобки вокруг кавычек: полный знак логотипа. */
-function MarkPaths() {
-  return (
-    <g shapeRendering="geometricPrecision">
-      <path d="M78 99H172V141H123V357H172V399H78Z" fill="var(--ink)" />
-      <QuotePaths />
-      <path d="M393 99H487V399H393V357H442V141H393Z" fill="var(--ink)" />
-    </g>
-  );
-}
-
 const TITLE = "Avito Reviewer";
 
 export function LogoMark({ className }: { className?: string }) {
@@ -53,16 +42,16 @@ export function Logo({ className }: { className?: string }) {
   return (
     <svg
       className={cx("logo logo--full", className)}
-      viewBox="78 99 1941 300"
+      viewBox="179 126 1744 238"
       role="img"
       aria-labelledby={id}
     >
       <title id={id}>{TITLE}</title>
-      <MarkPaths />
+      <QuotePaths />
       {/* Onest — шрифт интерфейса. textLength держит ширину, если он не успел
           загрузиться и подставилась запасная гарнитура. */}
       <text
-        x="565"
+        x="469"
         y="317"
         fill="var(--ink)"
         fontFamily="var(--font-text)"
@@ -75,7 +64,7 @@ export function Logo({ className }: { className?: string }) {
         Avito
       </text>
       <rect
-        x="1080"
+        x="984"
         y="126"
         width="939"
         height="238"
@@ -83,7 +72,7 @@ export function Logo({ className }: { className?: string }) {
         fill="var(--brand-green)"
       />
       <text
-        x="1167"
+        x="1071"
         y="315"
         fill="#1A1A1A"
         fontFamily="var(--font-text)"
