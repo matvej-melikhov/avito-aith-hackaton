@@ -115,7 +115,6 @@ function DraftForm({
       !!initial.submission_id ||
       !!initial.quota?.active_run_id,
   );
-  const [rubricCollapsed, setRubricCollapsed] = useState(false);
   const [stage, setStage] = useState("");
   const [reviewTab, setReviewTab] = useState<"ai" | "human">(
     initial.submission_id ? "human" : "ai",
@@ -787,34 +786,9 @@ function DraftForm({
             </Card>
           </div>
 
+          {/* Критерии студенту не показываем: по ним можно подогнать работу под
+              проверку. Студент видит только текст задания, порог и максимум. */}
           <div className="stack">
-            <Card>
-              <CardHead title="Что будут проверять">
-                <Btn
-                  size="s"
-                  variant="link"
-                  aria-expanded={!rubricCollapsed}
-                  onClick={() => setRubricCollapsed((v) => !v)}
-                >
-                  {rubricCollapsed ? "Развернуть" : "Свернуть"}
-                </Btn>
-              </CardHead>
-              {!rubricCollapsed && (
-                <CardBody tight>
-                  {data.criteria.map((c) => (
-                    <Kv key={c.id} label={c.title} ink>
-                      <Pill mono>{points(c.max_points)}</Pill>
-                    </Kv>
-                  ))}
-                  {data.max_score !== undefined && (
-                    <Kv label="Всего" total>
-                      {num(data.max_score)}{" "}
-                      {plural(data.max_score, "балл", "балла", "баллов")}
-                    </Kv>
-                  )}
-                </CardBody>
-              )}
-            </Card>
             {penalty > 0 && (
               <Callout tone="warn">
                 <p>
