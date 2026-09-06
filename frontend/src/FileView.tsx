@@ -72,103 +72,55 @@ const KIND_LABEL: Record<FileKind, string> = {
   file: "Файл",
 };
 
-/* Иконки нарисованы разметкой в одном ключе с лупой поиска: контур в
-   currentColor, сетка 16, без заливки.                                     */
-function Glyph({ kind }: { kind: FileKind }) {
-  const common = {
-    className: "fileicon",
-    viewBox: "0 0 16 16",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.4,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-  };
-  if (kind === "link")
-    return (
-      <svg {...common}>
-        <path d="M6.6 9.4a2.6 2.6 0 0 0 3.7 0l2-2a2.6 2.6 0 0 0-3.7-3.7l-.8.8" />
-        <path d="M9.4 6.6a2.6 2.6 0 0 0-3.7 0l-2 2a2.6 2.6 0 0 0 3.7 3.7l.8-.8" />
-      </svg>
-    );
-  if (kind === "image")
-    return (
-      <svg {...common}>
-        <rect x="2" y="3" width="12" height="10" rx="1.5" />
-        <circle cx="5.6" cy="6.4" r="1" />
-        <path d="M3 11.4 6.4 8.6l2.2 1.8L10.8 8 13 10.2" />
-      </svg>
-    );
-  if (kind === "archive")
-    return (
-      <svg {...common}>
-        <rect x="3" y="2" width="10" height="12" rx="1.5" />
-        <path d="M7.4 2v2M8.6 4v2M7.4 6v2M8.6 8v2" />
-      </svg>
-    );
-  if (kind === "sheet")
-    return (
-      <svg {...common}>
-        <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" />
-        <path d="M2.5 6.5h11M6.5 6.5v7" />
-      </svg>
-    );
-  /* Лист с загнутым углом: общая основа для текста, markdown, pdf и docx. */
-  const mark =
-    kind === "pdf"
-      ? "PDF"
-      : kind === "markdown"
-        ? "MD"
-        : kind === "doc"
-          ? "W"
-          : "";
-  return (
-    <svg {...common}>
-      <path d="M9 1.8H4.6a1.4 1.4 0 0 0-1.4 1.4v9.6a1.4 1.4 0 0 0 1.4 1.4h6.8a1.4 1.4 0 0 0 1.4-1.4V5.4z" />
-      <path d="M9 1.8v3.6h3.8" />
-      {mark ? (
-        <text
-          x="8"
-          y="12"
-          textAnchor="middle"
-          stroke="none"
-          fill="currentColor"
-          fontSize="4.2"
-          fontWeight="600"
-        >
-          {mark}
-        </text>
-      ) : (
-        <path d="M5.4 8.6h5.2M5.4 11h3.4" />
-      )}
-    </svg>
-  );
-}
+/* Значки типов и скачивания — Material Symbols Sharp, Google, Apache 2.0.
+   Тот же набор, что у разделов панели: заливка, прямой угол.            */
+const ICON_PATHS: Record<FileKind, string> = {
+  // link
+  link: "M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z",
+  // description
+  text: "M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM160-80v-800h400l240 240v560H160Zm360-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z",
+  // description
+  markdown:
+    "M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM160-80v-800h400l240 240v560H160Zm360-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z",
+  // picture_as_pdf
+  pdf: "M360-460h40v-80h60l20-20v-80l-20-20H360v200Zm40-120v-40h40v40h-40Zm120 120h100l20-20v-160l-20-20H520v200Zm40-40v-120h40v120h-40Zm120 40h40v-80h40v-40h-40v-40h40v-40h-80v200ZM240-240v-640h640v640H240Zm80-80h480v-480H320v480ZM80-80v-640h80v560h560v80H80Zm240-720v480-480Z",
+  // image
+  image:
+    "M240-280h480L570-480 450-320l-90-120-120 160ZM120-120v-720h720v720H120Zm80-80h560v-560H200v560Zm0 0v-560 560Z",
+  // description
+  doc: "M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM160-80v-800h400l240 240v560H160Zm360-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z",
+  // table_chart
+  sheet:
+    "M120-120v-720h720v720H120Zm80-520h560v-120H200v120Zm0 440h100v-360H200v360Zm460 0h100v-360H660v360Zm-280 0h200v-360H380v360Z",
+  // folder_zip
+  archive:
+    "M640-480v-80h80v80h-80Zm0 80h-80v-80h80v80Zm0 80v-80h80v80h-80ZM447-640l-80-80H160v480h400v-80h80v80h160v-400H640v80h-80v-80H447ZM80-160v-640h320l80 80h400v560H80Zm80-80v-480 480Z",
+  // draft
+  file: "M160-80v-800h400l240 240v560H160Zm360-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z",
+};
 
-/** Иконка типа с доступной подписью. */
-export function FileIcon({ kind }: { kind: FileKind }) {
-  return (
-    <span className="fileicon-wrap" role="img" aria-label={KIND_LABEL[kind]}>
-      <Glyph kind={kind} />
-    </span>
-  );
-}
+const DOWNLOAD_PATH =
+  "M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM160-160v-200h80v120h480v-120h80v200H160Z";
 
-function DownloadGlyph() {
+function Glyph({ path }: { path: string }) {
   return (
     <svg
       className="fileicon"
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.4}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      viewBox="0 -960 960 960"
+      fill="currentColor"
       aria-hidden="true"
     >
-      <path d="M8 2.6v7.2M5.2 7.2 8 10l2.8-2.8M3 12.4h10" />
+      <path d={path} />
     </svg>
+  );
+}
+
+/** Значок типа с доступной подписью. */
+export function FileIcon({ kind }: { kind: FileKind }) {
+  return (
+    <span className="fileicon-wrap" role="img" aria-label={KIND_LABEL[kind]}>
+      <Glyph path={ICON_PATHS[kind]} />
+    </span>
   );
 }
 
@@ -284,7 +236,7 @@ export function FileActions({
         aria-label={`Скачать ${name}`}
         title="Скачать"
       >
-        <DownloadGlyph />
+        <Glyph path={DOWNLOAD_PATH} />
       </Btn>
       {open && (
         <FilePreview name={name} url={href} close={() => setOpen(false)} />

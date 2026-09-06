@@ -1692,13 +1692,28 @@ body.fb-on .login {
   flex: none;
 }
 .fileicon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   display: block;
 }
-.kv .fileicon-wrap {
-  margin-right: var(--s-2);
-  vertical-align: -3px;
+/* Строка файла: подпись и действия — два флекс-ряда, поэтому строка не растёт
+   от базовой линии кнопок и держит высоту соседних строк. */
+.kv--file > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.kv--file > span:last-child {
+  flex: none;
+}
+.kv--file .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kv--file .btn {
+  flex: none;
 }
 .file-preview__text {
   margin: 0;

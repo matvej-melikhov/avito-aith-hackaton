@@ -662,6 +662,7 @@ export function ReviewEditor({
               <CardHead title="Работа" />
               <CardBody tight>
                 <Kv
+                  className="kv--file"
                   label={
                     <>
                       <FileIcon kind={fileKind(artifactLabel)} />
