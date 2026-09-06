@@ -24,8 +24,11 @@ def student_identifier(
         .correlate_except(ExternalIdentity)
         .scalar_subquery()
     )
-    # UUID7 prefixes share their timestamp; use its stable tail to distinguish local users.
-    return func.coalesce(provider_id, func.substr(cast(user_id, String), -12))
+    # UUID7 prefixes share their timestamp; the stable tail of the id becomes a short number,
+    # so a local user reads as «Студент 348219» instead of a hex string.
+    return func.coalesce(
+        provider_id, cast(func.conv(func.substr(cast(user_id, String), -5), 16, 10), String)
+    )
 
 
 async def student_labels(

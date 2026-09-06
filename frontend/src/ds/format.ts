@@ -112,3 +112,10 @@ export function short(id: string | null | undefined, length = 4) {
   const value = (id ?? "").replace(/-/g, "");
   return value.slice(-length);
 }
+
+/** Короткий номер студента из хвоста id: те же пять hex-знаков, что и на бэкенде. */
+export function studentNumber(id: string): string {
+  const tail = id.replace(/-/g, "").slice(-5);
+  const n = Number.parseInt(tail, 16);
+  return Number.isFinite(n) ? String(n) : short(id);
+}

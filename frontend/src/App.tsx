@@ -47,6 +47,7 @@ import {
   StudentTopbar,
   cx,
   short,
+  studentNumber,
   type MenuItem,
 } from "./ds";
 
@@ -471,7 +472,7 @@ function AccountMenu({
       ? `rev-${short(session.user_id)}`
       : role === "methodologist"
         ? "Координатор"
-        : `Студент ${short(session.user_id)}`;
+        : `Студент ${studentNumber(session.user_id)}`;
   const caption =
     role === "reviewer"
       ? "ревьюер"

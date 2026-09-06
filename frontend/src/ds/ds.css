@@ -2280,3 +2280,26 @@ select.inp:not(.inp--s) {
   font-weight: var(--w-medium);
   border-bottom-color: var(--line-2);
 }
+
+/* Подписи над решением ревьюера не прилипают к кнопкам */
+.decision-note {
+  margin-bottom: var(--s-3);
+}
+.decision-note + .decision-actions {
+  margin-top: var(--s-2);
+}
+
+/* Строка загруженного файла: значок, имя и кнопка в одну линию при любой ширине */
+.upload--filled {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+.upload--filled .upload__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.upload--filled .btn {
+  flex: none;
+  margin-left: auto;
+  align-self: center;
+}
