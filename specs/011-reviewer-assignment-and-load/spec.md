@@ -6,11 +6,11 @@
 
 **Status**: Accepted for MVP
 
-**Input**: интервью с ревьюером Tech QA ([docs/research/02](../../docs/research/02-qa-reviewer-2026-09-03.md), Т9, Т10), с PM Авито Академии ([docs/research/03](../../docs/research/03-dasha-pm-2026-09-03.md), Т17, Т18), с соавтором кейса ([docs/research/01](../../docs/research/01-masha-tech-qa-2026-09-02.md), Т02, Т03). Продуктовые документы [docs/09-assignment.md](../../docs/09-assignment.md), [docs/06-ux-and-effects.md](../../docs/06-ux-and-effects.md) (истории Р1, Р9, К1–К6), [docs/04-contracts.md](../../docs/04-contracts.md) (Д1, Д2, Д4, П5, Р6, Р7), [docs/platforms/review-platform.md](../../docs/platforms/review-platform.md) (раздел 8), [docs/reviewer-load-management.md](../../docs/reviewer-load-management.md). Спецификация ядра [specs/001-backend-core](../001-backend-core/spec.md) (User Story 5, FR-027–FR-030, FR-084). Код: `backend/src/review_platform/domain/recommendation.py`, `application/services/recommendations.py`, `application/services/reviewer_availability.py`, `application/workspace/projections.py`, `application/workspace/notifications.py`, `application/workspace/grading.py`, `application/workspace/statistics.py`, `frontend/src/reviewQueue.ts`, `frontend/src/pages/ReviewerQueue.tsx`, `frontend/src/pages/Review.tsx`, `frontend/src/pages/WorkspaceLists.tsx`, `frontend/src/WorkspaceNotifications.tsx`. Числа только из [docs/NUMBERS.md](../../docs/NUMBERS.md).
+**Input**: интервью [docs/research/02](../../docs/research/02-qa-reviewer-2026-09-03.md) (Т9, Т10), [docs/research/03](../../docs/research/03-dasha-pm-2026-09-03.md) (Т17, Т18), [docs/research/01](../../docs/research/01-masha-tech-qa-2026-09-02.md) (Т02, Т03). Документы [docs/09-assignment.md](../../docs/09-assignment.md), [docs/06-ux-and-effects.md](../../docs/06-ux-and-effects.md) (Р1, Р9, К1–К6), [docs/04-contracts.md](../../docs/04-contracts.md) (Д1, Д2, Д4, П5, Р6, Р7), [docs/platforms/review-platform.md](../../docs/platforms/review-platform.md) (раздел 8), [docs/reviewer-load-management.md](../../docs/reviewer-load-management.md), [specs/001-backend-core](../001-backend-core/spec.md) (User Story 5, FR-027–FR-030, FR-084). Код: `backend/src/review_platform/domain/recommendation.py`, `application/services/recommendations.py` и `reviewer_availability.py`, `application/workspace/projections.py`, `notifications.py`, `grading.py`, `statistics.py`, `frontend/src/reviewQueue.ts`, `pages/ReviewerQueue.tsx`, `pages/Review.tsx`, `pages/WorkspaceLists.tsx`, `WorkspaceNotifications.tsx`. Числа только из [docs/NUMBERS.md](../../docs/NUMBERS.md).
 
 ## 1. Зачем этот документ
 
-Кейс просит «распределение домашних заданий между ревьюерами исходя из объёмов курса и нагрузки на каждого ревьюера». Документ отвечает, как это устроено сейчас у Авито, какие модели распределения мы рассмотрели, что выбрали и что именно реализовано в коде, включая известные расхождения между документами и реализацией. Читатель: жюри и координатор пилота, которому нужно понять, где система решает сама, а где только подсказывает.
+Кейс просит «распределение домашних заданий между ревьюерами исходя из объёмов курса и нагрузки на каждого ревьюера». Документ отвечает, как это устроено у Авито сейчас, какие модели мы рассмотрели, что выбрали и что реализовано в коде, включая расхождения между документами и реализацией. Читатель: жюри и координатор пилота, которым нужно понять, где система решает сама, а где только подсказывает.
 
 ## 2. Анализ
 
@@ -29,7 +29,7 @@
 | Где живёт одна проверка | 4 системы: канал сдачи, условие, Google Sheets, мессенджер | описание кейса и интервью |
 | Время методиста на процесс | до 10 часов в неделю | описание кейса |
 
-Что в этом дорого координатору: узнать у каждого ревьюера его ёмкость, разложить работы по таблице, сверить таблицу с каналом сдачи, напомнить отстающим, разобрать хвосты перед отчётом студентам. Это не объём часов, а раздробленность: координатор не может закончить свою часть за один присест ([docs/09](../../docs/09-assignment.md)).
+Что дорого координатору: узнать у каждого ревьюера ёмкость, разложить работы по таблице, сверить её с каналом сдачи, напомнить отстающим, разобрать хвосты перед отчётом студентам. Дорог не объём часов, а раздробленность: свою часть нельзя закончить за один присест ([docs/09](../../docs/09-assignment.md)).
 
 Что дорого ревьюеру: равное деление не учитывает его занятость на неделе, одни перегружены, другие простаивают. Просьба «подхватите» уходит в чат и не меняет таблицу, владелец работы неясен. До отбивки ревьюер за таблицей не следит, пул стоит.
 
@@ -63,7 +63,7 @@
 6. `active_reviewer_count` по возрастанию, работа с меньшим числом участников выше.
 7. `candidate_id.int` как детерминированный хвост.
 
-План часов не фильтр: докстринг `rank_recommendations` прямо говорит, что нулевая или исчерпанная доступность меняет только порядок и никогда не выбрасывает крупную работу. Это реализация FR-028 и FR-029.
+План часов не фильтр: докстринг `rank_recommendations` говорит, что нулевая или исчерпанная доступность меняет только порядок и не выбрасывает крупную работу (FR-028, FR-029).
 
 **Условия доступа к рекомендации** (`RecommendationService.recommend_next`): роль `reviewer`, поток выбран ревьюером (`selected`), курс и поток в статусе `active`, иначе рекомендация пуста. Сервис возвращает одного кандидата с причинами строками (`review_deadline:…`, `same_reviewer_continuation`, `planned_minutes:…`), ничего не блокируя и не создавая. Через него идут `GET /v1/review-queue/next` (`api/routes/reviews.py`) и инструмент MCP `recommend_next_review` (`mcp/tools/read.py`).
 
@@ -110,7 +110,7 @@
 
 В карточке ревью штраф показан отдельной строкой с галочкой «Применить просрочку −N» (`Review.tsx`), ревьюер может её снять. Подсказка в мастере задания обещает «не может обойти», расхождение подсказки с поведением фиксируем.
 
-**Сверка с Д1** («минус балл за день, дальше ноль»). Реализована линейная часть с потолком в размере самой оценки: оценка обнуляется, только когда `days × penalty_per_day` достигает `raw`. Отдельного правила «после N дней ноль» нет. Если Д1 означает жёсткую отсечку, её нужно добавить полем политики, и это открытый вопрос 7.4.
+**Сверка с Д1** («минус балл за день, дальше ноль»). Реализована линейная часть с потолком в размере оценки: ноль наступает, только когда `days × penalty_per_day` достигает `raw`. Правила «после N дней ноль» нет. Если Д1 означает отсечку, нужно поле политики, открытый вопрос 7.4.
 
 ### 2.6. Что видит координатор
 
