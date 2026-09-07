@@ -26,7 +26,8 @@ async def test_identifiers_replace_names_and_search_stays_in_organization(
     _, opened = await upload_and_open(runtime)
     async with await client_for(runtime, "methodologist") as client:
         first = assert_ok(await client.get("/api/v2/works"))["items"][0]
-        assert first["student_name"] == f"Студент {str(IDS['student'])[-12:]}"
+        # локальный пользователь без внешнего id: номер это последние пять hex-знаков uuid в десятичной записи
+        assert first["student_name"] == f"Студент {int(str(IDS['student'])[-5:], 16)}"
         assert (
             assert_ok(await client.get("/api/v2/works", params={"q": str(IDS["student"])[-12:]}))[
                 "total"
