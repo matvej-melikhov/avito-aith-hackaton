@@ -3,7 +3,7 @@
 import glob, itertools, json, os, sys
 
 RANK = {"weak": 0, "mid": 1, "good": 2}
-KEY = json.load(open("grader/blind_key.json"))
+KEY = json.load(open("docs/archive/grading-experiment/grader/blind_key.json"))
 
 def truth(task, sid):
     return RANK[KEY[f"{task}/{sid}"]]
@@ -55,7 +55,7 @@ def report(name, preds, reveal=False):
 
 def length_baseline():
     preds = {}
-    for td in sorted(glob.glob("grader/blind/*")):
+    for td in sorted(glob.glob("docs/archive/grading-experiment/grader/blind/*")):
         if not os.path.isdir(td): continue
         task = os.path.basename(td)
         sols = {os.path.basename(p).split("_")[1][0]: os.path.getsize(p)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         report(args[1] if len(args) > 1 else args[0], preds, reveal)
 
 
-def tie_stats(naive_results_glob="grader/blind/*/_result_naive.json"):
+def tie_stats(naive_results_glob="docs/archive/grading-experiment/grader/blind/*/_result_naive.json"):
     """Сколько раз абсолютная оценка не различает работы (одинаковый балл)."""
     import glob as _g
     tied = tot = 0

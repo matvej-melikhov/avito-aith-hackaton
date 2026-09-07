@@ -86,7 +86,7 @@
 
 ## Про хакатон
 
-**Context Pack** — документ дня 2: весь контекст проекта на одной странице. У нас это [CONTEXT_PACK.md](../CONTEXT_PACK.md).
+**Context Pack** — документ дня 2: весь контекст проекта на одной странице. У нас это [docs/archive/research/CONTEXT_PACK.md](archive/research/CONTEXT_PACK.md).
 
 **Demo Day** — финальная защита, 7 сентября.
 

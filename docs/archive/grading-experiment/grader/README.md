@@ -1,9 +1,9 @@
 # Агент оценки домашних работ: ранжирование по силе
 
-> Это исследовательский стенд от 4 сентября. Рабочее ядро проверки, которое вызывает платформа, живёт в [`prereview/`](../prereview/), описание в [`docs/AI_CORE.md`](../docs/AI_CORE.md).
+> Это исследовательский стенд от 4 сентября. Рабочее ядро проверки, которое вызывает платформа, живёт в [`prereview/`](../../../../prereview/), описание в [`docs/AI_CORE.md`](../../../AI_CORE.md).
 
 Стенд для проверки того, умеет ли LLM-оценщик отличать сильную работу от слабой.
-Разбор и результаты — в [`docs/GRADING_EXPERIMENT.md`](../docs/GRADING_EXPERIMENT.md).
+Разбор и результаты — в [`docs/archive/grading-experiment/GRADING_EXPERIMENT.md`](../GRADING_EXPERIMENT.md).
 
 **Коротко: не умеет заметно лучше, чем подсчёт символов.** Лучшая конфигурация
 даёт 76,8 % попарной точности против 71,4 % у базовой линии «кто длиннее, тот
@@ -17,27 +17,29 @@
 
 ## Запуск
 
+Команды выполняются из корня репозитория
+
 ```bash
 git clone https://github.com/ai-talent-hub-avito/homework_examples hw_examples
 
-python3 grader/manifest.py hw_examples   # опись заданий
-python3 grader/bundle.py                 # docx/pdf/xlsx/ipynb/html -> текст
-python3 grader/blind.py                  # слепой набор (метки прячутся)
+python3 docs/archive/grading-experiment/grader/manifest.py hw_examples   # опись заданий
+python3 docs/archive/grading-experiment/grader/bundle.py                 # docx/pdf/xlsx/ipynb/html -> текст
+python3 docs/archive/grading-experiment/grader/blind.py                  # слепой набор (метки прячутся)
 
 export GRADER_API_KEY=...                # DeepSeek или любой OpenAI-совместимый
 export GRADER_BASE_URL=https://api.deepseek.com/v1
 export GRADER_MODEL=deepseek-chat
 
-python3 grader/bench.py                  # наивный + структурный протоколы
+python3 docs/archive/grading-experiment/grader/bench.py                  # наивный + структурный протоколы
 
 # лучшая конфигурация: сравнение по всем работам + структурная усадка
-GRADER_BLIND=grader/blind_full GRADER_CONDENSE=1 GRADER_CAP=40000 \
-GRADER_TAG=condensed GRADER_OUT=grader/preds/condensed.json \
-  python3 grader/ablate.py
+GRADER_BLIND=docs/archive/grading-experiment/grader/blind_full GRADER_CONDENSE=1 GRADER_CAP=40000 \
+GRADER_TAG=condensed GRADER_OUT=docs/archive/grading-experiment/grader/preds/condensed.json \
+  python3 docs/archive/grading-experiment/grader/ablate.py
 ```
 
-`python3 grader/eval.py --length` — базовая линия по объёму.
-`python3 grader/eval.py grader/preds/condensed.json` — метрики конфигурации.
+`python3 docs/archive/grading-experiment/grader/eval.py --length` — базовая линия по объёму.
+`python3 docs/archive/grading-experiment/grader/eval.py docs/archive/grading-experiment/grader/preds/condensed.json` — метрики конфигурации.
 Флаг `--reveal` показывает эталонный порядок; **по умолчанию он скрыт**, иначе
 следующий прогон перестаёт быть слепым (мы на этом уже обожглись).
 

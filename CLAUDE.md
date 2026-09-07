@@ -6,7 +6,7 @@
 
 | Нужен контекст про | Файл |
 |---|---|
-| проект целиком, одна страница | [CONTEXT_PACK.md](CONTEXT_PACK.md) |
+| проект целиком, одна страница | [docs/archive/research/CONTEXT_PACK.md](docs/archive/research/CONTEXT_PACK.md) |
 | незнакомый термин | [глоссарий](docs/glossary.md) |
 | исходную постановку кейса | [sources/](sources/) — описание кейса, драфт задачи, установка дня 2 |
 | для кого, какую проблему, цена ошибки, метрики | [docs/01](docs/01-product.md) |

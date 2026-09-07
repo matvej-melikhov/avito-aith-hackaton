@@ -3,8 +3,8 @@ import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from extract import extract
 
-M = json.load(open("grader/manifest.json"))
-OUT = "grader/bundles"
+M = json.load(open("docs/archive/grading-experiment/grader/manifest.json"))
+OUT = "docs/archive/grading-experiment/grader/bundles"
 os.makedirs(OUT, exist_ok=True)
 PER_FILE_CAP = 400_000
 

@@ -6,7 +6,7 @@
 
 **Status**: Accepted for MVP
 
-**Input**: [docs/10-benchmark.md](../../docs/10-benchmark.md), [docs/EVALS.md](../../docs/EVALS.md), [docs/CALIBRATION.md](../../docs/CALIBRATION.md), [docs/GRADING_EXPERIMENT.md](../../docs/GRADING_EXPERIMENT.md), [отчёт массового прогона 6 сентября](../../docs/reports/homework-assessment-2026-09-06/README.md) и его `metrics.json`, разметка [prereview/evals/labels/](../../prereview/evals/labels/), код [prereview/src/prereview/evals.py](../../prereview/src/prereview/evals.py) и [judge/verify.py](../../prereview/src/prereview/judge/verify.py), [docs/12-hypotheses.md](../../docs/12-hypotheses.md), [docs/06-ux-and-effects.md](../../docs/06-ux-and-effects.md), [docs/04-contracts.md](../../docs/04-contracts.md) (Д6, Д8, Д13), все числа из [docs/NUMBERS.md](../../docs/NUMBERS.md).
+**Input**: [docs/10-benchmark.md](../../docs/10-benchmark.md), [docs/EVALS.md](../../docs/EVALS.md), [docs/CALIBRATION.md](../../docs/CALIBRATION.md), [docs/archive/grading-experiment/GRADING_EXPERIMENT.md](../../docs/archive/grading-experiment/GRADING_EXPERIMENT.md), [отчёт массового прогона 6 сентября](../../docs/reports/homework-assessment-2026-09-06/README.md) и его `metrics.json`, разметка [prereview/evals/labels/](../../prereview/evals/labels/), код [prereview/src/prereview/evals.py](../../prereview/src/prereview/evals.py) и [judge/verify.py](../../prereview/src/prereview/judge/verify.py), [docs/12-hypotheses.md](../../docs/12-hypotheses.md), [docs/06-ux-and-effects.md](../../docs/06-ux-and-effects.md), [docs/04-contracts.md](../../docs/04-contracts.md) (Д6, Д8, Д13), все числа из [docs/NUMBERS.md](../../docs/NUMBERS.md).
 
 ## 1. Зачем этот документ
 
@@ -39,7 +39,7 @@
 
 ### 2.3 История подхода: эксперимент 4 сентября
 
-До покритериальной схемы мы пробовали целостную: модель читает работу и ставит балл или сравнивает две работы. Разбор в docs/GRADING_EXPERIMENT.md: наш прогон 4 сентября по следам эксперимента коллеги 3 сентября, дата полного прогона в документе не указана. Данные: 20 заданий, 58 работ, 56 информативных пар, модель deepseek-chat, температура 0.
+До покритериальной схемы мы пробовали целостную: модель читает работу и ставит балл или сравнивает две работы. Разбор в docs/archive/grading-experiment/GRADING_EXPERIMENT.md: наш прогон 4 сентября по следам эксперимента коллеги 3 сентября, дата полного прогона в документе не указана. Данные: 20 заданий, 58 работ, 56 информативных пар, модель deepseek-chat, температура 0.
 
 | Метод | Точность по парам | Совпадение с порядком по длине |
 |---|---|---|

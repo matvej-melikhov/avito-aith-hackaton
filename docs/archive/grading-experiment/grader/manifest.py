@@ -56,7 +56,7 @@ for tid, t in tasks.items():
     if tid.startswith("GO") and not t["condition"]:
         t["condition"] = sorted(f for f in walk(os.path.join(ROOT, "GO")) if re.match(r"task\d\.md", os.path.basename(f)))
 
-json.dump(tasks, open("grader/manifest.json", "w"), ensure_ascii=False, indent=1)
+json.dump(tasks, open("docs/archive/grading-experiment/grader/manifest.json", "w"), ensure_ascii=False, indent=1)
 for tid, t in sorted(tasks.items()):
     levels = {k: len(v) for k, v in sorted(t["solutions"].items())}
     print(f"{tid}\n   cond={[os.path.basename(c) for c in t['condition']]}\n   sols={levels}")

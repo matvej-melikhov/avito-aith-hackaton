@@ -84,7 +84,7 @@ npm run dev
 
 ## Блокеры реального сквозного запуска
 
-Проверка текущего backend выполнена 2026-09-05, после checkpoint `6a3398c`; параллельная backend-задача продолжает работу. Наличие маршрутов и зелёные контрактные тесты не доказывают, что браузерная сессия подключена к runtime.
+Проверка текущего backend выполнена 2026-09-05, после docs/archive/checkpoint-2026-09-04 `6a3398c`; параллельная backend-задача продолжает работу. Наличие маршрутов и зелёные контрактные тесты не доказывают, что браузерная сессия подключена к runtime.
 
 1. `backend/src/review_platform/api/routes/identity_courses.py::_actor` и остальные resource routes читают `request.state.request_actor`. В просмотренном `main.py` и middleware отсутствует связка session cookie → `RequestActor`. `/v1/session` проверяет cookie отдельно. Нужна серверная аутентификация запроса; frontend не подставляет actor/header и не обходит авторизацию.
 2. Auth routes зависят от `app.state.installation_organization_id`, Stepik bindings/redirect/authorization URL и прочих server-owned auth параметров. Их production composition в просмотренном `main.py` не подключена. Нужны штатный bootstrap и локальный provider adapter. Приложение не создаёт учётные записи в обход штатного входа.

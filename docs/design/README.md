@@ -11,9 +11,9 @@
 | [screens.html](screens.html) | все двадцать два экрана платформы на новом стиле |
 | [deck.css](deck.css) | слой слайдов поверх общих компонентов: кадр 1920 на 1080, крупная типографика, метки происхождения чисел |
 | [deck.html](deck.html) | кит презентации: компоненты слайда и восемь пресетов страниц под структуру питча. Правила взяты из [гайда Demo Day](../../sources/demo-day-pitch-guide.pdf) |
-| [p5-variants.html](p5-variants.html) | четыре степени плотности на Р5, из которых выбрана первая. История решения |
-| [style-options.html](style-options.html) | три варианта стиля, из которых выбрали A. История решения |
-| [scale-diff.html](scale-diff.html) | шкала оценки до и после правки, увеличено втрое. История решения |
+| [p5-variants.html](../archive/design-variants/p5-variants.html) | четыре степени плотности на Р5, из которых выбрана первая. История решения |
+| [style-options.html](../archive/design-variants/style-options.html) | три варианта стиля, из которых выбрали A. История решения |
+| [scale-diff.html](../archive/design-variants/scale-diff.html) | шкала оценки до и после правки, увеличено втрое. История решения |
 
 Экраны в прежнем оформлении и вся логика статусов лежат в [../platform-screens/](../platform-screens/), они остаются источником содержания.
 

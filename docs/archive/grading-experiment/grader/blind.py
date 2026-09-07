@@ -3,8 +3,8 @@
 import glob, hashlib, json, os, random, re, sys
 
 import sys
-B   = sys.argv[1] if len(sys.argv) > 1 else "grader/bundles"
-OUT = sys.argv[2] if len(sys.argv) > 2 else "grader/blind"
+B   = sys.argv[1] if len(sys.argv) > 1 else "docs/archive/grading-experiment/grader/bundles"
+OUT = sys.argv[2] if len(sys.argv) > 2 else "docs/archive/grading-experiment/grader/blind"
 os.makedirs(OUT, exist_ok=True)
 random.seed(20260904)
 
@@ -37,6 +37,6 @@ for t, d in sorted(tasks.items()):
         open(f"{tdir}/solution_{sid}.txt", "w").write(body)
         key[f"{t}/{sid}"] = lvl
 
-json.dump(key, open("grader/blind_key.json", "w"), ensure_ascii=False, indent=1)
+json.dump(key, open("docs/archive/grading-experiment/grader/blind_key.json", "w"), ensure_ascii=False, indent=1)
 print(f"blinded {len(key)} solutions across {len(set(k.rsplit('/',1)[0] for k in key))} tasks")
-print("key written to grader/blind_key.json (NOT printed)")
+print("key written to docs/archive/grading-experiment/grader/blind_key.json (NOT printed)")

@@ -3,7 +3,7 @@
 Метки уровней НЕ печатаются — на выходе только blind id и результат прогона."""
 import glob, json, os, random, shutil, subprocess, sys
 
-M = json.load(open("grader/manifest.json"))
+M = json.load(open("docs/archive/grading-experiment/grader/manifest.json"))
 random.seed(20260904)
 
 task = sys.argv[1]
@@ -11,7 +11,7 @@ dest_root = sys.argv[2]
 
 # воспроизводим порядок из blind.py
 tasks = {}
-for p in sorted(glob.glob("grader/bundles/*__*.txt")):
+for p in sorted(glob.glob("docs/archive/grading-experiment/grader/bundles/*__*.txt")):
     b = os.path.basename(p)[:-4]
     if b.endswith("__CONDITION"): continue
     t, lvl = b.rsplit("__", 1)

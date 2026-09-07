@@ -20,9 +20,9 @@ Thumbs.db
 data/
 experiments/
 hw_examples/
-grader/blind_full/
-grader/blind/
-grader/bundles/
+docs/archive/grading-experiment/grader/blind_full/
+docs/archive/grading-experiment/grader/blind/
+docs/archive/grading-experiment/grader/bundles/
 prereview/data/
 .dsh/
 prereview/evals/runs/

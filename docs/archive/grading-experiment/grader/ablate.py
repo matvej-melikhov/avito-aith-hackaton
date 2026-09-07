@@ -15,7 +15,7 @@ from condense import condense
 from run import build_rubric, load, rubric_text
 
 CAP = int(os.environ.get("GRADER_CAP", "28000"))
-BLIND = os.environ.get("GRADER_BLIND", "grader/blind")
+BLIND = os.environ.get("GRADER_BLIND", "docs/archive/grading-experiment/grader/blind")
 USE_CONDENSE = os.environ.get("GRADER_CONDENSE") == "1"
 
 SYS = prompts.COMPARE_SYS.replace(
@@ -78,4 +78,4 @@ if __name__ == "__main__":
             print(f"{r['task'][:50]:<50} -> {''.join(r['verdict']['ranking'])}", flush=True)
         except Exception as e:
             print(f"{os.path.basename(td)[:50]:<50} !! {type(e).__name__}: {e}", flush=True)
-    json.dump(preds, open(os.environ.get("GRADER_OUT","grader/preds/compare_full.json"), "w"), ensure_ascii=False, indent=1)
+    json.dump(preds, open(os.environ.get("GRADER_OUT","docs/archive/grading-experiment/grader/preds/compare_full.json"), "w"), ensure_ascii=False, indent=1)

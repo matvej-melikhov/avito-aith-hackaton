@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Пайплайн оценки: рубрика -> доказательства -> сравнение -> ранжирование.
 
-  python3 grader/run.py grader/blind/<task_dir>            # структурный протокол
-  python3 grader/run.py grader/blind/<task_dir> --naive    # baseline
+  python3 docs/archive/grading-experiment/grader/run.py docs/archive/grading-experiment/grader/blind/<task_dir>            # структурный протокол
+  python3 docs/archive/grading-experiment/grader/run.py docs/archive/grading-experiment/grader/blind/<task_dir> --naive    # baseline
 """
 import glob, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

@@ -5,7 +5,7 @@
 
 Данные: `ai-talent-hub-avito/homework_examples` — 20 заданий, 58 решений с
 метками слабое / среднее / хорошее. Метки взяты как эталон ранжирования.
-Код: [`grader/`](../grader/). Модель: `deepseek-chat`, температура 0.
+Код: [`docs/archive/grading-experiment/grader/`](docs/archive/grading-experiment/grader/). Модель: `deepseek-chat`, температура 0.
 
 **Главный вывод вперёд.** Ни одна из четырёх конфигураций — включая ту, что
 мы строили как «правильную», — не обошла уверенно тривиальную базовую линию
@@ -207,7 +207,7 @@ exact ranking     : 45,0 %  (9/20)      [случайно = 17 %]
 | PDF без текстового слоя | 1 работа | работа получает 0 за то, что её не прочитали |
 | критерии, требующие запуска | 2 балла из 10 в backend-ДЗ | балл угадывается |
 
-Реализовано в [`grader/`](../grader/): `condense.py` (усадка с сохранением
+Реализовано в [`docs/archive/grading-experiment/grader/`](docs/archive/grading-experiment/grader/): `condense.py` (усадка с сохранением
 структуры и явными пометками пропусков), `inventory.py` (программный подсчёт
 скриншотов, диаграмм, таблиц, тестов), `extract.py` (детект PDF без текста и
 эскалация на vision), `codecheck.py` + `conformance_backend_hw1.py` (прогон
